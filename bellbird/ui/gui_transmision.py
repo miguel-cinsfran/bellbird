@@ -286,16 +286,18 @@ class TransmisionDialog(wx.Dialog):
         self._refrescar_estado()
 
     def _abrir_escena(self, event):
-        from bellbird.ui import escena_ventana
-        escena_ventana.abrir_escena(
-            self, self.GetParent(), gestor=self._gestor)
+        from bellbird.ui import obs_ventana
+        obs_ventana.abrir_obs(
+            self, self.GetParent(), gestor=self._gestor,
+            pestana=obs_ventana.PESTANA_ESCENA)
         self._refrescar_estado()
         self.btn_escena.SetFocus()
 
     def _abrir_grabacion(self, event):
-        from bellbird.ui import grabacion_ventana
-        grabacion_ventana.abrir_grabacion(
-            self, self.GetParent(), gestor=self._gestor)
+        from bellbird.ui import obs_ventana
+        obs_ventana.abrir_obs(
+            self, self.GetParent(), gestor=self._gestor,
+            pestana=obs_ventana.PESTANA_GRABACION)
         self._refrescar_estado()
         self.btn_grabacion.SetFocus()
 

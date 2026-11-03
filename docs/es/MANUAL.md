@@ -313,7 +313,7 @@ OBS. Después de activarlo, la aplicación escucha tres segundos. Si no entra
 ningún sonido, suena un aviso propio y dice «El micrófono no recibe sonido.
 Revisa cuál está elegido en Windows o en OBS.».
 
-`Ctrl+Mayús+O`, o *Mostrar OBS* en el menú *Transmisión*, trae al frente la ventana
+`Alt+Mayús+O`, o *Mostrar OBS* en el menú *Transmisión*, trae al frente la ventana
 de OBS, también cuando está en el área de notificación. Si OBS espera una
 respuesta, como la pregunta del modo seguro, el foco va a ese cuadro.
 
@@ -649,7 +649,7 @@ atajos. Todos figuran además en la barra de menú, junto a su acción.
 | `Ctrl+Mayús+D` | Abrir Administrador de descargas |
 | `Ctrl+Mayús+M` | Abrir la ventana de música |
 | `Ctrl+Mayús+I` | Preguntar a la IA sobre la imagen |
-| `Ctrl+Mayús+O` | Mostrar OBS |
+| `Ctrl+Mayús+O` | Abrir panel de OBS |
 
 ### Directo y OBS (Alt+Mayús)
 
@@ -664,6 +664,7 @@ atajos. Todos figuran además en la barra de menú, junto a su acción.
 | `Alt+Mayús+G` | Iniciar o detener la grabación |
 | `Alt+Mayús+P` | Pausar o reanudar la grabación |
 | `Alt+Mayús+A` | Activar o desactivar los avisos de sobrecarga |
+| `Alt+Mayús+O` | Mostrar OBS |
 
 ### Voz y lectura (teclas F)
 

@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 596322c3e5a280a590f33f4d318235f2aae15e93 -->
+<!-- original: es/MANUAL.md 29412626854ba1aad510778491dd20354eee0495 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -315,7 +315,7 @@ source in OBS. After you turn it on, the application listens for three seconds.
 If no sound comes in, it plays its own warning and says “The microphone is not
 receiving sound. Check which one is chosen in Windows or in OBS.”.
 
-`Ctrl+Shift+O`, or *Show OBS* in the *Broadcast* menu, brings the OBS window to
+`Alt+Shift+O`, or *Show OBS* in the *Broadcast* menu, brings the OBS window to
 the front, also when it is in the notification area. If OBS is waiting for an
 answer, such as the safe mode question, the focus goes to that dialog box.
 
@@ -655,7 +655,7 @@ shortcuts. They all also appear in the menu bar, next to their action.
 | `Ctrl+Shift+D` | Open Download manager |
 | `Ctrl+Shift+M` | Open the music window |
 | `Ctrl+Shift+I` | Ask the AI about the image |
-| `Ctrl+Shift+O` | Show OBS |
+| `Ctrl+Shift+O` | Open the OBS panel |
 
 ### Live stream and OBS (Alt+Shift)
 
@@ -669,6 +669,7 @@ shortcuts. They all also appear in the menu bar, next to their action.
 | `Alt+Shift+M` | Mute the OBS microphone |
 | `Alt+Shift+G` | Start or stop recording |
 | `Alt+Shift+P` | Pause or resume recording |
+| `Alt+Shift+O` | Show OBS |
 | `Alt+Shift+A` | Turn overload warnings on or off |
 
 ### Voice and reading (F keys)

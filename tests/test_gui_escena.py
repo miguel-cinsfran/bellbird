@@ -11,7 +11,8 @@ from bellbird.ui import escena_pagina_agregar
 from bellbird.ui import escena_pagina_audio
 from bellbird.ui import escena_pagina_escena
 from bellbird.ui import escena_pagina_fuentes
-from bellbird.ui import escena_ventana
+from bellbird.ui import gui_grabaciones
+from bellbird.ui import obs_ventana
 from bellbird.ui import gui_microfono
 from bellbird.ui import mover_con_flechas
 from bellbird.ui import operaciones_obs
@@ -82,7 +83,7 @@ def _asegurar_obs(probar_conexion, al_anunciar=None, parada=None):
     return probar_conexion()
 
 
-class TestVentanaEscena(unittest.TestCase):
+class TestVentanaObs(unittest.TestCase):
 
     def setUp(self):
         self.app = wx.App() if not wx.App.Get() else wx.App.Get()
@@ -96,17 +97,19 @@ class TestVentanaEscena(unittest.TestCase):
         self.asegurar = mock.Mock(side_effect=_asegurar_obs)
         self.parches = [
             mock.patch.object(threading, "Thread", HiloInmediato),
-            mock.patch.object(escena_ventana.wx, "CallAfter",
+            mock.patch.object(obs_ventana.wx, "CallAfter",
                               lambda funcion, *args: funcion(*args)),
-            mock.patch.object(escena_ventana.obs_lanzador, "asegurar_obs",
+            mock.patch.object(obs_ventana.obs_lanzador, "asegurar_obs",
                               self.asegurar),
-            mock.patch.object(escena_ventana, "anunciar", anunciar),
+            mock.patch.object(obs_ventana, "anunciar", anunciar),
             mock.patch.object(escena_pagina_escena, "anunciar", anunciar),
             mock.patch.object(escena_pagina_fuentes, "anunciar", anunciar),
             mock.patch.object(escena_pagina_agregar, "anunciar", anunciar),
             mock.patch.object(gui_microfono, "anunciar", anunciar),
             mock.patch.object(mover_con_flechas, "anunciar", anunciar),
             mock.patch.object(operaciones_obs, "anunciar", anunciar),
+            mock.patch.object(gui_grabaciones.grabaciones, "existentes",
+                              return_value=[]),
             mock.patch.object(operaciones_obs.sound_player, "reproducir"),
             mock.patch.object(gui_microfono, "abrir_microfono_obs"),
         ]
@@ -124,7 +127,7 @@ class TestVentanaEscena(unittest.TestCase):
             parche.stop()
 
     def _crear(self, gestor=None):
-        dialogo = escena_ventana.VentanaEscena(
+        dialogo = obs_ventana.VentanaObs(
             None, self.principal, gestor=self.gestor if gestor is None else gestor)
         self.addCleanup(destruir, dialogo)
         return dialogo
@@ -152,11 +155,12 @@ class TestVentanaEscena(unittest.TestCase):
         return nombres
 
     def test_titulo_y_pestanas(self):
-        self.assertEqual(self.dialogo.GetTitle(), "Escena")
+        self.assertEqual(self.dialogo.GetTitle(), "Panel de OBS")
         self.assertEqual(
             [self.dialogo.nb.GetPageText(i)
              for i in range(self.dialogo.nb.GetPageCount())],
-            ["Escena", "Fuentes", "Agregar", "Audio"])
+            ["Escena", "Audio", "Grabación", "Fuentes", "Agregar",
+             "General"])
 
     def test_al_abrir_la_escena_al_aire_la_descripcion_y_las_fuentes(self):
         self.anuncios.clear()
@@ -190,7 +194,7 @@ class TestVentanaEscena(unittest.TestCase):
 
     def test_sin_conexion_conecta_antes_de_leer_aunque_obs_ya_corra(self):
         gestor = GestorConexion(conectado=False)
-        with mock.patch.object(escena_ventana.obs_lanzador, "asegurar_obs",
+        with mock.patch.object(obs_ventana.obs_lanzador, "asegurar_obs",
                                return_value=False) as asegurar:
             dialogo = self._crear(gestor=gestor)
         asegurar.assert_called_once()
@@ -201,7 +205,7 @@ class TestVentanaEscena(unittest.TestCase):
 
     def test_con_la_conexion_abierta_no_reconecta(self):
         gestor = GestorConexion(conectado=True)
-        with mock.patch.object(escena_ventana.obs_lanzador, "asegurar_obs",
+        with mock.patch.object(obs_ventana.obs_lanzador, "asegurar_obs",
                                return_value=False) as asegurar:
             dialogo = self._crear(gestor=gestor)
         asegurar.assert_called_once()
@@ -353,9 +357,9 @@ class TestVentanaEscena(unittest.TestCase):
         self.assertTrue(callable(abrir.call_args.kwargs["al_cerrar"]))
 
     def test_cerrar_con_gestor_propio_lo_cierra(self):
-        with mock.patch.object(escena_ventana, "GestorPanelObs",
+        with mock.patch.object(obs_ventana, "GestorPanelObs",
                                return_value=self.gestor):
-            dialogo = escena_ventana.VentanaEscena(None, self.principal)
+            dialogo = obs_ventana.VentanaObs(None, self.principal)
         self.addCleanup(destruir, dialogo)
         dialogo.EndModal = mock.Mock()
         dialogo._cerrar(Evento())
@@ -442,11 +446,11 @@ class TestVentanaEscena(unittest.TestCase):
         self.dialogo.EndModal.assert_called_once_with(wx.ID_CANCEL)
 
     def test_ayuda_titulo_y_texto(self):
-        with mock.patch.object(escena_ventana.wx, "MessageBox") as aviso:
+        with mock.patch.object(obs_ventana.wx, "MessageBox") as aviso:
             self._pulsar(self.dialogo.btn_ayuda)
         self.assertEqual(aviso.call_args.args[0],
-                         escena_ventana.TEXTO_AYUDA_ESCENA)
-        self.assertEqual(aviso.call_args.args[1], "Ayuda de Escena")
+                         obs_ventana.TEXTO_AYUDA_OBS)
+        self.assertEqual(aviso.call_args.args[1], "Ayuda del panel de OBS")
 
 
 if __name__ == "__main__":

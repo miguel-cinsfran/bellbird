@@ -347,15 +347,18 @@ class GestorPanelObsTest(unittest.TestCase):
     def test_estadisticas_lee_los_cuadros_de_getstats(self):
         doble = DobleObs(estadisticas={
             "renderSkippedFrames": 8, "renderTotalFrames": 120,
-            "outputSkippedFrames": 40, "outputTotalFrames": 200})
+            "outputSkippedFrames": 40, "outputTotalFrames": 200,
+            "cpuUsage": 12.6, "availableDiskSpace": 2048})
         self.assertEqual(self.gestor(doble).estadisticas(), {
             "renderSkippedFrames": 8, "renderTotalFrames": 120,
-            "outputSkippedFrames": 40, "outputTotalFrames": 200})
+            "outputSkippedFrames": 40, "outputTotalFrames": 200,
+            "cpuUsage": 12.6, "availableDiskSpace": 2048})
 
     def test_estadisticas_con_campos_ausentes_dan_cero(self):
         self.assertEqual(self.gestor(DobleObs()).estadisticas(), {
             "renderSkippedFrames": 0, "renderTotalFrames": 0,
-            "outputSkippedFrames": 0, "outputTotalFrames": 0})
+            "outputSkippedFrames": 0, "outputTotalFrames": 0,
+            "cpuUsage": 0, "availableDiskSpace": 0})
 
     def test_poner_escena_al_aire_confirma_la_escena_leida(self):
         doble = DobleObs(escena="Principal", escenas=("Principal", "Juego"))

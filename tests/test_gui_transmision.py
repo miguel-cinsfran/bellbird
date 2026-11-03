@@ -103,6 +103,10 @@ class GestorFalso:
         self.llamadas.append(("alternar_transmision",))
         return self.transmitiendo
     def perfil_actual(self, parada=None): return self.perfil
+    def estadisticas(self, parada=None):
+        return {"cpuUsage": 12.6, "outputSkippedFrames": 3,
+                "outputTotalFrames": 100, "renderSkippedFrames": 5,
+                "renderTotalFrames": 200, "availableDiskSpace": 2048}
     def preparar_destino(self, destino, parada=None):
         self.llamadas.append(("preparar_destino", destino))
         self.perfil = destino
@@ -467,17 +471,17 @@ class TestPanelTransmision(unittest.TestCase):
             with self.subTest(nombre=nombre):
                 self.assertFalse(hasattr(self.dialogo, nombre))
 
-    def test_grabacion_abre_la_ventana_con_el_gestor_y_refresca(self):
-        from bellbird.ui import grabacion_ventana
+    def test_grabacion_abre_el_panel_con_el_gestor_y_refresca(self):
+        from bellbird.ui import obs_ventana
 
-        with mock.patch.object(grabacion_ventana,
-                               "abrir_grabacion") as abrir, \
+        with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \
                 mock.patch.object(self.dialogo, "_refrescar_estado") as refrescar, \
                 mock.patch.object(self.dialogo.btn_grabacion,
                                   "SetFocus") as foco:
             self._pulsar(self.dialogo.btn_grabacion)
         abrir.assert_called_once_with(
-            self.dialogo, self.dialogo.GetParent(), gestor=self.gestor)
+            self.dialogo, self.dialogo.GetParent(), gestor=self.gestor,
+            pestana=obs_ventana.PESTANA_GRABACION)
         refrescar.assert_called_once_with()
         foco.assert_called_once_with()
 
@@ -514,15 +518,16 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(self.dialogo.btn_grabacion.GetLabel(), "Gra&bación…")
         self.assertEqual(self.dialogo.btn_grabacion.GetName(), "Grabación…")
 
-    def test_escena_abre_la_ventana_con_el_gestor_y_refresca_el_estado(self):
-        from bellbird.ui import escena_ventana
+    def test_escena_abre_el_panel_con_el_gestor_y_refresca_el_estado(self):
+        from bellbird.ui import obs_ventana
 
-        with mock.patch.object(escena_ventana, "abrir_escena") as abrir, \
+        with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \
                 mock.patch.object(self.dialogo, "_refrescar_estado") as refrescar, \
                 mock.patch.object(self.dialogo.btn_escena, "SetFocus") as foco:
             self._pulsar(self.dialogo.btn_escena)
         abrir.assert_called_once_with(
-            self.dialogo, self.dialogo.GetParent(), gestor=self.gestor)
+            self.dialogo, self.dialogo.GetParent(), gestor=self.gestor,
+            pestana=obs_ventana.PESTANA_ESCENA)
         refrescar.assert_called_once_with()
         foco.assert_called_once_with()
 

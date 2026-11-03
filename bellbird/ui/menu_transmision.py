@@ -36,18 +36,28 @@ def abrir_restream(frame) -> None:
         al_desconectar=cuenta.desconectar)
 
 
-def abrir_escena(frame) -> None:
-    """Abre la ventana Escena con lo que se ve y se oye en OBS."""
-    from bellbird.ui import escena_ventana
+def abrir_obs(frame) -> None:
+    """Abre el panel de OBS en su pestaña Escena."""
+    from bellbird.ui import obs_ventana
 
-    escena_ventana.abrir_escena(frame, frame)
+    obs_ventana.abrir_obs(
+        frame, frame, pestana=obs_ventana.PESTANA_ESCENA)
+
+
+def abrir_escena(frame) -> None:
+    """Abre el panel de OBS en la pestaña Escena."""
+    from bellbird.ui import obs_ventana
+
+    obs_ventana.abrir_obs(
+        frame, frame, pestana=obs_ventana.PESTANA_ESCENA)
 
 
 def abrir_grabacion(frame) -> None:
-    """Abre la ventana Grabación, aunque no haya un directo en curso."""
-    from bellbird.ui import grabacion_ventana
+    """Abre el panel de OBS en la pestaña Grabación."""
+    from bellbird.ui import obs_ventana
 
-    grabacion_ventana.abrir_grabacion(frame, frame)
+    obs_ventana.abrir_obs(
+        frame, frame, pestana=obs_ventana.PESTANA_GRABACION)
 
 
 def _agregar_encuadre(frame, m):
@@ -72,6 +82,9 @@ def _agregar_ventanas(frame, m):
     frame.mi_restream = m.Append(
         wx.ID_ANY, _("Re&stream…") + frame._accel("abrir_restream"))
     frame._bind_menu(frame.mi_restream, abrir_restream, frame)
+    frame.mi_obs_panel = m.Append(
+        wx.ID_ANY, _("Panel de &OBS…") + frame._accel("abrir_obs"))
+    frame._bind_menu(frame.mi_obs_panel, abrir_obs, frame)
     frame.mi_escena = m.Append(
         wx.ID_ANY, _("Esce&na…") + frame._accel("abrir_escena"))
     frame._bind_menu(frame.mi_escena, abrir_escena, frame)
@@ -80,17 +93,8 @@ def _agregar_ventanas(frame, m):
     frame._bind_menu(frame.mi_grabacion, abrir_grabacion, frame)
 
 
-def _agregar_grabaciones(frame, m):
-    """El comando que abre la lista de grabaciones guardadas."""
-    from bellbird.ui import gui_grabaciones
-    frame.mi_grabaciones = m.Append(wx.ID_ANY, _("Grabaciones guar&dadas…"))
-    frame._bind_menu(frame.mi_grabaciones,
-                     gui_grabaciones.abrir_grabaciones, frame)
-
-
 def _agregar_avisos(frame, m):
-    """La lista de grabaciones y las casillas de avisos al transmitir."""
-    _agregar_grabaciones(frame, m)
+    """Las casillas de avisos al transmitir."""
     frame.mi_avisos_sobrecarga = m.AppendCheckItem(
         wx.ID_ANY,
         _("&Avisar si OBS se sobrecarga") + frame._accel("avisos_sobrecarga"))
@@ -107,7 +111,7 @@ def construir(frame, mb):
         wx.ID_ANY, _("Silenciar &micrófono de OBS") + frame._accel("obs_micro"))
     frame.mi_micro_obs = m.Append(wx.ID_ANY, _("&Elegir micrófono…"))
     frame.mi_mostrar_obs = m.Append(
-        wx.ID_ANY, _("Mostrar &OBS") + frame._accel("mostrar_obs"))
+        wx.ID_ANY, _("Mos&trar OBS") + frame._accel("mostrar_obs"))
     frame.mi_obs_grabar = m.Append(
         wx.ID_ANY,
         _("Iniciar o detener g&rabación") + frame._accel("obs_grabar"))

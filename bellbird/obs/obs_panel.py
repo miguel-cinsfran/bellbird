@@ -99,7 +99,8 @@ class GestorPanelObs:
         datos = self._pedir("GetStats", parada=parada)
         return {clave: datos.get(clave, 0) for clave in (
             "renderSkippedFrames", "renderTotalFrames",
-            "outputSkippedFrames", "outputTotalFrames")}
+            "outputSkippedFrames", "outputTotalFrames",
+            "cpuUsage", "availableDiskSpace")}
 
     def estado_grabacion(self, parada=None) -> dict:
         datos = self._pedir("GetRecordStatus", parada=parada)

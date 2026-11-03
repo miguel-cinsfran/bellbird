@@ -19,7 +19,6 @@ _INICIAR_GRABACION = N_("Iniciar &grabación")
 _DETENER_GRABACION = N_("Detener &grabación")
 _PAUSAR_GRABACION = N_("&Pausar grabación")
 _REANUDAR_GRABACION = N_("&Reanudar grabación")
-_GRABACIONES = N_("Grabaciones guar&dadas…")
 
 
 def _crear_botones(padre):
@@ -27,9 +26,7 @@ def _crear_botones(padre):
                       name=nombre_de_etiqueta(_(_INICIAR_GRABACION)))
     pausar = wx.Button(padre, label=_(_PAUSAR_GRABACION),
                        name=nombre_de_etiqueta(_(_PAUSAR_GRABACION)))
-    boton_lista = wx.Button(padre, label=_(_GRABACIONES),
-                            name=nombre_de_etiqueta(_(_GRABACIONES)))
-    return boton, pausar, boton_lista
+    return boton, pausar
 
 
 class ControlGrabacion:
@@ -42,10 +39,9 @@ class ControlGrabacion:
         self._foco = foco
         self.grabando = False
         self.en_pausa = False
-        self.boton, self.pausar, self.grabaciones = _crear_botones(padre)
+        self.boton, self.pausar = _crear_botones(padre)
         self.boton.Bind(wx.EVT_BUTTON, self._alternar)
         self.pausar.Bind(wx.EVT_BUTTON, self._alternar_pausa)
-        self.grabaciones.Bind(wx.EVT_BUTTON, self._abrir_grabaciones)
 
     def fijar(self, grabando, en_pausa):
         self.grabando = bool(grabando)
@@ -72,11 +68,6 @@ class ControlGrabacion:
         sound_player.reproducir(obs_estado.sonido_resultado("grabacion_detenida"))
         anunciar(grabaciones.anotar_y_decir(ruta))
         self._al_cambiar()
-
-    def _abrir_grabaciones(self, event):
-        from bellbird.ui import gui_grabaciones
-        gui_grabaciones.abrir_grabaciones(
-            wx.GetTopLevelParent(self.grabaciones))
 
     def _alternar_pausa(self, event):
         self._operaciones.en_hilo(

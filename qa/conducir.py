@@ -1765,15 +1765,6 @@ def escenario_historial(app: Aplicacion, args, res: Resultado):
                     vueltas_tab=12)
 
 
-def escenario_grabaciones(app: Aplicacion, args, res: Resultado):
-    """La ventana que lista las grabaciones que la app detuvo."""
-    esperados = ("Grabaciones", "Abrir", "Abrir carpeta", "Copiar ruta",
-                 "Eliminar de la lista", "Cerrar")
-    auditar_dialogo(app, res, "Transmisión > Grabaciones guardadas…", "Grabaciones",
-                    vueltas_tab=10, esperados=esperados,
-                    esperados_en_tab=esperados)
-
-
 def escenario_restream(app: Aplicacion, args, res: Resultado):
     """La ventana de la cuenta de Restream, sin cuenta conectada."""
     esperados = ("Estado de la cuenta", "Conectar", "Cerrar")
@@ -1906,7 +1897,8 @@ def escenario_grabacion(app: Aplicacion, args, res: Resultado):
     la grabación de la PC.
     """
     ventanas_obs.auditar_grabacion(
-        app, res, auditar_dialogo, VUELTAS_TAB_TRANSMISION)
+        app, res, recorrer_tab, revisar_nombres, faltan_habilitados,
+        VUELTAS_TAB_TRANSMISION)
 
 
 def escenario_microfono(app: Aplicacion, args, res: Resultado):
@@ -5536,7 +5528,10 @@ SUPERFICIES = {
     "gui_estado.py": "principal",
     "dialogo_estado.py": "principal",
     "gui_historial.py": "historial",
-    "gui_grabaciones.py": "grabaciones",
+    "gui_grabaciones.py": "grabacion",
+    "obs_ventana.py": "escena",
+    "obs_pagina_grabacion.py": "grabacion",
+    "obs_pagina_general.py": "escena",
     "restream_ventana.py": "restream",
     "recientes_inicio.py": "principal",
     "gui_menu.py": "menus",
@@ -5557,8 +5552,6 @@ SUPERFICIES = {
     "ia_consulta_rapida.py": "ia",
     "ia_privacidad.py": "ia",
     "gui_transmision.py": "transmision",
-    "grabacion_ventana.py": "grabacion",
-    "escena_ventana.py": "escena",
     "escena_pagina_escena.py": "escena",
     "escena_pagina_fuentes.py": "escena",
     "escena_pagina_agregar.py": "escena",
@@ -5601,6 +5594,8 @@ SIN_ESCENARIO: dict[str, str] = {
     "comandos_grabacion.py": "comandos del menú Transmisión que actúan sobre OBS; no abren ventana.",
     "restream_perfil.py": "El banco no tiene cuenta ni canales; el diálogo lo cubren las pruebas con wx.",
     "agregar_camara.py": "El banco no tiene cámara de Windows; el flujo lo cubren las pruebas con wx y la prueba contra OBS real.",
+    "escena_ventana.py": "Quedó sin usos al unificar el panel de OBS; se conserva por ahora.",
+    "grabacion_ventana.py": "Quedó sin usos al unificar el panel de OBS; se conserva por ahora.",
 }
 
 EXTRAS_DE_INTERFAZ = ("reproductor.py", "iconos.py")
@@ -5687,7 +5682,6 @@ ESCENARIOS = {
     "preferencias_categorias": escenario_preferencias_categorias,
     "preferencias_persisten": escenario_preferencias_persisten,
     "historial": escenario_historial,
-    "grabaciones": escenario_grabaciones,
     "restream": escenario_restream,
     "transmision": escenario_transmision,
     "escena": escenario_escena,
@@ -5878,7 +5872,7 @@ def _instalar_capturas(captor):
 EN_TODOS = ["arranque_frio", "reproductor",
             "menus", "principal", "descargas", "preferencias",
             "preferencias_categorias", "preferencias_persisten",
-            "programados", "historial", "grabaciones", "restream",
+            "programados", "historial", "restream",
             "transmision", "escena", "grabacion",
             # `microfono` va justo después de `transmision`: los dos
             # necesitan OBS y auditan cuadros del menú Transmisión.

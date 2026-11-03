@@ -174,14 +174,14 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Reproductor", "Mostrar botones en &pantalla", ANY, "check"),
             ("&Transmisión", "&Panel de transmisión…", ANY, "normal"),
             ("&Transmisión", "Re&stream…", ANY, "normal"),
+            ("&Transmisión", "Panel de &OBS…", ANY, "normal"),
             ("&Transmisión", "Esce&na…", ANY, "normal"),
             ("&Transmisión", "Gra&bación…", ANY, "normal"),
             ("&Transmisión", "Silenciar &micrófono de OBS", ANY, "check"),
             ("&Transmisión", "&Elegir micrófono…", ANY, "normal"),
-            ("&Transmisión", "Mostrar &OBS", ANY, "normal"),
+            ("&Transmisión", "Mos&trar OBS", ANY, "normal"),
             ("&Transmisión", "Iniciar o detener g&rabación", ANY, "normal"),
             ("&Transmisión", "Pa&usar o reanudar grabación", ANY, "normal"),
-            ("&Transmisión", "Grabaciones guar&dadas…", ANY, "normal"),
             ("&Transmisión", "&Avisar si OBS se sobrecarga", ANY, "check"),
             ("&Transmisión", "&Grabar también al transmitir", ANY, "check"),
             ("&Transmisión", "---", None, "sep"),
@@ -614,14 +614,28 @@ class TestMenuEscena(unittest.TestCase):
         _, lista = _construir_lista(accel)
         return [fila for fila in lista if fila[0] == "&Transmisión"]
 
-    def test_escena_va_despues_de_restream_con_su_atajo(self):
+    def test_panel_de_obs_va_despues_de_restream_con_su_atajo(self):
         entradas = self._transmision()
         restream = next(i for i, fila in enumerate(entradas)
                         if fila[1].startswith("Re&stream…"))
         self.assertEqual(
-            ("&Transmisión", "Esce&na…\tCtrl+Shift+E",
+            ("&Transmisión", "Panel de &OBS…\tCtrl+Shift+O",
              gui.wx.ID_ANY, "normal"),
             entradas[restream + 1])
+
+    def test_escena_va_despues_de_panel_de_obs(self):
+        entradas = self._transmision()
+        panel = next(i for i, fila in enumerate(entradas)
+                     if fila[1].startswith("Panel de &OBS…"))
+        self.assertEqual(
+            ("&Transmisión", "Esce&na…\tCtrl+Shift+E",
+             gui.wx.ID_ANY, "normal"),
+            entradas[panel + 1])
+
+    def test_grabaciones_guardadas_ya_no_esta(self):
+        entradas = self._transmision()
+        self.assertFalse(any("Grabaciones guar" in fila[1]
+                             for fila in entradas))
 
     def test_la_letra_e_no_se_repite_en_el_menu(self):
         letras = [texto[texto.index("&") + 1].lower()
@@ -688,19 +702,35 @@ class TestCableadoEscena(unittest.TestCase):
         frame.SetMenuBar(barra)
         return frame
 
-    def test_elegir_escena_abre_la_ventana_con_el_frame(self):
-        from bellbird.ui import escena_ventana
+    def test_elegir_escena_abre_el_panel_en_escena(self):
         from bellbird.ui import menu_transmision
+        from bellbird.ui import obs_ventana
 
         frame = self._frame_con_menu()
-        with mock.patch.object(escena_ventana, "abrir_escena") as abrir, \
+        with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \
                 mock.patch.object(menu_transmision.wx, "CallAfter",
                                   side_effect=lambda fn, *a: fn(*a)):
             evento = wx.CommandEvent(
                 wx.EVT_MENU.typeId, frame.mi_escena.GetId())
             frame.GetEventHandler().ProcessEvent(evento)
 
-        abrir.assert_called_once_with(frame, frame)
+        abrir.assert_called_once_with(
+            frame, frame, pestana=obs_ventana.PESTANA_ESCENA)
+
+    def test_elegir_panel_de_obs_abre_el_panel_en_escena(self):
+        from bellbird.ui import menu_transmision
+        from bellbird.ui import obs_ventana
+
+        frame = self._frame_con_menu()
+        with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \
+                mock.patch.object(menu_transmision.wx, "CallAfter",
+                                  side_effect=lambda fn, *a: fn(*a)):
+            evento = wx.CommandEvent(
+                wx.EVT_MENU.typeId, frame.mi_obs_panel.GetId())
+            frame.GetEventHandler().ProcessEvent(evento)
+
+        abrir.assert_called_once_with(
+            frame, frame, pestana=obs_ventana.PESTANA_ESCENA)
 
 
 class TestCableadoGrabacion(unittest.TestCase):
@@ -730,20 +760,20 @@ class TestCableadoGrabacion(unittest.TestCase):
         frame.SetMenuBar(barra)
         return frame
 
-    def test_elegir_grabacion_abre_la_ventana_con_el_frame(self):
-        from bellbird.ui import grabacion_ventana
+    def test_elegir_grabacion_abre_el_panel_en_grabacion(self):
         from bellbird.ui import menu_transmision
+        from bellbird.ui import obs_ventana
 
         frame = self._frame_con_menu()
-        with mock.patch.object(grabacion_ventana,
-                               "abrir_grabacion") as abrir, \
+        with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \
                 mock.patch.object(menu_transmision.wx, "CallAfter",
                                   side_effect=lambda fn, *a: fn(*a)):
             evento = wx.CommandEvent(
                 wx.EVT_MENU.typeId, frame.mi_grabacion.GetId())
             frame.GetEventHandler().ProcessEvent(evento)
 
-        abrir.assert_called_once_with(frame, frame)
+        abrir.assert_called_once_with(
+            frame, frame, pestana=obs_ventana.PESTANA_GRABACION)
 
 
 class TestCableadoMostrarObs(unittest.TestCase):
@@ -871,15 +901,6 @@ class TestCableadoGrabacion(unittest.TestCase):
             frame = self._frame_con_menu()
             self._elegir(frame, frame.mi_obs_pausar_grabacion)
         comando.assert_called_once_with(frame)
-
-    def test_grabaciones_abre_la_ventana(self):
-        from bellbird.ui import gui_grabaciones
-
-        with mock.patch.object(gui_grabaciones,
-                               "abrir_grabaciones") as abrir:
-            frame = self._frame_con_menu()
-            self._elegir(frame, frame.mi_grabaciones)
-        abrir.assert_called_once_with(frame)
 
 
 # Textos que arma otro módulo y la barra solo muestra. Las etiquetas de

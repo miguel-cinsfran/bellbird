@@ -3407,6 +3407,31 @@ msgstr "Recording resumed"
 msgid "Escena actual cambiada"
 msgstr "Current scene changed"
 
+#: bellbird/obs/obs_general.py
+#, python-brace-format
+msgid "Conectado con OBS. Perfil: {perfil}."
+msgstr "Connected to OBS. Profile: {perfil}."
+
+#: bellbird/obs/obs_general.py
+#, python-brace-format
+msgid "Uso de CPU: {porcentaje} %."
+msgstr "CPU usage: {porcentaje} %."
+
+#: bellbird/obs/obs_general.py
+#, python-brace-format
+msgid "Fotogramas omitidos por retraso en la codificación: {n} de {total}."
+msgstr "Frames skipped due to encoding lag: {n} of {total}."
+
+#: bellbird/obs/obs_general.py
+#, python-brace-format
+msgid "Fotogramas perdidos por retraso de procesamiento: {n} de {total}."
+msgstr "Frames lost due to rendering lag: {n} of {total}."
+
+#: bellbird/obs/obs_general.py
+#, python-brace-format
+msgid "Espacio en disco disponible: {tamano}."
+msgstr "Available disk space: {tamano}."
+
 #: bellbird/obs/obs_grabacion.py
 msgid ""
 "El perfil de OBS graba con un codificador propio: transmitir y grabar a la "
@@ -4385,6 +4410,10 @@ msgstr "Open Scene"
 msgid "Abrir Grabación"
 msgstr "Open Recording"
 
+#: bellbird/ui/atajos_captura.py
+msgid "Abrir panel de OBS"
+msgstr "Open OBS panel"
+
 #: bellbird/ui/atajos_captura.py bellbird/ui/gui_transmision.py
 msgid "Mostrar OBS"
 msgstr "Show OBS"
@@ -5067,10 +5096,6 @@ msgstr "&Pause recording"
 msgid "&Reanudar grabación"
 msgstr "&Keep recording"
 
-#: bellbird/ui/control_grabacion.py bellbird/ui/menu_transmision.py
-msgid "Grabaciones guar&dadas…"
-msgstr "Sa&ved recordings…"
-
 #: bellbird/ui/descargas_acciones.py
 msgid "Descargas terminadas. ¿Abrir la carpeta?"
 msgstr "Downloads finished. Open the folder?"
@@ -5302,6 +5327,7 @@ msgstr "Progress"
 #. Traductores: nombre del cuadro de estado.
 #: bellbird/ui/descargas_listas.py bellbird/ui/grabacion_ventana.py
 #: bellbird/ui/gui_actualizacion.py bellbird/ui/gui_transmision.py
+#: bellbird/ui/obs_pagina_grabacion.py
 msgid "Estado"
 msgstr "Status"
 
@@ -5362,9 +5388,9 @@ msgid "Sin información de estado."
 msgstr "No status information."
 
 #: bellbird/ui/dialogo_estado.py bellbird/ui/escena_ventana.py
-#: bellbird/ui/grabacion_ventana.py bellbird/ui/gui_grabaciones.py
-#: bellbird/ui/gui_microfono.py bellbird/ui/gui_transmision.py
-#: bellbird/ui/ia_ventana.py bellbird/ui/musica_ventana.py
+#: bellbird/ui/grabacion_ventana.py bellbird/ui/gui_microfono.py
+#: bellbird/ui/gui_transmision.py bellbird/ui/ia_ventana.py
+#: bellbird/ui/musica_ventana.py bellbird/ui/obs_ventana.py
 #: bellbird/ui/restream_ventana.py
 msgid "Cerrar"
 msgstr "Close"
@@ -5611,23 +5637,24 @@ msgstr ""
 "\n"
 "Audio mutes the OBS microphone and chooses which one is used."
 
-#: bellbird/ui/escena_ventana.py
+#: bellbird/ui/escena_ventana.py bellbird/ui/obs_ventana.py
 msgid "Escena"
 msgstr "Scene"
 
-#: bellbird/ui/escena_ventana.py
+#: bellbird/ui/escena_ventana.py bellbird/ui/obs_ventana.py
 msgid "Fuentes"
 msgstr "Sources"
 
-#: bellbird/ui/escena_ventana.py
+#: bellbird/ui/escena_ventana.py bellbird/ui/obs_ventana.py
 msgid "Agregar"
 msgstr "Add"
 
-#: bellbird/ui/escena_ventana.py
+#: bellbird/ui/escena_ventana.py bellbird/ui/obs_ventana.py
 msgid "Audio"
 msgstr "Audio"
 
 #: bellbird/ui/escena_ventana.py bellbird/ui/gui_menu.py
+#: bellbird/ui/obs_ventana.py
 msgid "A&yuda"
 msgstr "&Help"
 
@@ -5635,19 +5662,20 @@ msgstr "&Help"
 msgid "Ayuda de Escena"
 msgstr "Scene help"
 
-#: bellbird/ui/grabacion_ventana.py
+#: bellbird/ui/grabacion_ventana.py bellbird/ui/obs_ventana.py
 msgid "Grabación"
 msgstr "Recording"
 
 #: bellbird/ui/grabacion_ventana.py bellbird/ui/gui_transmision.py
+#: bellbird/ui/obs_pagina_grabacion.py
 msgid "&Estado:"
 msgstr "&Status:"
 
-#: bellbird/ui/grabacion_ventana.py
+#: bellbird/ui/grabacion_ventana.py bellbird/ui/obs_pagina_grabacion.py
 msgid "Grabar ta&mbién al transmitir"
 msgstr "Record whi&le broadcasting"
 
-#: bellbird/ui/grabacion_ventana.py
+#: bellbird/ui/grabacion_ventana.py bellbird/ui/obs_pagina_grabacion.py
 msgid "Grabar también al transmitir"
 msgstr "Record while broadcasting"
 
@@ -5661,10 +5689,12 @@ msgid "Escena…"
 msgstr "Scene…"
 
 #: bellbird/ui/grabacion_ventana.py bellbird/ui/gui_transmision.py
+#: bellbird/ui/obs_pagina_general.py bellbird/ui/obs_pagina_grabacion.py
 msgid "Ac&tualizar estado"
 msgstr "Re&fresh status"
 
 #: bellbird/ui/grabacion_ventana.py bellbird/ui/gui_transmision.py
+#: bellbird/ui/obs_pagina_grabacion.py
 msgid "Actualizar estado"
 msgstr "Refresh status"
 
@@ -7298,7 +7328,7 @@ msgstr "Preference categories"
 msgid "Categorías"
 msgstr "Categories"
 
-#: bellbird/ui/gui_preferencias.py
+#: bellbird/ui/gui_preferencias.py bellbird/ui/obs_ventana.py
 msgid "General"
 msgstr "General"
 
@@ -7563,7 +7593,7 @@ msgstr "Recordin&g…"
 msgid "Grabación…"
 msgstr "Recording…"
 
-#: bellbird/ui/gui_transmision.py bellbird/ui/menu_transmision.py
+#: bellbird/ui/gui_transmision.py bellbird/ui/obs_pagina_general.py
 msgid "Mostrar &OBS"
 msgstr "Show &OBS"
 
@@ -7889,6 +7919,10 @@ msgid "Re&stream…"
 msgstr "Restr&eam…"
 
 #: bellbird/ui/menu_transmision.py
+msgid "Panel de &OBS…"
+msgstr "&OBS panel…"
+
+#: bellbird/ui/menu_transmision.py
 msgid "&Avisar si OBS se sobrecarga"
 msgstr "&Warn if OBS is overloaded"
 
@@ -7903,6 +7937,10 @@ msgstr "Mute OBS &microphone"
 #: bellbird/ui/menu_transmision.py
 msgid "&Elegir micrófono…"
 msgstr "&Choose microphone…"
+
+#: bellbird/ui/menu_transmision.py
+msgid "Mos&trar OBS"
+msgstr "S&how OBS"
 
 #: bellbird/ui/menu_transmision.py
 msgid "Iniciar o detener g&rabación"
@@ -8134,6 +8172,73 @@ msgstr "Stop matchin&g"
 #: bellbird/ui/musica_ventana_igualando.py
 msgid "Detener la igualación"
 msgstr "Stop matching"
+
+#: bellbird/ui/obs_pagina_general.py
+msgid "&Estado de OBS:"
+msgstr "OBS &status:"
+
+#: bellbird/ui/obs_pagina_general.py
+msgid "Estado de OBS"
+msgstr "OBS status"
+
+#: bellbird/ui/obs_ventana.py
+msgid ""
+"Esta ventana reúne en pestañas lo que se hace con OBS. Ctrl+Tab pasa a la "
+"pestaña siguiente y Ctrl+Mayús+Tab a la anterior.\n"
+"\n"
+"Escena elige cuál se edita, dice qué tiene y cambia cuál se emite. Recorrer"
+" la lista no cambia nada en el directo.\n"
+"\n"
+"Audio silencia el micrófono de OBS y elige cuál se usa.\n"
+"\n"
+"Grabación inicia, pausa y detiene la grabación. La lista tiene lo grabado: "
+"Intro abre el archivo y Supr lo elimina de la lista. La tecla Aplicaciones "
+"muestra las demás acciones.\n"
+"\n"
+"Fuentes elige una fuente de la escena. La mueve, la cambia de tamaño, la "
+"oculta, la bloquea o cambia su capa. Mover con flechas la mueve en pasos "
+"pequeños: Ctrl da pasos grandes, Mayús pasos de un píxel, Intro confirma y "
+"Esc deshace. Deshacer cambios vuelve a como estaba todo al abrir esta "
+"ventana.\n"
+"\n"
+"Agregar captura una ventana del equipo o agrega una cámara de Windows a la "
+"escena actual.\n"
+"\n"
+"General dice el perfil de OBS y cómo rinde el equipo. Mostrar OBS trae su "
+"ventana al frente."
+msgstr ""
+"This window brings together in tabs what is done with OBS. Ctrl+Tab moves "
+"to the next tab and Ctrl+Shift+Tab to the previous one.\n"
+"\n"
+"Scene chooses which one is edited, says what it has and changes which one "
+"is broadcast. Browsing the list does not change anything in the live "
+"stream.\n"
+"\n"
+"Audio mutes the OBS microphone and chooses which one is used.\n"
+"\n"
+"Recording starts, pauses and stops recording. The list has what was "
+"recorded: Enter opens the file and Delete removes it from the list. The "
+"Applications key shows the other actions.\n"
+"\n"
+"Sources chooses a source of the scene. It moves it, changes its size, hides"
+" it, locks it or changes its layer. Move with arrows moves it in small "
+"steps: Ctrl gives large steps, Shift one-pixel steps, Enter confirms and "
+"Esc undoes. Undo changes returns everything to how it was when this window "
+"was opened.\n"
+"\n"
+"Add captures a window from the computer or adds a Windows camera to the "
+"current scene.\n"
+"\n"
+"General says the OBS profile and how the computer performs. Show OBS brings"
+" its window to the front."
+
+#: bellbird/ui/obs_ventana.py
+msgid "Panel de OBS"
+msgstr "OBS panel"
+
+#: bellbird/ui/obs_ventana.py
+msgid "Ayuda del panel de OBS"
+msgstr "OBS panel help"
 
 #. Traductores: primera opción del combinado de salida de música; la que elige
 #. el sistema.

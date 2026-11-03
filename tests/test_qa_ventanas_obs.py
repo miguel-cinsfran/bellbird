@@ -35,30 +35,34 @@ class _Aplicacion:
 
 class TestDescuadreDePestanas(unittest.TestCase):
 
-    def test_las_cuatro_en_orden_no_descuidran(self):
+    def test_las_seis_en_orden_no_descuidran(self):
         self.assertIsNone(ventanas_obs.descuadre_de_pestanas(
-            ["Escena", "Fuentes", "Agregar", "Audio"]))
+            ["Escena", "Audio", "Grabación", "Fuentes", "Agregar",
+             "General"]))
 
     def test_una_pestana_de_mas_es_fallo_y_la_nombra(self):
         texto = ventanas_obs.descuadre_de_pestanas(
-            ["Escena", "Fuentes", "Agregar", "Audio", "Filtros"])
+            ["Escena", "Audio", "Grabación", "Fuentes", "Agregar",
+             "General", "Filtros"])
         self.assertIsNotNone(texto)
         self.assertIn("Filtros", texto)
 
     def test_una_pestana_de_menos_es_fallo(self):
         texto = ventanas_obs.descuadre_de_pestanas(
-            ["Escena", "Fuentes", "Agregar"])
+            ["Escena", "Audio", "Grabación", "Fuentes", "Agregar"])
         self.assertIsNotNone(texto)
 
     def test_el_orden_cambiado_es_fallo_y_lo_muestra(self):
         texto = ventanas_obs.descuadre_de_pestanas(
-            ["Fuentes", "Escena", "Agregar", "Audio"])
+            ["Audio", "Escena", "Grabación", "Fuentes", "Agregar",
+             "General"])
         self.assertIsNotNone(texto)
-        self.assertIn("Fuentes", texto)
+        self.assertIn("Audio", texto)
 
     def test_ignora_mayusculas_y_espacios(self):
         self.assertIsNone(ventanas_obs.descuadre_de_pestanas(
-            [" escena ", "Fuentes", "AGREGAR", "Audio"]))
+            [" escena ", "Audio", "grabación", "Fuentes", "AGREGAR",
+             "General"]))
 
 
 class TestFaltanEnTab(unittest.TestCase):
@@ -89,7 +93,7 @@ class TestFaltanEnTab(unittest.TestCase):
 class TestEsperadosDePestana(unittest.TestCase):
 
     def test_cada_pestana_suma_ayuda_y_cerrar(self):
-        for nombre in ventanas_obs.PESTANAS_ESCENA:
+        for nombre in ventanas_obs.PESTANAS_OBS:
             esperados = ventanas_obs.esperados_de_pestana(nombre)
             self.assertIn("Ayuda", esperados)
             self.assertIn("Cerrar", esperados)
@@ -98,6 +102,20 @@ class TestEsperadosDePestana(unittest.TestCase):
         esperados = ventanas_obs.esperados_de_pestana("Audio")
         self.assertIn("Silenciar micrófono", esperados)
         self.assertIn("Elegir micrófono", esperados)
+
+    def test_grabacion_pide_su_estado_y_su_lista(self):
+        esperados = ventanas_obs.esperados_de_pestana("Grabación")
+        self.assertIn("Estado", esperados)
+        self.assertIn("Iniciar grabación", esperados)
+        self.assertIn("Grabaciones", esperados)
+        self.assertNotIn("Escena…", esperados)
+        self.assertNotIn("Grabaciones…", esperados)
+
+    def test_general_pide_estado_actualizar_y_mostrar(self):
+        esperados = ventanas_obs.esperados_de_pestana("General")
+        self.assertIn("Estado de OBS", esperados)
+        self.assertIn("Actualizar estado", esperados)
+        self.assertIn("Mostrar OBS", esperados)
 
 
 class TestEsperarHabilitado(unittest.TestCase):

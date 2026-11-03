@@ -94,3 +94,9 @@ gen_py/
 # Catálogos compilados y plantilla: se generan con scripts/traducciones.py.
 idiomas/**/*.mo
 idiomas/*.pot
+
+# Servicio de tokens de Restream en Cloudflare: dependencias y estado local
+# de wrangler, que nunca van al repositorio.
+servicio/**/node_modules/
+servicio/**/.wrangler/
+servicio/**/.dev.vars

@@ -159,6 +159,19 @@ def _rango(valor, defecto, minimo, maximo) -> int:
     return numero
 
 
+def _leer_parser(ruta):
+    """ConfigParser con el INI leído, o vacío si no existe o está roto."""
+    from bellbird.core.config import _mk_parser
+
+    p = _mk_parser()
+    if ruta.exists():
+        try:
+            p.read(ruta, encoding="utf-8")
+        except configparser.Error:
+            pass
+    return p
+
+
 def obtener_opciones_descarga() -> dict:
     """Lee la sección [descargas] del INI y devuelve un dict validado.
 
@@ -166,15 +179,8 @@ def obtener_opciones_descarga() -> dict:
     (que conserva comentarios y orden) y se devuelve el dict ya con defaults.
     Funciona standalone: NO requiere haber llamado a `cargar_configuracion`.
     """
-    from bellbird.core.config import _mk_parser, guardar_opcion
-
     ruta = paths.config_ini()
-    p = _mk_parser()
-    if ruta.exists():
-        try:
-            p.read(ruta, encoding="utf-8")
-        except configparser.Error:
-            pass
+    p = _leer_parser(ruta)
     formato = _formato_descargas(p, ruta)
     bitrate = _bitrate_descargas(p, ruta)
     return {"formato": formato, "bitrate": bitrate,
@@ -207,6 +213,11 @@ def _guardar_canal_ytdlp(op: dict, ruta) -> None:
     if canal not in _CANALES_YTDLP_VALIDOS:
         canal = "estable"
     guardar_opcion(ruta, "descargas", "canal_ytdlp", canal)
+
+
+def _booleano_para_guardar(op: dict, clave: str) -> str:
+    """Booleano del dict como texto del INI."""
+    return "true" if bool(op.get(clave, False)) else "false"
 
 
 def _valores_para_guardar(op: dict) -> dict:

@@ -129,6 +129,9 @@ class PaginaDescargasPreferencias:
         self.cho_descargas_plantilla.SetSelection(indice)
         self.sp_descargas_simultaneas.SetValue(int(opciones.get("simultaneas", 2)))
         self.sp_descargas_limite.SetValue(int(opciones.get("limite", 0)))
+        self._elegir_canal_guardado(opciones)
+
+    def _elegir_canal_guardado(self, opciones):
         try:
             canal = self._canales_claves.index(opciones.get("canal_ytdlp"))
         except ValueError:
@@ -149,9 +152,11 @@ class PaginaDescargasPreferencias:
             opciones["plantilla"] = "titulo_id"
         opciones["simultaneas"] = int(self.sp_descargas_simultaneas.GetValue())
         opciones["limite"] = int(self.sp_descargas_limite.GetValue())
+        opciones["canal_ytdlp"] = self._canal_elegido()
+        cfg.guardar_opciones_descarga(opciones)
+
+    def _canal_elegido(self):
         canal = self.cho_descargas_canal.GetSelection()
         if 0 <= canal < len(self._canales_claves):
-            opciones["canal_ytdlp"] = self._canales_claves[canal]
-        else:
-            opciones["canal_ytdlp"] = "estable"
-        cfg.guardar_opciones_descarga(opciones)
+            return self._canales_claves[canal]
+        return "estable"

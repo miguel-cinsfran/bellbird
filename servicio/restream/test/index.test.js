@@ -247,6 +247,44 @@ test("traduce el error de Restream sin devolver su texto", async (t) => {
   );
   assert.equal(respuesta.status, 401);
   assert.deepEqual(await respuesta.json(), { error: "invalid_client" });
+
+  interceptar(t, {
+    estado: 400,
+    cuerpo: {
+      error: {
+        statusCode: 400,
+        status: 400,
+        code: 400,
+        message: "Invalid grant: refresh token is invalid",
+        name: "invalid_grant",
+      },
+    },
+  });
+  respuesta = await worker.fetch(
+    pedido("/refresh", { refresh_token: "renovacion" }),
+    entorno(),
+  );
+  assert.equal(respuesta.status, 400);
+  assert.deepEqual(await respuesta.json(), { error: "invalid_grant" });
+
+  interceptar(t, {
+    estado: 401,
+    cuerpo: {
+      error: {
+        statusCode: 401,
+        status: 401,
+        code: 401,
+        message: "Incorrect password",
+        name: "IncorrectPassError",
+      },
+    },
+  });
+  respuesta = await worker.fetch(
+    pedido("/refresh", { refresh_token: "renovacion" }),
+    entorno(),
+  );
+  assert.equal(respuesta.status, 401);
+  assert.deepEqual(await respuesta.json(), { error: "server_error" });
 });
 
 test("responde 502 si no se puede hablar con Restream", async (t) => {

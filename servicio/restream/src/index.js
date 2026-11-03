@@ -104,9 +104,18 @@ function filtrar(datos) {
 }
 
 function codigoDeError(datos) {
-  const valor = datos && typeof datos === "object" ? datos.error : undefined;
-  return typeof valor === "string" && ERRORES_CONOCIDOS.has(valor)
-    ? valor
+  // La documentación describe `error` como texto, pero medido el 03/11/2026
+  // Restream manda un objeto y el nombre queda en `error.name`, por ejemplo
+  // {"statusCode":400,...,"name":"invalid_grant"}.
+  const error = datos && typeof datos === "object" ? datos.error : undefined;
+  let codigo;
+  if (typeof error === "string") {
+    codigo = error;
+  } else if (error && typeof error === "object") {
+    codigo = error.name;
+  }
+  return typeof codigo === "string" && ERRORES_CONOCIDOS.has(codigo)
+    ? codigo
     : "server_error";
 }
 

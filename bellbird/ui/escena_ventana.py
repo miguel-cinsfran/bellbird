@@ -12,7 +12,7 @@ from bellbird.obs import obs_lanzador
 from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.obs.restablecimiento import RegistroRestablecimiento
 from bellbird.ui import gui_microfono, paleta
-from bellbird.ui.accesibilidad import anunciar
+from bellbird.ui.accesibilidad import anunciar, enlazar_anuncio_de_pestana
 from bellbird.ui.escena_pagina_agregar import PaginaAgregar
 from bellbird.ui.escena_pagina_audio import PaginaAudio
 from bellbird.ui.escena_pagina_escena import PaginaEscena
@@ -90,6 +90,7 @@ class VentanaEscena(wx.Dialog):
         paleta.pintar_ventana(self)
 
     def _enlazar_eventos(self):
+        enlazar_anuncio_de_pestana(self.nb)
         self.btn_ayuda.Bind(wx.EVT_BUTTON, self._ayuda)
         self.btn_cerrar.Bind(wx.EVT_BUTTON, self._cerrar)
         self.Bind(wx.EVT_CLOSE, self._cerrar)

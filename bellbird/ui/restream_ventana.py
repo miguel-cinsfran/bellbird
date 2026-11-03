@@ -18,7 +18,7 @@ from bellbird.core import sonidos_eventos
 from bellbird.core.idioma import _, ngettext
 from bellbird.restream import perfiles
 from bellbird.ui import paleta
-from bellbird.ui.accesibilidad import anunciar, nombre_accesible
+from bellbird.ui.accesibilidad import anunciar, enlazar_anuncio_de_pestana, nombre_accesible
 from bellbird.ui.busqueda_teclado import instalar_busqueda_tipo
 from bellbird.ui.preferencias_comun import (
     CampoEstado, fila_horizontal, mostrar_control)
@@ -59,6 +59,7 @@ class VentanaRestream(wx.Dialog):
         self._pagina_perfiles = self._crear_perfiles()
         self.nb.AddPage(self._pagina_cuenta, _("Cuenta"))
         self.nb.AddPage(self._pagina_perfiles, _("Perfiles"))
+        enlazar_anuncio_de_pestana(self.nb)
         vs.Add(self.nb, 1, wx.EXPAND | wx.ALL, 10)
 
         self.btn_cerrar = wx.Button(

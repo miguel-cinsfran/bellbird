@@ -5629,6 +5629,8 @@ SUPERFICIES = {
 SIN_ESCENARIO: dict[str, str] = {
     "operaciones_obs.py": "opera sobre OBS en un hilo para las ventanas; no abre una propia.",
     "comandos_grabacion.py": "comandos del menú Transmisión que actúan sobre OBS; no abren ventana.",
+    "restream_ventana.py": "La ventana de Restream todavía no entra al menú; la escena llega con la cuenta.",
+    "restream_perfil.py": "La ventana de Restream todavía no entra al menú; la escena llega con la cuenta.",
 }
 
 EXTRAS_DE_INTERFAZ = ("reproductor.py", "iconos.py")

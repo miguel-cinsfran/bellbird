@@ -4339,11 +4339,12 @@ msgstr "Turn overload warnings on or off"
 
 #. Traductores: acción del atajo que conecta el chat.
 #: bellbird/ui/atajos_captura.py bellbird/ui/gui.py
+#: bellbird/ui/restream_ventana.py
 msgid "Conectar"
 msgstr "Connect"
 
 #. Traductores: acción del atajo que desconecta el chat.
-#: bellbird/ui/atajos_captura.py
+#: bellbird/ui/atajos_captura.py bellbird/ui/restream_ventana.py
 msgid "Desconectar"
 msgstr "Disconnect"
 
@@ -4796,7 +4797,7 @@ msgstr "Videos"
 msgid "Listas"
 msgstr "Playlists"
 
-#: bellbird/ui/buscador_filtros.py
+#: bellbird/ui/buscador_filtros.py bellbird/ui/restream_perfil.py
 msgid "Canales"
 msgstr "Channels"
 
@@ -5291,7 +5292,7 @@ msgstr "No status information."
 #: bellbird/ui/dialogo_estado.py bellbird/ui/gui_grabaciones.py
 #: bellbird/ui/gui_microfono.py bellbird/ui/gui_organizar_escena.py
 #: bellbird/ui/gui_transmision.py bellbird/ui/ia_ventana.py
-#: bellbird/ui/musica_ventana.py
+#: bellbird/ui/musica_ventana.py bellbird/ui/restream_ventana.py
 msgid "Cerrar"
 msgstr "Close"
 
@@ -5341,7 +5342,7 @@ msgstr "Download"
 
 #: bellbird/ui/elegir_formato.py bellbird/ui/gui_redactar.py
 #: bellbird/ui/ia_agregar_captura.py bellbird/ui/musica_dialogo_enlace.py
-#: bellbird/ui/musica_editor_lista.py
+#: bellbird/ui/musica_editor_lista.py bellbird/ui/restream_perfil.py
 msgid "Cancelar"
 msgstr "Cancel"
 
@@ -5422,6 +5423,7 @@ msgstr ""
 
 #. Traductores: nombre accesible del botón para conectar.
 #: bellbird/ui/gui.py bellbird/ui/gui_historial.py bellbird/ui/gui_menu.py
+#: bellbird/ui/restream_ventana.py
 msgid "&Conectar"
 msgstr "&Connect"
 
@@ -5781,7 +5783,7 @@ msgstr "TikTok live stream by @{usuario}: reading the chat."
 msgid "(no disponible)"
 msgstr "(not available)"
 
-#: bellbird/ui/gui.py bellbird/ui/gui_menu.py
+#: bellbird/ui/gui.py bellbird/ui/gui_menu.py bellbird/ui/restream_ventana.py
 msgid "&Desconectar"
 msgstr "&Disconnect"
 
@@ -6556,6 +6558,7 @@ msgstr ""
 "regular video does."
 
 #: bellbird/ui/gui_historial.py bellbird/ui/preferencias_programados.py
+#: bellbird/ui/restream_ventana.py
 msgid "E&liminar"
 msgstr "De&lete"
 
@@ -6569,7 +6572,7 @@ msgstr "Cl&ose"
 msgid "Historial de {plataforma}"
 msgstr "{plataforma} history"
 
-#: bellbird/ui/gui_historial.py
+#: bellbird/ui/gui_historial.py bellbird/ui/restream_ventana.py
 msgid "Sin selección"
 msgstr "Nothing selected"
 
@@ -7175,6 +7178,7 @@ msgid "Inteligencia artificial"
 msgstr "Artificial intelligence"
 
 #: bellbird/ui/gui_preferencias.py bellbird/ui/musica_editor_lista.py
+#: bellbird/ui/restream_perfil.py
 msgid "&Guardar"
 msgstr "&Save"
 
@@ -7854,7 +7858,7 @@ msgstr "Edit playlist"
 msgid "El nombre no puede tener más de 60 caracteres"
 msgstr "The name cannot be more than 60 characters"
 
-#: bellbird/ui/musica_editor_lista.py
+#: bellbird/ui/musica_editor_lista.py bellbird/ui/restream_perfil.py
 msgid "&Nombre:"
 msgstr "&Name:"
 
@@ -9082,6 +9086,162 @@ msgstr "&Delete from history"
 #: bellbird/ui/recientes_inicio.py
 msgid "Abrir &historial completo"
 msgstr "Open full &history"
+
+#: bellbird/ui/restream_perfil.py
+msgid "Nuevo perfil de Restream"
+msgstr "New Restream profile"
+
+#: bellbird/ui/restream_perfil.py
+msgid "Editar perfil de Restream"
+msgstr "Edit Restream profile"
+
+#: bellbird/ui/restream_perfil.py
+msgid "Horizontal"
+msgstr "Horizontal"
+
+#: bellbird/ui/restream_perfil.py
+msgid "Vertical"
+msgstr "Vertical"
+
+#: bellbird/ui/restream_perfil.py
+msgid "&Orientación:"
+msgstr "&Orientation:"
+
+#: bellbird/ui/restream_perfil.py
+msgid ""
+"No hay canales. Conecta la cuenta de Restream y agrega los canales en su "
+"página."
+msgstr ""
+"There are no channels. Connect the Restream account and add the channels on"
+" its page."
+
+#: bellbird/ui/restream_perfil.py
+#, python-brace-format
+msgid ""
+"Hay {n} canal del perfil que ya no está en Restream. Se eliminará al "
+"guardar."
+msgid_plural ""
+"Hay {n} canales del perfil que ya no están en Restream. Se eliminarán al "
+"guardar."
+msgstr[0] ""
+"There is {n} channel in the profile that is no longer in Restream. It will "
+"be removed on save."
+msgstr[1] ""
+"There are {n} channels in the profile that are no longer in Restream. They "
+"will be removed on save."
+
+#: bellbird/ui/restream_perfil.py
+msgid "&Título:"
+msgstr "&Title:"
+
+#: bellbird/ui/restream_perfil.py
+msgid "&Descripción, opcional:"
+msgstr "&Description, optional:"
+
+#: bellbird/ui/restream_perfil.py
+msgid "&Privacidad en YouTube:"
+msgstr "&Privacy on YouTube:"
+
+#: bellbird/ui/restream_perfil.py
+msgid "&Latencia en YouTube:"
+msgstr "&Latency on YouTube:"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Restream"
+msgstr "Restream"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Cuenta"
+msgstr "Account"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Perfiles"
+msgstr "Profiles"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Estado de la cuenta"
+msgstr "Account status"
+
+#: bellbird/ui/restream_ventana.py
+msgid "&Volver a autorizar"
+msgstr "&Reauthorize"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Volver a autorizar"
+msgstr "Reauthorize"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Perfiles de Restream"
+msgstr "Restream profiles"
+
+#: bellbird/ui/restream_ventana.py
+msgid "&Nuevo…"
+msgstr "&New…"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Nuevo"
+msgstr "New"
+
+#: bellbird/ui/restream_ventana.py
+msgid "&Editar…"
+msgstr "&Edit…"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Editar"
+msgstr "Edit"
+
+#: bellbird/ui/restream_ventana.py
+msgid "D&uplicar"
+msgstr "D&uplicate"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Duplicar"
+msgstr "Duplicate"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Eliminar"
+msgstr "Delete"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Cuenta de Restream conectada."
+msgstr "Restream account connected."
+
+#: bellbird/ui/restream_ventana.py
+msgid "Sin cuenta de Restream conectada."
+msgstr "No Restream account connected."
+
+#: bellbird/ui/restream_ventana.py
+msgid "Cuenta de Restream desconectada."
+msgstr "Restream account disconnected."
+
+#: bellbird/ui/restream_ventana.py
+#, python-brace-format
+msgid "{n} canal"
+msgid_plural "{n} canales"
+msgstr[0] "{n} channel"
+msgstr[1] "{n} channels"
+
+#: bellbird/ui/restream_ventana.py
+#, python-brace-format
+msgid "{nombre}, {orientacion}, {canales}"
+msgstr "{nombre}, {orientacion}, {canales}"
+
+#: bellbird/ui/restream_ventana.py
+msgid "Perfil guardado."
+msgstr "Profile saved."
+
+#: bellbird/ui/restream_ventana.py
+msgid "Perfil duplicado."
+msgstr "Profile duplicated."
+
+#: bellbird/ui/restream_ventana.py
+msgid "Perfil eliminado."
+msgstr "Profile deleted."
+
+#: bellbird/ui/restream_ventana.py
+#, python-brace-format
+msgid "Copia de {nombre}"
+msgstr "Copy of {nombre}"
 
 #: bellbird/ui/titulo_ventana.py
 msgid "(Transmitiendo y grabando)"

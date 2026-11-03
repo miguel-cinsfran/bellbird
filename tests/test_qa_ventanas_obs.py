@@ -105,6 +105,12 @@ class TestOrdenDeTransmision(unittest.TestCase):
             "Button: Transmitir en directo", "Button: Restream…",
             "Button: Actualizar estado"]))
 
+    def test_el_recorrido_circular_desde_transmitir_a_sigue_en_orden(self):
+        self.assertIsNone(ventanas_obs.orden_de_transmision([
+            "Choice: Transmitir a", "Button: Transmitir en directo",
+            "CheckBox: Mostrar chat en el vídeo", "Button: Restream…",
+            "Button: Actualizar estado", "TextCtrl: Estado"]))
+
     def test_un_control_fuera_de_orden_se_nombra(self):
         texto = ventanas_obs.orden_de_transmision([
             "TextCtrl: Estado", "Button: Actualizar estado",

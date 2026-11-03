@@ -100,6 +100,9 @@ def orden_de_transmision(orden: list[str]) -> str | None:
     vistos = [_nombre_de_parada(parada) for parada in orden]
     encontrados = [nombre for nombre in vistos if nombre in queridos]
     esperados = [nombre for nombre in queridos if nombre in encontrados]
+    if encontrados:
+        inicio = encontrados.index(esperados[0])
+        encontrados = encontrados[inicio:] + encontrados[:inicio]
     if encontrados == esperados:
         return None
     return ("el orden de Tab de Transmisión es " + ", ".join(encontrados)

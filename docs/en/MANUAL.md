@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md c669df3779d4d1dbddb030c81515094a0101b83c -->
+<!-- original: es/MANUAL.md 3663aa71cab124b59e34fe9db69800be2d2abcf4 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -612,6 +612,7 @@ shortcuts. They all also appear in the menu bar, next to their action.
 | `Ctrl+Shift+P` | Open Preferences |
 | `Ctrl+Shift+H` | Open the live stream history |
 | `Ctrl+Shift+T` | Open Broadcast |
+| `Ctrl+Shift+R` | Open Restream |
 | `Ctrl+Shift+D` | Open Download manager |
 | `Ctrl+Shift+M` | Open the music window |
 | `Ctrl+Shift+I` | Ask the AI about the image |

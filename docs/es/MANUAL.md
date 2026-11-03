@@ -605,6 +605,7 @@ atajos. Todos figuran además en la barra de menú, junto a su acción.
 | `Ctrl+Mayús+P` | Abrir Preferencias |
 | `Ctrl+Mayús+H` | Abrir el historial de directos |
 | `Ctrl+Mayús+T` | Abrir Transmisión |
+| `Ctrl+Mayús+R` | Abrir Restream |
 | `Ctrl+Mayús+D` | Abrir Administrador de descargas |
 | `Ctrl+Mayús+M` | Abrir la ventana de música |
 | `Ctrl+Mayús+I` | Preguntar a la IA sobre la imagen |

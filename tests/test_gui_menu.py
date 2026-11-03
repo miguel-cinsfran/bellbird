@@ -173,6 +173,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Reproductor", "---", None, "sep"),
             ("&Reproductor", "Mostrar botones en &pantalla", ANY, "check"),
             ("&Transmisión", "&Panel de transmisión…", ANY, "normal"),
+            ("&Transmisión", "Re&stream…", ANY, "normal"),
             ("&Transmisión", "Silenciar &micrófono de OBS", ANY, "check"),
             ("&Transmisión", "&Elegir micrófono…", ANY, "normal"),
             ("&Transmisión", "Mostrar &OBS", ANY, "normal"),
@@ -494,6 +495,61 @@ class TestAbrirTransmision(unittest.TestCase):
                 with mock.patch.object(menu_transmision.diagnostico, "crear_hilo"):
                     menu_transmision._al_abrir_transmision(frame, menu, evento)
                 evento.Skip.assert_called_once_with()
+
+
+class TestMenuRestream(unittest.TestCase):
+    """La ventana de Restream entra al menú Transmisión con su atajo."""
+
+    def _transmision(self):
+        from bellbird.core import config as cfg
+
+        def accel(accion):
+            valor = cfg.ATAJOS_DEFAULTS.get(accion, "")
+            return ("\t" + gui._fmt_accel(valor)) if valor else ""
+
+        _, lista = _construir_lista(accel)
+        return [fila for fila in lista if fila[0] == "&Transmisión"]
+
+    def test_restream_va_despues_del_panel_con_su_atajo(self):
+        entradas = self._transmision()
+        panel = next(i for i, fila in enumerate(entradas)
+                     if fila[1].startswith("&Panel de transmisión…"))
+        self.assertEqual(
+            ("&Transmisión", "Re&stream…\tCtrl+Shift+R",
+             gui.wx.ID_ANY, "normal"),
+            entradas[panel + 1])
+
+    def test_la_letra_s_no_se_repite_en_el_menu(self):
+        letras = [texto[texto.index("&") + 1].lower()
+                  for _menu, texto, _dato, _tipo in self._transmision()
+                  if texto != "---" and "&" in texto]
+        self.assertEqual(1, letras.count("s"))
+        self.assertEqual(len(letras), len(set(letras)))
+
+    def test_abrir_restream_pasa_cuenta_canales_ruta_y_acciones(self):
+        from bellbird.ui import menu_transmision
+
+        canal = mock.Mock(id=7, texto="YouTube: uno")
+        with mock.patch("bellbird.restream.cuenta.sesion",
+                        return_value="sesion"), \
+                mock.patch("bellbird.restream.cuenta.canales",
+                           return_value=[canal]), \
+                mock.patch("bellbird.restream.cuenta.conectar") as conectar, \
+                mock.patch("bellbird.restream.cuenta.desconectar") as desconectar, \
+                mock.patch("bellbird.core.paths.perfiles_restream",
+                           return_value=Path("perfiles.json")), \
+                mock.patch("bellbird.ui.restream_ventana.abrir_restream") as abrir:
+            menu_transmision.abrir_restream("frame")
+            llamada = abrir.call_args
+            canales = llamada.args[2]()
+
+        self.assertEqual("frame", llamada.args[0])
+        self.assertEqual("sesion", llamada.args[1])
+        self.assertEqual([(7, "YouTube: uno")], canales)
+        self.assertEqual(Path("perfiles.json"), llamada.args[3])
+        self.assertIs(conectar, llamada.kwargs["al_conectar"])
+        self.assertIs(conectar, llamada.kwargs["al_reautorizar"])
+        self.assertIs(desconectar, llamada.kwargs["al_desconectar"])
 
 
 class TestCableadoMostrarObs(unittest.TestCase):

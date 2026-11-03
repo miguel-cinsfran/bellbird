@@ -6,6 +6,8 @@ carpeta temporal.
 """
 
 import tempfile
+import threading
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -50,6 +52,26 @@ def _perfil(nombre="Canal", canales=(1,), orientacion="horizontal", **cambios):
 
 def _canales():
     return [(1, "TikTok: uno"), (2, "YouTube: dos")]
+
+
+def _esperar(prueba, limite=5.0):
+    """Atiende eventos de wx hasta que se cumpla la condición o venza."""
+    fin = time.monotonic() + limite
+    while time.monotonic() < fin:
+        wx.Yield()
+        if prueba():
+            return True
+        time.sleep(0.01)
+    wx.Yield()
+    return prueba()
+
+
+def _es_hilo_principal():
+    return threading.current_thread() is threading.main_thread()
+
+
+def _falla_sin_mensaje(_parada):
+    raise ValueError()
 
 
 def _controles_en_orden(ventana):
@@ -126,35 +148,99 @@ class PruebaVentanaRestream(unittest.TestCase):
         self.assertFalse(dialogo.btn_reautorizar.IsShown())
         self.assertFalse(dialogo.btn_desconectar.IsShown())
 
-    def test_p2_conectar_conecta_actualiza_y_anuncia(self):
+    def test_p2_p3_conectar_en_hilo_desactiva_y_al_terminar_anuncia(self):
         cuenta = CuentaFalsa(False)
         llamadas = []
+        soltar = threading.Event()
+        hilo = {}
+        lecturas = []
 
-        def conectar():
+        def conectar(parada):
+            hilo["parada"] = parada
+            hilo["principal"] = _es_hilo_principal()
+            soltar.wait(5)
             llamadas.append(True)
             cuenta.estado = True
 
-        dialogo = self._ventana(cuenta=cuenta, al_conectar=conectar)
-        with mock.patch.object(restream_ventana, "anunciar") as anunciar:
+        def leer_canales():
+            lecturas.append(_es_hilo_principal())
+            return _canales()
+
+        dialogo = self._ventana(
+            cuenta=cuenta, al_conectar=conectar, canales=leer_canales)
+        with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
+                mock.patch.object(restream_ventana._snd,
+                                  "reproducir") as sonar:
             dialogo._conectar()
 
+            self.assertIn(
+                "Abriendo el navegador para iniciar sesión en Restream. "
+                "Autoriza y vuelve aquí.",
+                [llamada.args[0] for llamada in anunciar.call_args_list])
+            for boton in (dialogo.btn_conectar, dialogo.btn_reautorizar,
+                          dialogo.btn_desconectar):
+                self.assertFalse(boton.IsEnabled())
+
+            self.assertTrue(_esperar(lambda: "parada" in hilo))
+            self.assertFalse(hilo["principal"])
+            self.assertIs(hilo["parada"], dialogo._parada)
+            wx.Yield()
+            self.assertFalse(soltar.is_set())
+
+            soltar.set()
+            self.assertTrue(_esperar(lambda: sonar.called))
+
         self.assertEqual([True], llamadas)
+        sonar.assert_called_once_with("conectado")
+        anunciar.assert_any_call("Cuenta de Restream conectada.")
         self.assertEqual("Cuenta de Restream conectada.",
                          dialogo.txt_estado.GetValue())
         self.assertFalse(dialogo.btn_conectar.IsShown())
         self.assertTrue(dialogo.btn_reautorizar.IsShown())
         self.assertTrue(dialogo.btn_desconectar.IsShown())
-        anunciar.assert_called_once_with("Cuenta de Restream conectada.")
+        for boton in (dialogo.btn_reautorizar, dialogo.btn_desconectar):
+            self.assertTrue(boton.IsEnabled())
 
-    def test_p2_conectar_que_falla_no_anuncia(self):
+        self.assertTrue(_esperar(lambda: lecturas))
+        self.assertFalse(lecturas[0])
+
+    def test_p3_conectar_que_falla_suena_error_y_muestra_el_mensaje(self):
         cuenta = CuentaFalsa(False)
-        dialogo = self._ventana(cuenta=cuenta, al_conectar=lambda: None)
-        with mock.patch.object(restream_ventana, "anunciar") as anunciar:
-            dialogo._conectar()
 
-        anunciar.assert_not_called()
+        def conectar(_parada):
+            raise ValueError("Credenciales rechazadas")
+
+        dialogo = self._ventana(cuenta=cuenta, al_conectar=conectar)
+        with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
+                mock.patch.object(restream_ventana._snd,
+                                  "reproducir") as sonar:
+            dialogo._conectar()
+            self.assertTrue(_esperar(lambda: sonar.called))
+
+        sonar.assert_called_once_with("error")
+        anunciar.assert_any_call("Credenciales rechazadas")
+        self.assertIn("Credenciales rechazadas",
+                      dialogo.txt_estado.GetValue())
         self.assertFalse(cuenta.conectada())
         self.assertTrue(dialogo.btn_conectar.IsShown())
+        for boton in (dialogo.btn_conectar, dialogo.btn_reautorizar,
+                      dialogo.btn_desconectar):
+            self.assertTrue(boton.IsEnabled())
+
+    def test_p3_sin_mensaje_anuncia_el_texto_de_respaldo(self):
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(False),
+            al_conectar=_falla_sin_mensaje)
+        with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
+                mock.patch.object(restream_ventana._snd,
+                                  "reproducir") as sonar:
+            dialogo._conectar()
+            self.assertTrue(_esperar(lambda: sonar.called))
+
+        sonar.assert_called_once_with("error")
+        anunciar.assert_any_call("No se pudo conectar con Restream.")
+        self.assertIn("No se pudo conectar con Restream.",
+                      dialogo.txt_estado.GetValue())
 
     def test_p2_reautorizar_y_desconectar(self):
         cuenta = CuentaFalsa(True)
@@ -163,18 +249,106 @@ class PruebaVentanaRestream(unittest.TestCase):
             cuenta.estado = False
 
         dialogo = self._ventana(
-            cuenta=cuenta, al_reautorizar=lambda: None,
+            cuenta=cuenta, al_reautorizar=lambda _parada: None,
             al_desconectar=desconectar)
-        with mock.patch.object(restream_ventana, "anunciar") as anunciar:
+        with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
+                mock.patch.object(restream_ventana._snd,
+                                  "reproducir") as sonar:
             dialogo._reautorizar()
-            anunciar.assert_called_once_with("Cuenta de Restream conectada.")
+            self.assertIn(
+                "Abriendo el navegador para iniciar sesión en Restream. "
+                "Autoriza y vuelve aquí.",
+                [llamada.args[0] for llamada in anunciar.call_args_list])
+            self.assertTrue(_esperar(
+                lambda: mock.call("conectado") in sonar.call_args_list))
+            anunciar.assert_any_call("Cuenta de Restream conectada.")
+
+            sonar.reset_mock()
             anunciar.reset_mock()
             dialogo._desconectar()
+            self.assertTrue(_esperar(
+                lambda: mock.call("desconectado") in sonar.call_args_list))
             anunciar.assert_called_once_with(
                 "Cuenta de Restream desconectada.")
 
         self.assertFalse(cuenta.conectada())
         self.assertTrue(dialogo.btn_conectar.IsShown())
+
+    def test_p4_cerrar_corta_la_espera_y_no_toca_la_ventana_cerrada(self):
+        cuenta = CuentaFalsa(False)
+        recibidas = []
+        pendientes = []
+
+        def conectar(parada):
+            recibidas.append(parada)
+            parada.wait(5)
+
+        def diferir(funcion, *args):
+            pendientes.append((funcion, args))
+
+        dialogo = self._ventana(cuenta=cuenta, al_conectar=conectar)
+        with mock.patch.object(restream_ventana.wx, "CallAfter",
+                               side_effect=diferir), \
+                mock.patch.object(restream_ventana, "anunciar"), \
+                mock.patch.object(restream_ventana._snd, "reproducir"):
+            dialogo._conectar()
+            self.assertTrue(_esperar(lambda: recibidas))
+            wx.Yield()
+            self.assertFalse(recibidas[0].is_set())
+
+            dialogo.Destroy()
+            self.assertTrue(recibidas[0].is_set())
+            self.assertTrue(_esperar(lambda: pendientes))
+
+        for funcion, args in pendientes:
+            funcion(*args)
+
+    def test_p5_canales_que_fallan_van_a_la_segunda_linea_sin_sonido(self):
+        def canales():
+            raise ValueError("sin red")
+
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), canales=canales)
+        with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
+                mock.patch.object(restream_ventana._snd,
+                                  "reproducir") as sonar:
+            self.assertTrue(_esperar(
+                lambda: "No se pudieron leer los canales."
+                in dialogo.txt_estado.GetValue()))
+            wx.Yield()
+
+        lineas = dialogo.txt_estado.GetValue().splitlines()
+        self.assertEqual("Cuenta de Restream conectada.", lineas[0])
+        self.assertEqual("No se pudieron leer los canales. sin red",
+                         lineas[1])
+        sonar.assert_not_called()
+        anunciar.assert_not_called()
+
+    def test_p6_el_editor_recibe_los_canales_leidos_y_no_consulta_la_red(self):
+        llamadas = []
+        recibidos = []
+
+        def canales():
+            llamadas.append(True)
+            return _canales()
+
+        def abrir_editor(_padre, perfil, canales_leidos, _existentes):
+            recibidos.append(list(canales_leidos))
+            return _DialogoFalso(perfil or _perfil(nombre="Nuevo"))
+
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), canales=canales,
+            guardados=[_perfil(nombre="Canal")])
+        self.assertTrue(_esperar(lambda: dialogo._canales_leidos))
+        with mock.patch.object(restream_ventana, "DialogoPerfilRestream",
+                               side_effect=abrir_editor), \
+                mock.patch.object(restream_ventana, "anunciar"):
+            dialogo._nuevo()
+            dialogo.lista_perfiles.SetSelection(0)
+            dialogo._editar()
+
+        self.assertEqual(1, len(llamadas))
+        self.assertEqual([_canales(), _canales()], recibidos)
 
     def test_p3_lista_con_nombre_orientacion_y_canales(self):
         primera = _perfil(nombre="TikTok", canales=(1,), orientacion="vertical")

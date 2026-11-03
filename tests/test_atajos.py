@@ -337,6 +337,7 @@ class TestParsearAtajos(unittest.TestCase):
                 ("abrir_historial", "ctrl+shift+h", "ctrl+shift"),
                 ("marcar_incidencia", "alt+shift+i", "alt+shift"),
                 ("abrir_transmision", "ctrl+shift+t", "ctrl+shift"),
+                ("abrir_restream", "ctrl+shift+r", "ctrl+shift"),
                 ("mostrar_obs", "ctrl+shift+o", "ctrl+shift"),
                 ("copiar_enlace", "alt+shift+e", "alt+shift"),
                 ("anunciar_autor", "f3", "f"),
@@ -392,6 +393,7 @@ class TestParsearAtajos(unittest.TestCase):
         from bellbird.ui import menu_transmision
         fuente = inspect.getsource(gui_menu.construir_menu)
         fuente += inspect.getsource(menu_transmision.construir)
+        fuente += inspect.getsource(menu_transmision._agregar_ventanas)
         fuente += inspect.getsource(menu_transmision._agregar_encuadre)
         fuente += inspect.getsource(menu_transmision._agregar_avisos)
         fuente += inspect.getsource(gui_menu._construir_menu_ver)
@@ -403,6 +405,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("abrir_preferencias")', fuente)
         self.assertIn('._accel("marcar_incidencia")', fuente)
         self.assertIn('._accel("abrir_transmision")', fuente)
+        self.assertIn('._accel("abrir_restream")', fuente)
         self.assertIn('._accel("mostrar_obs")', fuente)
         self.assertIn('._accel("obs_grabar")', fuente)
         self.assertIn('._accel("obs_pausar_grabacion")', fuente)

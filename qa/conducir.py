@@ -1773,6 +1773,14 @@ def escenario_grabaciones(app: Aplicacion, args, res: Resultado):
                     esperados_en_tab=esperados)
 
 
+def escenario_restream(app: Aplicacion, args, res: Resultado):
+    """La ventana de la cuenta de Restream, sin cuenta conectada."""
+    esperados = ("Estado de la cuenta", "Conectar", "Cerrar")
+    auditar_dialogo(app, res, "Transmisión > Restream…", "Restream",
+                    vueltas_tab=12, esperados=esperados,
+                    esperados_en_tab=esperados)
+
+
 def obs_abierto() -> bool:
     """¿Hay un proceso `obs64.exe` corriendo? Falso ante cualquier error."""
     try:
@@ -5573,6 +5581,7 @@ SUPERFICIES = {
     "dialogo_estado.py": "principal",
     "gui_historial.py": "historial",
     "gui_grabaciones.py": "grabaciones",
+    "restream_ventana.py": "restream",
     "recientes_inicio.py": "principal",
     "gui_menu.py": "menus",
     "menu_transmision.py": "menus",
@@ -5629,8 +5638,7 @@ SUPERFICIES = {
 SIN_ESCENARIO: dict[str, str] = {
     "operaciones_obs.py": "opera sobre OBS en un hilo para las ventanas; no abre una propia.",
     "comandos_grabacion.py": "comandos del menú Transmisión que actúan sobre OBS; no abren ventana.",
-    "restream_ventana.py": "La ventana de Restream todavía no entra al menú; la escena llega con la cuenta.",
-    "restream_perfil.py": "La ventana de Restream todavía no entra al menú; la escena llega con la cuenta.",
+    "restream_perfil.py": "El banco no tiene cuenta ni canales; el diálogo lo cubren las pruebas con wx.",
 }
 
 EXTRAS_DE_INTERFAZ = ("reproductor.py", "iconos.py")
@@ -5718,6 +5726,7 @@ ESCENARIOS = {
     "preferencias_persisten": escenario_preferencias_persisten,
     "historial": escenario_historial,
     "grabaciones": escenario_grabaciones,
+    "restream": escenario_restream,
     "transmision": escenario_transmision,
     "organizar_escena": escenario_organizar_escena,
     "microfono": escenario_microfono,
@@ -5906,8 +5915,8 @@ def _instalar_capturas(captor):
 EN_TODOS = ["arranque_frio", "reproductor",
             "menus", "principal", "descargas", "preferencias",
             "preferencias_categorias", "preferencias_persisten",
-            "programados", "historial", "grabaciones", "transmision",
-            "organizar_escena",
+            "programados", "historial", "grabaciones", "restream",
+            "transmision", "organizar_escena",
             # `microfono` va justo después de `transmision`: los dos
             # necesitan OBS y auditan cuadros del menú Transmisión.
             "microfono",

@@ -20,6 +20,22 @@ def mostrar_obs() -> None:
         anunciar(texto)
 
 
+def abrir_restream(frame) -> None:
+    """Abre la ventana de Restream con la cuenta y los canales de la app."""
+    from bellbird.core import paths
+    from bellbird.restream import cuenta
+    from bellbird.ui import restream_ventana
+
+    def canales():
+        return [(canal.id, canal.texto) for canal in cuenta.canales()]
+
+    restream_ventana.abrir_restream(
+        frame, cuenta.sesion(), canales, paths.perfiles_restream(),
+        al_conectar=cuenta.conectar,
+        al_reautorizar=cuenta.conectar,
+        al_desconectar=cuenta.desconectar)
+
+
 def _agregar_encuadre(frame, m):
     """La sección de encuadre: anuncio a pedido y casilla de avisos."""
     m.AppendSeparator()
@@ -33,6 +49,15 @@ def _agregar_encuadre(frame, m):
     frame._bind_menu(frame.mi_avisos_encuadre,
                      encuadre_camara.alternar_avisos, frame)
     encuadre_camara.sincronizar(frame)
+
+
+def _agregar_ventanas(frame, m):
+    """Los comandos que abren las ventanas de transmisión."""
+    frame.mi_transmision = m.Append(
+        wx.ID_ANY, _("&Panel de transmisión…") + frame._accel("abrir_transmision"))
+    frame.mi_restream = m.Append(
+        wx.ID_ANY, _("Re&stream…") + frame._accel("abrir_restream"))
+    frame._bind_menu(frame.mi_restream, abrir_restream, frame)
 
 
 def _agregar_grabaciones(frame, m):
@@ -57,8 +82,7 @@ def _agregar_avisos(frame, m):
 
 def construir(frame, mb):
     m = wx.Menu()
-    frame.mi_transmision = m.Append(
-        wx.ID_ANY, _("&Panel de transmisión…") + frame._accel("abrir_transmision"))
+    _agregar_ventanas(frame, m)
     frame.mi_obs_micro = m.AppendCheckItem(
         wx.ID_ANY, _("Silenciar &micrófono de OBS") + frame._accel("obs_micro"))
     frame.mi_micro_obs = m.Append(wx.ID_ANY, _("&Elegir micrófono…"))

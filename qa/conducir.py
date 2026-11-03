@@ -1868,7 +1868,7 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
     hay_obs = obs_abierto()
     if hay_obs:
         esperados_tab = ("Transmitir a", "Transmitir en directo",
-                         "Iniciar grabación", "Escena…",
+                         "Escena…", "Grabación…",
                          "Mostrar OBS", "Actualizar estado", "Cerrar")
     else:
         esperados_tab = ("Actualizar estado",)
@@ -1878,8 +1878,7 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
         app, res, "Transmisión", "Panel de transmisión",
         vueltas_tab=VUELTAS_TAB_TRANSMISION,
         esperados=("Estado", "Transmitir a", "Actualizar estado",
-                   "Escena…", "Mostrar OBS", "Cerrar"),
-        # Arranca deshabilitado sin grabación y wx lo saca del orden de Tab.
+                   "Escena…", "Grabación…", "Mostrar OBS", "Cerrar"),
         esperados_en_tab=esperados_tab,
         # Con OBS abierto la carga inicial tarda: el cuadro nace con todo
         # deshabilitado y auditar el Tab antes mide la pantalla de espera.
@@ -1906,6 +1905,28 @@ def escenario_escena(app: Aplicacion, args, res: Resultado):
         esperar_habilitados=("Cambiar escena",))
     res.nota("Escena: abre desde el menú Transmisión y audita la pestaña "
              "Escena")
+
+
+def escenario_grabacion(app: Aplicacion, args, res: Resultado):
+    """La ventana para grabar en OBS sin abrir el panel de transmisión.
+
+    Sin OBS abierto no se audita: la ventana lo abre y la espera cambiaría
+    el estado de la PC donde corre el banco. Con OBS se audita entera, sin
+    pulsar los botones que cambiarían la grabación de la PC.
+    """
+    if not obs_abierto():
+        res.nota("Grabación: OBS está cerrado y la ventana no se audita")
+        return
+    esperados = ("Estado", "Iniciar grabación", "Grabaciones guardadas…",
+                 "Grabar también al transmitir", "Escena…",
+                 "Actualizar estado", "Cerrar")
+    auditar_dialogo(
+        app, res, "Transmisión > Grabación…", "Grabación",
+        vueltas_tab=VUELTAS_TAB_TRANSMISION,
+        esperados=esperados,
+        esperados_en_tab=esperados,
+        esperar_habilitados=("Actualizar estado",))
+    res.nota("Grabación: abre desde el menú Transmisión y se audita entera")
 
 
 def escenario_microfono(app: Aplicacion, args, res: Resultado):
@@ -5556,6 +5577,7 @@ SUPERFICIES = {
     "ia_consulta_rapida.py": "ia",
     "ia_privacidad.py": "ia",
     "gui_transmision.py": "transmision",
+    "grabacion_ventana.py": "grabacion",
     "escena_ventana.py": "escena",
     "escena_pagina_escena.py": "escena",
     "escena_pagina_fuentes.py": "escena",
@@ -5689,6 +5711,7 @@ ESCENARIOS = {
     "restream": escenario_restream,
     "transmision": escenario_transmision,
     "escena": escenario_escena,
+    "grabacion": escenario_grabacion,
     "microfono": escenario_microfono,
     "encuadre": escenario_encuadre,
     "musica": escenario_musica,
@@ -5876,7 +5899,7 @@ EN_TODOS = ["arranque_frio", "reproductor",
             "menus", "principal", "descargas", "preferencias",
             "preferencias_categorias", "preferencias_persisten",
             "programados", "historial", "grabaciones", "restream",
-            "transmision", "escena",
+            "transmision", "escena", "grabacion",
             # `microfono` va justo después de `transmision`: los dos
             # necesitan OBS y auditan cuadros del menú Transmisión.
             "microfono",

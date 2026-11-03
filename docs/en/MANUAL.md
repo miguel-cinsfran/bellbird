@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md e49cde52a0249a7bb5c83ab617662493a92ad274 -->
+<!-- original: es/MANUAL.md 596322c3e5a280a590f33f4d318235f2aae15e93 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -20,6 +20,7 @@ Version 3.0.0 beta 1 · Windows 10 and 11 · [what's new in each version](CHANGE
 - [Going live](#going-live)
 - [Camera framing](#camera-framing)
 - [Scene](#scene)
+- [Recording](#recording)
 - [Chat panel for streaming](#chat-panel-for-streaming)
 - [Scheduled messages](#scheduled-messages)
 - [Downloads and history](#downloads-and-history)
@@ -337,29 +338,30 @@ With *Show streaming or recording in the title of the window*, in *Preferences*,
 on the *Broadcast* category, the title starts with that state, and the check box
 is cleared by default.
 
-You can also record without opening the panel. To start or stop recording, use
-*Start or stop recording* in the *Broadcast* menu with `Alt+Shift+G`. To pause
-or resume, use *Pause or resume recording* with `Alt+Shift+P`, which announce
-and sound the same as the panel buttons. If no recording is in progress, pausing
-says so and changes nothing in OBS. If OBS does not pause the recording, the
-application says so: some profiles may not allow it.
+You can also record without opening the broadcast panel. The *Recording* window
+(`Ctrl+Shift+G`) has the same buttons, and the *Broadcast* menu keeps *Start or
+stop recording* with `Alt+Shift+G` and *Pause or resume recording* with
+`Alt+Shift+P`, which announce and sound the same as the window buttons. If no
+recording is in progress, pausing says so and changes nothing in OBS. If OBS
+does not pause the recording, the application says so: some profiles may not
+allow it.
 
 When you stop the recording, from the application or because the broadcast
 ended, you hear “Recording saved” with the file name. *Saved recordings…*, in
-the *Broadcast* menu and in the panel, lists what was recorded that way, from
-newest to oldest. From there you can open the file with `Enter`, open its
-folder, copy the path or remove it from the list with `Delete`. Removing it from
-the list does not delete the file, and what is stopped from the OBS window does
-not appear in the list.
+the *Broadcast* menu and in the *Recording* window, lists what was recorded that
+way, from newest to oldest. From there you can open the file with `Enter`, open
+its folder, copy the path or remove it from the list with `Delete`. Removing it
+from the list does not delete the file, and what is stopped from the OBS window
+does not appear in the list.
 
 ### The broadcast panel
 
 The *Status* field says whether everything is ready or what to check, the
-current scene, the microphone and the recording. From the panel the live stream
-is started and ended the same way as with the button in the main window. It also
-records, and *Scene…* opens the *Scene* window. Only what is useful at that
-moment appears: *TikTok user* with TikTok, *Show chat on video* with YouTube and
-*Pause recording* while recording, and `Enter` never starts or ends a live
+current scene, the microphone and whether it is recording. From the panel the
+live stream is started and ended the same way as with the button in the main
+window. *Scene…* opens the *Scene* window and *Recording…* opens the *Recording*
+window. Only what is useful at that moment appears: *TikTok user* with TikTok
+and *Show chat on video* with YouTube, and `Enter` never starts or ends a live
 stream.
 
 Everything can still be done by hand in OBS, and the application does not
@@ -443,6 +445,24 @@ When it finishes, the source lists and the description update by themselves.
 
 If OBS is closed, the window opens it. If it does not respond, it says so in
 the description and does not freeze. The window help explains each tab.
+
+## Recording
+
+The *Recording* window (`Ctrl+Shift+G`), in the *Broadcast* menu, records in OBS
+without going through the broadcast panel. *Status* says whether it is
+recording, paused or not recording, how long it has been going, the live scene,
+the microphone and whether it is also broadcasting.
+
+*Start recording* and *Stop recording* do the same as the panel buttons, with
+their sounds and announcements. *Pause recording* appears while recording and
+becomes *Resume recording* when the recording is paused. *Saved recordings…*
+lists what the application stopped. *Record while broadcasting* is the same
+preference as in the *Broadcast* menu: changing one changes the other. *Scene…*
+opens the *Scene* window with the same OBS connection and, on return, the status
+updates. *Update status* reads it again.
+
+If OBS is closed, the window opens it. If it does not respond, it says so in
+*Status* and does not freeze.
 
 ## Chat panel for streaming
 
@@ -631,6 +651,7 @@ shortcuts. They all also appear in the menu bar, next to their action.
 | `Ctrl+Shift+T` | Open Broadcast |
 | `Ctrl+Shift+R` | Open Restream |
 | `Ctrl+Shift+E` | Open Scene |
+| `Ctrl+Shift+G` | Open Recording |
 | `Ctrl+Shift+D` | Open Download manager |
 | `Ctrl+Shift+M` | Open the music window |
 | `Ctrl+Shift+I` | Ask the AI about the image |

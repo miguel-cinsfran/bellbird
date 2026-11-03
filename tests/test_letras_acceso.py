@@ -30,6 +30,7 @@ from bellbird.ui import escena_pagina_audio
 from bellbird.ui import escena_pagina_escena
 from bellbird.ui import escena_pagina_fuentes
 from bellbird.ui import escena_ventana
+from bellbird.ui import grabacion_ventana
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
 from bellbird.voice import motores
@@ -258,15 +259,52 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
         self.assertEqual(letras_repetidas(self.dialogo), {})
 
     def test_etiquetas_alternativas_sin_letras_repetidas(self):
-        self.dialogo._grabacion.fijar(True, False)
-        self.assertEqual(letras_repetidas(self.dialogo), {})
-        self.dialogo._grabacion.fijar(True, True)
-        self.assertEqual(letras_repetidas(self.dialogo), {})
         self.dialogo._directo.sincronizar(True)
         self.dialogo._aplicar_visibilidad()
         self.assertEqual(letras_repetidas(self.dialogo), {})
         self.dialogo._directo.sincronizar(True, deteniendo=True)
         self.dialogo._aplicar_visibilidad()
+        self.assertEqual(letras_repetidas(self.dialogo), {})
+
+
+class TestLetrasAccesoGrabacion(unittest.TestCase):
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+        self.parches = [
+            mock.patch.object(threading, "Thread", HiloInmediato),
+            mock.patch.object(grabacion_ventana.wx, "CallAfter",
+                              lambda funcion, *args: funcion(*args)),
+            mock.patch.object(grabacion_ventana.obs_lanzador, "asegurar_obs",
+                              _asegurar_sin_obs),
+            mock.patch.object(grabacion_ventana, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(operaciones_obs, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(control_grabacion, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(control_grabacion.sound_player, "reproducir"),
+        ]
+        for parche in self.parches:
+            parche.start()
+        self.addCleanup(self._frenar)
+        self.principal = SimpleNamespace(
+            _config={"grabar_al_transmitir": False,
+                     "obs_microfono": "Mic/Aux"})
+        self.dialogo = grabacion_ventana.VentanaGrabacion(
+            None, self.principal, gestor=GestorFalso())
+        self.addCleanup(destruir, self.dialogo)
+
+    def _frenar(self):
+        for parche in reversed(self.parches):
+            parche.stop()
+
+    def test_cuadro_sin_letras_repetidas(self):
+        self.assertEqual(letras_repetidas(self.dialogo), {})
+
+    def test_etiquetas_alternativas_sin_letras_repetidas(self):
+        self.dialogo._grabacion.fijar(True, False)
+        self.assertEqual(letras_repetidas(self.dialogo), {})
+        self.dialogo._grabacion.fijar(True, True)
         self.assertEqual(letras_repetidas(self.dialogo), {})
 
 
@@ -457,6 +495,20 @@ class TestLetrasAccesoDescargasEnIngles(TestLetrasAccesoDescargas):
 
 
 class TestLetrasAccesoTransmisionEnIngles(TestLetrasAccesoTransmision):
+    # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoGrabacionEnIngles(TestLetrasAccesoGrabacion):
     # Gemela en inglés: repite las pruebas sin copiarlas.
 
     @classmethod

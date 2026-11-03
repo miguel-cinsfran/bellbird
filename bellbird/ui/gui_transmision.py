@@ -13,7 +13,6 @@ from bellbird.obs.obs_destinos import DESTINOS
 from bellbird.obs.obs_panel import GestorPanelObs, NOMBRE_FUENTE
 from bellbird.ui import gui_microfono, menu_transmision, paleta, tema
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
-from bellbird.ui.control_grabacion import ControlGrabacion
 from bellbird.ui.directo_panel import DirectoPanel
 from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui.operaciones_obs import OperacionesObs
@@ -70,26 +69,27 @@ class TransmisionDialog(wx.Dialog):
         self._filas = {}
         self._crear_estado(zona, contenido)
         self._crear_grupo_directo(zona, contenido)
-        self._crear_grupo_grabacion(zona, contenido)
         fijar_zona(self, zona, contenido)
         caja.Add(zona, 1, wx.EXPAND)
         self.btn_escena = boton(
             panel, _("Esce&na…"), _("Escena…"))
+        self.btn_grabacion = boton(
+            panel, _("Gra&bación…"), _("Grabación…"))
         self.btn_mostrar_obs = boton(
-            panel, _("Mostrar O&BS"), _("Mostrar OBS"))
+            panel, _("Mostrar &OBS"), _("Mostrar OBS"))
         self.btn_actualizar = boton(
             panel, _("Ac&tualizar estado"), _("Actualizar estado"))
         self.btn_cerrar = boton(
             panel, _("Cerrar"), _("Cerrar"), wx.ID_CANCEL)
-        caja.Add(fila_horizontal((self.btn_escena, self.btn_mostrar_obs,
-                                  self.btn_actualizar, self.btn_cerrar)),
+        caja.Add(fila_horizontal((self.btn_escena, self.btn_grabacion,
+                                  self.btn_mostrar_obs, self.btn_actualizar,
+                                  self.btn_cerrar)),
                  0, wx.ALL, 10)
         panel.SetSizer(caja)
         self._acciones = (
             self.cho_destino, self.txt_usuario_tiktok, self.btn_directo,
-            self.chk_chat, self.btn_grabar, self.btn_pausar,
-            self.btn_escena, self.btn_mostrar_obs,
-            self.btn_actualizar, self.btn_cerrar)
+            self.chk_chat, self.btn_escena, self.btn_grabacion,
+            self.btn_mostrar_obs, self.btn_actualizar, self.btn_cerrar)
         self.SetMinSize((600, -1))
         self._acomodar()
 
@@ -125,23 +125,11 @@ class TransmisionDialog(wx.Dialog):
         sizer.Add(self.chk_chat, 0, wx.ALL, 6)
         contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
 
-    def _crear_grupo_grabacion(self, zona, contenido):
-        sizer, padre = caja_de_grupo(zona, _("Grabación"))
-        self._grabacion = ControlGrabacion(
-            padre, self._operaciones, self._gestor, self._refrescar_estado,
-            self.btn_directo)
-        self.btn_grabar = self._grabacion.boton
-        self.btn_pausar = self._grabacion.pausar
-        self.btn_grabaciones = self._grabacion.grabaciones
-        sizer.Add(fila_horizontal((self.btn_grabar, self.btn_pausar,
-                                   self.btn_grabaciones)),
-                  0, wx.ALL, 6)
-        contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
-
     def _enlazar_eventos(self):
         self.btn_actualizar.Bind(wx.EVT_BUTTON, self._actualizar)
         self.chk_chat.Bind(wx.EVT_CHECKBOX, self._alternar_chat)
         self.btn_escena.Bind(wx.EVT_BUTTON, self._abrir_escena)
+        self.btn_grabacion.Bind(wx.EVT_BUTTON, self._abrir_grabacion)
         self.btn_mostrar_obs.Bind(
             wx.EVT_BUTTON, lambda evento: menu_transmision.mostrar_obs())
         self.btn_cerrar.Bind(wx.EVT_BUTTON, self._cerrar)
@@ -260,9 +248,6 @@ class TransmisionDialog(wx.Dialog):
         self._refrescar_estado(anunciar_cuadro=True)
 
     def _aplicar_datos(self, datos):
-        self._grabacion.fijar(
-            bool(datos.grabacion.get("outputActive", False)),
-            bool(datos.grabacion.get("outputPaused", False)))
         if not self._directo.deteniendo:
             self._directo.sincronizar(
                 bool(datos.transmision.get("outputActive", False)))
@@ -306,6 +291,13 @@ class TransmisionDialog(wx.Dialog):
             self, self.GetParent(), gestor=self._gestor)
         self._refrescar_estado()
         self.btn_escena.SetFocus()
+
+    def _abrir_grabacion(self, event):
+        from bellbird.ui import grabacion_ventana
+        grabacion_ventana.abrir_grabacion(
+            self, self.GetParent(), gestor=self._gestor)
+        self._refrescar_estado()
+        self.btn_grabacion.SetFocus()
 
     def _cerrar(self, event):
         if self._operaciones.cerrando:

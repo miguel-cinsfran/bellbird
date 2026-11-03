@@ -17,6 +17,7 @@ ATAJOS_PREDETERMINADOS = [
     ("abrir_transmision", "ctrl+shift+t"),
     ("abrir_restream", "ctrl+shift+r"),
     ("abrir_escena", "ctrl+shift+e"),
+    ("abrir_grabacion", "ctrl+shift+g"),
     ("mostrar_obs", "ctrl+shift+o"),
     ("copiar_enlace", "alt+shift+e"),
     ("obs_micro", "alt+shift+m"),

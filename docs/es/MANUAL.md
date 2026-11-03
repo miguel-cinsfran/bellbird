@@ -17,6 +17,7 @@ Versión 3.0.0 beta 1 · Windows 10 y 11 · [novedades de cada versión](CHANGEL
 - [Transmitir en directo](#transmitir-en-directo)
 - [Encuadre de cámara](#encuadre-de-cámara)
 - [Escena](#escena)
+- [Grabación](#grabación)
 - [Panel de chat para transmitir](#panel-de-chat-para-transmitir)
 - [Mensajes automáticos](#mensajes-automáticos)
 - [Descargas e historial](#descargas-e-historial)
@@ -335,29 +336,30 @@ Iniciar, pausar, reanudar y detener la grabación tienen sonidos propios. Con
 categoría *Transmisión*, el título empieza por ese estado, y la casilla viene
 desmarcada.
 
-También se puede grabar sin abrir el panel. Para iniciar o detener la
-grabación, usa *Iniciar o detener grabación* en el menú *Transmisión* con
-`Alt+Mayús+G`. Para pausar o reanudar, usa *Pausar o reanudar grabación* con
-`Alt+Mayús+P`, que anuncian y suenan igual que los botones del panel. Si no hay
-una grabación en curso, pausar lo dice y no cambia nada en OBS. Si OBS no pausa
-la grabación, la aplicación lo dice: algunos perfiles pueden no permitirlo.
+También se puede grabar sin abrir el panel de transmisión. La ventana
+*Grabación* (`Ctrl+Mayús+G`) tiene los mismos botones, y el menú *Transmisión*
+conserva *Iniciar o detener grabación* con `Alt+Mayús+G` y *Pausar o reanudar
+grabación* con `Alt+Mayús+P`, que anuncian y suenan igual que los botones de la
+ventana. Si no hay una grabación en curso, pausar lo dice y no cambia nada en
+OBS. Si OBS no pausa la grabación, la aplicación lo dice: algunos perfiles
+pueden no permitirlo.
 
 Al detener la grabación, desde la aplicación o porque terminó la transmisión,
 se oye «Grabación guardada» con el nombre del archivo. *Grabaciones guardadas…*,
-en el menú *Transmisión* y en el panel, lista lo grabado así, de lo más nuevo a
-lo más antiguo. Desde ahí puedes abrir el archivo con `Intro`, abrir su carpeta,
-copiar la ruta o eliminarlo de la lista con `Supr`. Eliminar de la lista no borra
-el archivo, y lo que se detiene desde la ventana de OBS no aparece en la lista.
+en el menú *Transmisión* y en la ventana *Grabación*, lista lo grabado así, de
+lo más nuevo a lo más antiguo. Desde ahí puedes abrir el archivo con `Intro`,
+abrir su carpeta, copiar la ruta o eliminarlo de la lista con `Supr`. Eliminar
+de la lista no borra el archivo, y lo que se detiene desde la ventana de OBS no
+aparece en la lista.
 
 ### El panel de transmisión
 
 El campo *Estado* dice si está todo preparado o qué revisar, la escena actual, el
-micrófono y la grabación. Desde el panel se inicia y se finaliza el directo por
-el mismo camino que el botón de la ventana principal. También se graba, y
-*Escena…* abre la ventana *Escena*. Solo aparece lo que sirve en ese momento:
-*Usuario de TikTok* con TikTok, *Mostrar chat en el vídeo* con YouTube y
-*Pausar grabación* mientras se graba, y `Intro` nunca inicia ni finaliza un
-directo.
+micrófono y si se está grabando. Desde el panel se inicia y se finaliza el
+directo por el mismo camino que el botón de la ventana principal. *Escena…*
+abre la ventana *Escena* y *Grabación…* abre la ventana *Grabación*. Solo
+aparece lo que sirve en ese momento: *Usuario de TikTok* con TikTok y *Mostrar
+chat en el vídeo* con YouTube, y `Intro` nunca inicia ni finaliza un directo.
 
 Todo se puede seguir haciendo a mano en OBS, y la aplicación no interrumpe el
 complemento de OBS para NVDA.
@@ -440,6 +442,24 @@ terminar, las listas de fuentes y la descripción se actualizan solas.
 Si OBS está cerrado, la ventana lo abre. Si no responde, lo dice en la
 descripción y no se queda congelada. La ayuda de la ventana explica cada
 pestaña.
+
+## Grabación
+
+La ventana *Grabación* (`Ctrl+Mayús+G`), en el menú *Transmisión*, sirve para
+grabar en OBS sin pasar por el panel de transmisión. *Estado* dice si se está
+grabando, en pausa o sin grabar, cuánto lleva, la escena al aire, el micrófono
+y si además se está transmitiendo.
+
+*Iniciar grabación* y *Detener grabación* hacen lo mismo que los botones del
+panel, con sus sonidos y sus anuncios. *Pausar grabación* aparece mientras se
+graba y pasa a *Reanudar grabación* cuando la grabación está en pausa.
+*Grabaciones guardadas…* lista lo que la aplicación detuvo. *Grabar también al
+transmitir* es la misma preferencia del menú *Transmisión*: cambiar una cambia
+la otra. *Escena…* abre la ventana *Escena* con la misma conexión con OBS y,
+al volver, el estado se actualiza. *Actualizar estado* lo vuelve a leer.
+
+Si OBS está cerrado, la ventana lo abre. Si no responde, lo dice en *Estado* y
+no se queda congelada.
 
 ## Panel de chat para transmitir
 
@@ -625,6 +645,7 @@ atajos. Todos figuran además en la barra de menú, junto a su acción.
 | `Ctrl+Mayús+T` | Abrir Transmisión |
 | `Ctrl+Mayús+R` | Abrir Restream |
 | `Ctrl+Mayús+E` | Abrir Escena |
+| `Ctrl+Mayús+G` | Abrir Grabación |
 | `Ctrl+Mayús+D` | Abrir Administrador de descargas |
 | `Ctrl+Mayús+M` | Abrir la ventana de música |
 | `Ctrl+Mayús+I` | Preguntar a la IA sobre la imagen |

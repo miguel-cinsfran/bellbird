@@ -233,6 +233,7 @@ href="CHANGELOG.html">novedades de cada versión</a></p>
 <li><a href="#transmitir-en-directo">Transmitir en directo</a></li>
 <li><a href="#encuadre-de-cámara">Encuadre de cámara</a></li>
 <li><a href="#escena">Escena</a></li>
+<li><a href="#grabación">Grabación</a></li>
 <li><a href="#panel-de-chat-para-transmitir">Panel de chat para
 transmitir</a></li>
 <li><a href="#mensajes-automáticos">Mensajes automáticos</a></li>
@@ -562,30 +563,30 @@ transmisión, y la casilla viene desmarcada.</p>
 propios. Con <em>Mostrar en el título de la ventana si se transmite o se
 graba</em>, en <em>Preferencias</em>, categoría <em>Transmisión</em>, el
 título empieza por ese estado, y la casilla viene desmarcada.</p>
-<p>También se puede grabar sin abrir el panel. Para iniciar o detener la
-grabación, usa <em>Iniciar o detener grabación</em> en el menú
-<em>Transmisión</em> con <code>Alt+Mayús+G</code>. Para pausar o
-reanudar, usa <em>Pausar o reanudar grabación</em> con
-<code>Alt+Mayús+P</code>, que anuncian y suenan igual que los botones
-del panel. Si no hay una grabación en curso, pausar lo dice y no cambia
-nada en OBS. Si OBS no pausa la grabación, la aplicación lo dice:
-algunos perfiles pueden no permitirlo.</p>
+<p>También se puede grabar sin abrir el panel de transmisión. La ventana
+<em>Grabación</em> (<code>Ctrl+Mayús+G</code>) tiene los mismos botones,
+y el menú <em>Transmisión</em> conserva <em>Iniciar o detener
+grabación</em> con <code>Alt+Mayús+G</code> y <em>Pausar o reanudar
+grabación</em> con <code>Alt+Mayús+P</code>, que anuncian y suenan igual
+que los botones de la ventana. Si no hay una grabación en curso, pausar
+lo dice y no cambia nada en OBS. Si OBS no pausa la grabación, la
+aplicación lo dice: algunos perfiles pueden no permitirlo.</p>
 <p>Al detener la grabación, desde la aplicación o porque terminó la
 transmisión, se oye «Grabación guardada» con el nombre del archivo.
-<em>Grabaciones guardadas…</em>, en el menú <em>Transmisión</em> y en el
-panel, lista lo grabado así, de lo más nuevo a lo más antiguo. Desde ahí
-puedes abrir el archivo con <code>Intro</code>, abrir su carpeta, copiar
-la ruta o eliminarlo de la lista con <code>Supr</code>. Eliminar de la
-lista no borra el archivo, y lo que se detiene desde la ventana de OBS
-no aparece en la lista.</p>
+<em>Grabaciones guardadas…</em>, en el menú <em>Transmisión</em> y en la
+ventana <em>Grabación</em>, lista lo grabado así, de lo más nuevo a lo
+más antiguo. Desde ahí puedes abrir el archivo con <code>Intro</code>,
+abrir su carpeta, copiar la ruta o eliminarlo de la lista con
+<code>Supr</code>. Eliminar de la lista no borra el archivo, y lo que se
+detiene desde la ventana de OBS no aparece en la lista.</p>
 <h3 id="el-panel-de-transmisión">El panel de transmisión</h3>
 <p>El campo <em>Estado</em> dice si está todo preparado o qué revisar,
-la escena actual, el micrófono y la grabación. Desde el panel se inicia
-y se finaliza el directo por el mismo camino que el botón de la ventana
-principal. También se graba, y <em>Escena…</em> abre la ventana
-<em>Escena</em>. Solo aparece lo que sirve en ese momento: <em>Usuario
-de TikTok</em> con TikTok, <em>Mostrar chat en el vídeo</em> con YouTube
-y <em>Pausar grabación</em> mientras se graba, y <code>Intro</code>
+la escena actual, el micrófono y si se está grabando. Desde el panel se
+inicia y se finaliza el directo por el mismo camino que el botón de la
+ventana principal. <em>Escena…</em> abre la ventana <em>Escena</em> y
+<em>Grabación…</em> abre la ventana <em>Grabación</em>. Solo aparece lo
+que sirve en ese momento: <em>Usuario de TikTok</em> con TikTok y
+<em>Mostrar chat en el vídeo</em> con YouTube, y <code>Intro</code>
 nunca inicia ni finaliza un directo.</p>
 <p>Todo se puede seguir haciendo a mano en OBS, y la aplicación no
 interrumpe el complemento de OBS para NVDA.</p>
@@ -665,6 +666,23 @@ descripción se actualizan solas.</p>
 <p>Si OBS está cerrado, la ventana lo abre. Si no responde, lo dice en
 la descripción y no se queda congelada. La ayuda de la ventana explica
 cada pestaña.</p>
+<h2 id="grabación">Grabación</h2>
+<p>La ventana <em>Grabación</em> (<code>Ctrl+Mayús+G</code>), en el menú
+<em>Transmisión</em>, sirve para grabar en OBS sin pasar por el panel de
+transmisión. <em>Estado</em> dice si se está grabando, en pausa o sin
+grabar, cuánto lleva, la escena al aire, el micrófono y si además se
+está transmitiendo.</p>
+<p><em>Iniciar grabación</em> y <em>Detener grabación</em> hacen lo
+mismo que los botones del panel, con sus sonidos y sus anuncios.
+<em>Pausar grabación</em> aparece mientras se graba y pasa a
+<em>Reanudar grabación</em> cuando la grabación está en pausa.
+<em>Grabaciones guardadas…</em> lista lo que la aplicación detuvo.
+<em>Grabar también al transmitir</em> es la misma preferencia del menú
+<em>Transmisión</em>: cambiar una cambia la otra. <em>Escena…</em> abre
+la ventana <em>Escena</em> con la misma conexión con OBS y, al volver,
+el estado se actualiza. <em>Actualizar estado</em> lo vuelve a leer.</p>
+<p>Si OBS está cerrado, la ventana lo abre. Si no responde, lo dice en
+<em>Estado</em> y no se queda congelada.</p>
 <h2 id="panel-de-chat-para-transmitir">Panel de chat para
 transmitir</h2>
 <p>Muestra el chat en grande, con fondo transparente, para tus
@@ -889,6 +907,10 @@ a su acción.</p>
 <tr>
 <td><code>Ctrl+Mayús+E</code></td>
 <td>Abrir Escena</td>
+</tr>
+<tr>
+<td><code>Ctrl+Mayús+G</code></td>
+<td>Abrir Grabación</td>
 </tr>
 <tr>
 <td><code>Ctrl+Mayús+D</code></td>

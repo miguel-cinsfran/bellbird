@@ -216,7 +216,7 @@
   </style>
 </head>
 <body>
-<!-- original: es/MANUAL.md e49cde52a0249a7bb5c83ab617662493a92ad274 -->
+<!-- original: es/MANUAL.md 596322c3e5a280a590f33f4d318235f2aae15e93 -->
 
 <h1 id="bellbird-user-manual">Bellbird, user manual</h1>
 <p>This is a translation of the Spanish original, made with artificial
@@ -239,6 +239,7 @@ href="CHANGELOG.html">what's new in each version</a></p>
 <li><a href="#going-live">Going live</a></li>
 <li><a href="#camera-framing">Camera framing</a></li>
 <li><a href="#scene">Scene</a></li>
+<li><a href="#recording">Recording</a></li>
 <li><a href="#chat-panel-for-streaming">Chat panel for
 streaming</a></li>
 <li><a href="#scheduled-messages">Scheduled messages</a></li>
@@ -570,31 +571,31 @@ sounds. With <em>Show streaming or recording in the title of the
 window</em>, in <em>Preferences</em>, on the <em>Broadcast</em>
 category, the title starts with that state, and the check box is cleared
 by default.</p>
-<p>You can also record without opening the panel. To start or stop
-recording, use <em>Start or stop recording</em> in the
-<em>Broadcast</em> menu with <code>Alt+Shift+G</code>. To pause or
-resume, use <em>Pause or resume recording</em> with
-<code>Alt+Shift+P</code>, which announce and sound the same as the panel
-buttons. If no recording is in progress, pausing says so and changes
-nothing in OBS. If OBS does not pause the recording, the application
-says so: some profiles may not allow it.</p>
+<p>You can also record without opening the broadcast panel. The
+<em>Recording</em> window (<code>Ctrl+Shift+G</code>) has the same
+buttons, and the <em>Broadcast</em> menu keeps <em>Start or stop
+recording</em> with <code>Alt+Shift+G</code> and <em>Pause or resume
+recording</em> with <code>Alt+Shift+P</code>, which announce and sound
+the same as the window buttons. If no recording is in progress, pausing
+says so and changes nothing in OBS. If OBS does not pause the recording,
+the application says so: some profiles may not allow it.</p>
 <p>When you stop the recording, from the application or because the
 broadcast ended, you hear “Recording saved” with the file name.
 <em>Saved recordings…</em>, in the <em>Broadcast</em> menu and in the
-panel, lists what was recorded that way, from newest to oldest. From
-there you can open the file with <code>Enter</code>, open its folder,
-copy the path or remove it from the list with <code>Delete</code>.
-Removing it from the list does not delete the file, and what is stopped
-from the OBS window does not appear in the list.</p>
+<em>Recording</em> window, lists what was recorded that way, from newest
+to oldest. From there you can open the file with <code>Enter</code>,
+open its folder, copy the path or remove it from the list with
+<code>Delete</code>. Removing it from the list does not delete the file,
+and what is stopped from the OBS window does not appear in the list.</p>
 <h3 id="the-broadcast-panel">The broadcast panel</h3>
 <p>The <em>Status</em> field says whether everything is ready or what to
-check, the current scene, the microphone and the recording. From the
-panel the live stream is started and ended the same way as with the
-button in the main window. It also records, and <em>Scene…</em> opens
-the <em>Scene</em> window. Only what is useful at that moment appears:
-<em>TikTok user</em> with TikTok, <em>Show chat on video</em> with
-YouTube and <em>Pause recording</em> while recording, and
-<code>Enter</code> never starts or ends a live stream.</p>
+check, the current scene, the microphone and whether it is recording.
+From the panel the live stream is started and ended the same way as with
+the button in the main window. <em>Scene…</em> opens the <em>Scene</em>
+window and <em>Recording…</em> opens the <em>Recording</em> window. Only
+what is useful at that moment appears: <em>TikTok user</em> with TikTok
+and <em>Show chat on video</em> with YouTube, and <code>Enter</code>
+never starts or ends a live stream.</p>
 <p>Everything can still be done by hand in OBS, and the application does
 not interrupt the OBS plugin for NVDA.</p>
 <h2 id="camera-framing">Camera framing</h2>
@@ -672,6 +673,23 @@ description update by themselves.</p>
 <p>If OBS is closed, the window opens it. If it does not respond, it
 says so in the description and does not freeze. The window help explains
 each tab.</p>
+<h2 id="recording">Recording</h2>
+<p>The <em>Recording</em> window (<code>Ctrl+Shift+G</code>), in the
+<em>Broadcast</em> menu, records in OBS without going through the
+broadcast panel. <em>Status</em> says whether it is recording, paused or
+not recording, how long it has been going, the live scene, the
+microphone and whether it is also broadcasting.</p>
+<p><em>Start recording</em> and <em>Stop recording</em> do the same as
+the panel buttons, with their sounds and announcements. <em>Pause
+recording</em> appears while recording and becomes <em>Resume
+recording</em> when the recording is paused. <em>Saved recordings…</em>
+lists what the application stopped. <em>Record while broadcasting</em>
+is the same preference as in the <em>Broadcast</em> menu: changing one
+changes the other. <em>Scene…</em> opens the <em>Scene</em> window with
+the same OBS connection and, on return, the status updates. <em>Update
+status</em> reads it again.</p>
+<p>If OBS is closed, the window opens it. If it does not respond, it
+says so in <em>Status</em> and does not freeze.</p>
 <h2 id="chat-panel-for-streaming">Chat panel for streaming</h2>
 <p>It shows the chat large, with a transparent background, for your
 viewers. It is added in OBS (or Streamlabs, or Prism Live Studio) as a
@@ -898,6 +916,10 @@ their action.</p>
 <tr>
 <td><code>Ctrl+Shift+E</code></td>
 <td>Open Scene</td>
+</tr>
+<tr>
+<td><code>Ctrl+Shift+G</code></td>
+<td>Open Recording</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+D</code></td>

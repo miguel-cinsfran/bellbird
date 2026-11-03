@@ -43,6 +43,13 @@ def abrir_escena(frame) -> None:
     escena_ventana.abrir_escena(frame, frame)
 
 
+def abrir_grabacion(frame) -> None:
+    """Abre la ventana Grabación, aunque no haya un directo en curso."""
+    from bellbird.ui import grabacion_ventana
+
+    grabacion_ventana.abrir_grabacion(frame, frame)
+
+
 def _agregar_encuadre(frame, m):
     """La sección de encuadre: anuncio a pedido y casilla de avisos."""
     m.AppendSeparator()
@@ -68,6 +75,9 @@ def _agregar_ventanas(frame, m):
     frame.mi_escena = m.Append(
         wx.ID_ANY, _("Esce&na…") + frame._accel("abrir_escena"))
     frame._bind_menu(frame.mi_escena, abrir_escena, frame)
+    frame.mi_grabacion = m.Append(
+        wx.ID_ANY, _("Gra&bación…") + frame._accel("abrir_grabacion"))
+    frame._bind_menu(frame.mi_grabacion, abrir_grabacion, frame)
 
 
 def _agregar_grabaciones(frame, m):

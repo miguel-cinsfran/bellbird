@@ -1,7 +1,6 @@
 """Pruebas del panel de transmisión sin conectar con OBS."""
 
 import pathlib
-import tempfile
 import threading
 import unittest
 from types import SimpleNamespace
@@ -11,7 +10,7 @@ from bellbird.obs import consultas_transmision
 from bellbird.obs import obs_cliente
 from bellbird.obs import obs_disposicion
 from bellbird.obs import estado_panel
-from bellbird.obs import grabaciones, obs_prevuelo
+from bellbird.obs import obs_prevuelo
 from bellbird.ui import confirmar_transmision as modulo_confirmar
 from bellbird.ui import control_grabacion
 from bellbird.ui import directo_panel
@@ -270,7 +269,7 @@ class TestPanelTransmision(unittest.TestCase):
     def test_titulo_y_grupos(self):
         self.assertEqual(self.dialogo.GetTitle(), "Panel de transmisión")
         titulos = [caja.GetLabel() for caja in self._cajas(self.dialogo)]
-        self.assertEqual(titulos, ["Directo", "Grabación"])
+        self.assertEqual(titulos, ["Directo"])
 
     def _cajas(self, ventana):
         cajas = []
@@ -286,17 +285,15 @@ class TestPanelTransmision(unittest.TestCase):
         self.dialogo._aplicar_visibilidad()
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Estado", "Transmitir a", "Transmitir en directo",
-            "Mostrar chat en el vídeo", "Iniciar grabación",
-            "Grabaciones guardadas…", "Escena…", "Mostrar OBS",
-            "Actualizar estado", "Cerrar"])
+            "Mostrar chat en el vídeo", "Escena…", "Grabación…",
+            "Mostrar OBS", "Actualizar estado", "Cerrar"])
 
     def test_orden_de_tab_con_tiktok_en_reposo(self):
         self._elegir("TikTok")
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Estado", "Transmitir a", "Usuario de TikTok",
-            "Transmitir en directo", "Iniciar grabación",
-            "Grabaciones guardadas…", "Escena…", "Mostrar OBS",
-            "Actualizar estado", "Cerrar"])
+            "Transmitir en directo", "Escena…", "Grabación…",
+            "Mostrar OBS", "Actualizar estado", "Cerrar"])
 
     def test_durante_el_directo_se_ocultan_destino_y_usuario(self):
         self._elegir("TikTok")
@@ -464,71 +461,35 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertIn("Escena actual: Principal", texto)
         self.assertIn("Micrófono Mic/Aux: silenciado", texto)
 
-    def test_grabar_y_pausar_anuncian_y_actualizan_etiquetas(self):
-        self._pulsar(self.dialogo.btn_grabar)
-        self.assertEqual(self.dialogo.btn_grabar.GetLabel(),
-                         "Detener &grabación")
-        self.assertTrue(self.dialogo.btn_pausar.IsShown())
-        self._pulsar(self.dialogo.btn_pausar)
-        self.assertEqual(self.dialogo.btn_pausar.GetLabel(),
-                         "&Reanudar grabación")
-        self.assertIn("Grabación iniciada", self.anuncios)
-        self.assertIn("Grabación en pausa", self.anuncios)
+    def test_el_panel_ya_no_tiene_los_botones_de_grabacion(self):
+        for nombre in ("_grabacion", "btn_grabar", "btn_pausar",
+                       "btn_grabaciones"):
+            with self.subTest(nombre=nombre):
+                self.assertFalse(hasattr(self.dialogo, nombre))
 
-    def test_boton_grabaciones_abre_la_ventana(self):
-        from bellbird.ui import gui_grabaciones
+    def test_grabacion_abre_la_ventana_con_el_gestor_y_refresca(self):
+        from bellbird.ui import grabacion_ventana
 
-        with mock.patch.object(gui_grabaciones,
-                               "abrir_grabaciones") as abrir:
-            self._pulsar(self.dialogo.btn_grabaciones)
-        abrir.assert_called_once_with(self.dialogo)
+        with mock.patch.object(grabacion_ventana,
+                               "abrir_grabacion") as abrir, \
+                mock.patch.object(self.dialogo, "_refrescar_estado") as refrescar, \
+                mock.patch.object(self.dialogo.btn_grabacion,
+                                  "SetFocus") as foco:
+            self._pulsar(self.dialogo.btn_grabacion)
+        abrir.assert_called_once_with(
+            self.dialogo, self.dialogo.GetParent(), gestor=self.gestor)
+        refrescar.assert_called_once_with()
+        foco.assert_called_once_with()
 
-    def test_detener_con_ruta_anuncia_el_archivo(self):
-        self.gestor.ruta_grabacion = "C:/Videos/clip.mp4"
-        with tempfile.TemporaryDirectory() as tmp:
-            ruta = pathlib.Path(tmp) / "grabaciones.json"
-            with mock.patch.object(grabaciones.paths, "grabaciones",
-                                   return_value=ruta):
-                self._pulsar(self.dialogo.btn_grabar)
-                self._pulsar(self.dialogo.btn_grabar)
-        self.assertIn("Grabación guardada: clip.mp4", self.anuncios)
-        control_grabacion.sound_player.reproducir.assert_called_with(
-            "grabacion_detenida")
-
-    def test_pausa_que_no_cambia_no_anuncia_pausa(self):
-        self._pulsar(self.dialogo.btn_grabar)
-        with mock.patch.object(self.gestor, "alternar_pausa_grabacion",
-                               return_value=(None, False)):
-            self._pulsar(self.dialogo.btn_pausar)
-        self.assertEqual(self.dialogo.btn_pausar.GetLabel(),
-                         "&Pausar grabación")
-        self.assertIn(
-            "OBS no pausó la grabación: este perfil puede no permitirlo.",
-            self.anuncios)
-        self.assertNotIn("Grabación en pausa", self.anuncios)
-        control_grabacion.sound_player.reproducir.assert_called_with("error")
-
-    def test_grabacion_suena_y_anuncia_como_antes(self):
-        self._pulsar(self.dialogo.btn_grabar)
-        control_grabacion.sound_player.reproducir.assert_called_once_with(
-            "grabacion_iniciada")
-        self.assertIn("Grabación iniciada", self.anuncios)
-        control_grabacion.sound_player.reproducir.reset_mock()
-        self._pulsar(self.dialogo.btn_pausar)
-        control_grabacion.sound_player.reproducir.assert_called_once_with(
-            "grabacion_en_pausa")
-        self.assertIn("Grabación en pausa", self.anuncios)
-
-    def test_el_sonido_de_grabacion_va_antes_del_anuncio(self):
-        orden = []
-        with mock.patch.object(
-                control_grabacion.sound_player, "reproducir",
-                side_effect=lambda evento: orden.append(("sonido", evento))),                 mock.patch.object(
-                    control_grabacion, "anunciar",
-                    side_effect=lambda frase, *a: orden.append(
-                        ("frase", frase))):
-            self._pulsar(self.dialogo.btn_grabar)
-        self.assertEqual([paso[0] for paso in orden], ["sonido", "frase"])
+    def test_el_estado_sigue_diciendo_si_se_graba(self):
+        self.dialogo._aplicar_datos(SimpleNamespace(
+            escena="Principal", transmision={"outputActive": False},
+            grabacion={"outputActive": True, "outputPaused": False,
+                       "outputTimecode": "00:01:02.000"},
+            microfono="Mic/Aux", silenciado=False, al_aire="Principal",
+            perfil="", problemas=()))
+        self.assertIn("Grabación: en curso, 00:01:02",
+                      self.dialogo.txt_estado.GetValue())
 
     def test_consulta_rapida_no_anuncia_la_espera(self):
         temporizador = mock.Mock()
@@ -537,16 +498,6 @@ class TestPanelTransmision(unittest.TestCase):
         temporizador.StartOnce.assert_called_once_with(400)
         temporizador.Stop.assert_called_once_with()
         self.assertNotIn("Consultando OBS", self.anuncios)
-
-    def test_pausar_oculto_pasa_el_foco_al_boton_del_directo(self):
-        self.gestor.grabando = True
-        self.dialogo._grabacion.fijar(True, False)
-        self.assertTrue(self.dialogo.btn_pausar.IsShown())
-        self.dialogo.btn_pausar.SetFocus()
-        self.gestor.grabando = False
-        self.dialogo._grabacion.fijar(False, False)
-        self.assertFalse(self.dialogo.btn_pausar.IsShown())
-        self.assertIs(self.dialogo.FindFocus(), self.dialogo.btn_directo)
 
     def test_mostrar_obs_llama_al_comando_del_menu(self):
         with mock.patch.object(menu_transmision, "mostrar_obs") as mostrar:
@@ -560,6 +511,8 @@ class TestPanelTransmision(unittest.TestCase):
                 self.assertFalse(hasattr(self.dialogo, nombre))
         self.assertEqual(self.dialogo.btn_escena.GetLabel(), "Esce&na…")
         self.assertEqual(self.dialogo.btn_escena.GetName(), "Escena…")
+        self.assertEqual(self.dialogo.btn_grabacion.GetLabel(), "Gra&bación…")
+        self.assertEqual(self.dialogo.btn_grabacion.GetName(), "Grabación…")
 
     def test_escena_abre_la_ventana_con_el_gestor_y_refresca_el_estado(self):
         from bellbird.ui import escena_ventana

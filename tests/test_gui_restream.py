@@ -252,6 +252,21 @@ class PruebaVentanaRestream(unittest.TestCase):
              _perfil(nombre="Copia de Canal 2")],
             perfiles.cargar(self.ruta))
 
+    def test_p5_duplicar_tres_veces_no_repite_nombres(self):
+        original = _perfil(nombre="Canal")
+        dialogo = self._ventana(guardados=[original])
+        with mock.patch.object(restream_ventana, "anunciar"):
+            for _ in range(3):
+                dialogo.lista_perfiles.SetSelection(0)
+                dialogo._duplicar()
+
+        nombres = [perfil.nombre for perfil in perfiles.cargar(self.ruta)]
+        self.assertEqual(
+            ["Canal", "Copia de Canal", "Copia de Canal 2",
+             "Copia de Canal 3"], nombres)
+        self.assertEqual(len(nombres),
+                         len({nombre.casefold() for nombre in nombres}))
+
     def test_p5_eliminar_escribe_y_anuncia(self):
         primera = _perfil(nombre="Primero")
         segunda = _perfil(nombre="Segundo")

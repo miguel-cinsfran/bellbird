@@ -338,6 +338,7 @@ class TestParsearAtajos(unittest.TestCase):
                 ("marcar_incidencia", "alt+shift+i", "alt+shift"),
                 ("abrir_transmision", "ctrl+shift+t", "ctrl+shift"),
                 ("abrir_restream", "ctrl+shift+r", "ctrl+shift"),
+                ("abrir_escena", "ctrl+shift+e", "ctrl+shift"),
                 ("mostrar_obs", "ctrl+shift+o", "ctrl+shift"),
                 ("copiar_enlace", "alt+shift+e", "alt+shift"),
                 ("anunciar_autor", "f3", "f"),
@@ -406,6 +407,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("marcar_incidencia")', fuente)
         self.assertIn('._accel("abrir_transmision")', fuente)
         self.assertIn('._accel("abrir_restream")', fuente)
+        self.assertIn('._accel("abrir_escena")', fuente)
         self.assertIn('._accel("mostrar_obs")', fuente)
         self.assertIn('._accel("obs_grabar")', fuente)
         self.assertIn('._accel("obs_pausar_grabacion")', fuente)

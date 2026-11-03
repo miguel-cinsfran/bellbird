@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 8ed16d3af52350147198da34e0a06c13611f1a16 -->
+<!-- original: es/MANUAL.md 6118576759994e2a9f80a4a30be6a4ce6acb6f30 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -19,6 +19,7 @@ Version 3.0.0 beta 1 · Windows 10 and 11 · [what's new in each version](CHANGE
 - [Music](#music)
 - [Going live](#going-live)
 - [Camera framing](#camera-framing)
+- [Scene](#scene)
 - [Chat panel for streaming](#chat-panel-for-streaming)
 - [Scheduled messages](#scheduled-messages)
 - [Downloads and history](#downloads-and-history)
@@ -432,6 +433,29 @@ category, with *Add camera to OBS…*: it uses a Windows camera and leaves it at
 the bottom right of the video, in front of the other sources. To move it, use
 *Arrange scene…* in the *Broadcast panel*.
 
+## Scene
+
+The *Scene* window (`Ctrl+Shift+E`), in the *Broadcast* menu, brings together
+what is seen and heard in OBS in four tabs.
+
+*Scene* chooses which scene is edited and says what it has. Browsing the list
+does not change what is broadcast. *Change scene* changes the scene that is
+broadcast and *Save image…* saves an image of it.
+
+*Sources* chooses a source of the scene and moves it to one of the nine
+positions, changes its size, hides it, locks it or brings it to the front.
+*Move with arrows* moves it in small steps: `Ctrl` gives large steps, `Shift`
+one-pixel steps, `Enter` confirms and `Esc` undoes. The *Source details* field
+says where it is, how big it is and what covers it. *Undo changes* returns
+everything to how it was when the window was opened.
+
+*Add* captures a window from the computer or adds a Windows camera to the
+current scene. *Audio* mutes the OBS microphone and chooses which one is used.
+When it finishes, the source lists and the description update by themselves.
+
+If OBS is closed, the window opens it. If it does not respond, it says so in
+the description and does not freeze. The window help explains each tab.
+
 ## Chat panel for streaming
 
 It shows the chat large, with a transparent background, for your viewers. It is
@@ -618,6 +642,7 @@ shortcuts. They all also appear in the menu bar, next to their action.
 | `Ctrl+Shift+H` | Open the live stream history |
 | `Ctrl+Shift+T` | Open Broadcast |
 | `Ctrl+Shift+R` | Open Restream |
+| `Ctrl+Shift+E` | Open Scene |
 | `Ctrl+Shift+D` | Open Download manager |
 | `Ctrl+Shift+M` | Open the music window |
 | `Ctrl+Shift+I` | Ask the AI about the image |

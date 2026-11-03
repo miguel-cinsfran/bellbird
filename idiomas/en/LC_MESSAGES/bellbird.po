@@ -4294,6 +4294,37 @@ msgstr "The Restream session expired. Connect the account again."
 msgid "No se pudo renovar la sesión de Restream. Comprueba la conexión a internet."
 msgstr "Could not renew the Restream session. Check the internet connection."
 
+#: bellbird/ui/agregar_camara.py
+msgid "Windows no tiene ninguna cámara disponible para OBS."
+msgstr "Windows has no camera available for OBS."
+
+#: bellbird/ui/agregar_camara.py
+msgid "Cámaras de Windows:"
+msgstr "Windows cameras:"
+
+#: bellbird/ui/agregar_camara.py
+msgid "Elegir cámara"
+msgstr "Choose camera"
+
+#: bellbird/ui/agregar_camara.py
+#, python-brace-format
+msgid "Esa cámara ya está en OBS como {nombre}."
+msgstr "That camera is already in OBS as {nombre}."
+
+#: bellbird/ui/agregar_camara.py
+#, python-brace-format
+msgid "Se agregó {nombre} a la escena {escena}."
+msgstr "Added {nombre} to scene {escena}."
+
+#: bellbird/ui/agregar_camara.py
+#, python-brace-format
+msgid "Quedó {lugar}, delante de las demás fuentes."
+msgstr "It is at the {lugar}, in front of the other sources."
+
+#: bellbird/ui/agregar_camara.py
+msgid "Para moverla, usa Organizar escena en el panel de transmisión."
+msgstr "To move it, use Arrange scene in the Broadcast panel."
+
 #: bellbird/ui/atajos_captura.py
 msgid "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P)."
 msgstr "It must be Ctrl and a key (for example Ctrl+P)."
@@ -4367,6 +4398,10 @@ msgstr "Open Broadcast"
 #: bellbird/ui/atajos_captura.py
 msgid "Abrir Restream"
 msgstr "Open Restream"
+
+#: bellbird/ui/atajos_captura.py
+msgid "Abrir Escena"
+msgstr "Open Scene"
 
 #: bellbird/ui/atajos_captura.py bellbird/ui/gui_transmision.py
 msgid "Mostrar OBS"
@@ -5344,10 +5379,11 @@ msgstr "Session status"
 msgid "Sin información de estado."
 msgstr "No status information."
 
-#: bellbird/ui/dialogo_estado.py bellbird/ui/gui_grabaciones.py
-#: bellbird/ui/gui_microfono.py bellbird/ui/gui_organizar_escena.py
-#: bellbird/ui/gui_transmision.py bellbird/ui/ia_ventana.py
-#: bellbird/ui/musica_ventana.py bellbird/ui/restream_ventana.py
+#: bellbird/ui/dialogo_estado.py bellbird/ui/escena_ventana.py
+#: bellbird/ui/gui_grabaciones.py bellbird/ui/gui_microfono.py
+#: bellbird/ui/gui_organizar_escena.py bellbird/ui/gui_transmision.py
+#: bellbird/ui/ia_ventana.py bellbird/ui/musica_ventana.py
+#: bellbird/ui/restream_ventana.py
 msgid "Cerrar"
 msgstr "Close"
 
@@ -5415,6 +5451,197 @@ msgstr "Framing warnings on"
 #: bellbird/ui/encuadre_camara.py
 msgid "Avisos de encuadre desactivados"
 msgstr "Framing warnings off"
+
+#: bellbird/ui/escena_pagina_agregar.py bellbird/ui/gui_organizar_escena.py
+msgid "Ventana capturada"
+msgstr "Captured window"
+
+#: bellbird/ui/escena_pagina_agregar.py bellbird/ui/gui_organizar_escena.py
+msgid "&Ventana:"
+msgstr "&Window:"
+
+#: bellbird/ui/escena_pagina_agregar.py bellbird/ui/gui_organizar_escena.py
+msgid "&Capturar ventana"
+msgstr "&Capture window"
+
+#: bellbird/ui/escena_pagina_agregar.py
+msgid "Agregar cá&mara…"
+msgstr "Add ca&mera…"
+
+#: bellbird/ui/escena_pagina_agregar.py bellbird/ui/gui_organizar_escena.py
+msgid "Elige primero una ventana en Ventana."
+msgstr "First choose a window in Window."
+
+#: bellbird/ui/escena_pagina_audio.py
+msgid "Si&lenciar micrófono"
+msgstr "&Mute microphone"
+
+#: bellbird/ui/escena_pagina_audio.py bellbird/ui/gui_transmision.py
+msgid "Elegir &micrófono…"
+msgstr "Choose a &device…"
+
+#: bellbird/ui/escena_pagina_escena.py bellbird/ui/gui_organizar_escena.py
+msgid "&Escena:"
+msgstr "&Scene:"
+
+#: bellbird/ui/escena_pagina_escena.py bellbird/ui/gui_transmision.py
+msgid "Cambiar e&scena"
+msgstr "Chan&ge scene"
+
+#: bellbird/ui/escena_pagina_escena.py bellbird/ui/gui_organizar_escena.py
+msgid "&Descripción de la escena:"
+msgstr "Scene &description:"
+
+#: bellbird/ui/escena_pagina_escena.py bellbird/ui/gui_organizar_escena.py
+msgid "Guardar &imagen…"
+msgstr "Save &image…"
+
+#. Traductores: traduce solo «Imagen PNG»; no cambies «(*.png)|*.png».
+#: bellbird/ui/escena_pagina_escena.py bellbird/ui/gui_organizar_escena.py
+msgid "Guardar imagen de la escena"
+msgstr "Save scene image"
+
+#: bellbird/ui/escena_pagina_escena.py bellbird/ui/gui_organizar_escena.py
+msgid "Imagen PNG (*.png)|*.png"
+msgstr "PNG Image (*.png)|*.png"
+
+#: bellbird/ui/escena_pagina_escena.py bellbird/ui/gui_organizar_escena.py
+msgid "Imagen guardada"
+msgstr "Image saved"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "Colocar fuente"
+msgstr "Place source"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "Deshacer cambi&os"
+msgstr "&Undo changes"
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "&Detalle de la fuente:"
+msgstr "Source &details:"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "&Fuente:"
+msgstr "S&ource:"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "&Posición:"
+msgstr "&Position:"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "&Mover fuente"
+msgstr "&Move source"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "&Ancho:"
+msgstr "Wid&th:"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "Ancho en píxeles"
+msgstr "Width in pixels"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "A&lto:"
+msgstr "H&eight:"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "Alto en píxeles"
+msgstr "Height in pixels"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "Cambiar &tamaño"
+msgstr "&Resize"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "Mostrar en la esce&na"
+msgstr "Show i&n scene"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "&Bloquear posición"
+msgstr "&Lock position"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "Traer al f&rente"
+msgstr "Bring to &front"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "Mover con flec&has"
+msgstr "Move with &arrows"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "La escena no tiene fuentes."
+msgstr "The scene has no sources."
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+#, python-brace-format
+msgid "{fuente} todavía no informa su tamaño."
+msgstr "{fuente} does not report its size yet."
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "Cambios deshechos"
+msgstr "Changes undone"
+
+#: bellbird/ui/escena_ventana.py
+msgid ""
+"Esta ventana reúne en pestañas lo que se ve y se oye en OBS.\n"
+"\n"
+"Escena elige cuál se edita, dice qué tiene y cambia cuál se emite. Recorrer"
+" la lista no cambia nada en el directo.\n"
+"\n"
+"Fuentes elige una fuente de la escena y la mueve, la cambia de tamaño, la "
+"oculta, la bloquea o la trae al frente. Mover con flechas la mueve en pasos"
+" pequeños: Ctrl da pasos grandes, Mayús pasos de un píxel, Intro confirma y"
+" Esc deshace. Deshacer cambios vuelve a como estaba todo al abrir esta "
+"ventana.\n"
+"\n"
+"Agregar captura una ventana del equipo o agrega una cámara de Windows a la "
+"escena actual.\n"
+"\n"
+"Audio silencia el micrófono de OBS y elige cuál se usa."
+msgstr ""
+"This window brings together in tabs what is seen and heard in OBS.\n"
+"\n"
+"Scene chooses which scene is edited, says what it has and changes which one"
+" is broadcast. Browsing the list does not change anything in the live "
+"stream.\n"
+"\n"
+"Sources chooses a source of the scene and moves it, changes its size, hides"
+" it, locks it or brings it to the front. Move with arrows moves it in small"
+" steps: Ctrl gives large steps, Shift one-pixel steps, Enter confirms and "
+"Esc undoes. Undo changes returns everything to how it was when this window "
+"was opened.\n"
+"\n"
+"Add captures a window from the computer or adds a Windows camera to the "
+"current scene.\n"
+"\n"
+"Audio mutes the OBS microphone and chooses which one is used."
+
+#: bellbird/ui/escena_ventana.py bellbird/ui/gui_organizar_escena.py
+#: bellbird/ui/gui_transmision.py
+msgid "Escena"
+msgstr "Scene"
+
+#: bellbird/ui/escena_ventana.py
+msgid "Fuentes"
+msgstr "Sources"
+
+#: bellbird/ui/escena_ventana.py
+msgid "Agregar"
+msgstr "Add"
+
+#: bellbird/ui/escena_ventana.py
+msgid "Audio"
+msgstr "Audio"
+
+#: bellbird/ui/escena_ventana.py bellbird/ui/gui_menu.py
+#: bellbird/ui/gui_organizar_escena.py
+msgid "A&yuda"
+msgstr "&Help"
+
+#: bellbird/ui/escena_ventana.py
+msgid "Ayuda de Escena"
+msgstr "Scene help"
 
 #: bellbird/ui/gui.py
 msgid ""
@@ -6848,10 +7075,6 @@ msgstr "&Check for updates…"
 msgid "&Acerca de"
 msgstr "&About"
 
-#: bellbird/ui/gui_menu.py bellbird/ui/gui_organizar_escena.py
-msgid "A&yuda"
-msgstr "&Help"
-
 #: bellbird/ui/gui_menu.py
 msgid "Manual de uso"
 msgstr "User manual"
@@ -7041,123 +7264,9 @@ msgstr "The microphone is receiving sound."
 msgid "Organizar escena"
 msgstr "Arrange scene"
 
-#: bellbird/ui/gui_organizar_escena.py bellbird/ui/gui_transmision.py
-msgid "Escena"
-msgstr "Scene"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "&Escena:"
-msgstr "&Scene:"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Guardar &imagen…"
-msgstr "Save &image…"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "&Descripción de la escena:"
-msgstr "Scene &description:"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Ventana capturada"
-msgstr "Captured window"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "&Ventana:"
-msgstr "&Window:"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "&Capturar ventana"
-msgstr "&Capture window"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Colocar fuente"
-msgstr "Place source"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "&Fuente:"
-msgstr "S&ource:"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "&Posición:"
-msgstr "&Position:"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "&Mover fuente"
-msgstr "&Move source"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "&Ancho:"
-msgstr "Wid&th:"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Ancho en píxeles"
-msgstr "Width in pixels"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "A&lto:"
-msgstr "H&eight:"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Alto en píxeles"
-msgstr "Height in pixels"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Cambiar &tamaño"
-msgstr "&Resize"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Mostrar en la esce&na"
-msgstr "Show i&n scene"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "&Bloquear posición"
-msgstr "&Lock position"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Traer al f&rente"
-msgstr "Bring to &front"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Mover con flec&has"
-msgstr "Move with &arrows"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Deshacer cambi&os"
-msgstr "&Undo changes"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "La escena no tiene fuentes."
-msgstr "The scene has no sources."
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Elige primero una ventana en Ventana."
-msgstr "First choose a window in Window."
-
-#: bellbird/ui/gui_organizar_escena.py
-#, python-brace-format
-msgid "{fuente} todavía no informa su tamaño."
-msgstr "{fuente} does not report its size yet."
-
-#. Traductores: traduce solo «Imagen PNG»; no cambies «(*.png)|*.png».
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Guardar imagen de la escena"
-msgstr "Save scene image"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Imagen PNG (*.png)|*.png"
-msgstr "PNG Image (*.png)|*.png"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Imagen guardada"
-msgstr "Image saved"
-
 #: bellbird/ui/gui_organizar_escena.py
 msgid "Ayuda de Organizar escena"
 msgstr "Arrange scene help"
-
-#: bellbird/ui/gui_organizar_escena.py
-msgid "Cambios deshechos"
-msgstr "Changes undone"
 
 #: bellbird/ui/gui_preferencias.py
 msgid "Preferencias"
@@ -7486,10 +7595,6 @@ msgid "Silenciar micrófono"
 msgstr "Mute microphone"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Elegir &micrófono…"
-msgstr "Choose a &device…"
-
-#: bellbird/ui/gui_transmision.py
 msgid "Elegir micrófono…"
 msgstr "Choose a device…"
 
@@ -7498,12 +7603,8 @@ msgid "Esce&na:"
 msgstr "Sce&ne:"
 
 #: bellbird/ui/gui_transmision.py
-msgid "Cambiar e&scena"
-msgstr "&Go to scene"
-
-#: bellbird/ui/gui_transmision.py
 msgid "Cambiar escena"
-msgstr "Go to scene"
+msgstr "Change scene"
 
 #: bellbird/ui/gui_transmision.py
 #, python-brace-format
@@ -7809,6 +7910,10 @@ msgstr "&Broadcast panel…"
 #: bellbird/ui/menu_transmision.py
 msgid "Re&stream…"
 msgstr "Restr&eam…"
+
+#: bellbird/ui/menu_transmision.py
+msgid "Esce&na…"
+msgstr "Sce&ne…"
 
 #: bellbird/ui/menu_transmision.py
 msgid "&Avisar si OBS se sobrecarga"
@@ -8274,37 +8379,6 @@ msgstr "Found one camera in OBS."
 #, python-brace-format
 msgid "Se encontraron {cantidad} cámaras en OBS."
 msgstr "Found {cantidad} cameras in OBS."
-
-#: bellbird/ui/preferencias_camara.py
-msgid "Windows no tiene ninguna cámara disponible para OBS."
-msgstr "Windows has no camera available for OBS."
-
-#: bellbird/ui/preferencias_camara.py
-msgid "Cámaras de Windows:"
-msgstr "Windows cameras:"
-
-#: bellbird/ui/preferencias_camara.py
-msgid "Elegir cámara"
-msgstr "Choose camera"
-
-#: bellbird/ui/preferencias_camara.py
-#, python-brace-format
-msgid "Esa cámara ya está en OBS como {nombre}."
-msgstr "That camera is already in OBS as {nombre}."
-
-#: bellbird/ui/preferencias_camara.py
-#, python-brace-format
-msgid "Se agregó {nombre} a la escena {escena}."
-msgstr "Added {nombre} to scene {escena}."
-
-#: bellbird/ui/preferencias_camara.py
-#, python-brace-format
-msgid "Quedó {lugar}, delante de las demás fuentes."
-msgstr "It is at the {lugar}, in front of the other sources."
-
-#: bellbird/ui/preferencias_camara.py
-msgid "Para moverla, usa Organizar escena en el panel de transmisión."
-msgstr "To move it, use Arrange scene in the Broadcast panel."
 
 #: bellbird/ui/preferencias_descargas.py
 msgid "Carpeta de &descargas:"

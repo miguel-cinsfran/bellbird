@@ -1953,6 +1953,28 @@ def escenario_organizar_escena(app: Aplicacion, args, res: Resultado):
         res.fallo("Organizar escena: el panel no cerró")
 
 
+def escenario_escena(app: Aplicacion, args, res: Resultado):
+    """La ventana que reúne lo que se ve y se oye en OBS.
+
+    Sin OBS abierto no se audita: la ventana lo abre y la espera cambiaría
+    el estado de la PC donde corre el banco. Con OBS se audita la pestaña
+    Escena, que es la que queda visible al abrir.
+    """
+    if not obs_abierto():
+        res.nota("Escena: OBS está cerrado y la ventana no se audita")
+        return
+    esperados = ("Escena", "Cambiar escena", "Descripción de la escena",
+                 "Guardar imagen", "Ayuda", "Cerrar")
+    auditar_dialogo(
+        app, res, "Transmisión > Escena…", "Escena",
+        vueltas_tab=VUELTAS_TAB_TRANSMISION,
+        esperados=esperados,
+        esperados_en_tab=esperados,
+        esperar_habilitados=("Cambiar escena",))
+    res.nota("Escena: abre desde el menú Transmisión y audita la pestaña "
+             "Escena")
+
+
 def escenario_microfono(app: Aplicacion, args, res: Resultado):
     """El cuadro para elegir el micrófono de OBS.
 
@@ -5602,6 +5624,11 @@ SUPERFICIES = {
     "ia_privacidad.py": "ia",
     "gui_transmision.py": "transmision",
     "gui_organizar_escena.py": "organizar_escena",
+    "escena_ventana.py": "escena",
+    "escena_pagina_escena.py": "escena",
+    "escena_pagina_fuentes.py": "escena",
+    "escena_pagina_agregar.py": "escena",
+    "escena_pagina_audio.py": "escena",
     "control_grabacion.py": "transmision",
     "directo_panel.py": "transmision",
     "mover_con_flechas.py": "organizar_escena",
@@ -5730,6 +5757,7 @@ ESCENARIOS = {
     "restream": escenario_restream,
     "transmision": escenario_transmision,
     "organizar_escena": escenario_organizar_escena,
+    "escena": escenario_escena,
     "microfono": escenario_microfono,
     "encuadre": escenario_encuadre,
     "musica": escenario_musica,
@@ -5917,7 +5945,7 @@ EN_TODOS = ["arranque_frio", "reproductor",
             "menus", "principal", "descargas", "preferencias",
             "preferencias_categorias", "preferencias_persisten",
             "programados", "historial", "grabaciones", "restream",
-            "transmision", "organizar_escena",
+            "transmision", "organizar_escena", "escena",
             # `microfono` va justo después de `transmision`: los dos
             # necesitan OBS y auditan cuadros del menú Transmisión.
             "microfono",

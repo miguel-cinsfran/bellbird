@@ -174,6 +174,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Reproductor", "Mostrar botones en &pantalla", ANY, "check"),
             ("&Transmisión", "&Panel de transmisión…", ANY, "normal"),
             ("&Transmisión", "Re&stream…", ANY, "normal"),
+            ("&Transmisión", "Esce&na…", ANY, "normal"),
             ("&Transmisión", "Silenciar &micrófono de OBS", ANY, "check"),
             ("&Transmisión", "&Elegir micrófono…", ANY, "normal"),
             ("&Transmisión", "Mostrar &OBS", ANY, "normal"),
@@ -597,6 +598,78 @@ class TestCableadoRestream(unittest.TestCase):
 
         abrir.assert_called_once()
         self.assertIs(frame, abrir.call_args.args[0])
+
+
+class TestMenuEscena(unittest.TestCase):
+    """La ventana Escena entra al menú Transmisión con su atajo."""
+
+    def _transmision(self):
+        from bellbird.core import config as cfg
+
+        def accel(accion):
+            valor = cfg.ATAJOS_DEFAULTS.get(accion, "")
+            return ("\t" + gui._fmt_accel(valor)) if valor else ""
+
+        _, lista = _construir_lista(accel)
+        return [fila for fila in lista if fila[0] == "&Transmisión"]
+
+    def test_escena_va_despues_de_restream_con_su_atajo(self):
+        entradas = self._transmision()
+        restream = next(i for i, fila in enumerate(entradas)
+                        if fila[1].startswith("Re&stream…"))
+        self.assertEqual(
+            ("&Transmisión", "Esce&na…\tCtrl+Shift+E",
+             gui.wx.ID_ANY, "normal"),
+            entradas[restream + 1])
+
+    def test_la_letra_e_no_se_repite_en_el_menu(self):
+        letras = [texto[texto.index("&") + 1].lower()
+                  for _menu, texto, _dato, _tipo in self._transmision()
+                  if texto != "---" and "&" in texto]
+        self.assertEqual(1, letras.count("e"))
+        self.assertEqual(len(letras), len(set(letras)))
+
+
+class TestCableadoEscena(unittest.TestCase):
+    """Elegir Escena en Transmisión abre su ventana con el frame."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
+
+    def _frame_con_menu(self):
+        from bellbird.ui import menu_transmision
+
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        frame._accel = lambda _accion: ""
+        frame._bind_menu = gui.YTChatFrame._bind_menu.__get__(frame)
+        frame._config = {"avisar_sobrecarga": True}
+        frame._on_transmision = mock.Mock()
+        frame._on_obs_micro = mock.Mock()
+        frame._alternar_aviso_sobrecarga = mock.Mock()
+        barra = wx.MenuBar()
+        menu_transmision.construir(frame, barra)
+        frame.SetMenuBar(barra)
+        return frame
+
+    def test_elegir_escena_abre_la_ventana_con_el_frame(self):
+        from bellbird.ui import escena_ventana
+        from bellbird.ui import menu_transmision
+
+        frame = self._frame_con_menu()
+        with mock.patch.object(escena_ventana, "abrir_escena") as abrir, \
+                mock.patch.object(menu_transmision.wx, "CallAfter",
+                                  side_effect=lambda fn, *a: fn(*a)):
+            evento = wx.CommandEvent(
+                wx.EVT_MENU.typeId, frame.mi_escena.GetId())
+            frame.GetEventHandler().ProcessEvent(evento)
+
+        abrir.assert_called_once_with(frame, frame)
 
 
 class TestCableadoMostrarObs(unittest.TestCase):

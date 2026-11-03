@@ -16,6 +16,7 @@ Versión 3.0.0 beta 1 · Windows 10 y 11 · [novedades de cada versión](CHANGEL
 - [Música](#música)
 - [Transmitir en directo](#transmitir-en-directo)
 - [Encuadre de cámara](#encuadre-de-cámara)
+- [Escena](#escena)
 - [Panel de chat para transmitir](#panel-de-chat-para-transmitir)
 - [Mensajes automáticos](#mensajes-automáticos)
 - [Descargas e historial](#descargas-e-historial)
@@ -428,6 +429,30 @@ con *Agregar cámara a OBS…*: usa una cámara de Windows y la deja abajo a la
 derecha del vídeo, delante de las demás fuentes. Para moverla, usa *Organizar
 escena…* en el *Panel de transmisión*.
 
+## Escena
+
+La ventana *Escena* (`Ctrl+Mayús+E`), en el menú *Transmisión*, reúne lo que se
+ve y se oye en OBS en cuatro pestañas.
+
+*Escena* elige qué escena se edita y dice qué tiene. Recorrer la lista no
+cambia lo que se emite. *Cambiar escena* cambia la escena que se emite y
+*Guardar imagen…* guarda una imagen de ella.
+
+*Fuentes* elige una fuente de la escena y la mueve a una de las nueve
+posiciones, la cambia de tamaño, la oculta, la bloquea o la trae al frente.
+*Mover con flechas* la mueve en pasos pequeños: `Ctrl` da pasos grandes,
+`Mayús` pasos de un píxel, `Intro` confirma y `Esc` deshace. El campo *Detalle
+de la fuente* dice dónde está, cuánto mide y qué la tapa. *Deshacer cambios*
+vuelve a como estaba todo al abrir la ventana.
+
+*Agregar* captura una ventana del equipo o agrega una cámara de Windows a la
+escena actual. *Audio* silencia el micrófono de OBS y elige cuál se usa. Al
+terminar, las listas de fuentes y la descripción se actualizan solas.
+
+Si OBS está cerrado, la ventana lo abre. Si no responde, lo dice en la
+descripción y no se queda congelada. La ayuda de la ventana explica cada
+pestaña.
+
 ## Panel de chat para transmitir
 
 Muestra el chat en grande, con fondo transparente, para tus espectadores. Se
@@ -611,6 +636,7 @@ atajos. Todos figuran además en la barra de menú, junto a su acción.
 | `Ctrl+Mayús+H` | Abrir el historial de directos |
 | `Ctrl+Mayús+T` | Abrir Transmisión |
 | `Ctrl+Mayús+R` | Abrir Restream |
+| `Ctrl+Mayús+E` | Abrir Escena |
 | `Ctrl+Mayús+D` | Abrir Administrador de descargas |
 | `Ctrl+Mayús+M` | Abrir la ventana de música |
 | `Ctrl+Mayús+I` | Preguntar a la IA sobre la imagen |

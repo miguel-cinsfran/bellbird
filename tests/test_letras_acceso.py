@@ -25,6 +25,11 @@ from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.downloads import descargas, formatos_reales
 from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_grabaciones, gui_historial, gui_microfono, gui_organizar_escena, gui_transmision, gui_preferencias, control_grabacion, mover_con_flechas
+from bellbird.ui import escena_pagina_agregar
+from bellbird.ui import escena_pagina_audio
+from bellbird.ui import escena_pagina_escena
+from bellbird.ui import escena_pagina_fuentes
+from bellbird.ui import escena_ventana
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
 from bellbird.voice import motores
@@ -295,6 +300,51 @@ class TestLetrasAccesoOrganizarEscena(unittest.TestCase):
         self.assertEqual(letras_repetidas(self.dialogo), {})
 
 
+class TestLetrasAccesoEscena(unittest.TestCase):
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+        self.parches = [
+            mock.patch.object(threading, "Thread", HiloInmediato),
+            mock.patch.object(escena_ventana.wx, "CallAfter",
+                              lambda funcion, *args: funcion(*args)),
+            mock.patch.object(escena_ventana.obs_lanzador, "asegurar_obs",
+                              lambda probar_conexion, al_anunciar=None,
+                              parada=None: probar_conexion()),
+            mock.patch.object(escena_ventana, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(escena_pagina_escena, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(escena_pagina_fuentes, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(escena_pagina_agregar, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(gui_microfono, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(mover_con_flechas, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(operaciones_obs, "anunciar",
+                              lambda *args, **kwargs: None),
+            mock.patch.object(operaciones_obs.sound_player, "reproducir"),
+        ]
+        for parche in self.parches:
+            parche.start()
+        self.addCleanup(self._frenar)
+        principal = SimpleNamespace(_config={"obs_microfono": "Mic/Aux"})
+        self.dialogo = escena_ventana.VentanaEscena(
+            None, principal, gestor=GestorFalso())
+        self.addCleanup(destruir, self.dialogo)
+
+    def _frenar(self):
+        for parche in reversed(self.parches):
+            parche.stop()
+
+    def test_cada_pestana_sin_letras_repetidas_con_ayuda(self):
+        for pagina, repetidas in repetidas_con_lo_de_fuera(
+                self.dialogo, self.dialogo.nb).items():
+            with self.subTest(pagina=pagina):
+                self.assertEqual(repetidas, {})
+
+
 class TestLetrasAccesoPrincipal(unittest.TestCase):
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
@@ -451,6 +501,20 @@ class TestLetrasAccesoTransmisionEnIngles(TestLetrasAccesoTransmision):
 
 
 class TestLetrasAccesoOrganizarEscenaEnIngles(TestLetrasAccesoOrganizarEscena):
+    # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoEscenaEnIngles(TestLetrasAccesoEscena):
     # Gemela en inglés: repite las pruebas sin copiarlas.
 
     @classmethod

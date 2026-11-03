@@ -67,6 +67,7 @@ ETIQUETAS = {
     "marcar_incidencia": N_("Marcar incidencia"),
     "abrir_transmision": N_("Abrir Transmisión"),
     "abrir_restream": N_("Abrir Restream"),
+    "abrir_escena": N_("Abrir Escena"),
     "mostrar_obs": N_("Mostrar OBS"),
     "copiar_enlace": N_("Copiar enlace del directo"),
     "obs_micro": N_("Silenciar el micrófono de OBS"),

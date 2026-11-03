@@ -36,6 +36,13 @@ def abrir_restream(frame) -> None:
         al_desconectar=cuenta.desconectar)
 
 
+def abrir_escena(frame) -> None:
+    """Abre la ventana Escena con lo que se ve y se oye en OBS."""
+    from bellbird.ui import escena_ventana
+
+    escena_ventana.abrir_escena(frame, frame)
+
+
 def _agregar_encuadre(frame, m):
     """La sección de encuadre: anuncio a pedido y casilla de avisos."""
     m.AppendSeparator()
@@ -58,6 +65,9 @@ def _agregar_ventanas(frame, m):
     frame.mi_restream = m.Append(
         wx.ID_ANY, _("Re&stream…") + frame._accel("abrir_restream"))
     frame._bind_menu(frame.mi_restream, abrir_restream, frame)
+    frame.mi_escena = m.Append(
+        wx.ID_ANY, _("Esce&na…") + frame._accel("abrir_escena"))
+    frame._bind_menu(frame.mi_escena, abrir_escena, frame)
 
 
 def _agregar_grabaciones(frame, m):

@@ -4203,6 +4203,46 @@ msgstr "You are already live"
 msgid "No se puede retroceder más en este directo"
 msgstr "Cannot go further back in this live stream"
 
+#: bellbird/restream/perfiles.py
+msgid "Escribe un nombre para el perfil."
+msgstr "Type a name for the profile."
+
+#: bellbird/restream/perfiles.py
+msgid "El nombre «YouTube» está reservado. Elige otro."
+msgstr "The name «YouTube» is reserved. Choose another."
+
+#: bellbird/restream/perfiles.py
+msgid "Ya existe un perfil con ese nombre."
+msgstr "A profile with that name already exists."
+
+#: bellbird/restream/perfiles.py
+msgid "Agrega al menos un canal al perfil."
+msgstr "Add at least one channel to the profile."
+
+#: bellbird/restream/perfiles.py
+msgid "La orientación del perfil debe ser horizontal o vertical."
+msgstr "The profile orientation must be horizontal or vertical."
+
+#: bellbird/restream/perfiles.py
+msgid "La privacidad del perfil no está entre las opciones."
+msgstr "The profile privacy is not one of the options."
+
+#: bellbird/restream/perfiles.py
+msgid "La latencia del perfil no está entre las opciones."
+msgstr "The profile latency is not one of the options."
+
+#: bellbird/restream/sesion.py
+msgid "La respuesta del servidor de tokens no trajo un token de acceso."
+msgstr "The token server response did not include an access token."
+
+#: bellbird/restream/sesion.py
+msgid "La sesión de Restream venció. Vuelve a conectar la cuenta."
+msgstr "The Restream session expired. Connect the account again."
+
+#: bellbird/restream/sesion.py
+msgid "No se pudo renovar la sesión de Restream. Comprueba la conexión a internet."
+msgstr "Could not renew the Restream session. Check the internet connection."
+
 #: bellbird/ui/atajos_captura.py
 msgid "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P)."
 msgstr "It must be Ctrl and a key (for example Ctrl+P)."

@@ -23,6 +23,7 @@ RUTAS_DE_DATOS = [
     ("grabaciones", "grabaciones.json"),
     ("busquedas_recientes", "busquedas_recientes.json"),
     ("alias", "alias.json"),
+    ("perfiles_restream", "perfiles_restream.json"),
     ("mensajes_programados", "mensajes_programados.json"),
     ("fin_pendiente", "fin_pendiente.json"),
     ("cuota_youtube", "cuota_youtube.json"),

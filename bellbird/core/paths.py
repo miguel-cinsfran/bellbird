@@ -88,6 +88,10 @@ def alias() -> Path:
     return carpeta_datos() / "alias.json"
 
 
+def perfiles_restream() -> Path:
+    return carpeta_datos() / "perfiles_restream.json"
+
+
 def mensajes_programados() -> Path:
     return carpeta_datos() / "mensajes_programados.json"
 

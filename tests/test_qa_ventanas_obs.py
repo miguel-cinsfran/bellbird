@@ -74,6 +74,11 @@ class TestFaltanEnTab(unittest.TestCase):
         self.assertEqual(
             ventanas_obs.faltan_en_tab(("Escena", "Fuente"), orden), [])
 
+    def test_la_marca_de_mnemonico_en_medio_tampoco_lo_esconde(self):
+        orden = ["Button: Cambiar e&scena"]
+        self.assertEqual(
+            ventanas_obs.faltan_en_tab(("Cambiar escena",), orden), [])
+
     def test_lo_que_no_esta_se_informa_por_su_nombre(self):
         self.assertEqual(
             ventanas_obs.faltan_en_tab(

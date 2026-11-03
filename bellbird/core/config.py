@@ -36,7 +36,7 @@ LIBRERIAS_SILENCIADAS = ("httpx", "httpcore", "hpack", "h2", "websockets", "goog
 # ── Identidad ─────────────────────────────────────────────────────────────────
 
 APP_NAME    = "Bellbird"
-APP_VERSION = "2.5.1"
+APP_VERSION = "3.0.0-beta.1"
 
 # ── Tipos de mensaje ──────────────────────────────────────────────────────────
 

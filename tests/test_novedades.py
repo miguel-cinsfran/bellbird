@@ -215,8 +215,9 @@ class TestConsultarConNovedades(unittest.TestCase):
             _publicacion("v2.5.1", "instalada"),
         ]
         paquete_beta = self._paquete("v3.0.0-beta.2")
-        with mock.patch.object(
-                canal_app, "canal_guardado", return_value="beta"), \
+        with mock.patch.object(novedades, "APP_VERSION", "2.5.1"), \
+                mock.patch.object(
+                    canal_app, "canal_guardado", return_value="beta"), \
                 mock.patch.object(
                     canal_app, "consultar_ultima_beta",
                     return_value=paquete_beta), \
@@ -237,8 +238,9 @@ class TestConsultarConNovedades(unittest.TestCase):
             _publicacion("v3.0.0-beta.2", "beta nueva", prerelease=True),
             _publicacion("v3.0.0", "estable"),
         ]
-        with mock.patch.object(
-                canal_app, "canal_guardado", return_value="beta"), \
+        with mock.patch.object(novedades, "APP_VERSION", "2.5.1"), \
+                mock.patch.object(
+                    canal_app, "canal_guardado", return_value="beta"), \
                 mock.patch.object(
                     canal_app, "consultar_ultima_beta",
                     return_value=self._paquete("v3.0.0-beta.2")), \

@@ -242,6 +242,12 @@ class TestPaginaUnica(unittest.TestCase):
             ["Progreso", "Estado", "Nombre", "Fecha"])
         self.assertEqual(dialogo.pestanas.GetName(), "PestanasDescargas")
 
+    def test_construir_la_pagina_arranca_la_vigilancia_del_progreso(self):
+        with mock.patch.object(descargas_listas.aviso_progreso,
+                               "vigilar") as vigilar:
+            self._dialogo()
+        vigilar.assert_called_once_with()
+
     def test_filtro_muestra_cantidades_y_filtra_lista(self):
         dialogo = self._dialogo([
             {"id": "vieja", "nombre": "vieja.mp4", "fecha": "2026-10-29T08:00:00",

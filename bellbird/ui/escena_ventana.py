@@ -102,6 +102,8 @@ class VentanaEscena(wx.Dialog):
         self._asegurar(
             lambda: self._gestor.conectar(),
             al_anunciar=lambda frase: wx.CallAfter(anunciar, frase))
+        if not self._gestor.conectado:
+            self._gestor.conectar()
         escenas = self._gestor.escenas()
         al_aire = self._gestor.escena_al_aire()
         escena = al_aire if al_aire in escenas else (escenas[0] if escenas else "")

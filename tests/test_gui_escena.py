@@ -26,6 +26,27 @@ class PrincipalFalsa:
         self._config = {"obs_microfono": preferido}
 
 
+class GestorConexion(GestorFalso):
+
+    def __init__(self, conectado=False):
+        super().__init__()
+        self._conectado = conectado
+        self.veces_conectar = 0
+
+    @property
+    def conectado(self):
+        return self._conectado
+
+    def conectar(self):
+        self.veces_conectar += 1
+        self._conectado = True
+
+    def escenas(self):
+        if not self._conectado:
+            raise RuntimeError("not connected")
+        return super().escenas()
+
+
 class GestorConCapas(GestorFalso):
 
     def __init__(self):
@@ -166,6 +187,27 @@ class TestVentanaEscena(unittest.TestCase):
         self.asegurar.assert_called_once()
         self.assertTrue(callable(self.asegurar.call_args.args[0]))
         self.assertTrue(callable(self.asegurar.call_args.kwargs["al_anunciar"]))
+
+    def test_sin_conexion_conecta_antes_de_leer_aunque_obs_ya_corra(self):
+        gestor = GestorConexion(conectado=False)
+        with mock.patch.object(escena_ventana.obs_lanzador, "asegurar_obs",
+                               return_value=False) as asegurar:
+            dialogo = self._crear(gestor=gestor)
+        asegurar.assert_called_once()
+        self.assertEqual(gestor.veces_conectar, 1)
+        self.assertTrue(gestor.conectado)
+        self.assertEqual(dialogo._pagina_fuentes.cho_fuente.GetStrings(),
+                         ["Cámara", "Chat en el vídeo", "Juego"])
+
+    def test_con_la_conexion_abierta_no_reconecta(self):
+        gestor = GestorConexion(conectado=True)
+        with mock.patch.object(escena_ventana.obs_lanzador, "asegurar_obs",
+                               return_value=False) as asegurar:
+            dialogo = self._crear(gestor=gestor)
+        asegurar.assert_called_once()
+        self.assertEqual(gestor.veces_conectar, 0)
+        self.assertEqual(dialogo._pagina_escena.cho_escena.GetStringSelection(),
+                         "Principal")
 
     def test_elegir_otra_escena_recarga_sin_cambiarla_al_aire(self):
         self.gestor.poner_escena_al_aire = mock.Mock()

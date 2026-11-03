@@ -21,6 +21,15 @@ from bellbird.voice import sonido_memoria
 logger = diagnostico.obtener_logger(__name__)
 
 
+def _cerrar(cliente):
+    if cliente is None:
+        return
+    try:
+        cliente.cerrar()
+    except Exception as error:
+        logger.debug("no se pudo cerrar el cliente de OBS: %s", error)
+
+
 class PaginaCamara:
     """Página Cámara: avisos de encuadre, cámara e inversión."""
 
@@ -99,23 +108,22 @@ class PaginaCamara:
             except Exception as exc:
                 wx.CallAfter(anunciar, obs_cliente.mensaje_de_fallo_obs(exc))
             finally:
-                if cliente is not None:
-                    try:
-                        cliente.cerrar()
-                    except Exception as error:
-                        logger.debug("no se pudo cerrar el cliente de OBS: %s", error)
+                _cerrar(cliente)
 
         diagnostico.crear_hilo(consultar, "CamarasPrefs").start()
 
-    def _camaras_encontradas(self, fuentes):
-        if not self._ventana:   # el diálogo pudo cerrarse mientras OBS respondía
-            return
+    def _llenar_camaras(self, fuentes):
         elegida = self.cho_camara_obs.GetStringSelection()
         opciones = opciones_con_elegida(
             _("Elegir automáticamente"), elegida, fuentes)
         # La fuente guardada se conserva aunque OBS no responda o ya no la vea.
         self.cho_camara_obs.Set(opciones)
         self.cho_camara_obs.SetStringSelection(elegida or opciones[0])
+
+    def _camaras_encontradas(self, fuentes):
+        if not self._ventana:   # el diálogo pudo cerrarse mientras OBS respondía
+            return
+        self._llenar_camaras(fuentes)
         if len(fuentes) == 1:
             anunciar(_("Se encontró una cámara en OBS."))
         elif fuentes:

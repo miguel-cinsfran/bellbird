@@ -4574,12 +4574,8 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
         if app.esperar_ventana("Panel de OBS", segundos=15) is None:
             res.fallo("Panel de OBS: el menú no abrió el panel")
             return False
-        controles = app.arbol("Panel de OBS")
-        casilla = next((c for c in controles
-                        if c.get("clase") == "CheckBox" and c.get("nombre") == etiqueta), None)
-        if casilla is None or not casilla.get("habilitado"):
-            motivo = "no existe" if casilla is None else "está deshabilitada"
-            res.fallo(f"Panel de OBS: la casilla «{etiqueta}» {motivo}")
+        if not ventanas_obs.esperar_habilitado(
+                app, faltan_habilitados, etiqueta, 15, res):
             app.pedir("cerrar_ventana", ventana="Panel de OBS")
             return False
         try:

@@ -552,6 +552,53 @@ class TestMenuRestream(unittest.TestCase):
         self.assertIs(desconectar, llamada.kwargs["al_desconectar"])
 
 
+class TestCableadoRestream(unittest.TestCase):
+    """Elegir Restream en Transmisión abre su ventana con el frame."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
+
+    def _frame_con_menu(self):
+        from bellbird.ui import menu_transmision
+
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        frame._accel = lambda _accion: ""
+        frame._bind_menu = gui.YTChatFrame._bind_menu.__get__(frame)
+        frame._config = {"avisar_sobrecarga": True}
+        frame._on_transmision = mock.Mock()
+        frame._on_obs_micro = mock.Mock()
+        frame._alternar_aviso_sobrecarga = mock.Mock()
+        barra = wx.MenuBar()
+        menu_transmision.construir(frame, barra)
+        frame.SetMenuBar(barra)
+        return frame
+
+    def test_elegir_restream_abre_la_ventana_con_el_frame(self):
+        from bellbird.restream import cuenta
+        from bellbird.ui import menu_transmision
+        from bellbird.ui import restream_ventana
+
+        frame = self._frame_con_menu()
+        with mock.patch.object(restream_ventana, "abrir_restream") as abrir, \
+                mock.patch.object(cuenta, "sesion", return_value=mock.Mock()), \
+                mock.patch("bellbird.core.paths.perfiles_restream",
+                           return_value=Path("perfiles.json")), \
+                mock.patch.object(menu_transmision.wx, "CallAfter",
+                                  side_effect=lambda fn, *a: fn(*a)):
+            evento = wx.CommandEvent(
+                wx.EVT_MENU.typeId, frame.mi_restream.GetId())
+            frame.GetEventHandler().ProcessEvent(evento)
+
+        abrir.assert_called_once()
+        self.assertIs(frame, abrir.call_args.args[0])
+
+
 class TestCableadoMostrarObs(unittest.TestCase):
     """Elegir Mostrar OBS llama a obs_ventana.mostrar y anuncia su texto."""
 

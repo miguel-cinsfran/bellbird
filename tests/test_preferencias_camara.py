@@ -14,6 +14,21 @@ from tests.ventanas_prueba import destruir
 from pathlib import Path
 
 
+class HiloInmediato:
+    """Corre el trabajo en el acto, para no esperar hilos en la prueba."""
+
+    def __init__(self, target, *args):
+        self._target = target
+        self._args = args
+
+    def start(self):
+        self._target(*self._args)
+
+
+def _crear_hilo_inmediato(target, nombre, *, args=(), daemon=True):
+    return HiloInmediato(target, *args)
+
+
 class TestPaginaCamara(unittest.TestCase):
     # Con ventana: los controles necesitan un padre real.
 
@@ -168,6 +183,154 @@ class TestPaginaCamara(unittest.TestCase):
         cliente.conectar.assert_called_once_with()
         fuentes.assert_called_once_with(cliente)
         cliente.cerrar.assert_called_once_with()
+
+    def test_el_boton_de_agregar_camara_tiene_su_nombre_y_su_lugar(self):
+        dialogo = self._dialogo({})
+        boton = dialogo.pagina_camara.btn_agregar_camara
+        self.assertEqual(boton.GetLabel(), "&Agregar cámara a OBS…")
+        self.assertEqual(boton.GetName(), "Agregar cámara a OBS…")
+        hijos = list(boton.GetParent().GetChildren())
+        self.assertLess(hijos.index(dialogo.pagina_camara.btn_buscar_camaras),
+                        hijos.index(boton))
+
+    def test_con_una_camara_la_agrega_y_anuncia_donde_quedo(self):
+        dialogo = self._dialogo({})
+        cliente = mock.Mock()
+        with mock.patch.object(preferencias_camara.diagnostico, "crear_hilo",
+                               side_effect=_crear_hilo_inmediato), \
+                mock.patch.object(preferencias_camara.obs_cliente, "ClienteObs",
+                                  return_value=cliente), \
+                mock.patch.object(preferencias_camara.obs_cliente,
+                                  "leer_ajustes"), \
+                mock.patch.object(preferencias_camara, "_escena_al_aire",
+                                  return_value="Escena"), \
+                mock.patch.object(preferencias_camara.obs_camara_nueva,
+                                  "camaras_disponibles",
+                                  return_value=(("EasyCamera", "abc"),)), \
+                mock.patch.object(preferencias_camara.obs_camara_nueva,
+                                  "agregar", return_value=("Cámara", True)), \
+                mock.patch.object(preferencias_camara.obs_panel,
+                                  "GestorPanelObs"), \
+                mock.patch.object(preferencias_camara.obs_disposicion,
+                                  "describir_fuente",
+                                  return_value="Cámara. Se ve completa."), \
+                mock.patch.object(preferencias_camara.obs_camara,
+                                  "fuentes_video", return_value=("Cámara",)), \
+                mock.patch.object(preferencias_camara.wx,
+                                  "SingleChoiceDialog") as cuadro, \
+                mock.patch.object(preferencias_camara.wx, "CallAfter",
+                                  side_effect=lambda funcion, *args:
+                                  funcion(*args)), \
+                mock.patch.object(preferencias_camara, "anunciar") as anunciar:
+            dialogo.pagina_camara._agregar_camara(None)
+        cuadro.assert_not_called()
+        anunciar.assert_called_once_with(
+            "Se agregó Cámara a la escena Escena. Cámara. Se ve completa. "
+            "Para moverla, usa Organizar escena en el panel de transmisión.")
+        self.assertIn("Cámara",
+                      dialogo.pagina_camara.cho_camara_obs.GetStrings())
+
+    def test_sin_camaras_de_windows_anuncia_que_no_hay(self):
+        dialogo = self._dialogo({})
+        cliente = mock.Mock()
+        with mock.patch.object(preferencias_camara.diagnostico, "crear_hilo",
+                               side_effect=_crear_hilo_inmediato), \
+                mock.patch.object(preferencias_camara.obs_cliente, "ClienteObs",
+                                  return_value=cliente), \
+                mock.patch.object(preferencias_camara.obs_cliente,
+                                  "leer_ajustes"), \
+                mock.patch.object(preferencias_camara, "_escena_al_aire",
+                                  return_value="Escena"), \
+                mock.patch.object(preferencias_camara.obs_camara_nueva,
+                                  "camaras_disponibles", return_value=()), \
+                mock.patch.object(preferencias_camara.obs_camara_nueva,
+                                  "agregar") as agregar, \
+                mock.patch.object(preferencias_camara.wx, "CallAfter",
+                                  side_effect=lambda funcion, *args:
+                                  funcion(*args)), \
+                mock.patch.object(preferencias_camara, "anunciar") as anunciar:
+            dialogo.pagina_camara._agregar_camara(None)
+        anunciar.assert_called_once_with(
+            "Windows no tiene ninguna cámara disponible para OBS.")
+        agregar.assert_not_called()
+
+    def test_un_fallo_de_obs_anuncia_su_mensaje(self):
+        dialogo = self._dialogo({})
+        cliente = mock.Mock()
+        cliente.conectar.side_effect = RuntimeError("sin OBS")
+        with mock.patch.object(preferencias_camara.diagnostico, "crear_hilo",
+                               side_effect=_crear_hilo_inmediato), \
+                mock.patch.object(preferencias_camara.obs_cliente, "ClienteObs",
+                                  return_value=cliente), \
+                mock.patch.object(preferencias_camara.obs_cliente,
+                                  "leer_ajustes"), \
+                mock.patch.object(preferencias_camara.obs_cliente,
+                                  "mensaje_de_fallo_obs",
+                                  return_value="Fallo de OBS."), \
+                mock.patch.object(preferencias_camara.wx, "CallAfter",
+                                  side_effect=lambda funcion, *args:
+                                  funcion(*args)), \
+                mock.patch.object(preferencias_camara, "anunciar") as anunciar:
+            dialogo.pagina_camara._agregar_camara(None)
+        anunciar.assert_called_once_with("Fallo de OBS.")
+
+    def test_la_lista_suma_la_camara_sin_cambiar_lo_elegido(self):
+        dialogo = self._dialogo({"camara_fuente": "Vieja"})
+        with mock.patch.object(preferencias_camara, "anunciar") as anunciar:
+            dialogo.pagina_camara._camara_agregada(
+                "Cámara", "Escena", "Cámara. Se ve completa.",
+                ("Vieja", "Cámara"))
+        lista = dialogo.pagina_camara.cho_camara_obs
+        self.assertEqual(lista.GetStrings(),
+                         ["Elegir automáticamente", "Vieja", "Cámara"])
+        self.assertEqual(lista.GetStringSelection(), "Vieja")
+        self.assertEqual(anunciar.call_count, 1)
+
+    def test_una_camara_que_ya_esta_solo_anuncia_su_nombre(self):
+        dialogo = self._dialogo({})
+        cliente = mock.Mock()
+        with mock.patch.object(preferencias_camara.obs_cliente, "ClienteObs",
+                               return_value=cliente), \
+                mock.patch.object(preferencias_camara.obs_cliente,
+                                  "leer_ajustes"), \
+                mock.patch.object(preferencias_camara, "_escena_al_aire",
+                                  return_value="Escena"), \
+                mock.patch.object(preferencias_camara.obs_camara_nueva,
+                                  "agregar", return_value=("Mi cámara", False)), \
+                mock.patch.object(preferencias_camara.wx, "CallAfter",
+                                  side_effect=lambda funcion, *args:
+                                  funcion(*args)), \
+                mock.patch.object(preferencias_camara, "anunciar") as anunciar:
+            dialogo.pagina_camara._agregar_camara_en_obs("abc")
+        anunciar.assert_called_once_with(
+            "Esa cámara ya está en OBS como Mi cámara.")
+
+    def test_con_varias_camaras_pregunta_con_titulo_y_nombres(self):
+        dialogo = self._dialogo({})
+        cuadro = mock.Mock()
+        cuadro.ShowModal.return_value = preferencias_camara.wx.ID_OK
+        cuadro.GetSelection.return_value = 1
+        with mock.patch.object(preferencias_camara.wx,
+                               "SingleChoiceDialog",
+                               return_value=cuadro) as clase, \
+                mock.patch.object(dialogo.pagina_camara,
+                                  "_agregar_en_hilo") as agregar:
+            dialogo.pagina_camara._preguntar_camara(
+                (("Primera", "a"), ("Segunda", "b")))
+        clase.assert_called_once_with(
+            dialogo, "Cámaras de Windows:", "Elegir cámara",
+            ["Primera", "Segunda"])
+        agregar.assert_called_once_with("b")
+        cuadro.Destroy.assert_called_once_with()
+
+    def test_agregado_ignora_el_dialogo_destruido(self):
+        dialogo = self._dialogo({})
+        with mock.patch.object(gui_preferencias.PreferenciasDialog, "__bool__",
+                               lambda self: False, create=True), \
+                mock.patch.object(preferencias_camara, "anunciar") as anunciar:
+            dialogo.pagina_camara._camara_agregada(
+                "Cámara", "Escena", "Cámara. Se ve completa.", ("Cámara",))
+        anunciar.assert_not_called()
 
 
 if __name__ == "__main__":

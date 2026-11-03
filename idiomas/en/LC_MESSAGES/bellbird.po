@@ -2828,6 +2828,20 @@ msgstr "There is no camera in OBS."
 msgid "La cámara de OBS no está en la escena actual."
 msgstr "The OBS camera is not in the current scene."
 
+#: bellbird/obs/obs_camara_nueva.py bellbird/ui/gui_preferencias.py
+msgid "Cámara"
+msgstr "Camera"
+
+#: bellbird/obs/obs_camara_nueva.py
+msgid "Bellbird, lista de cámaras"
+msgstr "Bellbird, camera list"
+
+#. Traductores: {nombre} es el nombre base y {contador} el número libre.
+#: bellbird/obs/obs_camara_nueva.py bellbird/obs/obs_captura.py
+#, python-brace-format
+msgid "{nombre} {contador}"
+msgstr "{nombre} {contador}"
+
 #: bellbird/obs/obs_captura.py
 msgid "Captura de ventana"
 msgstr "Window capture"
@@ -2847,12 +2861,6 @@ msgstr "{resto}, from {programa}"
 #, python-brace-format
 msgid "{titulo}, de {programa}"
 msgstr "{titulo}, from {programa}"
-
-#. Traductores: {nombre} es el nombre base y {contador} el número libre.
-#: bellbird/obs/obs_captura.py
-#, python-brace-format
-msgid "{nombre} {contador}"
-msgstr "{nombre} {contador}"
 
 #. Traductores: {legible} es «título, de programa».
 #: bellbird/obs/obs_captura.py
@@ -7217,10 +7225,6 @@ msgid "Transmisión"
 msgstr "Broadcast"
 
 #: bellbird/ui/gui_preferencias.py
-msgid "Cámara"
-msgstr "Camera"
-
-#: bellbird/ui/gui_preferencias.py
 msgid "Inteligencia artificial"
 msgstr "Artificial intelligence"
 
@@ -8210,6 +8214,11 @@ msgid "Atajos restablecidos a los valores de fábrica. Se aplican al pulsar Guar
 msgstr "Shortcuts reset to factory defaults. They apply when you press Save."
 
 #: bellbird/ui/preferencias_camara.py
+#, python-brace-format
+msgid "Esa cámara ya está en OBS como {nombre}."
+msgstr "That camera is already in OBS as {nombre}."
+
+#: bellbird/ui/preferencias_camara.py
 msgid "Cá&mara de OBS:"
 msgstr "&OBS camera:"
 
@@ -8228,6 +8237,14 @@ msgstr "&Find cameras in OBS"
 #: bellbird/ui/preferencias_camara.py
 msgid "Buscar cámaras en OBS"
 msgstr "Find cameras in OBS"
+
+#: bellbird/ui/preferencias_camara.py
+msgid "&Agregar cámara a OBS…"
+msgstr "&Add camera to OBS…"
+
+#: bellbird/ui/preferencias_camara.py
+msgid "Agregar cámara a OBS…"
+msgstr "Add camera to OBS…"
 
 #: bellbird/ui/preferencias_camara.py
 msgid "&Invertir izquierda y derecha"
@@ -8262,6 +8279,27 @@ msgstr "Found one camera in OBS."
 #, python-brace-format
 msgid "Se encontraron {cantidad} cámaras en OBS."
 msgstr "Found {cantidad} cameras in OBS."
+
+#: bellbird/ui/preferencias_camara.py
+msgid "Windows no tiene ninguna cámara disponible para OBS."
+msgstr "Windows has no camera available for OBS."
+
+#: bellbird/ui/preferencias_camara.py
+msgid "Cámaras de Windows:"
+msgstr "Windows cameras:"
+
+#: bellbird/ui/preferencias_camara.py
+msgid "Elegir cámara"
+msgstr "Choose camera"
+
+#: bellbird/ui/preferencias_camara.py
+#, python-brace-format
+msgid "Se agregó {nombre} a la escena {escena}."
+msgstr "Added {nombre} to scene {escena}."
+
+#: bellbird/ui/preferencias_camara.py
+msgid "Para moverla, usa Organizar escena en el panel de transmisión."
+msgstr "To move it, use Arrange scene in the Broadcast panel."
 
 #: bellbird/ui/preferencias_descargas.py
 msgid "Carpeta de &descargas:"

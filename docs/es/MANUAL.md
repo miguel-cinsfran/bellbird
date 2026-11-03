@@ -423,6 +423,11 @@ al revés, marca *Invertir izquierda y derecha*. El sonido de la guía se elige
 en la lista *Sonido de la guía*. Los avisos se activan desde la misma
 categoría.
 
+Si OBS no tiene ninguna cámara, *Preferencias*, categoría *Cámara*, la agrega
+con *Agregar cámara a OBS…*: usa una cámara de Windows y la deja abajo a la
+derecha del vídeo, delante de las demás fuentes. Para moverla, usa *Organizar
+escena…* en el *Panel de transmisión*.
+
 ## Panel de chat para transmitir
 
 Muestra el chat en grande, con fondo transparente, para tus espectadores. Se

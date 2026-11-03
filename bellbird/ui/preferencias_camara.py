@@ -11,7 +11,10 @@ from bellbird.camera import tono_guia
 from bellbird.core import diagnostico
 from bellbird.core.idioma import _
 from bellbird.obs import obs_camara
+from bellbird.obs import obs_camara_nueva
 from bellbird.obs import obs_cliente
+from bellbird.obs import obs_disposicion
+from bellbird.obs import obs_panel
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.ui.preferencias_comun import (
     crear_panel, fila_label, opciones_con_elegida)
@@ -19,6 +22,20 @@ from bellbird.voice import sonido_memoria
 
 
 logger = diagnostico.obtener_logger(__name__)
+
+
+def _escena_al_aire(cliente):
+    datos = cliente.pedir("GetCurrentProgramScene")
+    return (datos.get("responseData", {}) or {}).get(
+        "currentProgramSceneName", "") or ""
+
+
+def _descripcion(cliente, escena, nombre):
+    snap = obs_panel.GestorPanelObs(cliente).instantanea(escena, fuente=nombre)
+    componentes = tuple(
+        componente for componente in obs_disposicion.COMPONENTES
+        if componente not in ("conexion", "escena", "transparencia"))
+    return obs_disposicion.describir_fuente(nombre, snap, componentes, "corto")
 
 
 def _cerrar(cliente):
@@ -70,6 +87,15 @@ class PaginaCamara:
             name=_("Buscar cámaras en OBS"))
         vs.Add(self.btn_buscar_camaras, 0, wx.ALL, 10)
         self.btn_buscar_camaras.Bind(wx.EVT_BUTTON, self._buscar_camaras)
+        self._boton_agregar(p, vs)
+
+    def _boton_agregar(self, p, vs):
+        self.btn_agregar_camara = wx.Button(
+            p, label=_("&Agregar cámara a OBS…"),
+            name=_("Agregar cámara a OBS…"))
+        vs.Add(self.btn_agregar_camara, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self.btn_agregar_camara.Bind(wx.EVT_BUTTON, self._agregar_camara)
 
     def _invertir(self, p, vs):
         self.chk_invertir_camara = wx.CheckBox(
@@ -131,6 +157,90 @@ class PaginaCamara:
                 cantidad=len(fuentes)))
         else:
             anunciar(_("No hay ninguna cámara en OBS."))
+
+    def _agregar_camara(self, event):
+        diagnostico.crear_hilo(self._consultar_camaras,
+                               "AgregarCamara").start()
+
+    def _consultar_camaras(self):
+        cliente = None
+        try:
+            cliente = obs_cliente.ClienteObs(obs_cliente.leer_ajustes())
+            cliente.conectar()
+            escena = _escena_al_aire(cliente)
+            camaras = obs_camara_nueva.camaras_disponibles(cliente, escena)
+        except Exception as exc:
+            wx.CallAfter(anunciar, obs_cliente.mensaje_de_fallo_obs(exc))
+            return
+        finally:
+            _cerrar(cliente)
+        wx.CallAfter(self._camaras_windows, camaras)
+
+    def _camaras_windows(self, camaras):
+        if not self._ventana:
+            return
+        if not camaras:
+            anunciar(_("Windows no tiene ninguna cámara disponible para OBS."))
+        elif len(camaras) == 1:
+            self._agregar_en_hilo(camaras[0][1])
+        else:
+            self._preguntar_camara(camaras)
+
+    def _preguntar_camara(self, camaras):
+        dialogo = wx.SingleChoiceDialog(
+            self._ventana, _("Cámaras de Windows:"), _("Elegir cámara"),
+            [nombre for nombre, valor in camaras])
+        try:
+            if dialogo.ShowModal() != wx.ID_OK:
+                return
+            indice = dialogo.GetSelection()
+        finally:
+            dialogo.Destroy()
+        if indice >= 0:
+            self._agregar_en_hilo(camaras[indice][1])
+
+    def _agregar_en_hilo(self, valor):
+        diagnostico.crear_hilo(
+            lambda: self._agregar_camara_en_obs(valor),
+            "AgregarCamara").start()
+
+    def _agregar_camara_en_obs(self, valor):
+        cliente = None
+        try:
+            cliente = obs_cliente.ClienteObs(obs_cliente.leer_ajustes())
+            cliente.conectar()
+            escena = _escena_al_aire(cliente)
+            nombre, nueva = obs_camara_nueva.agregar(cliente, escena, valor)
+            if not nueva:
+                wx.CallAfter(self._camara_ya_esta, nombre)
+                return
+            descripcion = _descripcion(cliente, escena, nombre)
+            fuentes = obs_camara.fuentes_video(cliente)
+        except Exception as exc:
+            wx.CallAfter(anunciar, obs_cliente.mensaje_de_fallo_obs(exc))
+            return
+        finally:
+            _cerrar(cliente)
+        wx.CallAfter(self._camara_agregada, nombre, escena, descripcion,
+                     fuentes)
+
+    def _camara_ya_esta(self, nombre):
+        if not self._ventana:
+            return
+        anunciar(_("Esa cámara ya está en OBS como {nombre}.").format(
+            nombre=nombre))
+
+    def _camara_agregada(self, nombre, escena, descripcion, fuentes):
+        if not self._ventana:
+            return
+        self._llenar_camaras(fuentes)
+        mensaje = _("Se agregó {nombre} a la escena {escena}.").format(
+            nombre=nombre, escena=escena)
+        if descripcion:
+            mensaje += " " + descripcion
+        mensaje += " " + _(
+            "Para moverla, usa Organizar escena en el panel de transmisión.")
+        anunciar(mensaje)
 
     def guardar(self, fijar, en_memoria):
         avisar = bool(self.chk_avisar_encuadre.GetValue())

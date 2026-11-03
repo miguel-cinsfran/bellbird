@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 3663aa71cab124b59e34fe9db69800be2d2abcf4 -->
+<!-- original: es/MANUAL.md 8ed16d3af52350147198da34e0a06c13611f1a16 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -426,6 +426,11 @@ camera is chosen in *Preferences*, on the *Camera* category, with
 right indications come out reversed, check *Invert left and right*. The guide
 sound is chosen in the *Guide sound* list. The warnings are turned on from the
 same category.
+
+If OBS has no camera, you can add one in *Preferences*, on the *Camera*
+category, with *Add camera to OBS…*: it uses a Windows camera and leaves it at
+the bottom right of the video, in front of the other sources. To move it, use
+*Arrange scene…* in the *Broadcast panel*.
 
 ## Chat panel for streaming
 

@@ -63,6 +63,16 @@ def anunciar(texto: str, urgente: bool = True) -> None:
         logger.debug("No se pudo enviar el anuncio a la línea braille: %s", exc)
 
 
+def enlazar_anuncio_de_pestana(notebook) -> None:
+    """Anuncia el nombre de la pestaña al cambiarla, porque wx no lo hace solo."""
+    def _al_cambiar(event):
+        idx = event.GetSelection()
+        if 0 <= idx < notebook.GetPageCount():
+            anunciar(notebook.GetPageText(idx))
+        event.Skip()
+    notebook.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, _al_cambiar)
+
+
 class _NombreAccesible(wx.Accessible):
     """Expone el nombre del control por MSAA. Solo nombra el control en sí
     (childId 0); las filas/hijos (p. ej. cada línea de una lista) las deja al

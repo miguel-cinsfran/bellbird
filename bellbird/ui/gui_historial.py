@@ -16,7 +16,8 @@ from bellbird.core import historial
 from bellbird.core import sonidos_eventos
 from bellbird.core.idioma import _
 from bellbird.voice import sound_player as _snd
-from bellbird.ui.accesibilidad import anunciar, nombre_accesible
+from bellbird.ui.accesibilidad import (
+    anunciar, enlazar_anuncio_de_pestana, nombre_accesible)
 from bellbird.ui.busqueda_teclado import instalar_busqueda_tipo
 from bellbird.ui import paleta
 from bellbird.ui.tema import _T, _pintar
@@ -56,7 +57,7 @@ class HistorialDialog(wx.Dialog):
         self._entradas: dict[str, list] = {}
         for titulo, plat in _PLATAFORMAS:
             self._listas[plat] = self._crear_pagina(titulo, plat)
-        self.nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_pestana)
+        enlazar_anuncio_de_pestana(self.nb)
         vs.Add(self.nb, 1, wx.EXPAND | wx.ALL, 10)
 
         row = wx.BoxSizer(wx.HORIZONTAL)
@@ -121,12 +122,6 @@ class HistorialDialog(wx.Dialog):
         return entradas[i]
 
     # ── Acciones ───────────────────────────────────────────────────────────
-
-    def _on_pestana(self, event):
-        idx = event.GetSelection()
-        if 0 <= idx < self.nb.GetPageCount():
-            anunciar(self.nb.GetPageText(idx))
-        event.Skip()
 
     def _on_key(self, event):
         k = event.GetKeyCode()

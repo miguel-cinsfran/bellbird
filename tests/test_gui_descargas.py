@@ -11,6 +11,7 @@ from bellbird.downloads import busqueda_youtube
 from bellbird.downloads import filas_descargas
 from bellbird.music.modelo import Tema
 from bellbird.ui import barra_progreso, descargas_acciones, descargas_buscador, descargas_listas, gui_descargas
+from bellbird.ui import accesibilidad
 from bellbird.ui import tema as _tema
 from bellbird.ui import buscador_acciones, buscador_escucha
 from bellbird.ui.buscador_acciones import AccionesResultado, opciones_de
@@ -673,7 +674,7 @@ class TestPaginaUnica(unittest.TestCase):
 
     def test_cambiar_de_pestana_anuncia_su_nombre(self):
         dialogo = self._dialogo()
-        with mock.patch.object(gui_descargas, "anunciar") as anunciar:
+        with mock.patch.object(accesibilidad, "anunciar") as anunciar:
             dialogo.pestanas.AdvanceSelection()
             anunciar.assert_called_once_with("Descargas")
             anunciar.reset_mock()

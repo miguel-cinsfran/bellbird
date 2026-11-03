@@ -38,6 +38,7 @@ from bellbird.ui.buscador_acciones import anunciar_agregados
 from bellbird.ui.descargas_acciones import ofrecer_carpeta
 from bellbird.ui.gui import anunciar, nombre_accesible
 from bellbird.ui import paleta
+from bellbird.ui.accesibilidad import enlazar_anuncio_de_pestana
 from bellbird.voice import sound_player as _snd
 
 logger = diagnostico.obtener_logger(__name__)
@@ -248,7 +249,7 @@ class GestorDescargasDialog(wx.Dialog):
         self.pagina_descargas = PaginaDescargas(
             self.pestanas, self._gestor, paths.historial_descargas(), self._preparar_opciones)
         self.pestanas.AddPage(self.pagina_descargas, _("Descargas"))
-        self.pestanas.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_pestana)
+        enlazar_anuncio_de_pestana(self.pestanas)
         return self.pestanas
 
     def _seccion_botones(self, parent):
@@ -260,12 +261,6 @@ class GestorDescargasDialog(wx.Dialog):
         return fila
 
     # ── Callbacks de UI ──────────────────────────────────────────────────────
-
-    def _on_pestana(self, event):
-        idx = event.GetSelection()
-        if 0 <= idx < self.pestanas.GetPageCount():
-            anunciar(self.pestanas.GetPageText(idx))
-        event.Skip()
 
     def _guardar_calidad_previa(self) -> None:
         if getattr(self, "_formato_visto", None) is None:

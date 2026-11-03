@@ -98,7 +98,7 @@ _OBS_COMPONENTES = frozenset(("obs_transmision", "obs_grabacion", "obs_escena"))
 # Reexportados: muchos módulos todavía los piden a gui.
 from bellbird.ui.accesibilidad import (
     ContadorAccesible, WxAnnouncingHandler, _lector_init, anunciar,
-    nombre_accesible, registro_es_anunciable,
+    enlazar_anuncio_de_pestana, nombre_accesible, registro_es_anunciable,
 )
 from bellbird.ui.busqueda_teclado import instalar_busqueda_tipo
 from bellbird.ui.tema import ALTO_CONTRASTE, _T, _pintar, _tc, _titulo
@@ -473,7 +473,7 @@ class YTChatFrame(wx.Frame):
         self._panel_principal.Bind(wx.EVT_SIZE, self._on_resize)
         self.btn_conectar.Bind(wx.EVT_BUTTON, self._on_conectar)
         self.txt_url.Bind(wx.EVT_TEXT_ENTER,  self._on_conectar)
-        self.nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._on_nb_page)
+        enlazar_anuncio_de_pestana(self.nb)
         self.lb_chat.Bind(wx.EVT_LISTBOX_DCLICK, lambda e: self._copiar_mensaje())
         self._enlazar_eventos_chat()
         instalar_busqueda_tipo(
@@ -484,13 +484,6 @@ class YTChatFrame(wx.Frame):
         self.lb_chat.Bind(wx.EVT_KEY_DOWN, self._on_chat_key)
         self.lb_chat.Bind(wx.EVT_CHAR_HOOK, self._on_chat_char_hook)
         self.lb_chat.Bind(wx.EVT_CONTEXT_MENU, self._on_chat_menu)
-
-    def _on_nb_page(self, event):
-        # No hay anuncio nativo del cambio de pestaña: lo decimos a mano.
-        idx = event.GetSelection()
-        if 0 <= idx < self.nb.GetPageCount():
-            anunciar(self.nb.GetPageText(idx))
-        event.Skip()
 
     def _on_resize(self, event):
         # Primero el Wrap y luego Skip: así el Layout por defecto del panel ya
@@ -630,7 +623,8 @@ class YTChatFrame(wx.Frame):
         """Selecciona una pestaña del notebook y deja el foco en su contenido."""
         if 0 <= idx < self.nb.GetPageCount():
             # ChangeSelection no dispara EVT_NOTEBOOK_PAGE_CHANGED (SetSelection
-            # sí): si no, _on_nb_page anunciaba la pestaña y aquí otra vez.
+            # sí): si no, enlazar_anuncio_de_pestana anunciaba la pestaña y aquí
+            # otra vez.
             self.nb.ChangeSelection(idx)
             self._region_idx = REG_CONTENIDO
             self._foco_contenido()

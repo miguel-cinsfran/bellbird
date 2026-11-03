@@ -5594,8 +5594,6 @@ SIN_ESCENARIO: dict[str, str] = {
     "comandos_grabacion.py": "comandos del menú Transmisión que actúan sobre OBS; no abren ventana.",
     "restream_perfil.py": "El banco no tiene cuenta ni canales; el diálogo lo cubren las pruebas con wx.",
     "agregar_camara.py": "El banco no tiene cámara de Windows; el flujo lo cubren las pruebas con wx y la prueba contra OBS real.",
-    "escena_ventana.py": "Quedó sin usos al unificar el panel de OBS; se conserva por ahora.",
-    "grabacion_ventana.py": "Quedó sin usos al unificar el panel de OBS; se conserva por ahora.",
 }
 
 EXTRAS_DE_INTERFAZ = ("reproductor.py", "iconos.py")

@@ -702,7 +702,7 @@ class TestCableadoEscena(unittest.TestCase):
         frame.SetMenuBar(barra)
         return frame
 
-    def test_elegir_escena_abre_el_panel_en_escena(self):
+    def test_abrir_escena_abre_el_panel_en_escena(self):
         from bellbird.ui import menu_transmision
         from bellbird.ui import obs_ventana
 
@@ -717,7 +717,7 @@ class TestCableadoEscena(unittest.TestCase):
         abrir.assert_called_once_with(
             frame, frame, pestana=obs_ventana.PESTANA_ESCENA)
 
-    def test_elegir_panel_de_obs_abre_el_panel_en_escena(self):
+    def test_abrir_obs_abre_el_panel_en_escena(self):
         from bellbird.ui import menu_transmision
         from bellbird.ui import obs_ventana
 
@@ -733,8 +733,8 @@ class TestCableadoEscena(unittest.TestCase):
             frame, frame, pestana=obs_ventana.PESTANA_ESCENA)
 
 
-class TestCableadoGrabacion(unittest.TestCase):
-    """Elegir Grabación en Transmisión abre su ventana con el frame."""
+class TestCableadoPanelGrabacion(unittest.TestCase):
+    """El comando Grabación abre el panel de OBS en su pestaña."""
 
     @classmethod
     def setUpClass(cls):
@@ -760,7 +760,7 @@ class TestCableadoGrabacion(unittest.TestCase):
         frame.SetMenuBar(barra)
         return frame
 
-    def test_elegir_grabacion_abre_el_panel_en_grabacion(self):
+    def test_abrir_grabacion_abre_el_panel_en_grabacion(self):
         from bellbird.ui import menu_transmision
         from bellbird.ui import obs_ventana
 
@@ -849,7 +849,7 @@ class TestCableadoMostrarObs(unittest.TestCase):
         abrir.assert_called_once_with(frame)
 
 
-class TestCableadoGrabacion(unittest.TestCase):
+class TestCableadoComandosGrabacion(unittest.TestCase):
     """Elegir los comandos de grabación llega a comandos_grabacion."""
 
     @classmethod

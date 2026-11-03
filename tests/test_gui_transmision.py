@@ -471,7 +471,7 @@ class TestPanelTransmision(unittest.TestCase):
             with self.subTest(nombre=nombre):
                 self.assertFalse(hasattr(self.dialogo, nombre))
 
-    def test_grabacion_abre_el_panel_con_el_gestor_y_refresca(self):
+    def test_boton_grabacion_abre_el_panel_en_grabacion(self):
         from bellbird.ui import obs_ventana
 
         with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \
@@ -518,7 +518,7 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(self.dialogo.btn_grabacion.GetLabel(), "Gra&bación…")
         self.assertEqual(self.dialogo.btn_grabacion.GetName(), "Grabación…")
 
-    def test_escena_abre_el_panel_con_el_gestor_y_refresca_el_estado(self):
+    def test_boton_escena_abre_el_panel_en_escena(self):
         from bellbird.ui import obs_ventana
 
         with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \

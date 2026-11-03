@@ -15,12 +15,12 @@ TEXTO_ABRIENDO = N_("Abriendo OBS en segundo plano, en el área de "
                     "notificación. Puede tardar hasta un minuto.")
 TEXTO_MODO_SEGURO = N_("OBS se cerró mal la última vez y va a preguntar si "
                        "iniciar en modo seguro. Elige Mostrar OBS en el menú "
-                       "Transmisión y después iniciar normalmente.")
+                       "OBS y después iniciar normalmente.")
 TEXTO_SIN_RESPUESTA = N_("OBS se abrió pero no responde. Comprueba que su "
                          "servidor WebSocket esté activado.")
 TEXTO_SIN_RESPUESTA_MODO_SEGURO = N_(
     "OBS no responde. Puede estar esperando que contestes si iniciar "
-    "en modo seguro: elige Mostrar OBS en el menú Transmisión.")
+    "en modo seguro: elige Mostrar OBS en el menú OBS.")
 
 logger = diagnostico.obtener_logger(__name__)
 

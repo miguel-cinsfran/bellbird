@@ -238,11 +238,3 @@ class PaginaTransmision(wx.Panel):
 
     def _abrir_restream(self, event):
         menu_transmision.abrir_restream(self._principal)
-
-
-def abrir_transmision(parent) -> None:
-    """Abre el Panel de OBS en la pestaña Transmisión."""
-    from bellbird.ui import obs_ventana
-
-    obs_ventana.abrir_obs(
-        parent, parent, pestana=obs_ventana.PESTANA_TRANSMISION)

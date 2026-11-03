@@ -207,14 +207,6 @@ class TestInicioGui(unittest.TestCase):
         diferir.assert_called_once_with(frame._abrir_descargas, url=url)
         frame._abrir_descargas.assert_not_called()
 
-    def test_menu_transmision_difiere_la_apertura(self):
-        frame = self._menu_frame()
-        transmision = self._handler_menu(frame, frame.mi_transmision)
-        with mock.patch.object(gui.wx, "CallAfter") as diferir:
-            transmision(mock.Mock())
-        diferir.assert_called_once_with(frame._on_transmision, None)
-        frame._on_transmision.assert_not_called()
-
     def test_menu_descargas_difiere_la_apertura(self):
         frame = self._menu_frame()
         descargas = self._handler_menu(frame, frame.mi_descargas)
@@ -1990,7 +1982,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
             ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz",
              "Sonidos", "Reproductor", "Música", "Descargas", "Conexión", "Filtros",
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
-             "Transmisión", "Cámara", "Inteligencia artificial"])
+             "OBS", "Cámara", "Inteligencia artificial"])
 
     def test_pagina_general_primera_con_las_cuatro_casillas_en_orden(self):
         dialogo = self.dialogo

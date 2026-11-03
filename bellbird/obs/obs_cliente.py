@@ -69,7 +69,7 @@ MENSAJE_CONEXION_PERDIDA = N_(
 
 TEXTO_ABIERTO_SIN_RESPUESTA = N_(
     "OBS está abierto pero no responde. Puede estar esperando una "
-    "respuesta: elige Mostrar OBS en el menú Transmisión. Si no, comprueba "
+    "respuesta: elige Mostrar OBS en el menú OBS. Si no, comprueba "
     "que su servidor WebSocket esté activado.")
 
 

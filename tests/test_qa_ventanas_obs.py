@@ -33,6 +33,41 @@ class _Aplicacion:
         return []
 
 
+class _AplicacionDePestanas:
+    def __init__(self, actual=0):
+        self.actual = actual
+        self.teclas_llamadas = []
+
+    def pedir(self, op, **_extra):
+        if op == "pestanas":
+            return {"datos": {"actual": self.actual}}
+        return {"datos": {}}
+
+    def esperar_ventana(self, _titulo, segundos=0):
+        return {"titulo": "Panel de OBS", "visible": True}
+
+    def teclas(self, *pasos):
+        self.teclas_llamadas.append(pasos)
+        if pasos == (("tab", ["ctrl"]),):
+            self.actual += 1
+
+
+class TestAbrirPanel(unittest.TestCase):
+
+    def test_abre_con_ctrl_mayus_o_y_llega_con_ctrl_tab(self):
+        app = _AplicacionDePestanas()
+        res = _Resultado()
+        self.assertTrue(ventanas_obs._abrir_panel(app, res))
+        self.assertEqual(app.teclas_llamadas,
+                         [(("o", ["ctrl", "shift"]),)])
+        self.assertTrue(ventanas_obs._ir_a_pestana(
+            app, res, ventanas_obs.PESTANA_GRABACION))
+        self.assertEqual(app.teclas_llamadas[-3:],
+                         [(("tab", ["ctrl"]),)] * 3)
+        self.assertEqual(app.actual, ventanas_obs.PESTANA_GRABACION)
+        self.assertEqual(res.fallos, [])
+
+
 class TestDescuadreDePestanas(unittest.TestCase):
 
     def test_las_siete_en_orden_no_descuidran(self):

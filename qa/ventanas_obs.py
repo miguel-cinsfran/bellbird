@@ -142,27 +142,40 @@ def _pestana_actual(app) -> int:
     return int(datos.get("actual", -1))
 
 
-def _abrir_con_atajo(app, res, tecla: str, esperada: int) -> bool:
-    """Abre el panel con Ctrl+Mayús y comprueba en qué pestaña quedó."""
+def _abrir_panel(app, res) -> bool:
+    """Abre el panel con Ctrl+Mayús+O en la pestaña Transmisión."""
     app.pedir("frente")
     try:
-        app.teclas((tecla, ["ctrl", "shift"]))
+        app.teclas(("o", ["ctrl", "shift"]))
     except Exception as exc:
-        res.fallo(f"Panel de OBS: no se pudo pulsar Ctrl+Mayús+{tecla.upper()}, "
-                  f"{exc}")
+        res.fallo(f"Panel de OBS: no se pudo pulsar Ctrl+Mayús+O, {exc}")
         return False
     if app.esperar_ventana(TITULO_VENTANA, segundos=15) is None:
-        res.fallo("Panel de OBS: Ctrl+Mayús+" + tecla.upper()
-                  + " no abrió la ventana")
+        res.fallo("Panel de OBS: Ctrl+Mayús+O no abrió la ventana")
         return False
     actual = _pestana_actual(app)
-    if actual != esperada:
-        res.fallo("Panel de OBS: Ctrl+Mayús+" + tecla.upper()
-                  + f" abrió la pestaña {actual + 1}, debería abrir la "
-                  f"{esperada + 1}")
+    if actual != PESTANA_TRANSMISION:
+        res.fallo(f"Panel de OBS: Ctrl+Mayús+O abrió la pestaña {actual + 1}, "
+                  f"debería abrir la {PESTANA_TRANSMISION + 1}")
         return False
-    res.nota("Panel de OBS: Ctrl+Mayús+" + tecla.upper()
-             + f" abre en {PESTANAS_OBS[esperada]}")
+    res.nota("Panel de OBS: Ctrl+Mayús+O abre en Transmisión")
+    return True
+
+
+def _ir_a_pestana(app, res, indice: int) -> bool:
+    """Cambia de pestaña con Ctrl+Tab hasta la que se quiere auditar."""
+    for _ in range(indice):
+        try:
+            app.teclas(("tab", ["ctrl"]))
+        except Exception as exc:
+            res.fallo(f"Panel de OBS: no se pudo pulsar Ctrl+Tab, {exc}")
+            return False
+    actual = _pestana_actual(app)
+    if actual != indice:
+        res.fallo(f"Panel de OBS: Ctrl+Tab dejó la pestaña {actual + 1}, "
+                  f"debería dejar la {indice + 1}")
+        return False
+    res.nota(f"Panel de OBS: Ctrl+Tab llega a {PESTANAS_OBS[indice]}")
     return True
 
 
@@ -174,15 +187,17 @@ def _cerrar(app, res) -> None:
 
 def auditar_escena(app, res, recorrer_tab, revisar_nombres,
                    faltan_habilitados, vueltas_tab: int) -> None:
-    """Abre el panel con Ctrl+Mayús+E y audita sus seis pestañas.
+    """Abre el panel con Ctrl+Mayús+O, pasa a Escena con Ctrl+Tab y audita todo.
 
     La app abre OBS si hace falta y el final de la corrida lo cierra. Solo se
     cambia de pestaña, se recorre el Tab y se cierra la ventana: ningún botón
     ni casilla que cambie OBS.
     """
-    if not _abrir_con_atajo(app, res, "e", PESTANA_ESCENA):
+    if not _abrir_panel(app, res):
         return
     try:
+        if not _ir_a_pestana(app, res, PESTANA_ESCENA):
+            return
         _auditar_pestanas(app, res, recorrer_tab, revisar_nombres,
                           faltan_habilitados, vueltas_tab)
     finally:
@@ -191,10 +206,12 @@ def auditar_escena(app, res, recorrer_tab, revisar_nombres,
 
 def auditar_grabacion(app, res, recorrer_tab, revisar_nombres,
                       faltan_habilitados, vueltas_tab: int) -> None:
-    """Abre el panel con Ctrl+Mayús+G y audita la pestaña Grabación."""
-    if not _abrir_con_atajo(app, res, "g", PESTANA_GRABACION):
+    """Abre el panel con Ctrl+Mayús+O, pasa a Grabación con Ctrl+Tab y audita."""
+    if not _abrir_panel(app, res):
         return
     try:
+        if not _ir_a_pestana(app, res, PESTANA_GRABACION):
+            return
         if not esperar_habilitado(app, faltan_habilitados, "Actualizar estado",
                                   SEGUNDOS_CARGA_OBS, res):
             return
@@ -214,8 +231,8 @@ def auditar_grabacion(app, res, recorrer_tab, revisar_nombres,
 
 def auditar_transmision(app, res, recorrer_tab, revisar_nombres,
                         faltan_habilitados, vueltas_tab: int) -> None:
-    """Abre el panel con Ctrl+Mayús+T y audita la pestaña Transmisión."""
-    if not _abrir_con_atajo(app, res, "t", PESTANA_TRANSMISION):
+    """Abre el panel con Ctrl+Mayús+O y audita la pestaña Transmisión."""
+    if not _abrir_panel(app, res):
         return
     try:
         paginas = app.pedir("pestanas", ventana=TITULO_VENTANA).get(

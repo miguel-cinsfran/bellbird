@@ -1804,7 +1804,7 @@ def cerrar_obs_del_banco(res: Resultado) -> None:
 def escenario_transmision(app: Aplicacion, args, res: Resultado):
     """La pestaña Transmisión dentro del panel de OBS.
 
-    La abre la app con Ctrl+Mayús+T, que lanza OBS si hace falta, y el final
+    La abre la app con Ctrl+Mayús+O, que lanza OBS si hace falta, y el final
     del banco cierra el OBS que abrió. Se audita entera, sin pulsar el botón
     del directo ni cambiar nada en OBS.
     """
@@ -1816,8 +1816,8 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
 def escenario_escena(app: Aplicacion, args, res: Resultado):
     """La ventana que reúne lo que se ve y se oye en OBS.
 
-    La abre la app, que lanza OBS si hace falta, y el final del banco cierra
-    el OBS que abrió. Se auditan las cuatro pestañas, sin pulsar ningún
+    La abre la app con Ctrl+Mayús+O y pasa a Escena con Ctrl+Tab. El final del
+    banco cierra el OBS que abrió. Se auditan las pestañas, sin pulsar ningún
     botón ni casilla que cambie OBS.
     """
     ventanas_obs.auditar_escena(
@@ -1828,9 +1828,9 @@ def escenario_escena(app: Aplicacion, args, res: Resultado):
 def escenario_grabacion(app: Aplicacion, args, res: Resultado):
     """La pestaña para grabar en OBS sin abrir Transmisión.
 
-    La abre la app, que lanza OBS si hace falta, y el final del banco cierra
-    el OBS que abrió. Se audita entera, sin pulsar los botones que cambiarían
-    la grabación de la PC.
+    La abre la app con Ctrl+Mayús+O y pasa a Grabación con Ctrl+Tab. El final
+    del banco cierra el OBS que abrió. Se audita entera, sin pulsar los botones
+    que cambiarían la grabación de la PC.
     """
     ventanas_obs.auditar_grabacion(
         app, res, recorrer_tab, revisar_nombres, faltan_habilitados,
@@ -4567,7 +4567,7 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
 
     def alternar_panel():
         try:
-            app.abrir_por_menu("Transmisión")
+            app.abrir_por_menu("OBS > Panel de OBS…")
         except Exception as exc:
             res.fallo(f"Panel de OBS: no se pudo abrir el panel, {exc}")
             return False
@@ -5470,6 +5470,7 @@ SUPERFICIES = {
     "restream_pagina_cuenta.py": "restream",
     "recientes_inicio.py": "principal",
     "gui_menu.py": "menus",
+    "menu_obs.py": "menus",
     "menu_transmision.py": "menus",
     "gui_microfono.py": "microfono",
     "guia_encuadre.py": "encuadre",
@@ -5526,7 +5527,7 @@ SUPERFICIES = {
 # motivo como valor y no cuenta como huérfano en `superficies_sin_escenario()`.
 SIN_ESCENARIO: dict[str, str] = {
     "operaciones_obs.py": "opera sobre OBS en un hilo para las ventanas; no abre una propia.",
-    "comandos_grabacion.py": "comandos del menú Transmisión que actúan sobre OBS; no abren ventana.",
+    "comandos_grabacion.py": "comandos del menú OBS que actúan sobre OBS; no abren ventana.",
     "restream_perfil.py": "El banco no tiene cuenta ni canales; el diálogo lo cubren las pruebas con wx.",
     "agregar_camara.py": "El banco no tiene cámara de Windows; el flujo lo cubren las pruebas con wx y la prueba contra OBS real.",
 }
@@ -5808,7 +5809,7 @@ EN_TODOS = ["arranque_frio", "reproductor",
             "programados", "historial", "restream",
             "transmision", "escena", "grabacion",
             # `microfono` va justo después de `transmision`: los dos
-            # necesitan OBS y auditan cuadros del menú Transmisión.
+            # necesitan OBS y auditan cuadros del menú OBS.
             "microfono",
             # `encuadre` va con `transmision` y `microfono`: necesita OBS
             # y monta su propia aplicación, como `arranque_frio`.

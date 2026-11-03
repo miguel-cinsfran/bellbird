@@ -216,7 +216,7 @@
   </style>
 </head>
 <body>
-<!-- original: es/MANUAL.md c2e1ff9ae8381b8579886bf08e45399a3bef8a63 -->
+<!-- original: es/MANUAL.md 3d0d4fcd0a9393bd48b3d5448d546e8f7554bc5c -->
 
 <h1 id="bellbird-user-manual">Bellbird, user manual</h1>
 <p>This is a translation of the Spanish original, made with artificial
@@ -503,18 +503,17 @@ Restream.</p>
 <h3 id="before-going-live-for-the-first-time">Before going live for the
 first time</h3>
 <p>Before going live for the first time, turn on the OBS WebSocket
-server in <em>Preferences</em>, on the <em>Broadcast</em> category. If
-OBS is closed, the application opens it in the notification area without
-moving the focus away from the screen reader.</p>
+server in <em>Preferences</em>, on the <em>OBS</em> category. If OBS is
+closed, the application opens it in the notification area without moving
+the focus away from the screen reader.</p>
 <p>For TikTok you need an OBS profile called <code>TikTok</code> with
 Restream, and for YouTube, the Google session started and live streams
 enabled on your channel; the <code>YouTube</code> OBS profile is created
 by the application.</p>
-<p>In the <em>OBS panel</em>, on the <em>Add</em> tab
-(<code>Ctrl+Shift+E</code>), choose which window is captured, for
-example a game. The live stream shows that window, but its capture does
-not carry sound: the sound comes from the desktop audio and the OBS
-microphone.</p>
+<p>In the <em>OBS panel</em>, on the <em>Add</em> tab, choose which
+window is captured, for example a game. The live stream shows that
+window, but its capture does not carry sound: the sound comes from the
+desktop audio and the OBS microphone.</p>
 <h3 id="to-go-live">To go live</h3>
 <p>To go live, press <em>Broadcast live</em>, next to
 <em>Connect</em>.</p>
@@ -550,10 +549,10 @@ device in the properties of the microphone source in OBS. After you turn
 it on, the application listens for three seconds. If no sound comes in,
 it plays its own warning and says “The microphone is not receiving
 sound. Check which one is chosen in Windows or in OBS.”.</p>
-<p><code>Alt+Shift+O</code>, or <em>Show OBS</em> in the
-<em>Broadcast</em> menu, brings the OBS window to the front, also when
-it is in the notification area. If OBS is waiting for an answer, such as
-the safe mode question, the focus goes to that dialog box.</p>
+<p><code>Alt+Shift+O</code>, or <em>Show OBS</em> in the <em>OBS</em>
+menu, brings the OBS window to the front, also when it is in the
+notification area. If OBS is waiting for an answer, such as the safe
+mode question, the focus goes to that dialog box.</p>
 <h3 id="recording-the-live-stream">Recording the live stream</h3>
 <p>With <em>Record while broadcasting</em> checked, in the
 <em>Broadcast</em> menu, OBS starts recording when the broadcast starts
@@ -569,33 +568,32 @@ that the recording uses the same quality as the broadcast, and the check
 box is cleared by default.</p>
 <p>Starting, pausing, resuming and stopping the recording have their own
 sounds. With <em>Show streaming or recording in the title of the
-window</em>, in <em>Preferences</em>, on the <em>Broadcast</em>
-category, the title starts with that state, and the check box is cleared
-by default.</p>
+window</em>, in <em>Preferences</em>, on the <em>OBS</em> category, the
+title starts with that state, and the check box is cleared by
+default.</p>
 <p>You can also record without opening the <em>Broadcast</em> tab. The
-<em>Recording</em> tab (<code>Ctrl+Shift+G</code>) has the same buttons,
-and the <em>Broadcast</em> menu keeps <em>Start or stop recording</em>
-with <code>Alt+Shift+G</code> and <em>Pause or resume recording</em>
-with <code>Alt+Shift+P</code>, which announce and sound the same as the
+<em>Recording</em> tab of the <em>OBS panel</em> has the same buttons,
+and the <em>OBS</em> menu keeps <em>Start or stop recording</em> with
+<code>Alt+Shift+G</code> and <em>Pause or resume recording</em> with
+<code>Alt+Shift+P</code>, which announce and sound the same as the
 window buttons. If no recording is in progress, pausing says so and
 changes nothing in OBS. If OBS does not pause the recording, the
 application says so: some profiles may not allow it.</p>
 <p>When you stop the recording, from the application or because the
 broadcast ended, you hear “Recording saved” with the file name.
-<em>Saved recordings…</em>, in the <em>Broadcast</em> menu and in the
-<em>Recording</em> tab, lists what was recorded that way, from newest to
-oldest. From there you can open the file with <code>Enter</code>, open
-its folder, copy the path or remove it from the list with
-<code>Delete</code>. Removing it from the list does not delete the file,
-and what is stopped from the OBS window does not appear in the list.</p>
+<em>Saved recordings…</em>, in the <em>Recording</em> tab, lists what
+was recorded that way, from newest to oldest. From there you can open
+the file with <code>Enter</code>, open its folder, copy the path or
+remove it from the list with <code>Delete</code>. Removing it from the
+list does not delete the file, and what is stopped from the OBS window
+does not appear in the list.</p>
 <h3 id="the-broadcast-tab">The Broadcast tab</h3>
 <p>The <em>OBS panel</em> (<code>Ctrl+Shift+O</code>) brings together in
-tabs what is done with OBS. The first one, <em>Broadcast</em>
-(<code>Ctrl+Shift+T</code>), starts and stops the live stream, chooses
-where it is broadcast and shows the chat on video. <em>Restream…</em>
-opens the Restream window. With <code>Ctrl+Tab</code> you move to
-<em>Scene</em> or <em>Audio</em> without closing anything, also with a
-live stream running.</p>
+tabs what is done with OBS. The first one, <em>Broadcast</em>, starts
+and stops the live stream, chooses where it is broadcast and shows the
+chat on video. <em>Restream…</em> opens the Restream window. With
+<code>Ctrl+Tab</code> you move to <em>Scene</em> or <em>Audio</em>
+without closing anything, also with a live stream running.</p>
 <p>The <em>Status</em> field says whether everything is ready or what to
 check, the current scene, the microphone and whether it is recording.
 From the tab the live stream is started and ended the same way as with
@@ -676,11 +674,11 @@ of the other sources. To move it, use the <em>Sources</em> tab of the
 <em>OBS panel</em>.</p>
 <h2 id="scene">Scene</h2>
 <p>The <em>OBS panel</em> (<code>Ctrl+Shift+O</code>) brings together in
-tabs what is seen and heard in OBS. The <em>Scene</em> tab
-(<code>Ctrl+Shift+E</code>) chooses which scene is edited and says what
-it has. Browsing the list does not change what is broadcast. <em>Change
-scene</em> changes the scene that is broadcast and <em>Save image…</em>
-saves an image of it.</p>
+tabs what is seen and heard in OBS. The <em>Scene</em> tab, which you
+reach with <code>Ctrl+Tab</code>, chooses which scene is edited and says
+what it has. Browsing the list does not change what is broadcast.
+<em>Change scene</em> changes the scene that is broadcast and <em>Save
+image…</em> saves an image of it.</p>
 <p><em>Sources</em> chooses a source of the scene and moves it to one of
 the nine positions, changes its size, hides it, locks it or changes its
 layer: brings it to the front, brings it forward, sends it backward or
@@ -698,11 +696,11 @@ description update by themselves.</p>
 so in the description and does not freeze. The panel help explains each
 tab.</p>
 <h2 id="recording">Recording</h2>
-<p>The <em>Recording</em> tab (<code>Ctrl+Shift+G</code>), in the
-<em>OBS panel</em>, records in OBS without going through the
-<em>Broadcast</em> tab. <em>Status</em> says whether it is recording,
-paused or not recording, how long it has been going, the live scene, the
-microphone and whether it is also broadcasting.</p>
+<p>The <em>Recording</em> tab, in the <em>OBS panel</em>, records in OBS
+without going through the <em>Broadcast</em> tab. <em>Status</em> says
+whether it is recording, paused or not recording, how long it has been
+going, the live scene, the microphone and whether it is also
+broadcasting.</p>
 <p><em>Start recording</em> and <em>Stop recording</em> do the same as
 the panel buttons, with their sounds and announcements. <em>Pause
 recording</em> appears while recording and becomes <em>Resume
@@ -928,20 +926,8 @@ their action.</p>
 <td>Open the live stream history</td>
 </tr>
 <tr>
-<td><code>Ctrl+Shift+T</code></td>
-<td>Open Broadcast</td>
-</tr>
-<tr>
 <td><code>Ctrl+Shift+R</code></td>
 <td>Open Restream</td>
-</tr>
-<tr>
-<td><code>Ctrl+Shift+E</code></td>
-<td>Open Scene</td>
-</tr>
-<tr>
-<td><code>Ctrl+Shift+G</code></td>
-<td>Open Recording</td>
 </tr>
 <tr>
 <td><code>Ctrl+Shift+D</code></td>

@@ -19,6 +19,7 @@ from bellbird.core import diagnostico
 from bellbird.core.config import TIPO_MIEMBRO, TIPO_SUPERCHAT, TIPO_TEXTO
 from bellbird.core.idioma import _, N_, idioma_actual
 from bellbird.core import paths
+from bellbird.ui import menu_obs
 from bellbird.ui import menu_transmision
 from bellbird.ui.atajos_captura import ETIQUETAS
 
@@ -35,7 +36,6 @@ FILTROS = [
 
 
 def construir_menu(frame):
-    from bellbird.ui.gui import PAG_CHAT, PAG_COMENTARIOS, REG_CONEXION, REG_REPRODUCTOR
     anterior = frame.GetMenuBar()
     mb = wx.MenuBar()
 
@@ -150,6 +150,7 @@ def construir_menu(frame):
 
     # Transmisión
     menu_transmision.construir(frame, mb)
+    menu_obs.construir(frame, mb)
 
     # Música
     _construir_menu_musica(frame, mb)

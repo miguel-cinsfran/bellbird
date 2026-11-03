@@ -776,10 +776,6 @@ class YTChatFrame(wx.Frame):
         # La pestaña API puede haber cambiado la sesión: refrescar.
         self._actualizar_estado_online()
 
-    def _on_transmision(self, event):
-        from bellbird.ui.gui_transmision import abrir_transmision
-        abrir_transmision(self)
-
     def _on_obs_micro(self, event):
         def avisar(texto, sonido):
             def _avisar():

@@ -137,7 +137,7 @@ class PreferenciasDialog(wx.Dialog):
         self.nb.AddPage(self.pagina_programados.construir(self.nb), _("Mensajes automáticos"))
         self.chk_programados = self.pagina_programados.chk_programados
         self.pagina_transmision = PaginaTransmision(self, self._config)
-        self.nb.AddPage(self.pagina_transmision.construir(self.nb), _("Transmisión"))
+        self.nb.AddPage(self.pagina_transmision.construir(self.nb), _("OBS"))
         for _nombre in ("sp_puerto_overlay", "chk_avisar_sobrecarga", "chk_titulo_estado_obs", "cho_microfono_obs"):
             setattr(self, _nombre, getattr(self.pagina_transmision, _nombre))
         self.pagina_camara = PaginaCamara(self, self._config)

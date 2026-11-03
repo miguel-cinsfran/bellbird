@@ -215,7 +215,7 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
                       dialogo._pagina_grabacion.txt_estado.GetValue())
         self.assertFalse(dialogo._operaciones.en_vuelo)
 
-    def test_el_atajo_configurado_de_abrir_grabacion_cambia_de_pestana(self):
+    def test_el_atajo_configurado_de_abrir_grabacion_ya_no_cambia_de_pestana(self):
         self.dialogo.nb.SetSelection(obs_ventana.PESTANA_ESCENA)
         evento = mock.Mock()
         evento.GetKeyCode.return_value = ord("G")
@@ -224,11 +224,11 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
         evento.ShiftDown.return_value = True
         self.dialogo._al_tecla(evento)
         self.assertEqual(self.dialogo.nb.GetSelection(),
-                         obs_ventana.PESTANA_GRABACION)
-        self.assertIs(self.dialogo.FindFocus(),
-                      self.dialogo._pagina_grabacion.txt_estado)
+                         obs_ventana.PESTANA_ESCENA)
+        evento.Skip.assert_called_once_with()
 
-    def test_el_atajo_configurado_de_abrir_escena_cambia_de_pestana(self):
+    def test_el_atajo_configurado_de_abrir_escena_ya_no_cambia_de_pestana(self):
+        self.dialogo.nb.SetSelection(obs_ventana.PESTANA_GRABACION)
         evento = mock.Mock()
         evento.GetKeyCode.return_value = ord("E")
         evento.ControlDown.return_value = True
@@ -236,9 +236,17 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
         evento.ShiftDown.return_value = True
         self.dialogo._al_tecla(evento)
         self.assertEqual(self.dialogo.nb.GetSelection(),
-                         obs_ventana.PESTANA_ESCENA)
-        self.assertIs(self.dialogo.FindFocus(),
-                      self.dialogo._pagina_escena.cho_escena)
+                         obs_ventana.PESTANA_GRABACION)
+        evento.Skip.assert_called_once_with()
+
+    def test_ctrl_mas_tab_deja_que_el_cuaderno_cambie_de_pestana(self):
+        evento = mock.Mock()
+        evento.GetKeyCode.return_value = wx.WXK_TAB
+        evento.ControlDown.return_value = True
+        evento.AltDown.return_value = False
+        evento.ShiftDown.return_value = False
+        self.dialogo._al_tecla(evento)
+        evento.Skip.assert_called_once_with()
 
     def test_cerrar_con_gestor_propio_lo_cierra(self):
         with mock.patch.object(obs_ventana, "GestorPanelObs",

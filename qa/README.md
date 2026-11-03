@@ -47,7 +47,7 @@ una captura nunca hace fallar un escenario.
 Qué sale en la corrida completa: la ventana principal desconectada al
 arrancar; cada diálogo que `esperar_ventana` encuentra, una vez por
 título y escenario (Administrador de descargas, Preferencias, Historial de
-directos, Música, Panel de transmisión, Escena, Transmitir a, Directo de YouTube y los que
+directos, Música, Panel de OBS, Transmitir a, Directo de YouTube y los que
 abran ayuda, comentarios, conectar y redactar); la ventana principal ya
 conectada al terminar los escenarios que conectan un chat (simulado o
 real); y la ventana Música con la cola oculta y, si el escenario la
@@ -79,8 +79,8 @@ No muestra el valor de un campo de texto ni los elementos de una lista de
 datos del usuario. Deja fuera las cabeceras de columna, las opciones de
 RadioBox y las entradas que dejan algo abierto al cerrarlas sin guardar:
 «Guía de configuración de la API» abre el navegador y «Panel de
-transmisión…» puede lanzar OBS. Corre en la PC donde no hay nadie, como el
-resto del banco.
+OBS…» puede lanzar OBS. Corre en la PC donde no hay nadie, como el resto
+del banco.
 
 ## Directo real de prueba
 
@@ -255,7 +255,7 @@ nadie compara con nada no es una medición.
 
 Ahora `recorrer_tab` usa la orden `navegar` de la sonda, que avanza por la
 cadena de foco de wx con `Navigate()`, sin pasar por el sistema. El diálogo de
-Panel de transmisión pasó de 1 parada a 16.
+El panel de OBS pasó de 1 parada a 16.
 
 `Navigate()` por sí solo tampoco baja dentro de un cuaderno de pestañas: salta
 al siguiente hermano y deja sin auditar todo lo que vive en la página. Por eso
@@ -299,9 +299,10 @@ proceso, iba a otra ventana y, como efecto, desbloqueaba el frente. Medido el
 F24, que no usa ninguna aplicación ni NVDA, repite el `Raise`, y solo da
 `activa` si wx y Windows coinciden.
 
-Panel de transmisión y Escena solo exigen los controles de OBS en el orden de
-Tab con OBS abierto: sin él nacen deshabilitados a propósito y wx los saca del Tab.
-Escena se abre desde el menú Transmisión y se audita entera, también su Tab.
+Panel de OBS solo exige los controles de OBS en el orden de Tab con OBS
+abierto: sin él nacen deshabilitados a propósito y wx los saca del Tab. El
+banco lo abre con Ctrl+Mayús+O y llega a Escena y a Grabación con Ctrl+Tab,
+y audita cada pestaña entera, también su Tab.
 
 **Un cuadro nativo con solo Sí y No no responde a Escape.** Medido el
 15/10/2026 con «Directo sin imagen», que ofrece «Finalizar directo» y

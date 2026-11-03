@@ -16,7 +16,6 @@ from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.obs.restablecimiento import RegistroRestablecimiento
 from bellbird.ui import gui_microfono, paleta
 from bellbird.ui.accesibilidad import anunciar, enlazar_anuncio_de_pestana
-from bellbird.ui.atajos_captura import tecla_texto
 from bellbird.ui.escena_pagina_agregar import PaginaAgregar
 from bellbird.ui.escena_pagina_audio import PaginaAudio
 from bellbird.ui.escena_pagina_escena import PaginaEscena
@@ -281,39 +280,7 @@ class VentanaObs(wx.Dialog):
         wx.MessageBox(_(TEXTO_AYUDA_OBS), _("Ayuda del panel de OBS"),
                       wx.OK | wx.ICON_INFORMATION, self)
 
-    def _atajo_configurado(self, accion):
-        atajos = getattr(self._principal, "_atajos", None) or {}
-        atajo = atajos.get(accion)
-        return atajo.texto if atajo else ""
-
-    def _combinacion(self, evento):
-        tecla = tecla_texto(evento.GetKeyCode())
-        if not tecla:
-            return None
-        partes = []
-        if evento.ControlDown():
-            partes.append("ctrl")
-        if evento.AltDown():
-            partes.append("alt")
-        if evento.ShiftDown():
-            partes.append("shift")
-        return "+".join(partes + [tecla]) if partes else tecla
-
-    def _saltar_por_atajo(self, evento):
-        combinacion = self._combinacion(evento)
-        if not combinacion:
-            return False
-        for accion, indice in (("abrir_escena", PESTANA_ESCENA),
-                               ("abrir_grabacion", PESTANA_GRABACION)):
-            if combinacion == self._atajo_configurado(accion):
-                self.nb.SetSelection(indice)
-                self._enfocar_pestana(indice)
-                return True
-        return False
-
     def _al_tecla(self, evento):
-        if self._saltar_por_atajo(evento):
-            return
         if evento.GetKeyCode() == wx.WXK_ESCAPE:
             if self._pagina_fuentes.en_ajuste:
                 evento.Skip()

@@ -297,6 +297,21 @@ class TestCargarConfiguracion(unittest.TestCase):
         texto = (tmp / "config.ini").read_text(encoding="utf-8")
         self.assertIn("registro_detallado = true", texto)
 
+    def test_atajos_viejos_que_ya_no_existen_se_ignoran_al_cargar(self):
+        viejo = ("[atajos]\n"
+                 "abrir_transmision = ctrl+shift+t\n"
+                 "abrir_escena = ctrl+shift+e\n"
+                 "abrir_grabacion = ctrl+shift+g\n")
+        contenido = config._CONFIG_FALLBACK.replace("[atajos]\n", viejo, 1)
+        cfg = self._cargar_en(contenido)
+
+        atajos = config.parsear_atajos(cfg["atajos_raw"])
+        for accion in ("abrir_transmision", "abrir_escena", "abrir_grabacion"):
+            self.assertNotIn(accion, atajos)
+        combinaciones = {atajo.texto for atajo in atajos.values()}
+        for combo in ("ctrl+shift+t", "ctrl+shift+e", "ctrl+shift+g"):
+            self.assertNotIn(combo, combinaciones)
+
     def test_registro_detallado_ausente_activa_manejador(self):
         ruta = Path(self._tmp.name) / "config.ini"
         ruta.write_text("[diagnostico]\n", encoding="utf-8")

@@ -2916,11 +2916,11 @@ msgstr "Lost connection to OBS. Reconnect."
 #: bellbird/obs/obs_cliente.py
 msgid ""
 "OBS está abierto pero no responde. Puede estar esperando una respuesta: "
-"elige Mostrar OBS en el menú Transmisión. Si no, comprueba que su servidor "
+"elige Mostrar OBS en el menú OBS. Si no, comprueba que su servidor "
 "WebSocket esté activado."
 msgstr ""
 "OBS is open but not responding. It may be waiting for an answer: choose "
-"Show OBS in the Broadcast menu. If not, check that its WebSocket server is "
+"Show OBS in the OBS menu. If not, check that its WebSocket server is "
 "enabled."
 
 #: bellbird/obs/obs_cliente.py
@@ -3463,10 +3463,10 @@ msgstr ""
 #: bellbird/obs/obs_lanzador.py
 msgid ""
 "OBS se cerró mal la última vez y va a preguntar si iniciar en modo seguro. "
-"Elige Mostrar OBS en el menú Transmisión y después iniciar normalmente."
+"Elige Mostrar OBS en el menú OBS y después iniciar normalmente."
 msgstr ""
 "OBS did not close properly last time and will ask whether to start in safe "
-"mode. Choose Show OBS in the Broadcast menu and then start normally."
+"mode. Choose Show OBS in the OBS menu and then start normally."
 
 #: bellbird/obs/obs_lanzador.py
 msgid ""
@@ -3479,10 +3479,10 @@ msgstr ""
 #: bellbird/obs/obs_lanzador.py
 msgid ""
 "OBS no responde. Puede estar esperando que contestes si iniciar en modo "
-"seguro: elige Mostrar OBS en el menú Transmisión."
+"seguro: elige Mostrar OBS en el menú OBS."
 msgstr ""
 "OBS is not responding. It may be waiting for you to answer whether to start"
-" in safe mode: choose Show OBS in the Broadcast menu."
+" in safe mode: choose Show OBS in the OBS menu."
 
 #: bellbird/obs/obs_lanzador.py
 msgid "No se pudo abrir OBS."
@@ -4395,20 +4395,8 @@ msgid "Marcar incidencia"
 msgstr "Mark issue"
 
 #: bellbird/ui/atajos_captura.py
-msgid "Abrir Transmisión"
-msgstr "Open Broadcast"
-
-#: bellbird/ui/atajos_captura.py
 msgid "Abrir Restream"
 msgstr "Open Restream"
-
-#: bellbird/ui/atajos_captura.py
-msgid "Abrir Escena"
-msgstr "Open Scene"
-
-#: bellbird/ui/atajos_captura.py
-msgid "Abrir Grabación"
-msgstr "Open Recording"
 
 #: bellbird/ui/atajos_captura.py
 msgid "Abrir panel de OBS"
@@ -7283,9 +7271,9 @@ msgstr "Shortcuts"
 msgid "API y sesión"
 msgstr "API and session"
 
-#: bellbird/ui/gui_preferencias.py bellbird/ui/obs_ventana.py
-msgid "Transmisión"
-msgstr "Broadcast"
+#: bellbird/ui/gui_preferencias.py
+msgid "OBS"
+msgstr "OBS"
 
 #: bellbird/ui/gui_preferencias.py
 msgid "Inteligencia artificial"
@@ -7815,6 +7803,38 @@ msgid_plural "El chat tiene {n} mensajes."
 msgstr[0] "The chat has {n} message."
 msgstr[1] "The chat has {n} messages."
 
+#: bellbird/ui/menu_obs.py
+msgid "Panel de &OBS…"
+msgstr "&OBS panel…"
+
+#: bellbird/ui/menu_obs.py
+msgid "Silenciar &micrófono de OBS"
+msgstr "Mute OBS &microphone"
+
+#: bellbird/ui/menu_obs.py
+msgid "&Elegir micrófono…"
+msgstr "&Choose microphone…"
+
+#: bellbird/ui/menu_obs.py
+msgid "Mos&trar OBS"
+msgstr "S&how OBS"
+
+#: bellbird/ui/menu_obs.py
+msgid "Iniciar o detener g&rabación"
+msgstr "&Start or stop recording"
+
+#: bellbird/ui/menu_obs.py
+msgid "Pa&usar o reanudar grabación"
+msgstr "Pause or resume recor&ding"
+
+#: bellbird/ui/menu_obs.py
+msgid "&Avisar si OBS se sobrecarga"
+msgstr "&Warn if OBS is overloaded"
+
+#: bellbird/ui/menu_obs.py
+msgid "&OBS"
+msgstr "OB&S"
+
 #: bellbird/ui/menu_transmision.py
 msgid "Anunciar en&cuadre de cámara"
 msgstr "Announce camera &framing"
@@ -7824,52 +7844,12 @@ msgid "A&visar si el rostro sale del encuadre"
 msgstr "Warn when the face &leaves the frame"
 
 #: bellbird/ui/menu_transmision.py
-msgid "&Panel de transmisión…"
-msgstr "&Broadcast panel…"
-
-#: bellbird/ui/menu_transmision.py
 msgid "Re&stream…"
 msgstr "Restr&eam…"
 
 #: bellbird/ui/menu_transmision.py
-msgid "Panel de &OBS…"
-msgstr "&OBS panel…"
-
-#: bellbird/ui/menu_transmision.py
-msgid "Esce&na…"
-msgstr "Sce&ne…"
-
-#: bellbird/ui/menu_transmision.py
-msgid "Gra&bación…"
-msgstr "Recordin&g…"
-
-#: bellbird/ui/menu_transmision.py
-msgid "&Avisar si OBS se sobrecarga"
-msgstr "&Warn if OBS is overloaded"
-
-#: bellbird/ui/menu_transmision.py
 msgid "&Grabar también al transmitir"
 msgstr "&Record while broadcasting"
-
-#: bellbird/ui/menu_transmision.py
-msgid "Silenciar &micrófono de OBS"
-msgstr "Mute OBS &microphone"
-
-#: bellbird/ui/menu_transmision.py
-msgid "&Elegir micrófono…"
-msgstr "&Choose microphone…"
-
-#: bellbird/ui/menu_transmision.py
-msgid "Mos&trar OBS"
-msgstr "S&how OBS"
-
-#: bellbird/ui/menu_transmision.py
-msgid "Iniciar o detener g&rabación"
-msgstr "&Start or stop recording"
-
-#: bellbird/ui/menu_transmision.py
-msgid "Pa&usar o reanudar grabación"
-msgstr "Pause or resume recor&ding"
 
 #: bellbird/ui/menu_transmision.py
 msgid "&Transmisión"
@@ -8174,6 +8154,10 @@ msgstr ""
 #: bellbird/ui/obs_ventana.py
 msgid "Panel de OBS"
 msgstr "OBS panel"
+
+#: bellbird/ui/obs_ventana.py
+msgid "Transmisión"
+msgstr "Broadcast"
 
 #: bellbird/ui/obs_ventana.py
 msgid "Escena"

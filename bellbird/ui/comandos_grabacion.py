@@ -1,4 +1,4 @@
-"""Comandos de grabación del menú Transmisión, sin abrir el panel."""
+"""Comandos de grabación del menú OBS, sin abrir el panel."""
 
 import wx
 

@@ -268,14 +268,14 @@ YouTube con tu cuenta de Google, y a TikTok por Restream.
 ### Antes de transmitir por primera vez
 
 Antes de transmitir por primera vez, activa el servidor WebSocket de OBS desde
-*Preferencias*, categoría *Transmisión*. Si OBS está cerrado, la aplicación lo abre
+*Preferencias*, categoría *OBS*. Si OBS está cerrado, la aplicación lo abre
 en el área de notificación sin mover el foco del lector de pantalla.
 
 Para TikTok necesitas un perfil de OBS llamado `TikTok` con Restream, y para
 YouTube, la sesión de Google iniciada y los directos activados en tu canal; el
 perfil `YouTube` de OBS lo crea la aplicación.
 
-En el *Panel de OBS*, en la pestaña *Agregar* (`Ctrl+Mayús+E`), elige qué
+En el *Panel de OBS*, en la pestaña *Agregar*, elige qué
 ventana se captura, por ejemplo un juego. En el directo se ve esa ventana, pero
 su captura no lleva sonido: el sonido sale del audio del escritorio y del
 micrófono de OBS.
@@ -313,7 +313,7 @@ OBS. Después de activarlo, la aplicación escucha tres segundos. Si no entra
 ningún sonido, suena un aviso propio y dice «El micrófono no recibe sonido.
 Revisa cuál está elegido en Windows o en OBS.».
 
-`Alt+Mayús+O`, o *Mostrar OBS* en el menú *Transmisión*, trae al frente la ventana
+`Alt+Mayús+O`, o *Mostrar OBS* en el menú *OBS*, trae al frente la ventana
 de OBS, también cuando está en el área de notificación. Si OBS espera una
 respuesta, como la pregunta del modo seguro, el foco va a ese cuadro.
 
@@ -333,11 +333,11 @@ desmarcada.
 
 Iniciar, pausar, reanudar y detener la grabación tienen sonidos propios. Con
 *Mostrar en el título de la ventana si se transmite o se graba*, en *Preferencias*,
-categoría *Transmisión*, el título empieza por ese estado, y la casilla viene
+categoría *OBS*, el título empieza por ese estado, y la casilla viene
 desmarcada.
 
 También se puede grabar sin abrir la pestaña *Transmisión*. La pestaña
-*Grabación* (`Ctrl+Mayús+G`) tiene los mismos botones, y el menú *Transmisión*
+*Grabación* del *Panel de OBS* tiene los mismos botones, y el menú *OBS*
 conserva *Iniciar o detener grabación* con `Alt+Mayús+G` y *Pausar o reanudar
 grabación* con `Alt+Mayús+P`, que anuncian y suenan igual que los botones de la
 ventana. Si no hay una grabación en curso, pausar lo dice y no cambia nada en
@@ -346,7 +346,7 @@ pueden no permitirlo.
 
 Al detener la grabación, desde la aplicación o porque terminó la transmisión,
 se oye «Grabación guardada» con el nombre del archivo. *Grabaciones guardadas…*,
-en el menú *Transmisión* y en la pestaña *Grabación*, lista lo grabado así, de
+en la pestaña *Grabación*, lista lo grabado así, de
 lo más nuevo a lo más antiguo. Desde ahí puedes abrir el archivo con `Intro`,
 abrir su carpeta, copiar la ruta o eliminarlo de la lista con `Supr`. Eliminar
 de la lista no borra el archivo, y lo que se detiene desde la ventana de OBS no
@@ -355,7 +355,7 @@ aparece en la lista.
 ### La pestaña Transmisión
 
 El *Panel de OBS* (`Ctrl+Mayús+O`) reúne en pestañas lo que se hace con OBS.
-La primera, *Transmisión* (`Ctrl+Mayús+T`), inicia y detiene el directo,
+La primera, *Transmisión*, inicia y detiene el directo,
 elige adónde se transmite y muestra el chat en el vídeo. *Restream…* abre la
 ventana de Restream. Con `Ctrl+Tab` pasas a *Escena* o a *Audio* sin cerrar
 nada, también con un directo en marcha.
@@ -447,9 +447,10 @@ derecha del vídeo, delante de las demás fuentes. Para moverla, usa la pestaña
 ## Escena
 
 El *Panel de OBS* (`Ctrl+Mayús+O`) reúne en pestañas lo que se ve y se oye en
-OBS. La pestaña *Escena* (`Ctrl+Mayús+E`) elige qué escena se edita y dice qué
-tiene. Recorrer la lista no cambia lo que se emite. *Cambiar escena* cambia
-la escena que se emite y *Guardar imagen…* guarda una imagen de ella.
+OBS. La pestaña *Escena*, a la que llegas con `Ctrl+Tab`, elige qué escena se
+edita y dice qué tiene. Recorrer la lista no cambia lo que se emite. *Cambiar
+escena* cambia la escena que se emite y *Guardar imagen…* guarda una imagen de
+ella.
 
 *Fuentes* elige una fuente de la escena y la mueve a una de las nueve
 posiciones, la cambia de tamaño, la oculta, la bloquea o cambia su capa: la
@@ -468,7 +469,7 @@ descripción y no se queda congelado. La ayuda del panel explica cada pestaña.
 
 ## Grabación
 
-La pestaña *Grabación* (`Ctrl+Mayús+G`), en el *Panel de OBS*, sirve para
+La pestaña *Grabación*, en el *Panel de OBS*, sirve para
 grabar en OBS sin pasar por la pestaña *Transmisión*. *Estado* dice si se está
 grabando, en pausa o sin grabar, cuánto lleva, la escena al aire, el micrófono
 y si además se está transmitiendo.
@@ -665,10 +666,7 @@ atajos. Todos figuran además en la barra de menú, junto a su acción.
 |---|---|
 | `Ctrl+Mayús+P` | Abrir Preferencias |
 | `Ctrl+Mayús+H` | Abrir el historial de directos |
-| `Ctrl+Mayús+T` | Abrir Transmisión |
 | `Ctrl+Mayús+R` | Abrir Restream |
-| `Ctrl+Mayús+E` | Abrir Escena |
-| `Ctrl+Mayús+G` | Abrir Grabación |
 | `Ctrl+Mayús+D` | Abrir Administrador de descargas |
 | `Ctrl+Mayús+M` | Abrir la ventana de música |
 | `Ctrl+Mayús+I` | Preguntar a la IA sobre la imagen |

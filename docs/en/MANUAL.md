@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md c2e1ff9ae8381b8579886bf08e45399a3bef8a63 -->
+<!-- original: es/MANUAL.md 3d0d4fcd0a9393bd48b3d5448d546e8f7554bc5c -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -268,7 +268,7 @@ YouTube with your Google account, and to TikTok through Restream.
 ### Before going live for the first time
 
 Before going live for the first time, turn on the OBS WebSocket server in
-*Preferences*, on the *Broadcast* category. If OBS is closed, the application
+*Preferences*, on the *OBS* category. If OBS is closed, the application
 opens it in the notification area without moving the focus away from the screen
 reader.
 
@@ -276,7 +276,7 @@ For TikTok you need an OBS profile called `TikTok` with Restream, and for
 YouTube, the Google session started and live streams enabled on your channel;
 the `YouTube` OBS profile is created by the application.
 
-In the *OBS panel*, on the *Add* tab (`Ctrl+Shift+E`), choose which window is
+In the *OBS panel*, on the *Add* tab, choose which window is
 captured, for example a game. The live stream shows that window, but its
 capture does not carry sound: the sound comes from the desktop audio and the
 OBS microphone.
@@ -315,7 +315,7 @@ source in OBS. After you turn it on, the application listens for three seconds.
 If no sound comes in, it plays its own warning and says “The microphone is not
 receiving sound. Check which one is chosen in Windows or in OBS.”.
 
-`Alt+Shift+O`, or *Show OBS* in the *Broadcast* menu, brings the OBS window to
+`Alt+Shift+O`, or *Show OBS* in the *OBS* menu, brings the OBS window to
 the front, also when it is in the notification area. If OBS is waiting for an
 answer, such as the safe mode question, the focus goes to that dialog box.
 
@@ -335,11 +335,11 @@ by default.
 
 Starting, pausing, resuming and stopping the recording have their own sounds.
 With *Show streaming or recording in the title of the window*, in *Preferences*,
-on the *Broadcast* category, the title starts with that state, and the check box
+on the *OBS* category, the title starts with that state, and the check box
 is cleared by default.
 
 You can also record without opening the *Broadcast* tab. The *Recording* tab
-(`Ctrl+Shift+G`) has the same buttons, and the *Broadcast* menu keeps *Start or
+of the *OBS panel* has the same buttons, and the *OBS* menu keeps *Start or
 stop recording* with `Alt+Shift+G` and *Pause or resume recording* with
 `Alt+Shift+P`, which announce and sound the same as the window buttons. If no
 recording is in progress, pausing says so and changes nothing in OBS. If OBS
@@ -348,7 +348,7 @@ allow it.
 
 When you stop the recording, from the application or because the broadcast
 ended, you hear “Recording saved” with the file name. *Saved recordings…*, in
-the *Broadcast* menu and in the *Recording* tab, lists what was recorded that
+the *Recording* tab, lists what was recorded that
 way, from newest to oldest. From there you can open the file with `Enter`, open
 its folder, copy the path or remove it from the list with `Delete`. Removing it
 from the list does not delete the file, and what is stopped from the OBS window
@@ -357,7 +357,7 @@ does not appear in the list.
 ### The Broadcast tab
 
 The *OBS panel* (`Ctrl+Shift+O`) brings together in tabs what is done with OBS.
-The first one, *Broadcast* (`Ctrl+Shift+T`), starts and stops the live stream,
+The first one, *Broadcast*, starts and stops the live stream,
 chooses where it is broadcast and shows the chat on video. *Restream…* opens
 the Restream window. With `Ctrl+Tab` you move to *Scene* or *Audio* without
 closing anything, also with a live stream running.
@@ -451,8 +451,9 @@ the *Sources* tab of the *OBS panel*.
 ## Scene
 
 The *OBS panel* (`Ctrl+Shift+O`) brings together in tabs what is seen and
-heard in OBS. The *Scene* tab (`Ctrl+Shift+E`) chooses which scene is edited
-and says what it has. Browsing the list does not change what is broadcast.
+heard in OBS. The *Scene* tab, which you reach with `Ctrl+Tab`, chooses which
+scene is edited and says what it has. Browsing the list does not change what
+is broadcast.
 *Change scene* changes the scene that is broadcast and *Save image…* saves an
 image of it.
 
@@ -473,8 +474,8 @@ the description and does not freeze. The panel help explains each tab.
 
 ## Recording
 
-The *Recording* tab (`Ctrl+Shift+G`), in the *OBS panel*, records in OBS
-without going through the *Broadcast* tab. *Status* says whether it is
+The *Recording* tab, in the *OBS panel*, records in OBS without going through
+the *Broadcast* tab. *Status* says whether it is
 recording, paused or not recording, how long it has been going, the live scene,
 the microphone and whether it is also broadcasting.
 
@@ -672,10 +673,7 @@ shortcuts. They all also appear in the menu bar, next to their action.
 |---|---|
 | `Ctrl+Shift+P` | Open Preferences |
 | `Ctrl+Shift+H` | Open the live stream history |
-| `Ctrl+Shift+T` | Open Broadcast |
 | `Ctrl+Shift+R` | Open Restream |
-| `Ctrl+Shift+E` | Open Scene |
-| `Ctrl+Shift+G` | Open Recording |
 | `Ctrl+Shift+D` | Open Download manager |
 | `Ctrl+Shift+M` | Open the music window |
 | `Ctrl+Shift+I` | Ask the AI about the image |

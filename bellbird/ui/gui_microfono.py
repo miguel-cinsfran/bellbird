@@ -1,6 +1,6 @@
 """Cuadro para elegir el micrófono de OBS sin abrir OBS.
 
-Lo abre el menú Transmisión con `abrir_microfono_obs`: consulta las
+Lo abre el menú OBS con `abrir_microfono_obs`: consulta las
 fuentes en un hilo y, con los datos, muestra el cuadro en la interfaz.
 Cambiar de fuente y aplicar también consultan en hilos, cada vez con un
 cliente nuevo que se cierra al terminar. El cuadro sigue abierto después

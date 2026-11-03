@@ -336,10 +336,7 @@ class TestParsearAtajos(unittest.TestCase):
                 ("abrir_preferencias", "ctrl+shift+p", "ctrl+shift"),
                 ("abrir_historial", "ctrl+shift+h", "ctrl+shift"),
                 ("marcar_incidencia", "alt+shift+i", "alt+shift"),
-                ("abrir_transmision", "ctrl+shift+t", "ctrl+shift"),
                 ("abrir_restream", "ctrl+shift+r", "ctrl+shift"),
-                ("abrir_escena", "ctrl+shift+e", "ctrl+shift"),
-                ("abrir_grabacion", "ctrl+shift+g", "ctrl+shift"),
                 ("abrir_obs", "ctrl+shift+o", "ctrl+shift"),
                 ("mostrar_obs", "alt+shift+o", "alt+shift"),
                 ("copiar_enlace", "alt+shift+e", "alt+shift"),
@@ -369,6 +366,18 @@ class TestParsearAtajos(unittest.TestCase):
                 accion_grupo for _, acciones in ATAJOS_GRUPOS for accion_grupo in acciones
             })
 
+    def test_las_acciones_de_ventanas_que_salieron_no_existen(self):
+        from bellbird.ui.atajos_captura import ETIQUETAS
+
+        acciones = {accion for _titulo, grupo in ATAJOS_GRUPOS
+                    for accion in grupo}
+        for accion in ("abrir_transmision", "abrir_escena", "abrir_grabacion"):
+            with self.subTest(accion=accion):
+                self.assertNotIn(accion, ATAJOS_DEFAULTS)
+                self.assertNotIn(accion, ATAJOS_AREA)
+                self.assertNotIn(accion, ETIQUETAS)
+                self.assertNotIn(accion, acciones)
+
     def test_grupo_de_musica_justo_antes_del_de_fijos(self):
         titulos = [titulo for titulo, _acciones in ATAJOS_GRUPOS]
         self.assertEqual(titulos[-3], "Música (Ctrl+Alt)")
@@ -393,12 +402,12 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertTrue(all(accion in parsear_atajos({}) for accion in acciones))
 
     def test_menus_usan_el_sistema_para_los_nuevos_atajos(self):
+        from bellbird.ui import menu_obs
         from bellbird.ui import menu_transmision
         fuente = inspect.getsource(gui_menu.construir_menu)
         fuente += inspect.getsource(menu_transmision.construir)
-        fuente += inspect.getsource(menu_transmision._agregar_ventanas)
         fuente += inspect.getsource(menu_transmision._agregar_encuadre)
-        fuente += inspect.getsource(menu_transmision._agregar_avisos)
+        fuente += inspect.getsource(menu_obs.construir)
         fuente += inspect.getsource(gui_menu._construir_menu_ver)
         fuente += inspect.getsource(gui_menu._construir_menu_musica)
         fuente += inspect.getsource(gui_menu._construir_menu_ayuda)
@@ -407,10 +416,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("abrir_historial")', fuente)
         self.assertIn('._accel("abrir_preferencias")', fuente)
         self.assertIn('._accel("marcar_incidencia")', fuente)
-        self.assertIn('._accel("abrir_transmision")', fuente)
         self.assertIn('._accel("abrir_restream")', fuente)
-        self.assertIn('._accel("abrir_escena")', fuente)
-        self.assertIn('._accel("abrir_grabacion")', fuente)
         self.assertIn('._accel("abrir_obs")', fuente)
         self.assertIn('._accel("mostrar_obs")', fuente)
         self.assertIn('._accel("obs_grabar")', fuente)
@@ -444,7 +450,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertNotIn("\\tCtrl+F", fuente)
 
     def test_cada_comando_de_grabacion_muestra_su_propio_atajo(self):
-        from bellbird.ui import menu_transmision
+        from bellbird.ui import menu_obs
 
         etiquetas = []
 
@@ -459,14 +465,10 @@ class TestParsearAtajos(unittest.TestCase):
 
         frame = mock.Mock()
         frame._accel.side_effect = lambda accion: "\t" + accion
-        frame._config = {"avisar_sobrecarga": True,
-                         "grabar_al_transmitir": False,
-                         "avisar_encuadre": False}
-        with mock.patch.object(menu_transmision.wx, "Menu",
-                               side_effect=crear_menu), \
-                mock.patch.object(menu_transmision.encuadre_camara,
-                                  "sincronizar"):
-            menu_transmision.construir(frame, mock.Mock())
+        frame._config = {"avisar_sobrecarga": True}
+        with mock.patch.object(menu_obs.wx, "Menu",
+                               side_effect=crear_menu):
+            menu_obs.construir(frame, mock.Mock())
 
         self.assertTrue(any(
             etiqueta.startswith("Iniciar o detener g&rabación")

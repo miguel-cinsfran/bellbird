@@ -37,7 +37,6 @@ NOMBRES_INTERNOS = {
 # Las entradas con «…» que dejan algo abierto al cerrarlas sin guardar.
 OMITIDAS = {
     "guía de configuración de la api": "abre el navegador",
-    "panel de transmisión": "puede lanzar OBS",
 }
 
 CON_ROTULO = {
@@ -70,7 +69,7 @@ _VERSIONES = re.compile(r"\bv?\d+(?:\.\d+)*[a-z]?\b", re.IGNORECASE)
 # identificador para el banco y no texto para el usuario.
 IDENTIFICADOR = re.compile(r"^[^ ]*(?:_|[a-záéíóúüñ][A-ZÁÉÍÓÚÜÑ])[^ ]*$")
 
-NO_CUBRE = "No cubre: cabeceras de columnas, opciones de RadioBox y las entradas de menú con efecto externo (Guía de configuración de la API…, Panel de transmisión…)."
+NO_CUBRE = "No cubre: cabeceras de columnas, opciones de RadioBox y las entradas de menú con efecto externo (Guía de configuración de la API…)."
 
 
 def _quitar_marcas(texto):
@@ -367,13 +366,15 @@ def _recorrer_todo(app, recolector, res):
 
 
 def main():
-    from conducir import Aplicacion, Resultado
+    from conducir import (Aplicacion, Resultado, cerrar_obs_del_banco,
+                          debe_cerrar_obs_al_final, obs_abierto)
 
     os.environ["BELLBIRD_IDIOMA"] = "pseudo"
     carpeta = Path(tempfile.mkdtemp(prefix="bellbird-pseudo-"))
     app = Aplicacion(carpeta)
     res = Resultado()
     recolector = Recolector(PROPIOS)
+    obs_al_empezar = obs_abierto()
     app.arrancar()
     try:
         if not app.esperar_lista(segundos=60):
@@ -383,6 +384,11 @@ def main():
     finally:
         try:
             app.cerrar()
+        except Exception:
+            pass
+        try:
+            if debe_cerrar_obs_al_final(obs_al_empezar, obs_abierto()):
+                cerrar_obs_del_banco(res)
         except Exception:
             pass
     _informe(recolector)

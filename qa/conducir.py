@@ -53,6 +53,7 @@ from bellbird.core.config import APP_NAME  # noqa: E402
 from sonda import VAR_DESTINO, VAR_ORDENES, VAR_RESULTADOS  # noqa: E402
 
 import capturas  # noqa: E402
+import ventanas_obs  # noqa: E402
 
 try:
     import medidor_sonido  # noqa: E402
@@ -1888,45 +1889,24 @@ def escenario_transmision(app: Aplicacion, args, res: Resultado):
 def escenario_escena(app: Aplicacion, args, res: Resultado):
     """La ventana que reúne lo que se ve y se oye en OBS.
 
-    Sin OBS abierto no se audita: la ventana lo abre y la espera cambiaría
-    el estado de la PC donde corre el banco. Con OBS se audita la pestaña
-    Escena, que es la que queda visible al abrir.
+    La abre la app, que lanza OBS si hace falta, y el final del banco cierra
+    el OBS que abrió. Se auditan las cuatro pestañas, sin pulsar ningún
+    botón ni casilla que cambie OBS.
     """
-    if not obs_abierto():
-        res.nota("Escena: OBS está cerrado y la ventana no se audita")
-        return
-    esperados = ("Escena", "Cambiar escena", "Descripción de la escena",
-                 "Guardar imagen", "Ayuda", "Cerrar")
-    auditar_dialogo(
-        app, res, "Transmisión > Escena…", "Escena",
-        vueltas_tab=VUELTAS_TAB_TRANSMISION,
-        esperados=esperados,
-        esperados_en_tab=esperados,
-        esperar_habilitados=("Cambiar escena",))
-    res.nota("Escena: abre desde el menú Transmisión y audita la pestaña "
-             "Escena")
+    ventanas_obs.auditar_escena(
+        app, res, recorrer_tab, revisar_nombres, faltan_habilitados,
+        VUELTAS_TAB_TRANSMISION)
 
 
 def escenario_grabacion(app: Aplicacion, args, res: Resultado):
     """La ventana para grabar en OBS sin abrir el panel de transmisión.
 
-    Sin OBS abierto no se audita: la ventana lo abre y la espera cambiaría
-    el estado de la PC donde corre el banco. Con OBS se audita entera, sin
-    pulsar los botones que cambiarían la grabación de la PC.
+    La abre la app, que lanza OBS si hace falta, y el final del banco cierra
+    el OBS que abrió. Se audita entera, sin pulsar los botones que cambiarían
+    la grabación de la PC.
     """
-    if not obs_abierto():
-        res.nota("Grabación: OBS está cerrado y la ventana no se audita")
-        return
-    esperados = ("Estado", "Iniciar grabación", "Grabaciones guardadas…",
-                 "Grabar también al transmitir", "Escena…",
-                 "Actualizar estado", "Cerrar")
-    auditar_dialogo(
-        app, res, "Transmisión > Grabación…", "Grabación",
-        vueltas_tab=VUELTAS_TAB_TRANSMISION,
-        esperados=esperados,
-        esperados_en_tab=esperados,
-        esperar_habilitados=("Actualizar estado",))
-    res.nota("Grabación: abre desde el menú Transmisión y se audita entera")
+    ventanas_obs.auditar_grabacion(
+        app, res, auditar_dialogo, VUELTAS_TAB_TRANSMISION)
 
 
 def escenario_microfono(app: Aplicacion, args, res: Resultado):

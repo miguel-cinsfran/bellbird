@@ -36,6 +36,10 @@ class PaginaFuentes(wx.Panel):
             self.txt_detalle)
         self._enlazar_eventos()
 
+    @property
+    def en_ajuste(self):
+        return self._mover.en_curso
+
     def _crear_controles(self):
         caja = wx.BoxSizer(wx.VERTICAL)
         sizer, padre = caja_de_grupo(self, _("Colocar fuente"))

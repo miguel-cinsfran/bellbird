@@ -165,6 +165,9 @@ class VentanaEscena(wx.Dialog):
 
     def _al_tecla(self, evento):
         if evento.GetKeyCode() == wx.WXK_ESCAPE:
+            if self._pagina_fuentes.en_ajuste:
+                evento.Skip()
+                return
             self._cerrar(evento)
             return
         evento.Skip()

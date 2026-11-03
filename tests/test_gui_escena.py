@@ -295,6 +295,20 @@ class TestVentanaEscena(unittest.TestCase):
             "Silenciar micrófono", "Elegir micrófono…"])
         self.assertEqual(self._nombres(self.dialogo)[-2:], ["Ayuda", "Cerrar"])
 
+    def test_escape_durante_el_ajuste_lo_deshace_sin_cerrar(self):
+        self.dialogo.EndModal = mock.Mock()
+        pagina = self.dialogo._pagina_fuentes
+        self._pulsar(pagina.btn_ajuste)
+        self.assertTrue(pagina._mover.en_curso)
+        evento = wx.KeyEvent(wx.wxEVT_CHAR_HOOK)
+        evento.KeyCode = wx.WXK_ESCAPE
+        self.dialogo.GetEventHandler().ProcessEvent(evento)
+        self.dialogo.EndModal.assert_not_called()
+        self.assertFalse(pagina._mover.en_curso)
+        self.assertIn(("posicionar", "Principal", 32, 18, 5),
+                      self.gestor.llamadas)
+        self.assertIn("Movimiento deshecho", self.anuncios)
+
     def test_escape_cierra(self):
         self.dialogo.EndModal = mock.Mock()
         self.dialogo._al_tecla(EventoTecla(wx.WXK_ESCAPE))

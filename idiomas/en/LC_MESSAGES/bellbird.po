@@ -5583,10 +5583,10 @@ msgid ""
 "Escena elige cuál se edita, dice qué tiene y cambia cuál se emite. Recorrer"
 " la lista no cambia nada en el directo.\n"
 "\n"
-"Fuentes elige una fuente de la escena y la mueve, la cambia de tamaño, la "
-"oculta, la bloquea o la trae al frente. Mover con flechas la mueve en pasos"
-" pequeños: Ctrl da pasos grandes, Mayús pasos de un píxel, Intro confirma y"
-" Esc deshace. Deshacer cambios vuelve a como estaba todo al abrir esta "
+"Fuentes elige una fuente de la escena. La mueve, la cambia de tamaño, la "
+"oculta, la bloquea o cambia su capa. Mover con flechas la mueve en pasos "
+"pequeños: Ctrl da pasos grandes, Mayús pasos de un píxel, Intro confirma y "
+"Esc deshace. Deshacer cambios vuelve a como estaba todo al abrir esta "
 "ventana.\n"
 "\n"
 "Agregar captura una ventana del equipo o agrega una cámara de Windows a la "
@@ -5600,9 +5600,9 @@ msgstr ""
 " is broadcast. Browsing the list does not change anything in the live "
 "stream.\n"
 "\n"
-"Sources chooses a source of the scene and moves it, changes its size, hides"
-" it, locks it or brings it to the front. Move with arrows moves it in small"
-" steps: Ctrl gives large steps, Shift one-pixel steps, Enter confirms and "
+"Sources chooses a source of the scene. It moves it, changes its size, hides"
+" it, locks it or changes its layer. Move with arrows moves it in small "
+"steps: Ctrl gives large steps, Shift one-pixel steps, Enter confirms and "
 "Esc undoes. Undo changes returns everything to how it was when this window "
 "was opened.\n"
 "\n"
@@ -7563,8 +7563,8 @@ msgstr "Recordin&g…"
 msgid "Grabación…"
 msgstr "Recording…"
 
-#: bellbird/ui/gui_transmision.py
-msgid "Mostrar O&BS"
+#: bellbird/ui/gui_transmision.py bellbird/ui/menu_transmision.py
+msgid "Mostrar &OBS"
 msgstr "Show &OBS"
 
 #: bellbird/ui/gui_transmision.py
@@ -7903,10 +7903,6 @@ msgstr "Mute OBS &microphone"
 #: bellbird/ui/menu_transmision.py
 msgid "&Elegir micrófono…"
 msgstr "&Choose microphone…"
-
-#: bellbird/ui/menu_transmision.py
-msgid "Mostrar &OBS"
-msgstr "Show &OBS"
 
 #: bellbird/ui/menu_transmision.py
 msgid "Iniciar o detener g&rabación"

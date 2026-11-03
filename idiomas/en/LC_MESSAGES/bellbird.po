@@ -4203,6 +4203,40 @@ msgstr "You are already live"
 msgid "No se puede retroceder más en este directo"
 msgstr "Cannot go further back in this live stream"
 
+#: bellbird/restream/oauth.py
+msgid "Se canceló el inicio de sesión en Restream."
+msgstr "The Restream sign-in was canceled."
+
+#: bellbird/restream/oauth.py
+msgid "No llegó la respuesta de Restream a tiempo. Vuelve a intentarlo."
+msgstr "Restream did not respond in time. Try again."
+
+#: bellbird/restream/oauth.py
+msgid ""
+"Los puertos 47615 y 47616 están ocupados. Cierra la aplicación que los usa "
+"y vuelve a intentarlo."
+msgstr ""
+"Ports 47615 and 47616 are in use. Close the application that is using them "
+"and try again."
+
+#: bellbird/restream/oauth.py
+msgid "No se pudo completar el inicio de sesión con Restream. Vuelve a intentarlo."
+msgstr "Could not complete the sign-in to Restream. Try again."
+
+#: bellbird/restream/oauth.py
+msgid ""
+"Bellbird ya tiene acceso a tu cuenta de Restream. Puedes cerrar esta "
+"pestaña."
+msgstr "Bellbird now has access to your Restream account. You can close this tab."
+
+#: bellbird/restream/oauth.py
+msgid ""
+"No se completó el inicio de sesión en Restream. Puedes cerrar esta pestaña "
+"y volver a intentarlo desde Bellbird."
+msgstr ""
+"The Restream sign-in was not completed. You can close this tab and try "
+"again from Bellbird."
+
 #: bellbird/restream/perfiles.py
 msgid "Escribe un nombre para el perfil."
 msgstr "Type a name for the profile."
@@ -9096,16 +9130,16 @@ msgid "Editar perfil de Restream"
 msgstr "Edit Restream profile"
 
 #: bellbird/ui/restream_perfil.py
+msgid "&Orientación:"
+msgstr "&Orientation:"
+
+#: bellbird/ui/restream_perfil.py
 msgid "Horizontal"
 msgstr "Horizontal"
 
 #: bellbird/ui/restream_perfil.py
 msgid "Vertical"
 msgstr "Vertical"
-
-#: bellbird/ui/restream_perfil.py
-msgid "&Orientación:"
-msgstr "&Orientation:"
 
 #: bellbird/ui/restream_perfil.py
 msgid ""

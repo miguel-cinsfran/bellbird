@@ -703,6 +703,12 @@ class TestPanelTransmision(unittest.TestCase):
         self.ventana._cerrar(Evento())
         temporizador.Stop.assert_called_once_with()
 
+    def test_cerrar_el_panel_cierra_el_directo_de_la_pestana(self):
+        self.ventana.EndModal = mock.Mock()
+        with mock.patch.object(self.dialogo._directo, "cerrar") as cerrar:
+            self.ventana._cerrar(Evento())
+        cerrar.assert_called_once_with()
+
     def test_consulta_lenta_anuncia_la_espera(self):
         self.ventana._operaciones.en_vuelo = True
         self.ventana._operaciones._anunciar_consulta(Evento())

@@ -270,8 +270,7 @@ class TestPanelTransmision(unittest.TestCase):
     def test_titulo_y_grupos(self):
         self.assertEqual(self.dialogo.GetTitle(), "Panel de transmisión")
         titulos = [caja.GetLabel() for caja in self._cajas(self.dialogo)]
-        self.assertEqual(titulos,
-                         ["Directo", "Grabación", "Micrófono", "Escena"])
+        self.assertEqual(titulos, ["Directo", "Grabación"])
 
     def _cajas(self, ventana):
         cajas = []
@@ -288,9 +287,7 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Estado", "Transmitir a", "Transmitir en directo",
             "Mostrar chat en el vídeo", "Iniciar grabación",
-            "Grabaciones guardadas…", "Silenciar micrófono", "Elegir micrófono…",
-            "Escena",
-            "Cambiar escena", "Organizar escena…", "Mostrar OBS",
+            "Grabaciones guardadas…", "Escena…", "Mostrar OBS",
             "Actualizar estado", "Cerrar"])
 
     def test_orden_de_tab_con_tiktok_en_reposo(self):
@@ -298,9 +295,7 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
             "Estado", "Transmitir a", "Usuario de TikTok",
             "Transmitir en directo", "Iniciar grabación",
-            "Grabaciones guardadas…", "Silenciar micrófono", "Elegir micrófono…",
-            "Escena",
-            "Cambiar escena", "Organizar escena…", "Mostrar OBS",
+            "Grabaciones guardadas…", "Escena…", "Mostrar OBS",
             "Actualizar estado", "Cerrar"])
 
     def test_durante_el_directo_se_ocultan_destino_y_usuario(self):
@@ -317,7 +312,7 @@ class TestPanelTransmision(unittest.TestCase):
         dialogo = self._crear(supervisar=supervisar)
         self.assertIsNone(dialogo.GetDefaultItem())
         for control in (dialogo.txt_estado, dialogo.cho_destino,
-                        dialogo.chk_silenciar, dialogo.cho_escena,
+                        dialogo.btn_escena,
                         dialogo.btn_directo, dialogo.btn_actualizar):
             with self.subTest(control=control.GetName()):
                 control.SetFocus()
@@ -407,8 +402,7 @@ class TestPanelTransmision(unittest.TestCase):
         dialogo = self._crear(gestor=gestor)
         self.assertEqual(dialogo.txt_estado.GetValue(),
                          "OBS no está disponible")
-        self.assertFalse(dialogo.cho_escena.IsEnabled())
-        self.assertFalse(dialogo.btn_organizar.IsEnabled())
+        self.assertFalse(dialogo.btn_escena.IsEnabled())
 
     def test_una_excepcion_no_prevista_libera_el_dialogo_y_avisa(self):
         def falla():
@@ -461,27 +455,14 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertNotIn("asegurar_fuente",
                          [llamada[0] for llamada in self.gestor.llamadas])
 
-    def test_silenciar_sigue_el_estado_devuelto(self):
-        def alternar(gestor, preferido):
-            gestor.silenciado = True
-            return "Micrófono silenciado", "Mic/Aux", True
-        with mock.patch.object(gui_microfono.obs_entradas_audio,
-                               "alternar_microfono", side_effect=alternar):
-            self.dialogo.chk_silenciar.SetValue(True)
-            self.dialogo._silencio.alternar(Evento())
-        self.assertTrue(self.dialogo.chk_silenciar.GetValue())
-        self.assertIn("Micrófono silenciado", self.anuncios)
-
-    def test_sin_microfono_la_casilla_vuelve_a_como_estaba(self):
-        self.dialogo.chk_silenciar.SetValue(False)
-        with mock.patch.object(gui_microfono.obs_entradas_audio,
-                               "alternar_microfono",
-                               return_value=("OBS no tiene ningún micrófono.",
-                                             "", False)):
-            self.dialogo._silencio.alternar(Evento())
-        self.assertFalse(self.dialogo.chk_silenciar.GetValue())
-        self.assertTrue(self.dialogo.chk_silenciar.IsEnabled())
-        self.assertIn("OBS no tiene ningún micrófono.", self.anuncios)
+    def test_el_estado_sigue_diciendo_microfono_y_escena_al_aire(self):
+        self.dialogo._estado_leido(SimpleNamespace(
+            escena="Principal", transmision={"outputActive": False},
+            grabacion={"outputActive": False}, perfil="", problemas=(),
+            microfono="Mic/Aux", silenciado=True))
+        texto = self.dialogo.txt_estado.GetValue()
+        self.assertIn("Escena actual: Principal", texto)
+        self.assertIn("Micrófono Mic/Aux: silenciado", texto)
 
     def test_grabar_y_pausar_anuncian_y_actualizan_etiquetas(self):
         self._pulsar(self.dialogo.btn_grabar)
@@ -567,45 +548,30 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertFalse(self.dialogo.btn_pausar.IsShown())
         self.assertIs(self.dialogo.FindFocus(), self.dialogo.btn_directo)
 
-    def test_cambiar_escena_pone_la_elegida_y_anuncia(self):
-        self.gestor.escena_resultante = "Juego"
-        self.dialogo.cho_escena.SetStringSelection("Juego")
-        self._pulsar(self.dialogo.btn_cambiar_escena)
-        self.assertIn(("poner_escena_al_aire", "Juego"),
-                      self.gestor.llamadas)
-        self.assertIn("Escena actual: Juego", self.anuncios)
-
     def test_mostrar_obs_llama_al_comando_del_menu(self):
         with mock.patch.object(menu_transmision, "mostrar_obs") as mostrar:
             self._pulsar(self.dialogo.btn_mostrar_obs)
         mostrar.assert_called_once_with()
 
-    def test_elegir_microfono_devuelve_el_foco_al_boton(self):
-        with mock.patch.object(gui_microfono, "abrir_microfono_obs") as abrir:
-            self._pulsar(self.dialogo.btn_microfono)
+    def test_el_panel_no_tiene_los_controles_que_salieron_y_si_el_de_escena(self):
+        for nombre in ("chk_silenciar", "cho_escena", "btn_organizar",
+                       "btn_microfono", "btn_cambiar_escena"):
+            with self.subTest(nombre=nombre):
+                self.assertFalse(hasattr(self.dialogo, nombre))
+        self.assertEqual(self.dialogo.btn_escena.GetLabel(), "Esce&na…")
+        self.assertEqual(self.dialogo.btn_escena.GetName(), "Escena…")
+
+    def test_escena_abre_la_ventana_con_el_gestor_y_refresca_el_estado(self):
+        from bellbird.ui import escena_ventana
+
+        with mock.patch.object(escena_ventana, "abrir_escena") as abrir, \
+                mock.patch.object(self.dialogo, "_refrescar_estado") as refrescar, \
+                mock.patch.object(self.dialogo.btn_escena, "SetFocus") as foco:
+            self._pulsar(self.dialogo.btn_escena)
         abrir.assert_called_once_with(
-            self.dialogo.GetParent(), al_cerrar=self.dialogo.btn_microfono.SetFocus)
-
-    def test_organizar_escena_abre_con_la_elegida_y_devuelve_el_foco(self):
-        self.dialogo.cho_escena.SetStringSelection("Juego")
-        creado = mock.Mock()
-        with mock.patch.object(gui_transmision, "OrganizarEscenaDialog",
-                               return_value=creado) as fabrica, \
-                mock.patch.object(self.dialogo.btn_organizar, "SetFocus") as foco:
-            self.dialogo._organizar_escena(Evento())
-        fabrica.assert_called_once_with(self.dialogo, self.gestor, "Juego")
-        creado.ShowModal.assert_called_once_with()
-        creado.Destroy.assert_called_once_with()
+            self.dialogo, self.dialogo.GetParent(), gestor=self.gestor)
+        refrescar.assert_called_once_with()
         foco.assert_called_once_with()
-
-    def test_organizar_escena_cierra_el_cuadro_aunque_falle(self):
-        creado = mock.Mock()
-        creado.ShowModal.side_effect = RuntimeError("roto")
-        with mock.patch.object(gui_transmision, "OrganizarEscenaDialog",
-                               return_value=creado):
-            with self.assertRaises(RuntimeError):
-                self.dialogo._organizar_escena(Evento())
-        creado.Destroy.assert_called_once_with()
 
     def test_el_panel_ya_no_tiene_los_controles_que_salieron(self):
         for nombre in ("Preparar destino", "Preparar panel",
@@ -629,7 +595,6 @@ class TestPanelTransmision(unittest.TestCase):
             (self.dialogo.txt_estado, "&Estado:"),
             (self.dialogo.cho_destino, "Transmitir &a:"),
             (self.dialogo.txt_usuario_tiktok, "&Usuario de TikTok:"),
-            (self.dialogo.cho_escena, "Esce&na:"),
         ]
         for control, esperado in casos:
             with self.subTest(control=control.GetName()):
@@ -674,8 +639,6 @@ class TestPanelTransmision(unittest.TestCase):
                          "Usuario de TikTok")
         self.assertEqual(self.dialogo.btn_directo.GetName(),
                          "Transmitir en directo")
-        self.assertEqual(self.dialogo.chk_silenciar.GetName(),
-                         "Silenciar micrófono")
 
     def test_destino_inicial_muestra_el_perfil_actual_si_es_un_destino(self):
         self.gestor.perfil = "YouTube"

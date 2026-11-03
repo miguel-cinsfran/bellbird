@@ -109,7 +109,7 @@ def preparar(gestor, destino: str, asegurar: Callable, al_anunciar: Callable,
     Devuelve `Preparacion(ya_transmitiendo=True)` si OBS ya emite (sin
     preparar ni revisar). Si no, prepara el destino (siempre, que es
     idempotente) y devuelve la revisión. Con `cerrar=True` cierra el gestor
-    en `finally`; el panel lo comparte con Organizar escena y pasa
+    en `finally`; el panel lo comparte con la ventana Escena y pasa
     `cerrar=False`. Las excepciones salen tal cual para que las traduzca
     quien llama.
     """

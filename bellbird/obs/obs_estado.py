@@ -3,25 +3,6 @@
 from bellbird.capture.estado_sesion import _duracion
 from bellbird.core.idioma import N_, _
 
-TEXTO_AYUDA_ESCENA = N_(
-    "Esta ventana ordena lo que se ve en una escena de OBS. Los espectadores "
-    "solo lo ven si esa escena es la actual.\n\n"
-    "Escena elige cuál se organiza. Recorrer la lista no cambia nada en el "
-    "directo.\n\n"
-    "Ventana y Capturar ventana eligen qué ventana del equipo se ve en el "
-    "vídeo. La captura no lleva sonido: el sonido sale del audio del "
-    "escritorio y del micrófono de OBS.\n\n"
-    "Fuente elige el elemento que se va a mover. Otras fuentes se agregan "
-    "desde OBS.\n\n"
-    "Posición y Mover fuente la llevan a uno de nueve lugares. Mover con "
-    "flechas la mueve en pasos pequeños: Ctrl da pasos grandes, "
-    "Mayús pasos de un píxel, Intro confirma y Esc deshace.\n\n"
-    "Ancho, Alto y Cambiar tamaño fijan su tamaño en píxeles.\n\n"
-    "Lo que sobresale del vídeo se recorta sin aviso. OBS llama lienzo a ese "
-    "rectángulo. El fondo del chat en el vídeo es transparente: solo se ven "
-    "las tarjetas de los mensajes, y solo tapan lo que hay justo debajo.\n\n"
-    "Deshacer cambios vuelve a como estaba todo al abrir esta ventana.")
-
 _TEXTO_SIN_ESCENA = N_("No se pudo obtener la escena actual")
 
 

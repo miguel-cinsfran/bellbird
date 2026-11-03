@@ -24,7 +24,7 @@ from tests.ventanas_prueba import destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.downloads import descargas, formatos_reales
-from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_grabaciones, gui_historial, gui_microfono, gui_organizar_escena, gui_transmision, gui_preferencias, control_grabacion, mover_con_flechas
+from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_grabaciones, gui_historial, gui_microfono, gui_transmision, gui_preferencias, control_grabacion, mover_con_flechas
 from bellbird.ui import escena_pagina_agregar
 from bellbird.ui import escena_pagina_audio
 from bellbird.ui import escena_pagina_escena
@@ -270,36 +270,6 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
         self.assertEqual(letras_repetidas(self.dialogo), {})
 
 
-class TestLetrasAccesoOrganizarEscena(unittest.TestCase):
-    def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
-        self.parches = [
-            mock.patch.object(threading, "Thread", HiloInmediato),
-            mock.patch.object(gui_organizar_escena.wx, "CallAfter",
-                              lambda funcion, *args: funcion(*args)),
-            mock.patch.object(gui_organizar_escena, "anunciar",
-                              lambda *args, **kwargs: None),
-            mock.patch.object(mover_con_flechas, "anunciar",
-                              lambda *args, **kwargs: None),
-            mock.patch.object(operaciones_obs, "anunciar",
-                              lambda *args, **kwargs: None),
-            mock.patch.object(operaciones_obs.sound_player, "reproducir"),
-        ]
-        for parche in self.parches:
-            parche.start()
-        self.addCleanup(self._frenar)
-        self.dialogo = gui_organizar_escena.OrganizarEscenaDialog(
-            None, GestorFalso(), "Principal")
-        self.addCleanup(destruir, self.dialogo)
-
-    def _frenar(self):
-        for parche in reversed(self.parches):
-            parche.stop()
-
-    def test_cuadro_sin_letras_repetidas(self):
-        self.assertEqual(letras_repetidas(self.dialogo), {})
-
-
 class TestLetrasAccesoEscena(unittest.TestCase):
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
@@ -487,20 +457,6 @@ class TestLetrasAccesoDescargasEnIngles(TestLetrasAccesoDescargas):
 
 
 class TestLetrasAccesoTransmisionEnIngles(TestLetrasAccesoTransmision):
-    # Gemela en inglés: repite las pruebas sin copiarlas.
-
-    @classmethod
-    def setUpClass(cls):
-        cls._ingles = ingles()
-        cls._ingles.__enter__()
-
-    @classmethod
-    def tearDownClass(cls):
-        cls._ingles.__exit__(None, None, None)
-        del cls._ingles
-
-
-class TestLetrasAccesoOrganizarEscenaEnIngles(TestLetrasAccesoOrganizarEscena):
     # Gemela en inglés: repite las pruebas sin copiarlas.
 
     @classmethod

@@ -1,23 +1,8 @@
-import re
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
 from bellbird.core.idioma import _
 from bellbird.obs import obs_estado
-
-
-class TextoAyudaEscenaTest(unittest.TestCase):
-    def test_nombra_la_ventana_capturada_el_audio_y_el_microfono(self):
-        texto = obs_estado.TEXTO_AYUDA_ESCENA
-        self.assertIn("Ventana", texto)
-        self.assertIn("Capturar ventana", texto)
-        self.assertIn("audio del escritorio", texto)
-        self.assertIn("micrófono", texto)
-
-    def test_ninguna_frase_pasa_de_25_palabras(self):
-        frases = re.split(r"(?<=[.:])\s+", obs_estado.TEXTO_AYUDA_ESCENA)
-        largas = [frase for frase in frases if len(frase.split()) > 25]
-        self.assertEqual(largas, [])
 
 
 class FrasesObsTest(unittest.TestCase):
@@ -89,10 +74,6 @@ class TestPseudoEstado(unittest.TestCase):
     texto propio marcado. Los datos (nombres de escena, duraciones,
     tiempos) viajan con ejemplos y se exigen presentes.
     """
-
-    def test_ayuda_se_traduce_donde_se_usa(self):
-        with con_pseudo():
-            self.assertTrue(_(obs_estado.TEXTO_AYUDA_ESCENA).startswith("[¡"))
 
     def test_frase_transmision_marca_activa_e_inactiva(self):
         with con_pseudo():

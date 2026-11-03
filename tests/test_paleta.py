@@ -315,7 +315,6 @@ class TestVentanasPintadas(unittest.TestCase):
 
     _VENTANAS = (
         "bellbird/ui/gui.py",
-        "bellbird/ui/gui_organizar_escena.py",
         "bellbird/ui/gui_transmision.py",
         "bellbird/ui/gui_preferencias.py",
         "bellbird/ui/gui_descargas.py",

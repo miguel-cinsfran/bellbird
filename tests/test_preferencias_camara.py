@@ -235,7 +235,7 @@ class TestPaginaCamara(unittest.TestCase):
         anunciar.assert_called_once_with(
             "Se agregó Cámara a la escena Escena. Quedó abajo a la derecha, "
             "delante de las demás fuentes. Cámara. Se ve completa. "
-            "Para moverla, usa Organizar escena en el panel de transmisión.")
+            "Para moverla, usa la pestaña Fuentes de la ventana Escena.")
         self.assertIn("Cámara",
                       dialogo.pagina_camara.cho_camara_obs.GetStrings())
 
@@ -265,8 +265,8 @@ class TestPaginaCamara(unittest.TestCase):
                 dialogo, dialogo.pagina_camara._llenar_camaras, "abc")
         anunciar.assert_called_once_with(
             "Se agregó Cámara a la escena Escena. Quedó abajo a la derecha, "
-            "delante de las demás fuentes. Para moverla, usa Organizar "
-            "escena en el panel de transmisión.")
+            "delante de las demás fuentes. Para moverla, usa la pestaña "
+            "Fuentes de la ventana Escena.")
         self.assertNotIn("Se ve completa", anunciar.call_args.args[0])
 
     def test_con_tamano_anuncia_la_frase_fija_y_la_descripcion(self):
@@ -300,7 +300,7 @@ class TestPaginaCamara(unittest.TestCase):
         anunciar.assert_called_once_with(
             "Se agregó Cámara a la escena Escena. Quedó abajo a la derecha, "
             "delante de las demás fuentes. Cámara. Abajo a la derecha. "
-            "Para moverla, usa Organizar escena en el panel de transmisión.")
+            "Para moverla, usa la pestaña Fuentes de la ventana Escena.")
 
     def test_sin_camaras_de_windows_anuncia_que_no_hay(self):
         dialogo = self._dialogo({})

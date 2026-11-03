@@ -221,7 +221,8 @@ def _problemas_revision(audio, fuentes, imagen) -> list:
                 nombre=entrada.nombre))
     if not any(fuente.visible for fuente in fuentes):
         problemas.append(_("La escena no tiene ninguna fuente visible. "
-                           "Agrégala en Organizar escena."))
+                           "Agrégala en la pestaña Agregar de la ventana "
+                           "Escena."))
     if imagen is True:
         problemas.append(_("La imagen está vacía: la escena se ve en negro. "
                            "Comprueba que la ventana capturada esté abierta y no minimizada."))

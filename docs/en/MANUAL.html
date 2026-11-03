@@ -216,7 +216,7 @@
   </style>
 </head>
 <body>
-<!-- original: es/MANUAL.md 2910c36b1c172e20b623379a70328487c712fa20 -->
+<!-- original: es/MANUAL.md e49cde52a0249a7bb5c83ab617662493a92ad274 -->
 
 <h1 id="bellbird-user-manual">Bellbird, user manual</h1>
 <p>This is a translation of the Spanish original, made with artificial
@@ -509,11 +509,10 @@ moving the focus away from the screen reader.</p>
 Restream, and for YouTube, the Google session started and live streams
 enabled on your channel; the <code>YouTube</code> OBS profile is created
 by the application.</p>
-<p>In the <em>Broadcast panel</em> (<code>Ctrl+Shift+T</code>), press
-<em>Arrange scene…</em> and choose which window is captured, for example
-a game. The live stream shows that window, but its capture does not
-carry sound: the sound comes from the desktop audio and the OBS
-microphone.</p>
+<p>In the <em>Scene</em> window (<code>Ctrl+Shift+E</code>), on the
+<em>Add</em> tab, choose which window is captured, for example a game.
+The live stream shows that window, but its capture does not carry sound:
+the sound comes from the desktop audio and the OBS microphone.</p>
 <h3 id="to-go-live">To go live</h3>
 <p>To go live, press <em>Broadcast live</em>, next to
 <em>Connect</em>.</p>
@@ -591,24 +590,11 @@ from the OBS window does not appear in the list.</p>
 <p>The <em>Status</em> field says whether everything is ready or what to
 check, the current scene, the microphone and the recording. From the
 panel the live stream is started and ended the same way as with the
-button in the main window. It also records, mutes or chooses the
-microphone and changes the current scene. Only what is useful at that
-moment appears: <em>TikTok user</em> with TikTok, <em>Show chat on
-video</em> with YouTube and <em>Pause recording</em> while recording,
-and <code>Enter</code> never starts or ends a live stream.</p>
-<h3 id="arrange-scene">Arrange scene</h3>
-<p>The <em>Arrange scene</em> window opens from the panel and lets you
-adjust the scene sources. The <em>Scene description</em> field says each
-source, where it is, what size it has and whether something covers it,
-and the same is heard with <code>Ctrl+F2</code>. Here you can choose
-which window is captured and move a source to one of the nine positions,
-for example <em>Center</em>, or change its size. You can also hide it,
-lock it, bring it to the front, move it with arrows, save an image of
-the scene for someone to see and undo everything done since you opened
-the window. Choosing another scene does not change what the viewers see.
-Each change says where the source ended up, how much is cropped if it
-goes outside the video and what covers it, and the <em>Help</em> button
-explains each control.</p>
+button in the main window. It also records, and <em>Scene…</em> opens
+the <em>Scene</em> window. Only what is useful at that moment appears:
+<em>TikTok user</em> with TikTok, <em>Show chat on video</em> with
+YouTube and <em>Pause recording</em> while recording, and
+<code>Enter</code> never starts or ends a live stream.</p>
 <p>Everything can still be done by hand in OBS, and the application does
 not interrupt the OBS plugin for NVDA.</p>
 <h2 id="camera-framing">Camera framing</h2>
@@ -660,8 +646,8 @@ turned on from the same category.</p>
 <p>If OBS has no camera, you can add one in <em>Preferences</em>, on the
 <em>Camera</em> category, with <em>Add camera to OBS…</em>: it uses a
 Windows camera and leaves it at the bottom right of the video, in front
-of the other sources. To move it, use <em>Arrange scene…</em> in the
-<em>Broadcast panel</em>.</p>
+of the other sources. To move it, use the <em>Sources</em> tab of the
+<em>Scene</em> window.</p>
 <h2 id="scene">Scene</h2>
 <p>The <em>Scene</em> window (<code>Ctrl+Shift+E</code>), in the
 <em>Broadcast</em> menu, brings together what is seen and heard in OBS
@@ -699,9 +685,9 @@ only used with YouTube: TikTok already shows the comments over the
 video.</p>
 <p>What does not fit in the video is not broadcast, and a source that is
 partly outside is cropped without warning. OBS calls that rectangle the
-canvas, and that is why <em>Arrange scene</em> says how much is cropped.
-If another source covers the panel, the application puts it in front
-when the scene is current and tells you which one was covering it.
+canvas, and that is why the <em>Scene</em> window says how much is
+cropped. If another source covers the panel, the application puts it in
+front when the scene is current and tells you which one was covering it.
 <code>F2</code> says whether the panel is active and whether OBS is
 showing it, and the server only listens on your computer.</p>
 <h2 id="scheduled-messages">Scheduled messages</h2>

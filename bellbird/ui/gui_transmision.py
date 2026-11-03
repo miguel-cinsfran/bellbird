@@ -6,7 +6,7 @@ import wx
 
 from bellbird.core import diagnostico
 from bellbird.core.idioma import N_, _
-from bellbird.obs import (consultas_transmision, obs_estado, obs_lanzador,
+from bellbird.obs import (consultas_transmision, obs_lanzador,
                           overlay_servidor, transmision_directa)
 from bellbird.obs.estado_panel import EstadoPanel, resumir
 from bellbird.obs.obs_destinos import DESTINOS
@@ -16,7 +16,6 @@ from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.control_grabacion import ControlGrabacion
 from bellbird.ui.directo_panel import DirectoPanel
 from bellbird.ui.gui import caja_de_grupo
-from bellbird.ui.gui_organizar_escena import OrganizarEscenaDialog
 from bellbird.ui.operaciones_obs import OperacionesObs
 from bellbird.ui.preferencias_comun import (
     CampoEstado, ajustar_zona, boton, fijar_zona, fila_campo,
@@ -28,7 +27,6 @@ _PUERTO_PANEL_DEFECTO = 8730
 _RUTA_PANEL_CHAT = "/chat"
 
 _ETIQUETA_CHAT = N_("Mostrar &chat en el vídeo")
-_ETIQUETA_SILENCIAR = N_("Si&lenciar")
 
 
 class TransmisionDialog(wx.Dialog):
@@ -46,12 +44,10 @@ class TransmisionDialog(wx.Dialog):
         self._guardar_destino = guardar_destino
         self._usuario_tiktok = usuario_tiktok or ""
         self._estado_actual = EstadoPanel("", "listo", ())
+        self._escena_al_aire = ""
         self._operaciones = OperacionesObs(
             self, self._activar, self._escribir_fallo, self._enfocar_tras_fallo)
         self._crear_controles()
-        self._silencio = gui_microfono.ControlSilencio(
-            self._gestor, self.chk_silenciar, self._operaciones,
-            self._microfono_preferido, self._refrescar_estado)
         self._directo = DirectoPanel(
             self, self.btn_directo, self._operaciones, self._gestor,
             self._supervisar, self._guardar_usuario, self._guardar_destino,
@@ -75,27 +71,24 @@ class TransmisionDialog(wx.Dialog):
         self._crear_estado(zona, contenido)
         self._crear_grupo_directo(zona, contenido)
         self._crear_grupo_grabacion(zona, contenido)
-        self._crear_grupo_microfono(zona, contenido)
-        self._crear_grupo_escena(zona, contenido)
         fijar_zona(self, zona, contenido)
         caja.Add(zona, 1, wx.EXPAND)
-        self.btn_organizar = boton(
-            panel, _("&Organizar escena…"), _("Organizar escena…"))
+        self.btn_escena = boton(
+            panel, _("Esce&na…"), _("Escena…"))
         self.btn_mostrar_obs = boton(
             panel, _("Mostrar O&BS"), _("Mostrar OBS"))
         self.btn_actualizar = boton(
             panel, _("Ac&tualizar estado"), _("Actualizar estado"))
         self.btn_cerrar = boton(
             panel, _("Cerrar"), _("Cerrar"), wx.ID_CANCEL)
-        caja.Add(fila_horizontal((self.btn_organizar, self.btn_mostrar_obs,
+        caja.Add(fila_horizontal((self.btn_escena, self.btn_mostrar_obs,
                                   self.btn_actualizar, self.btn_cerrar)),
                  0, wx.ALL, 10)
         panel.SetSizer(caja)
         self._acciones = (
             self.cho_destino, self.txt_usuario_tiktok, self.btn_directo,
             self.chk_chat, self.btn_grabar, self.btn_pausar,
-            self.chk_silenciar, self.btn_microfono, self.cho_escena,
-            self.btn_cambiar_escena, self.btn_organizar, self.btn_mostrar_obs,
+            self.btn_escena, self.btn_mostrar_obs,
             self.btn_actualizar, self.btn_cerrar)
         self.SetMinSize((600, -1))
         self._acomodar()
@@ -145,38 +138,10 @@ class TransmisionDialog(wx.Dialog):
                   0, wx.ALL, 6)
         contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
 
-    def _crear_grupo_microfono(self, zona, contenido):
-        sizer, padre = caja_de_grupo(zona, _("Micrófono"))
-        self.chk_silenciar = wx.CheckBox(
-            padre, label=_(_ETIQUETA_SILENCIAR),
-            name=_("Silenciar micrófono"))
-        self.btn_microfono = boton(
-            padre, _("Elegir &micrófono…"), _("Elegir micrófono…"))
-        sizer.Add(fila_horizontal((self.chk_silenciar, self.btn_microfono)),
-                  0, wx.ALL, 6)
-        contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
-
-    def _crear_grupo_escena(self, zona, contenido):
-        sizer, padre = caja_de_grupo(zona, _("Escena"))
-        rotulo_escena = wx.StaticText(padre, label=_("Esce&na:"))
-        self.cho_escena = wx.Choice(padre, name=_("Escena"))
-        nombre_accesible(self.cho_escena, _("Escena"))
-        self._filas["escena"] = fila_campo(
-            sizer, rotulo_escena, self.cho_escena)
-        self.btn_cambiar_escena = boton(
-            padre, _("Cambiar e&scena"), _("Cambiar escena"))
-        sizer.Add(self.btn_cambiar_escena, 0, wx.ALL, 6)
-        contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
-
     def _enlazar_eventos(self):
         self.btn_actualizar.Bind(wx.EVT_BUTTON, self._actualizar)
-        self.btn_cambiar_escena.Bind(wx.EVT_BUTTON, self._cambiar_escena)
         self.chk_chat.Bind(wx.EVT_CHECKBOX, self._alternar_chat)
-        self.btn_microfono.Bind(
-            wx.EVT_BUTTON,
-            lambda evento: gui_microfono.abrir_microfono_obs(
-                self.GetParent(), al_cerrar=self.btn_microfono.SetFocus))
-        self.btn_organizar.Bind(wx.EVT_BUTTON, self._organizar_escena)
+        self.btn_escena.Bind(wx.EVT_BUTTON, self._abrir_escena)
         self.btn_mostrar_obs.Bind(
             wx.EVT_BUTTON, lambda evento: menu_transmision.mostrar_obs())
         self.btn_cerrar.Bind(wx.EVT_BUTTON, self._cerrar)
@@ -260,9 +225,6 @@ class TransmisionDialog(wx.Dialog):
             self._gestor, self._microfono_preferido())
 
     def _poblar_inicial(self, datos):
-        self.cho_escena.Set(list(datos.escenas))
-        if datos.escena:
-            self.cho_escena.SetStringSelection(datos.escena)
         if datos.perfil in DESTINOS:
             self.cho_destino.SetStringSelection(datos.perfil)
         else:
@@ -279,7 +241,7 @@ class TransmisionDialog(wx.Dialog):
             self.btn_directo.SetFocus()
 
     def _escena(self):
-        return self.cho_escena.GetStringSelection()
+        return self._escena_al_aire
 
     def _refrescar_estado(self, anunciar_cuadro=False):
         destino = self._destino_elegido() or ""
@@ -301,24 +263,15 @@ class TransmisionDialog(wx.Dialog):
         self._grabacion.fijar(
             bool(datos.grabacion.get("outputActive", False)),
             bool(datos.grabacion.get("outputPaused", False)))
-        self._silencio.fijar(datos.silenciado)
         if not self._directo.deteniendo:
             self._directo.sincronizar(
                 bool(datos.transmision.get("outputActive", False)))
         escena = getattr(datos, "al_aire", "") or getattr(datos, "escena", "")
+        self._escena_al_aire = escena
         self._mostrar_estado(resumir(
             self._destino_elegido() or "", datos.transmision, datos.grabacion,
             escena, datos.microfono, datos.silenciado, datos.problemas))
         self._aplicar_visibilidad()
-
-    def _cambiar_escena(self, event):
-        escena = self._escena()
-        self._en_hilo(lambda: self._gestor.poner_escena_al_aire(escena),
-                      self._escena_cambiada)
-
-    def _escena_cambiada(self, escena):
-        anunciar(obs_estado.frase_escena_al_aire(escena))
-        self._refrescar_estado()
 
     def _alternar_chat(self, event):
         if self._alternar_panel is None:
@@ -347,13 +300,12 @@ class TransmisionDialog(wx.Dialog):
                      .format(escena=escena))
         self._refrescar_estado()
 
-    def _organizar_escena(self, event):
-        dialogo = OrganizarEscenaDialog(self, self._gestor, self._escena())
-        try:
-            dialogo.ShowModal()
-        finally:
-            dialogo.Destroy()
-            self.btn_organizar.SetFocus()
+    def _abrir_escena(self, event):
+        from bellbird.ui import escena_ventana
+        escena_ventana.abrir_escena(
+            self, self.GetParent(), gestor=self._gestor)
+        self._refrescar_estado()
+        self.btn_escena.SetFocus()
 
     def _cerrar(self, event):
         if self._operaciones.cerrando:

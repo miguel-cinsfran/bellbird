@@ -274,7 +274,7 @@ Para TikTok necesitas un perfil de OBS llamado `TikTok` con Restream, y para
 YouTube, la sesión de Google iniciada y los directos activados en tu canal; el
 perfil `YouTube` de OBS lo crea la aplicación.
 
-En el *Panel de transmisión* (`Ctrl+Mayús+T`), pulsa *Organizar escena…* y elige qué
+En la ventana *Escena* (`Ctrl+Mayús+E`), en la pestaña *Agregar*, elige qué
 ventana se captura, por ejemplo un juego. En el directo se ve esa ventana, pero
 su captura no lleva sonido: el sonido sale del audio del escritorio y del
 micrófono de OBS.
@@ -353,24 +353,11 @@ el archivo, y lo que se detiene desde la ventana de OBS no aparece en la lista.
 
 El campo *Estado* dice si está todo preparado o qué revisar, la escena actual, el
 micrófono y la grabación. Desde el panel se inicia y se finaliza el directo por
-el mismo camino que el botón de la ventana principal. También se graba, se
-silencia o se elige el micrófono y se cambia la escena actual. Solo aparece lo
-que sirve en ese momento: *Usuario de TikTok* con TikTok,
-*Mostrar chat en el vídeo* con YouTube y *Pausar grabación* mientras se graba, y
-`Intro` nunca inicia ni finaliza un directo.
-
-### Organizar escena
-
-La ventana *Organizar escena* se abre desde el panel y permite ajustar las
-fuentes de la escena. El campo *Descripción de la escena* dice cada fuente, dónde
-está, qué tamaño tiene y si algo la tapa, y lo mismo se oye con `Ctrl+F2`. Aquí
-puedes elegir qué ventana se captura y mover una fuente a una de las nueve
-posiciones, por ejemplo Centro, o cambiarle el tamaño. También puedes ocultarla,
-bloquearla, traerla al frente, moverla con flechas, guardar una imagen de la
-escena para que la vea alguien y deshacer todo lo hecho desde que abriste la
-ventana. Elegir otra escena no cambia lo que ven los espectadores. Cada cambio
-dice dónde quedó la fuente, cuánto se recorta si sale del vídeo y qué la tapa, y
-el botón *Ayuda* explica cada control.
+el mismo camino que el botón de la ventana principal. También se graba, y
+*Escena…* abre la ventana *Escena*. Solo aparece lo que sirve en ese momento:
+*Usuario de TikTok* con TikTok, *Mostrar chat en el vídeo* con YouTube y
+*Pausar grabación* mientras se graba, y `Intro` nunca inicia ni finaliza un
+directo.
 
 Todo se puede seguir haciendo a mano en OBS, y la aplicación no interrumpe el
 complemento de OBS para NVDA.
@@ -426,8 +413,8 @@ categoría.
 
 Si OBS no tiene ninguna cámara, *Preferencias*, categoría *Cámara*, la agrega
 con *Agregar cámara a OBS…*: usa una cámara de Windows y la deja abajo a la
-derecha del vídeo, delante de las demás fuentes. Para moverla, usa *Organizar
-escena…* en el *Panel de transmisión*.
+derecha del vídeo, delante de las demás fuentes. Para moverla, usa la pestaña
+*Fuentes* de la ventana *Escena*.
 
 ## Escena
 
@@ -469,8 +456,8 @@ importe. Solo se usa con YouTube: TikTok ya muestra los comentarios sobre el
 vídeo.
 
 Lo que no cabe en el vídeo no se emite, y una fuente que queda en parte fuera
-se recorta sin aviso. OBS llama lienzo a ese rectángulo, y por eso
-*Organizar escena* dice cuánto se recorta. Si otra fuente tapa el panel, la aplicación lo
+se recorta sin aviso. OBS llama lienzo a ese rectángulo, y por eso la ventana
+*Escena* dice cuánto se recorta. Si otra fuente tapa el panel, la aplicación lo
 pone delante al estar en la escena actual y te dice cuál lo tapaba. `F2` dice si el panel
 está activo y si OBS lo está mostrando, y el servidor solo escucha en tu
 equipo.

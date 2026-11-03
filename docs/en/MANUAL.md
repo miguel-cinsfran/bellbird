@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 2910c36b1c172e20b623379a70328487c712fa20 -->
+<!-- original: es/MANUAL.md e49cde52a0249a7bb5c83ab617662493a92ad274 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -275,10 +275,10 @@ For TikTok you need an OBS profile called `TikTok` with Restream, and for
 YouTube, the Google session started and live streams enabled on your channel;
 the `YouTube` OBS profile is created by the application.
 
-In the *Broadcast panel* (`Ctrl+Shift+T`), press *Arrange scene…* and choose
-which window is captured, for example a game. The live stream shows that
-window, but its capture does not carry sound: the sound comes from the desktop
-audio and the OBS microphone.
+In the *Scene* window (`Ctrl+Shift+E`), on the *Add* tab, choose which window
+is captured, for example a game. The live stream shows that window, but its
+capture does not carry sound: the sound comes from the desktop audio and the
+OBS microphone.
 
 ### To go live
 
@@ -357,23 +357,10 @@ not appear in the list.
 The *Status* field says whether everything is ready or what to check, the
 current scene, the microphone and the recording. From the panel the live stream
 is started and ended the same way as with the button in the main window. It also
-records, mutes or chooses the microphone and changes the current scene. Only
-what is useful at that moment appears: *TikTok user* with TikTok,
-*Show chat on video* with YouTube and *Pause recording* while recording, and
-`Enter` never starts or ends a live stream.
-
-### Arrange scene
-
-The *Arrange scene* window opens from the panel and lets you adjust the scene
-sources. The *Scene description* field says each source, where it is, what size
-it has and whether something covers it, and the same is heard with `Ctrl+F2`.
-Here you can choose which window is captured and move a source to one of the
-nine positions, for example *Center*, or change its size. You can also hide it,
-lock it, bring it to the front, move it with arrows, save an image of the scene
-for someone to see and undo everything done since you opened the window.
-Choosing another scene does not change what the viewers see. Each change says
-where the source ended up, how much is cropped if it goes outside the video and
-what covers it, and the *Help* button explains each control.
+records, and *Scene…* opens the *Scene* window. Only what is useful at that
+moment appears: *TikTok user* with TikTok, *Show chat on video* with YouTube and
+*Pause recording* while recording, and `Enter` never starts or ends a live
+stream.
 
 Everything can still be done by hand in OBS, and the application does not
 interrupt the OBS plugin for NVDA.
@@ -431,7 +418,7 @@ same category.
 If OBS has no camera, you can add one in *Preferences*, on the *Camera*
 category, with *Add camera to OBS…*: it uses a Windows camera and leaves it at
 the bottom right of the video, in front of the other sources. To move it, use
-*Arrange scene…* in the *Broadcast panel*.
+the *Sources* tab of the *Scene* window.
 
 ## Scene
 
@@ -473,7 +460,7 @@ the video.
 
 What does not fit in the video is not broadcast, and a source that is partly
 outside is cropped without warning. OBS calls that rectangle the canvas, and
-that is why *Arrange scene* says how much is cropped. If another source covers
+that is why the *Scene* window says how much is cropped. If another source covers
 the panel, the application puts it in front when the scene is current and tells you
 which one was covering it. `F2` says whether the panel is active and whether OBS
 is showing it, and the server only listens on your computer.

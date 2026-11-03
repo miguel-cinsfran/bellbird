@@ -140,5 +140,5 @@ def _camara_agregada(ventana, al_agregar, nombre, escena, descripcion, fuentes):
     if descripcion:
         mensaje += " " + descripcion
     mensaje += " " + _(
-        "Para moverla, usa Organizar escena en el panel de transmisión.")
+        "Para moverla, usa la pestaña Fuentes de la ventana Escena.")
     anunciar(mensaje)

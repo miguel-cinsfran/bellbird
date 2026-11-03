@@ -176,7 +176,7 @@ class RevisarTest(unittest.TestCase):
             "El micrófono Mic/Aux está silenciado.",
             "El audio del escritorio Audio del escritorio está silenciado.",
             "La escena no tiene ninguna fuente visible. "
-            "Agrégala en Organizar escena.",
+            "Agrégala en la pestaña Agregar de la ventana Escena.",
             "La imagen está vacía: la escena se ve en negro. "
             "Comprueba que la ventana capturada esté abierta y "
             "no minimizada."])
@@ -188,7 +188,7 @@ class RevisarTest(unittest.TestCase):
             imagen=imagen_dato(png_plano(2, 2, (200, 0, 0, 255))))
         revision = revisar(doble, "TikTok")
         self.assertIn("La escena no tiene ninguna fuente visible. "
-                      "Agrégala en Organizar escena.",
+                      "Agrégala en la pestaña Agregar de la ventana Escena.",
                       revision.problemas)
 
     def test_imagen_vacia_da_problema(self):

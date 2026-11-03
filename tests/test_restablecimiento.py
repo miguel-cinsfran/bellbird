@@ -15,6 +15,7 @@ def _gestor_con_datos(transformacion=None):
     gestor.transformacion.return_value = (
         {"positionX": 32, "positionY": 18, "alignment": 5}
         if transformacion is None else transformacion)
+    gestor.fuentes.return_value = ("Cámara", NOMBRE_FUENTE, "Juego")
     return gestor
 
 
@@ -44,6 +45,7 @@ class TestRegistroRestablecimiento(unittest.TestCase):
             mock.call.redimensionar("Principal", 460, 620),
             mock.call.mostrar("Principal", True, fuente=NOMBRE_FUENTE),
             mock.call.fijar("Principal", False, fuente=NOMBRE_FUENTE),
+            mock.call.mover_capa("Principal", 1, fuente=NOMBRE_FUENTE),
         ])
 
     def test_aplicar_escala_otra_fuente(self):
@@ -57,6 +59,7 @@ class TestRegistroRestablecimiento(unittest.TestCase):
             mock.call.escalar("Principal", 460, 620, fuente="Cámara"),
             mock.call.mostrar("Principal", True, fuente="Cámara"),
             mock.call.fijar("Principal", False, fuente="Cámara"),
+            mock.call.mover_capa("Principal", 2, fuente="Cámara"),
         ])
 
     def test_aplicar_sin_transformacion_no_posiciona(self):
@@ -69,7 +72,31 @@ class TestRegistroRestablecimiento(unittest.TestCase):
             mock.call.escalar("Principal", 460, 620, fuente="Cámara"),
             mock.call.mostrar("Principal", True, fuente="Cámara"),
             mock.call.fijar("Principal", False, fuente="Cámara"),
+            mock.call.mover_capa("Principal", 2, fuente="Cámara"),
         ])
+
+    def test_aplicar_devuelve_la_fuente_a_su_capa(self):
+        gestor = _gestor_con_datos()
+        registro = RegistroRestablecimiento()
+        registro.guardar(gestor, "Principal", "Cámara")
+        gestor.fuentes.return_value = (NOMBRE_FUENTE, "Juego", "Cámara")
+        gestor.reset_mock()
+        registro.aplicar(gestor)
+        gestor.mover_capa.assert_called_once_with(
+            "Principal", 2, fuente="Cámara")
+
+    def test_aplicar_restaura_las_capas_de_atras_adelante(self):
+        gestor = _gestor_con_datos()
+        registro = RegistroRestablecimiento()
+        registro.guardar(gestor, "Principal", "Cámara")
+        registro.guardar(gestor, "Principal", NOMBRE_FUENTE)
+        gestor.reset_mock()
+        registro.aplicar(gestor)
+        self.assertEqual(
+            [llamada for llamada in gestor.mock_calls
+             if llamada[0] == "mover_capa"],
+            [mock.call.mover_capa("Principal", 1, fuente=NOMBRE_FUENTE),
+             mock.call.mover_capa("Principal", 2, fuente="Cámara")])
 
 
 if __name__ == "__main__":

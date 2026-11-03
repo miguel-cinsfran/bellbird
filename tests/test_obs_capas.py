@@ -44,6 +44,15 @@ class IndiceDestinoTest(unittest.TestCase):
                     self.assertTrue(
                         destino is None or 0 <= destino < len(elementos()))
 
+    def test_un_indice_absoluto_es_el_destino(self):
+        self.assertEqual(obs_capas.indice_destino(elementos(), "Medio", 0), 0)
+        self.assertEqual(obs_capas.indice_destino(elementos(), "Fondo", 2), 2)
+
+    def test_un_indice_fuera_de_rango_o_el_actual_no_mueve(self):
+        self.assertIsNone(obs_capas.indice_destino(elementos(), "Medio", 1))
+        self.assertIsNone(obs_capas.indice_destino(elementos(), "Medio", 3))
+        self.assertIsNone(obs_capas.indice_destino(elementos(), "Medio", -1))
+
 
 class LugarTest(unittest.TestCase):
 

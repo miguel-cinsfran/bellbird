@@ -11,22 +11,22 @@ def _elemento(elementos, fuente):
 
 
 def indice_destino(elementos, fuente, movimiento):
-    """El índice nuevo de la fuente, o None si ya está en ese extremo.
-
-    En OBS el índice 0 es el fondo y el más alto es el frente.
-    """
+    """El índice nuevo de la fuente, o None si no hay que moverla."""
     elemento = _elemento(elementos, fuente)
     if elemento is None:
         return None
     actual = elemento.get("sceneItemIndex", 0)
+    # En OBS el índice 0 es el fondo y el más alto es el frente.
     total = len(elementos)
-    if movimiento == "adelante":
-        return actual + 1 if actual < total - 1 else None
-    if movimiento == "atras":
-        return actual - 1 if actual > 0 else None
-    if movimiento == "fondo":
-        return 0 if actual > 0 else None
-    return None
+    if isinstance(movimiento, int):
+        return (movimiento if movimiento != actual
+                and 0 <= movimiento < total else None)
+    destinos = {
+        "adelante": actual + 1 if actual < total - 1 else None,
+        "atras": actual - 1 if actual > 0 else None,
+        "fondo": 0 if actual > 0 else None,
+    }
+    return destinos.get(movimiento)
 
 
 def lugar(elementos, fuente):

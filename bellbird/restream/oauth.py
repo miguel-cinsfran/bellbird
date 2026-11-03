@@ -234,13 +234,19 @@ def _renovar_con(cliente, url, cuerpo):
     if respuesta.status_code != 200:
         raise FalloServicio()
     try:
-        return sesion.tokens_de_respuesta(datos, time.time())
+        sesion.tokens_de_respuesta(datos, time.time())
     except (TypeError, ValueError):
         raise FalloServicio() from None
+    return datos
 
 
 def renovar(servicio, token_de_renovacion, cliente=None):
-    """Renueva el par de tokens a través del servicio propio."""
+    """Renueva el par de tokens a través del servicio propio.
+
+    Devuelve el diccionario de la respuesta y no `Tokens`, porque
+    `Sesion.token()` espera el JSON del servidor y lo interpreta con
+    `tokens_de_respuesta`.
+    """
     url = f"{servicio}/refresh"
     cuerpo = {"refresh_token": token_de_renovacion, "client_id": CLIENT_ID}
     if cliente is None:

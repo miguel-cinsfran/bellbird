@@ -94,6 +94,20 @@ def _servicio(estado, cuerpo):
         servidor.server_close()
 
 
+def _sesion_con(servicio, guardar):
+    return sesion.Sesion(
+        cargar=lambda: {
+            "acceso": "acceso-viejo",
+            "renovacion": TOKEN,
+            "vence": 1000.0,
+            "permisos": "",
+        },
+        guardar=guardar,
+        renovar=lambda token: oauth.renovar(servicio, token),
+        reloj=lambda: 1000.0,
+    )
+
+
 class TestAutorizacion(unittest.TestCase):
 
     def test_p1_la_direccion_lleva_lo_justo_y_sin_scope(self):
@@ -253,13 +267,13 @@ class TestServicio(unittest.TestCase):
             "client_id": oauth.CLIENT_ID,
         })
 
-    def test_p6_renovacion_manda_json_y_devuelve_tokens(self):
+    def test_p6_renovacion_manda_json_y_devuelve_la_respuesta(self):
         with _servicio(200, {"access_token": "acceso-nuevo",
                              "refresh_token": "renovacion-nueva",
                              "expires_in": 3600}) as servicio:
-            tokens = oauth.renovar(servicio, TOKEN)
-        self.assertEqual(tokens.acceso, "acceso-nuevo")
-        self.assertEqual(tokens.renovacion, "renovacion-nueva")
+            datos = oauth.renovar(servicio, TOKEN)
+        self.assertEqual(datos["access_token"], "acceso-nuevo")
+        self.assertEqual(datos["refresh_token"], "renovacion-nueva")
         recibido = _ServicioFalso.recibido[0]
         self.assertEqual(recibido["ruta"], "/refresh")
         self.assertEqual(recibido["json"], {
@@ -279,6 +293,22 @@ class TestServicio(unittest.TestCase):
         with _servicio(500, {"error": "server_error"}) as servicio:
             with self.assertRaises(oauth.FalloServicio):
                 oauth.canjear(servicio, CODIGO, VUELTA)
+
+    def test_p7_renovar_se_enchufa_en_la_sesion(self):
+        guardado = []
+        with _servicio(200, {"access_token": "acceso-nuevo",
+                             "refresh_token": "renovacion-nueva",
+                             "expires_in": 3600}) as servicio:
+            actual = _sesion_con(servicio, guardado.append)
+            self.assertEqual(actual.token(), "acceso-nuevo")
+        self.assertEqual(guardado[-1]["acceso"], "acceso-nuevo")
+        self.assertEqual(guardado[-1]["renovacion"], "renovacion-nueva")
+
+        guardado = []
+        with _servicio(400, {"error": "invalid_grant"}) as servicio:
+            actual = _sesion_con(servicio, guardado.append)
+            with self.assertRaises(sesion.SesionVencida):
+                actual.token()
 
     def test_p8_revocar_manda_formulario_sin_secreto(self):
         visto = {}

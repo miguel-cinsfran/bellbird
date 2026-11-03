@@ -3,14 +3,21 @@
 Qué cambia en cada versión, contado en lenguaje llano y pensado para quien usa
 la aplicación. El detalle técnico de cada cambio está en el historial de git.
 
-## 3.0.0, sin publicar
+## 3.0.0 beta 1, noviembre de 2026
 
 La aplicación pasa a llamarse Bellbird, por el pájaro campana, que es el ave
 nacional de Paraguay. También estrena un panel de transmisión, grabaciones,
-  encuadre de cámara y un Administrador de descargas nuevo.
+encuadre de cámara y un Administrador de descargas nuevo.
 
 ### El nombre nuevo
 
+- La versión 2.5.1 no ofrece esta beta por su cuenta, así que se instala a
+  mano. Descarga el ZIP, descomprímelo en una carpeta nueva y copia en ella la
+  carpeta `data` de la versión anterior, que guarda las preferencias, la
+  sesión de YouTube y el historial. Si descargabas en la carpeta `Descargas`
+  de la aplicación, cópiala también. Cuando funcione, puedes eliminar la
+  carpeta anterior. Desde esta beta, la aplicación ofrece las versiones
+  siguientes y las instala.
 - La aplicación ahora es `Bellbird.exe`. El ZIP y su carpeta llevan el nombre
   Bellbird con el número de versión.
 - Un acceso directo a `YTChatTTS.exe` deja de funcionar después de actualizar.
@@ -48,9 +55,12 @@ nacional de Paraguay. También estrena un panel de transmisión, grabaciones,
   aire de OBS: si estás centrado, lejos, fuera del borde o con poca luz, y
   hacia dónde moverte. `Ctrl+Mayús+F3` activa avisos con sonido propio cuando
   el rostro sale del encuadre y cuando vuelve. Si pulsas `Ctrl+F3` dos veces,
-  unos pitidos te guían hasta quedar bien encuadrado. La imagen se analiza en
-  el equipo, sin enviarla a ningún sitio. La cámara, los avisos y la inversión
-  de izquierda y derecha se eligen en la categoría *Cámara* de *Preferencias*.
+  empieza una guía de sonido: cada pitido suena del lado hacia el que tienes que
+  moverte y se repite más seguido al acercarte, y en el centro suena un tono
+  continuo. La imagen se analiza en el equipo, sin enviarla a ningún sitio. La
+  cámara, los avisos, la inversión de izquierda y derecha y el *Sonido de la
+  guía* (Normal, Cálido u 8 bits) se eligen en la categoría *Cámara* de
+  *Preferencias*.
 - `Ctrl+Mayús+O`, o *Mostrar OBS* en el menú *Transmisión*, trae al frente la
   ventana de OBS, también cuando está en el área de notificación. Si OBS espera
   una respuesta, como la pregunta del modo seguro, el foco va a ese cuadro.
@@ -74,14 +84,21 @@ nacional de Paraguay. También estrena un panel de transmisión, grabaciones,
   de micrófono de OBS y el dispositivo que usa. Al pulsar *Aplicar*, OBS
   cambia de dispositivo y la aplicación dice si ya entra sonido. El atajo para
   silenciar el micrófono usa desde entonces esa fuente.
-- En TikTok, los corazones se escriben en la lista del chat, una fila por
-  persona y con la cantidad de cada una. Antes solo sonaban.
-- Cada aviso de un directo de TikTok tiene su modo en *Preferencias*, categoría
-  *Lectura*: entradas, corazones, seguidores, compartidos y cofres. Cada uno se
-  puede leer en voz alta, solo mostrar con su sonido, o no mostrar. De fábrica
-  se leen los seguidores, los compartidos y los cofres, y las entradas y los
-  corazones solo se muestran. Si ya tenías marcada la lectura de entradas o de
-  corazones, se respeta.
+- En TikTok, los me gusta se escriben en la lista del chat, una fila por
+  persona y con la cantidad de cada una. Antes solo sonaban. *Agrupar me gusta
+  durante (segundos)*, en la categoría *Lectura*, decide cuántos segundos se
+  juntan los toques de cada persona antes del aviso: de 1 a 120, y 10 de
+  fábrica.
+- Cada evento de un directo tiene su modo en *Preferencias*, categoría
+  *Lectura*: Super Chats y regalos, membresías, entradas, me gusta,
+  seguidores, compartidos y cofres. Cada uno puede ser *Voz principal*, *Voz
+  secundaria*, *Solo sonido* o *Desactivado*. De fábrica las entradas y los me
+  gusta suenan sin leerse, y el resto se lee con la voz principal. Si ya tenías
+  marcada la lectura de entradas o de me gusta, se respeta.
+- La categoría *Voces* llama *Voz principal* a la de siempre y suma el grupo
+  *Voz secundaria*, con su voz, su velocidad, su volumen y su botón de prueba.
+  Los eventos que elijas se leen con ella, y el mensaje siguiente vuelve a la
+  principal. Los cambios se aplican al guardar, sin reiniciar.
 - La lista del chat tiene el filtro *Avisos*, que deja ver solo esos avisos de
   TikTok.
 - La aplicación está también en inglés. El idioma se elige en *Preferencias*,
@@ -119,6 +136,12 @@ nacional de Paraguay. También estrena un panel de transmisión, grabaciones,
   cuota se comparte entre quienes usan la aplicación, sirve para saber si un
   error de cuota viene de tu uso o del de otros. Se puede eliminar del resumen
   en *Preferencias, Estado (F2)*.
+- Si pulsas `F2` dos veces seguidas, el estado se abre en un cuadro con una
+  línea por cada parte, para recorrerlo con las flechas.
+- Al llegar al tope de la velocidad o el volumen de la voz, el aviso dice
+  «máximo» o «mínimo».
+- Al asignar un atajo que ya usa otra acción, el aviso dice qué teclas son y
+  qué acción las tiene.
 - Si entre la versión instalada y la nueva hay otras, la ventana de
   actualización muestra las novedades de todas, de la más nueva a la más
   antigua. Cada una lleva su encabezado y su número de versión.
@@ -180,12 +203,17 @@ nacional de Paraguay. También estrena un panel de transmisión, grabaciones,
 - La búsqueda, el agregado a la cola, el procesado, el fin de la cola y una
   descarga que terminó a medias tienen sonidos propios, en los dos temas.
 - El paquete trae la herramienta que YouTube pide ahora para leer sus vídeos,
-  así
-  que las descargas y el reproductor obtienen todos los formatos. Abrir un
+  así que las descargas y el reproductor obtienen todos los formatos. Abrir un
   vídeo o empezar una descarga tarda alrededor de un segundo y medio más.
 - En *Preferencias*, categoría *Descargas*, *Canal de actualización de yt-dlp*
   elige entre *Estable* y *Diario*. *Diario* trae los arreglos para YouTube
   unos días antes, y puede traer errores nuevos.
+- *Anunciar progreso de las descargas*, en *Preferencias*, categoría
+  *Descargas*, dice el avance de cada descarga cada 10 por ciento, con un
+  sonido propio. Si una descarga sigue en cero, dice «Descarga en curso» cada
+  15 segundos, con otro sonido. Con más de una descarga a la vez, el aviso
+  empieza por el nombre del vídeo. Funciona aunque el Administrador de
+  descargas esté cerrado. Viene desmarcada.
 
 ### Aspecto de la aplicación
 

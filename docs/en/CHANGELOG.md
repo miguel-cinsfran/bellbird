@@ -1,4 +1,4 @@
-<!-- original: es/CHANGELOG.md ec86502b9f93a0f02b6df2c6227cc4b407eb27b0 -->
+<!-- original: es/CHANGELOG.md bed496b0582556812b5a314613f9fb33c0f432de -->
 # What's new in Bellbird
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/CHANGELOG.md).
@@ -6,14 +6,20 @@ This is a translation of the Spanish original, made with artificial intelligence
 What changes in each version, told in plain language and written for the person
 who uses the app. The technical detail of each change is in the git history.
 
-## 3.0.0, unreleased
+## 3.0.0 beta 1, November 2026
 
 The app is now called Bellbird, after the bellbird, which is the national bird
 of Paraguay. It also brings a broadcast panel, recordings, camera framing and a
-  new Download manager.
+new Download manager.
 
 ### The new name
 
+- Version 2.5.1 does not offer this beta by itself, so you install it by
+  hand. Download the ZIP, unzip it into a new folder and copy the `data`
+  folder from the previous version into it, which keeps the preferences, the
+  YouTube session and the history. If you downloaded to the app's `Descargas`
+  folder, copy it too. When it works, you can delete the previous folder.
+  From this beta on, the app offers the following versions and installs them.
 - The app is now `Bellbird.exe`. The ZIP and its folder carry the name
   Bellbird with the version number.
 - A shortcut to `YTChatTTS.exe` stops working after updating. If you opened
@@ -51,10 +57,12 @@ of Paraguay. It also brings a broadcast panel, recordings, camera framing and a
   live scene: whether you are centered, far away, outside the edge or with
   little light, and where to move. `Ctrl+Shift+F3` turns on warnings with
   their own sound when the face leaves the frame and when it returns.
-  Pressing `Ctrl+F3` twice, beeps guide you until you are well framed. The
-  image is analyzed on the computer, without sending it anywhere. The
-  camera, the warnings and the left-right inversion are chosen in the new
-  *Camera* category of Preferences.
+  Pressing `Ctrl+F3` twice starts a sound guide: each beep sounds from the
+  side you have to move to and repeats more often as you get closer, and a
+  continuous tone plays at the center. The image is analyzed on the computer,
+  without sending it anywhere. The camera, the warnings, the left-right
+  inversion and the *Guide sound* (Normal, Warm or 8-bit) are chosen in the
+  new *Camera* category of Preferences.
 - `Ctrl+Shift+O`, or *Show OBS* in the *Broadcast* menu, brings the OBS
   window to the front, also when it is in the notification area. If OBS is
   waiting for an answer, such as the safe mode question, focus goes to that
@@ -80,14 +88,21 @@ of Paraguay. It also brings a broadcast panel, recordings, camera framing and a
   microphone source and the device it uses. When you press *Apply*, OBS
   changes the device and the app says whether sound is coming in. The
   shortcut to mute the microphone uses that source from then on.
-- On TikTok, likes are written in the chat list, one row per person: “Ana
-  sent 15 likes”. Before, they only played a sound.
-- Each TikTok live stream notice has its mode in *Preferences*, *Reading*
-  category: joins, likes, followers, shares and treasure chests. Each one
-  can be read aloud, only shown with its sound, or not shown. By default,
-  followers, shares and treasure chests are read, and joins and likes are
-  only shown. If you already had join or like reading checked, it is
-  respected.
+- On TikTok, likes are written in the chat list, one row per person and with
+  each one's amount. Before, they only played a sound. *Group likes for
+  (seconds)*, in the *Reading* category, decides how many seconds each
+  person's taps are gathered before the notice: from 1 to 120, and 10 by
+  default.
+- Each live stream event has its mode in *Preferences*, *Reading* category:
+  Super Chats and gifts, memberships, joins, likes, followers, shares and
+  treasure chests. Each one can be *Main voice*, *Secondary voice*, *Sound
+  only* or *Off*. By default joins and likes sound without being read, and
+  the rest are read with the main voice. If you already had join or like
+  reading checked, it is respected.
+- The *Voices* category calls the usual voice *Main voice* and adds the
+  *Secondary voice* group, with its voice, speed, volume and test button.
+  The events you choose are read with it, and the next message returns to
+  the main one. Changes apply when saving, without restarting.
 - The chat list has the *Alerts* filter, which shows only those TikTok
   notices.
 - The app is also in English. The language is chosen in *Preferences*,
@@ -125,6 +140,12 @@ of Paraguay. It also brings a broadcast panel, recordings, camera framing and a
   because the quota is shared among those who use the application, it helps
   to know whether a quota error comes from your use or from others'. It can
   be removed from the summary in *Preferences, Status (F2)*.
+- If you press `F2` twice in a row, the status opens in a box with one
+  line for each part, to move through it with the arrow keys.
+- When the voice reaches the top speed or volume, the notice says
+  “maximum” or “minimum”.
+- When you assign a shortcut that another action already uses, the notice
+  says which keys they are and which action has them.
 - If there are other versions between the installed one and the new one,
   the update window shows the what's new of all of them, from the newest to
   the oldest, each with its heading and version number.
@@ -191,6 +212,12 @@ of Paraguay. It also brings a broadcast panel, recordings, camera framing and a
 - In *Preferences*, *Downloads* category, *yt-dlp update channel* chooses
   between *Stable* and *Nightly*. *Nightly* brings fixes for YouTube a few
   days earlier, and may bring new failures.
+- *Announce download progress*, in *Preferences*, *Downloads* category, says
+  how far each download has got every 10 percent, with its own sound. If a
+  download is still at zero, it says “Download in progress” every 15 seconds,
+  with another sound. With more than one download at a time, the notice starts
+  with the video name. It works even when the Download manager is closed. It
+  is unchecked.
 
 ### Application appearance
 

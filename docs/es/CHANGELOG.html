@@ -220,13 +220,22 @@
 <p>Qué cambia en cada versión, contado en lenguaje llano y pensado para
 quien usa la aplicación. El detalle técnico de cada cambio está en el
 historial de git.</p>
-<h2 id="300-sin-publicar">3.0.0, sin publicar</h2>
+<h2 id="300-beta-1-noviembre-de-2026">3.0.0 beta 1, noviembre de
+2026</h2>
 <p>La aplicación pasa a llamarse Bellbird, por el pájaro campana, que es
 el ave nacional de Paraguay. También estrena un panel de transmisión,
 grabaciones, encuadre de cámara y un Administrador de descargas
 nuevo.</p>
 <h3 id="el-nombre-nuevo">El nombre nuevo</h3>
 <ul>
+<li>La versión 2.5.1 no ofrece esta beta por su cuenta, así que se
+instala a mano. Descarga el ZIP, descomprímelo en una carpeta nueva y
+copia en ella la carpeta <code>data</code> de la versión anterior, que
+guarda las preferencias, la sesión de YouTube y el historial. Si
+descargabas en la carpeta <code>Descargas</code> de la aplicación,
+cópiala también. Cuando funcione, puedes eliminar la carpeta anterior.
+Desde esta beta, la aplicación ofrece las versiones siguientes y las
+instala.</li>
 <li>La aplicación ahora es <code>Bellbird.exe</code>. El ZIP y su
 carpeta llevan el nombre Bellbird con el número de versión.</li>
 <li>Un acceso directo a <code>YTChatTTS.exe</code> deja de funcionar
@@ -271,11 +280,13 @@ qué atajo se desactivó.</li>
 cámara de la escena al aire de OBS: si estás centrado, lejos, fuera del
 borde o con poca luz, y hacia dónde moverte. <code>Ctrl+Mayús+F3</code>
 activa avisos con sonido propio cuando el rostro sale del encuadre y
-cuando vuelve. Si pulsas <code>Ctrl+F3</code> dos veces, unos pitidos te
-guían hasta quedar bien encuadrado. La imagen se analiza en el equipo,
-sin enviarla a ningún sitio. La cámara, los avisos y la inversión de
-izquierda y derecha se eligen en la categoría <em>Cámara</em> de
-<em>Preferencias</em>.</li>
+cuando vuelve. Si pulsas <code>Ctrl+F3</code> dos veces, empieza una
+guía de sonido: cada pitido suena del lado hacia el que tienes que
+moverte y se repite más seguido al acercarte, y en el centro suena un
+tono continuo. La imagen se analiza en el equipo, sin enviarla a ningún
+sitio. La cámara, los avisos, la inversión de izquierda y derecha y el
+<em>Sonido de la guía</em> (Normal, Cálido u 8 bits) se eligen en la
+categoría <em>Cámara</em> de <em>Preferencias</em>.</li>
 <li><code>Ctrl+Mayús+O</code>, o <em>Mostrar OBS</em> en el menú
 <em>Transmisión</em>, trae al frente la ventana de OBS, también cuando
 está en el área de notificación. Si OBS espera una respuesta, como la
@@ -303,15 +314,23 @@ cuadro con la fuente de micrófono de OBS y el dispositivo que usa. Al
 pulsar <em>Aplicar</em>, OBS cambia de dispositivo y la aplicación dice
 si ya entra sonido. El atajo para silenciar el micrófono usa desde
 entonces esa fuente.</li>
-<li>En TikTok, los corazones se escriben en la lista del chat, una fila
-por persona y con la cantidad de cada una. Antes solo sonaban.</li>
-<li>Cada aviso de un directo de TikTok tiene su modo en
-<em>Preferencias</em>, categoría <em>Lectura</em>: entradas, corazones,
-seguidores, compartidos y cofres. Cada uno se puede leer en voz alta,
-solo mostrar con su sonido, o no mostrar. De fábrica se leen los
-seguidores, los compartidos y los cofres, y las entradas y los corazones
-solo se muestran. Si ya tenías marcada la lectura de entradas o de
-corazones, se respeta.</li>
+<li>En TikTok, los me gusta se escriben en la lista del chat, una fila
+por persona y con la cantidad de cada una. Antes solo sonaban.
+<em>Agrupar me gusta durante (segundos)</em>, en la categoría
+<em>Lectura</em>, decide cuántos segundos se juntan los toques de cada
+persona antes del aviso: de 1 a 120, y 10 de fábrica.</li>
+<li>Cada evento de un directo tiene su modo en <em>Preferencias</em>,
+categoría <em>Lectura</em>: Super Chats y regalos, membresías, entradas,
+me gusta, seguidores, compartidos y cofres. Cada uno puede ser <em>Voz
+principal</em>, <em>Voz secundaria</em>, <em>Solo sonido</em> o
+<em>Desactivado</em>. De fábrica las entradas y los me gusta suenan sin
+leerse, y el resto se lee con la voz principal. Si ya tenías marcada la
+lectura de entradas o de me gusta, se respeta.</li>
+<li>La categoría <em>Voces</em> llama <em>Voz principal</em> a la de
+siempre y suma el grupo <em>Voz secundaria</em>, con su voz, su
+velocidad, su volumen y su botón de prueba. Los eventos que elijas se
+leen con ella, y el mensaje siguiente vuelve a la principal. Los cambios
+se aplican al guardar, sin reiniciar.</li>
 <li>La lista del chat tiene el filtro <em>Avisos</em>, que deja ver solo
 esos avisos de TikTok.</li>
 <li>La aplicación está también en inglés. El idioma se elige en
@@ -357,6 +376,13 @@ es aproximado, y como la cuota se comparte entre quienes usan la
 aplicación, sirve para saber si un error de cuota viene de tu uso o del
 de otros. Se puede eliminar del resumen en <em>Preferencias, Estado
 (F2)</em>.</li>
+<li>Si pulsas <code>F2</code> dos veces seguidas, el estado se abre en
+un cuadro con una línea por cada parte, para recorrerlo con las
+flechas.</li>
+<li>Al llegar al tope de la velocidad o el volumen de la voz, el aviso
+dice «máximo» o «mínimo».</li>
+<li>Al asignar un atajo que ya usa otra acción, el aviso dice qué teclas
+son y qué acción las tiene.</li>
 <li>Si entre la versión instalada y la nueva hay otras, la ventana de
 actualización muestra las novedades de todas, de la más nueva a la más
 antigua. Cada una lleva su encabezado y su número de versión.</li>
@@ -436,6 +462,13 @@ segundo y medio más.</li>
 actualización de yt-dlp</em> elige entre <em>Estable</em> y
 <em>Diario</em>. <em>Diario</em> trae los arreglos para YouTube unos
 días antes, y puede traer errores nuevos.</li>
+<li><em>Anunciar progreso de las descargas</em>, en
+<em>Preferencias</em>, categoría <em>Descargas</em>, dice el avance de
+cada descarga cada 10 por ciento, con un sonido propio. Si una descarga
+sigue en cero, dice «Descarga en curso» cada 15 segundos, con otro
+sonido. Con más de una descarga a la vez, el aviso empieza por el nombre
+del vídeo. Funciona aunque el Administrador de descargas esté cerrado.
+Viene desmarcada.</li>
 </ul>
 <h3 id="aspecto-de-la-aplicación">Aspecto de la aplicación</h3>
 <ul>

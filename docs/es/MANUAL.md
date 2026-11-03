@@ -4,7 +4,7 @@ Bellbird lee en voz alta el chat de los directos de YouTube y TikTok para las
 personas ciegas o con baja visión que transmiten. Toda la aplicación se maneja
 con el teclado y se prueba con NVDA.
 
-Versión 2.5.1 · Windows 10 y 11 · [novedades de cada versión](CHANGELOG.md)
+Versión 3.0.0 beta 1 · Windows 10 y 11 · [novedades de cada versión](CHANGELOG.md)
 
 ## Índice
 
@@ -474,6 +474,12 @@ arreglos antes y más riesgo de errores.
 *Preguntar si se abre la carpeta al terminar la cola*, en *Preferencias*,
 categoría *Descargas*, la aplicación hace una sola pregunta cuando termina toda
 la cola, si algo se descargó bien. Viene desmarcada, porque la pregunta se lleva el foco.
+
+Con *Anunciar progreso de las descargas*, en la misma categoría, la aplicación
+dice el avance de cada descarga cada 10 por ciento, con un sonido propio. Si
+una descarga sigue en cero, dice «Descarga en curso» cada 15 segundos, con
+otro sonido. Con más de una descarga a la vez, el aviso empieza por el nombre
+del vídeo. Viene desmarcada.
 
 En el buscador, Espacio pone el resultado a sonar en la música sin descargarlo:
 interrumpe solo la canción actual y queda en la cola como una más, y otra vez

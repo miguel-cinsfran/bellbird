@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 9cf519a775887779fe6ec749b90107716ac0afc8 -->
+<!-- original: es/MANUAL.md c669df3779d4d1dbddb030c81515094a0101b83c -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -7,7 +7,7 @@ Bellbird reads the chat of YouTube and TikTok live streams aloud for people who
 are blind or have low vision and stream. The whole application is handled with
 the keyboard and tested with NVDA.
 
-Version 2.5.1 · Windows 10 and 11 · [what's new in each version](CHANGELOG.md)
+Version 3.0.0 beta 1 · Windows 10 and 11 · [what's new in each version](CHANGELOG.md)
 
 ## Contents
 
@@ -480,6 +480,12 @@ with fixes earlier and more risk of errors.
 the *Downloads* category, the application asks one question when the whole
 queue finishes, if something downloaded correctly. It is cleared by default, because the question takes the
 focus.
+
+With *Announce download progress*, in the same category, the application says
+how far each download has got every 10 percent, with its own sound. If a
+download is still at zero, it says “Download in progress” every 15 seconds,
+with another sound. With more than one download at a time, the notice starts
+with the video name. It is unchecked by default.
 
 In the search box, Space plays the result in the music without downloading it:
 it interrupts only the current song and leaves it in the queue as one more, and

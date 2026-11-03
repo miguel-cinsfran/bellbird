@@ -16,13 +16,17 @@ import time
 from pathlib import Path
 
 _QA = Path(__file__).resolve().parent
-if str(_QA) not in sys.path:
-    sys.path.insert(0, str(_QA))
+for _ruta in (_QA.parent, _QA):
+    if str(_ruta) not in sys.path:
+        sys.path.insert(0, str(_ruta))
+
+from bellbird.obs.fuente_chat import NOMBRE_FUENTE as NOMBRE_FUENTE_CHAT  # noqa: E402
 
 TITULO_DIRECTO = "Directo de prueba"
 AUTOR_MENSAJE = "rolon_100"
 TEXTO_MENSAJE = "Hola a todos"
-PROPIOS = (TITULO_DIRECTO, AUTOR_MENSAJE, TEXTO_MENSAJE)
+# «Chat en el vídeo» es el nombre real de la fuente en OBS y la app la reconoce por él.
+PROPIOS = (TITULO_DIRECTO, AUTOR_MENSAJE, TEXTO_MENSAJE, NOMBRE_FUENTE_CHAT)
 
 # Un nombre por defecto de wx no lo oye nadie, así que no cuenta.
 NOMBRES_INTERNOS = {

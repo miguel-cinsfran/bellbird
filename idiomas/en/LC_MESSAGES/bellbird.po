@@ -8214,11 +8214,6 @@ msgid "Atajos restablecidos a los valores de fábrica. Se aplican al pulsar Guar
 msgstr "Shortcuts reset to factory defaults. They apply when you press Save."
 
 #: bellbird/ui/preferencias_camara.py
-#, python-brace-format
-msgid "Esa cámara ya está en OBS como {nombre}."
-msgstr "That camera is already in OBS as {nombre}."
-
-#: bellbird/ui/preferencias_camara.py
 msgid "Cá&mara de OBS:"
 msgstr "&OBS camera:"
 
@@ -8294,8 +8289,18 @@ msgstr "Choose camera"
 
 #: bellbird/ui/preferencias_camara.py
 #, python-brace-format
+msgid "Esa cámara ya está en OBS como {nombre}."
+msgstr "That camera is already in OBS as {nombre}."
+
+#: bellbird/ui/preferencias_camara.py
+#, python-brace-format
 msgid "Se agregó {nombre} a la escena {escena}."
 msgstr "Added {nombre} to scene {escena}."
+
+#: bellbird/ui/preferencias_camara.py
+#, python-brace-format
+msgid "Quedó {lugar}, delante de las demás fuentes."
+msgstr "It is at the {lugar}, in front of the other sources."
 
 #: bellbird/ui/preferencias_camara.py
 msgid "Para moverla, usa Organizar escena en el panel de transmisión."

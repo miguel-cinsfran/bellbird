@@ -32,6 +32,8 @@ def _escena_al_aire(cliente):
 
 def _descripcion(cliente, escena, nombre):
     snap = obs_panel.GestorPanelObs(cliente).instantanea(escena, fuente=nombre)
+    if not snap.ancho or not snap.alto:
+        return ""
     componentes = tuple(
         componente for componente in obs_disposicion.COMPONENTES
         if componente not in ("conexion", "escena", "transparencia"))
@@ -236,6 +238,10 @@ class PaginaCamara:
         self._llenar_camaras(fuentes)
         mensaje = _("Se agregó {nombre} a la escena {escena}.").format(
             nombre=nombre, escena=escena)
+        lugar = _(obs_disposicion.etiqueta_anclaje("inferior-derecha"))
+        lugar = lugar[:1].lower() + lugar[1:]
+        mensaje += " " + _(
+            "Quedó {lugar}, delante de las demás fuentes.").format(lugar=lugar)
         if descripcion:
             mensaje += " " + descripcion
         mensaje += " " + _(

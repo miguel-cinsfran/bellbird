@@ -6,6 +6,7 @@ Abren ventanas.
 import unittest
 from unittest import mock
 
+from bellbird.obs import obs_disposicion
 from bellbird.ui import gui_preferencias
 from bellbird.ui import preferencias_camara
 from bellbird.voice import motores
@@ -225,10 +226,72 @@ class TestPaginaCamara(unittest.TestCase):
             dialogo.pagina_camara._agregar_camara(None)
         cuadro.assert_not_called()
         anunciar.assert_called_once_with(
-            "Se agregó Cámara a la escena Escena. Cámara. Se ve completa. "
+            "Se agregó Cámara a la escena Escena. Quedó abajo a la derecha, "
+            "delante de las demás fuentes. Cámara. Se ve completa. "
             "Para moverla, usa Organizar escena en el panel de transmisión.")
         self.assertIn("Cámara",
                       dialogo.pagina_camara.cho_camara_obs.GetStrings())
+
+    def test_sin_tamano_anuncia_la_frase_fija_y_no_se_ve_completa(self):
+        dialogo = self._dialogo({})
+        cliente = mock.Mock()
+        gestor = mock.Mock()
+        gestor.instantanea.return_value = obs_disposicion.SnapshotPanel(
+            conectado=True)
+        with mock.patch.object(preferencias_camara.obs_cliente, "ClienteObs",
+                               return_value=cliente), \
+                mock.patch.object(preferencias_camara.obs_cliente,
+                                  "leer_ajustes"), \
+                mock.patch.object(preferencias_camara, "_escena_al_aire",
+                                  return_value="Escena"), \
+                mock.patch.object(preferencias_camara.obs_camara_nueva,
+                                  "agregar", return_value=("Cámara", True)), \
+                mock.patch.object(preferencias_camara.obs_panel,
+                                  "GestorPanelObs", return_value=gestor), \
+                mock.patch.object(preferencias_camara.obs_camara,
+                                  "fuentes_video", return_value=("Cámara",)), \
+                mock.patch.object(preferencias_camara.wx, "CallAfter",
+                                  side_effect=lambda funcion, *args:
+                                  funcion(*args)), \
+                mock.patch.object(preferencias_camara, "anunciar") as anunciar:
+            dialogo.pagina_camara._agregar_camara_en_obs("abc")
+        anunciar.assert_called_once_with(
+            "Se agregó Cámara a la escena Escena. Quedó abajo a la derecha, "
+            "delante de las demás fuentes. Para moverla, usa Organizar "
+            "escena en el panel de transmisión.")
+        self.assertNotIn("Se ve completa", anunciar.call_args.args[0])
+
+    def test_con_tamano_anuncia_la_frase_fija_y_la_descripcion(self):
+        dialogo = self._dialogo({})
+        cliente = mock.Mock()
+        gestor = mock.Mock()
+        gestor.instantanea.return_value = obs_disposicion.SnapshotPanel(
+            conectado=True, ancho=540, alto=303, lienzo_ancho=1080,
+            lienzo_alto=1920)
+        with mock.patch.object(preferencias_camara.obs_cliente, "ClienteObs",
+                               return_value=cliente), \
+                mock.patch.object(preferencias_camara.obs_cliente,
+                                  "leer_ajustes"), \
+                mock.patch.object(preferencias_camara, "_escena_al_aire",
+                                  return_value="Escena"), \
+                mock.patch.object(preferencias_camara.obs_camara_nueva,
+                                  "agregar", return_value=("Cámara", True)), \
+                mock.patch.object(preferencias_camara.obs_panel,
+                                  "GestorPanelObs", return_value=gestor), \
+                mock.patch.object(preferencias_camara.obs_disposicion,
+                                  "describir_fuente",
+                                  return_value="Cámara. Abajo a la derecha."), \
+                mock.patch.object(preferencias_camara.obs_camara,
+                                  "fuentes_video", return_value=("Cámara",)), \
+                mock.patch.object(preferencias_camara.wx, "CallAfter",
+                                  side_effect=lambda funcion, *args:
+                                  funcion(*args)), \
+                mock.patch.object(preferencias_camara, "anunciar") as anunciar:
+            dialogo.pagina_camara._agregar_camara_en_obs("abc")
+        anunciar.assert_called_once_with(
+            "Se agregó Cámara a la escena Escena. Quedó abajo a la derecha, "
+            "delante de las demás fuentes. Cámara. Abajo a la derecha. "
+            "Para moverla, usa Organizar escena en el panel de transmisión.")
 
     def test_sin_camaras_de_windows_anuncia_que_no_hay(self):
         dialogo = self._dialogo({})

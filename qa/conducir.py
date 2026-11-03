@@ -5564,6 +5564,7 @@ SUPERFICIES = {
     "barra_progreso.py": "descargas",
     "descargas_listas.py": "descargas",
     "descargas_acciones.py": "descargas",
+    "aviso_progreso.py": "descargas",
     "gui_directo_huerfano.py": "directo_sin_imagen",
     "gui_directo_youtube.py": "transmitir_destino",
     "gui_elegir_destino.py": "transmitir_destino",

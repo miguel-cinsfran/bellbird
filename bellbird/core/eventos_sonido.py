@@ -54,6 +54,8 @@ EVENTOS = [
     # Grabación desde la ventana de Transmisión, cada resultado con el suyo.
     "grabacion_iniciada", "grabacion_detenida",
     "grabacion_en_pausa", "grabacion_reanudada",
+    # Avance de una descarga en curso y descarga que sigue en cero.
+    "descarga_avance", "descarga_quieta",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -136,4 +138,6 @@ NOMBRES = {
     "grabacion_detenida": "Grabación detenida",
     "grabacion_en_pausa": "Grabación en pausa",
     "grabacion_reanudada": "Grabación reanudada",
+    "descarga_avance": "Avance de descarga",
+    "descarga_quieta": "Descarga quieta",
 }

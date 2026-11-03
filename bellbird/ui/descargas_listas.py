@@ -13,6 +13,7 @@ from bellbird.core import sonidos_eventos
 from bellbird.core.idioma import N_, _
 from bellbird.downloads import filas_descargas
 from bellbird.downloads import historial_descargas
+from bellbird.ui import aviso_progreso
 from bellbird.ui import barra_progreso
 from bellbird.ui.descargas_acciones import AccionesDescarga
 from bellbird.ui.gui import nombre_accesible, _T, _tc
@@ -116,6 +117,7 @@ class PaginaDescargas(wx.Panel):
         super().__init__(parent)
         self._gestor = gestor
         self._ruta = ruta
+        aviso_progreso.vigilar()
         self._acciones = AccionesDescarga(
             gestor, ruta, preparar_opciones, self._tras_cambiar)
         self._historial = historial_descargas.cargar(self._ruta)

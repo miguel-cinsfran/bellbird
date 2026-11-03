@@ -649,6 +649,19 @@ def gen_descarga_parcial():
     return _normalizar(_concat(subida, cima, bajada), 0.7)
 
 
+def gen_descarga_avance():
+    # Una nota breve y discreta, porque se repite en cada múltiplo: sin la
+    # subida de descarga_iniciada.
+    return _normalizar(_perc(_detune(E5, 0.16, 0.30), 0.004, 0.10), 0.5)
+
+
+def gen_descarga_quieta():
+    # Dos notas iguales y graves con hueco: sigue esperando, sin sonar a error.
+    nota = _perc(_seno(E3, 0.12, 0.34), 0.005, 0.10)
+    return _normalizar(
+        _concat(nota, _silencio(0.06), nota, _silencio(0.02)), 0.55)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -1045,6 +1058,18 @@ def s_descarga_parcial():
                 _madera(E5, 0.16, 0.36, 0.12))
 
 
+def s_descarga_avance():
+    # La misma nota breve y discreta, en madera.
+    return _normalizar(_madera(E5, 0.16, 0.30, 0.09), 0.5)
+
+
+def s_descarga_quieta():
+    # Las mismas dos notas iguales y graves, en madera.
+    nota = _madera(E3, 0.12, 0.34, 0.10)
+    return _normalizar(
+        _concat(nota, _silencio(0.06), nota, _silencio(0.02)), 0.55)
+
+
 # ── Reemplazos del tema suave ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
@@ -1212,6 +1237,8 @@ TEMAS = {
         "tiktok_limitado.wav":         gen_tiktok_limitado,
         "encuadre_fuera.wav":          gen_encuadre_fuera,
         "encuadre_dentro.wav":         gen_encuadre_dentro,
+        "descarga_avance.wav":         gen_descarga_avance,
+        "descarga_quieta.wav":         gen_descarga_quieta,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -1302,6 +1329,8 @@ TEMAS = {
         "tiktok_limitado.wav":         s_tiktok_limitado,
         "encuadre_fuera.wav":          s_encuadre_fuera,
         "encuadre_dentro.wav":         s_encuadre_dentro,
+        "descarga_avance.wav":         s_descarga_avance,
+        "descarga_quieta.wav":         s_descarga_quieta,
     },
 }
 

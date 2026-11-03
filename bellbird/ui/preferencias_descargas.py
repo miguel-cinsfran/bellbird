@@ -26,6 +26,7 @@ class PaginaDescargasPreferencias:
         self.chk_descargas_numerar = None
         self.chk_descargas_carpeta_lista = None
         self.chk_descargas_preguntar = None
+        self.chk_descargas_anunciar_progreso = None
         self.cho_descargas_plantilla = None
         self.sp_descargas_simultaneas = None
         self.sp_descargas_limite = None
@@ -37,7 +38,9 @@ class PaginaDescargasPreferencias:
         p = crear_panel(parent, "PagDescargas")
         vs = wx.BoxSizer(wx.VERTICAL)
         self._descargas_carpeta(p, vs)
-        self._descargas_listas(p, vs)
+        self._descargas_casillas(p, vs)
+        self._descargas_progreso(p, vs)
+        self._descargas_nombre(p, vs)
         self._descargas_topes(p, vs)
         self._descargas_canal(p, vs)
         self._cargar()
@@ -58,8 +61,7 @@ class PaginaDescargasPreferencias:
         vs.Add(self.dir_descargas, 0,
                wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-    def _descargas_listas(self, p, vs):
-        self._descargas_casillas(p, vs)
+    def _descargas_nombre(self, p, vs):
         vs.Add(fila_label(p, _("Nombre de los &archivos:")),
                0, wx.LEFT | wx.RIGHT, 10)
         etiquetas = [_(etiqueta) for etiqueta, _clave, _plantilla in PLANTILLAS]
@@ -86,6 +88,14 @@ class PaginaDescargasPreferencias:
             name="DescargasPreguntarAlTerminar")
         self.chk_descargas_preguntar.SetForegroundColour(_T.text)
         vs.Add(self.chk_descargas_preguntar, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+    def _descargas_progreso(self, p, vs):
+        self.chk_descargas_anunciar_progreso = wx.CheckBox(
+            p, label=_("Anunciar &progreso de las descargas"),
+            name="DescargasAnunciarProgreso")
+        self.chk_descargas_anunciar_progreso.SetForegroundColour(_T.text)
+        vs.Add(self.chk_descargas_anunciar_progreso, 0,
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _descargas_topes(self, p, vs):
@@ -115,13 +125,15 @@ class PaginaDescargasPreferencias:
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _cargar(self):
-        """Vuelca las opciones guardadas en los siete controles."""
+        """Vuelca las opciones guardadas en los controles."""
         opciones = cfg.obtener_opciones_descarga()
         self.dir_descargas.SetPath(str(opciones.get("carpeta") or ""))
         self.chk_descargas_numerar.SetValue(bool(opciones.get("enumerar", False)))
         self.chk_descargas_carpeta_lista.SetValue(bool(opciones.get("carpeta_lista", False)))
         self.chk_descargas_preguntar.SetValue(
             bool(opciones.get("preguntar_al_terminar", False)))
+        self.chk_descargas_anunciar_progreso.SetValue(
+            bool(opciones.get("anunciar_progreso", False)))
         try:
             indice = self._plantillas_claves.index(opciones.get("plantilla"))
         except ValueError:
@@ -145,6 +157,8 @@ class PaginaDescargasPreferencias:
         opciones["enumerar"] = bool(self.chk_descargas_numerar.GetValue())
         opciones["carpeta_lista"] = bool(self.chk_descargas_carpeta_lista.GetValue())
         opciones["preguntar_al_terminar"] = bool(self.chk_descargas_preguntar.GetValue())
+        opciones["anunciar_progreso"] = bool(
+            self.chk_descargas_anunciar_progreso.GetValue())
         indice = self.cho_descargas_plantilla.GetSelection()
         if 0 <= indice < len(self._plantillas_claves):
             opciones["plantilla"] = self._plantillas_claves[indice]

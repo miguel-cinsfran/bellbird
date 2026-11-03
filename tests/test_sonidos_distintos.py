@@ -39,6 +39,7 @@ EVENTOS_NUEVOS = [
     "encuadre_fuera", "encuadre_dentro",
     "grabacion_iniciada", "grabacion_detenida",
     "grabacion_en_pausa", "grabacion_reanudada",
+    "descarga_avance", "descarga_quieta",
 ]
 
 # Tope de duración por evento: la espera de la IA lleva una figura melódica

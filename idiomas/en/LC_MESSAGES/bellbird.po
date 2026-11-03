@@ -1945,6 +1945,28 @@ msgstr "Date and title"
 msgid "Máxima"
 msgstr "Maximum"
 
+#. Traductores: {porcentaje} es el múltiplo de 10 que se alcanzó.
+#: bellbird/downloads/progreso_anuncio.py
+#, python-brace-format
+msgid "{nombre}: {porcentaje} por ciento"
+msgstr "{nombre}: {porcentaje} percent"
+
+#. Traductores: {porcentaje} es el múltiplo de 10 que se alcanzó.
+#: bellbird/downloads/progreso_anuncio.py
+#, python-brace-format
+msgid "{porcentaje} por ciento"
+msgstr "{porcentaje} percent"
+
+#. Traductores: {nombre} es el título del vídeo que se descarga.
+#: bellbird/downloads/progreso_anuncio.py
+#, python-brace-format
+msgid "{nombre}: descarga en curso"
+msgstr "{nombre}: download in progress"
+
+#: bellbird/downloads/progreso_anuncio.py
+msgid "Descarga en curso"
+msgstr "Download in progress"
+
 #. Traductores: valor del deslizador de posición en un directo, que no tiene
 #. duración.
 #: bellbird/downloads/textos_busqueda.py bellbird/player/reproductor.py
@@ -8177,6 +8199,10 @@ msgstr "Own folder for each p&laylist"
 #: bellbird/ui/preferencias_descargas.py
 msgid "Pr&eguntar si se abre la carpeta al terminar la cola"
 msgstr "Ask whether to open the folder when the &queue finishes"
+
+#: bellbird/ui/preferencias_descargas.py
+msgid "Anunciar &progreso de las descargas"
+msgstr "Announce download &progress"
 
 #: bellbird/ui/preferencias_descargas.py
 msgid "Descargas &simultáneas:"

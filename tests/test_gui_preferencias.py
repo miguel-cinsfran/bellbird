@@ -116,7 +116,7 @@ class TestPaginaDescargas(unittest.TestCase):
         self.addCleanup(destruir, dialogo)
         return dialogo
 
-    def test_pagina_descargas_tras_musica_con_ocho_controles(self):
+    def test_pagina_descargas_tras_musica_con_nueve_controles(self):
         dialogo = self._dialogo()
         textos = [dialogo.nb.GetPageText(i)
                   for i in range(dialogo.nb.GetPageCount())]
@@ -127,6 +127,7 @@ class TestPaginaDescargas(unittest.TestCase):
              pagina.chk_descargas_numerar.GetLabel(),
              pagina.chk_descargas_carpeta_lista.GetLabel(),
              pagina.chk_descargas_preguntar.GetLabel(),
+             pagina.chk_descargas_anunciar_progreso.GetLabel(),
              pagina.cho_descargas_plantilla.GetName(),
              pagina.sp_descargas_simultaneas.GetName(),
              pagina.sp_descargas_limite.GetName(),
@@ -134,6 +135,7 @@ class TestPaginaDescargas(unittest.TestCase):
             ["Carpeta de descargas", "&Numerar archivos de listas",
              "Carpeta propia para cada &lista",
              "Pr&eguntar si se abre la carpeta al terminar la cola",
+             "Anunciar &progreso de las descargas",
              "Nombre de los archivos",
              "Descargas simultáneas", "Límite de velocidad en MB/s",
              "Canal de actualización de yt-dlp"])
@@ -162,6 +164,22 @@ class TestPaginaDescargas(unittest.TestCase):
         pagina.guardar()
         self.assertTrue(
             config.obtener_opciones_descarga()["preguntar_al_terminar"])
+
+    def test_anunciar_progreso_carga_desmarcada_y_guarda(self):
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_descargas
+        self.assertEqual(pagina.chk_descargas_anunciar_progreso.GetName(),
+                         "DescargasAnunciarProgreso")
+        self.assertFalse(pagina.chk_descargas_anunciar_progreso.GetValue())
+        pagina.chk_descargas_anunciar_progreso.SetValue(True)
+        pagina.guardar()
+        self.assertTrue(
+            config.obtener_opciones_descarga()["anunciar_progreso"])
+        self.assertIn("anunciar_progreso = true",
+                      (self.ruta / "config.ini").read_text(encoding="utf-8"))
+        otro = self._dialogo()
+        self.assertTrue(
+            otro.pagina_descargas.chk_descargas_anunciar_progreso.GetValue())
 
     def test_guardar_descargas_no_pierde_formato_ni_resolucion(self):
         dialogo = self._dialogo()

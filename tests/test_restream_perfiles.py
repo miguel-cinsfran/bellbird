@@ -76,6 +76,27 @@ class TestValidacion(unittest.TestCase):
             with self.subTest(caso=motivo):
                 self.assertTrue(validar(perfil, existentes))
 
+    def test_p2_los_mensajes_dicen_perfil_de_restream_y_destino(self):
+        casos = [
+            (_perfil(nombre="   "), [],
+             "Escribe un nombre para el perfil de Restream."),
+            (_perfil(nombre="CANAL"), [_perfil(nombre="canal")],
+             "Ya existe un perfil de Restream con ese nombre."),
+            (_perfil(canales=()), [],
+             "Agrega al menos un destino al perfil de Restream."),
+            (_perfil(orientacion="diagonal"), [],
+             "La orientación del perfil de Restream debe ser horizontal o "
+             "vertical."),
+            (_perfil(privacidad="secreta"), [],
+             "La privacidad del perfil de Restream no está entre las "
+             "opciones."),
+            (_perfil(latencia="lenta"), [],
+             "La latencia del perfil de Restream no está entre las opciones."),
+        ]
+        for perfil, existentes, esperado in casos:
+            with self.subTest(mensaje=esperado):
+                self.assertIn(esperado, validar(perfil, existentes))
+
 
 if __name__ == "__main__":
     unittest.main()

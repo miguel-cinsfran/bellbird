@@ -735,47 +735,6 @@ def auditar_dialogo(app: Aplicacion, res: Resultado, etiqueta_menu: str,
     return True
 
 
-def abrir_y_auditar(app: Aplicacion, res: Resultado, etiqueta_menu: str,
-                    vueltas_tab: int = 14):
-    """Dispara un ítem de menú y audita la ventana que aparezca, sea cual sea.
-
-    No se le pide el título por adelantado a propósito: si el diálogo se
-    llamara distinto de lo que uno cree, un escenario con el título escrito a
-    mano diría «no abrió» y sería mentira. Ya pasó una vez hoy.
-    """
-    app.pedir("frente")
-    antes = {v["titulo"] for v in app.ventanas()}
-    try:
-        app.abrir_por_menu(etiqueta_menu)
-    except Exception as exc:
-        res.fallo(f"«{etiqueta_menu}»: no se pudo disparar, {exc}")
-        return None
-
-    limite = time.time() + 12
-    titulo = None
-    while time.time() < limite:
-        nuevas = {v["titulo"] for v in app.ventanas()} - antes
-        if nuevas:
-            titulo = sorted(nuevas)[0]
-            break
-        time.sleep(0.2)
-    if titulo is None:
-        res.nota(f"«{etiqueta_menu}»: no abre ventana, "
-                 "puede ser una acción directa")
-        return None
-
-    res.nota(f"«{etiqueta_menu}» abre «{titulo}»")
-    controles = app.arbol(titulo)
-    revisar_nombres(controles, res, titulo)
-    orden = recorrer_tab(app, res, titulo, vueltas=vueltas_tab,
-                         ventana=titulo)
-    res.nota(f"{titulo}, Tab: " + " > ".join(orden))
-    app.pedir("cerrar_ventana", ventana=titulo)
-    if app.esperar_ventana(titulo, segundos=4) is not None:
-        res.fallo(f"{titulo}: no cerró")
-    return titulo
-
-
 def lista_del_chat(controles):
     """La lista donde aterrizan los mensajes. Primero por nombre, si no la
     primera lista con contenido que aparezca."""
@@ -5510,6 +5469,9 @@ SUPERFICIES = {
     "obs_pagina_grabacion.py": "grabacion",
     "obs_pagina_general.py": "escena",
     "restream_ventana.py": "restream",
+    "restream_pagina_perfiles.py": "restream",
+    "restream_pagina_destinos.py": "restream",
+    "restream_pagina_cuenta.py": "restream",
     "recientes_inicio.py": "principal",
     "gui_menu.py": "menus",
     "menu_transmision.py": "menus",

@@ -62,6 +62,16 @@ def canales(cliente=None):
     return api.canales(sesion().token(), cliente)
 
 
+def perfil(cliente=None):
+    """Correo y usuario de la cuenta, con el token vigente."""
+    return api.perfil(sesion().token(), cliente)
+
+
+def eliminar_canal(identificador, cliente=None):
+    """Elimina un canal de la cuenta, con el token vigente."""
+    return api.eliminar_canal(sesion().token(), identificador, cliente)
+
+
 def _reiniciar() -> None:
     """Olvida la sesión creada, solo para las pruebas."""
     global _sesion

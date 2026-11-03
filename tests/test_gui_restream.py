@@ -1,7 +1,7 @@
 """Pruebas de la ventana de Restream y del diálogo de perfil.
 
 Crean ventanas de wx: se corren en la PC donde no molestan al lector, no en
-la del dueño. La cuenta y los canales son dobles; los perfiles viven en una
+la del dueño. La cuenta y los destinos son dobles; los perfiles viven en una
 carpeta temporal.
 """
 
@@ -10,13 +10,17 @@ import threading
 import time
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 import wx
 
 from bellbird.core.idioma import _
 from bellbird.restream import perfiles
+from bellbird.restream.api import Canal, ErrorApi
 from bellbird.restream.perfiles import Perfil
+from bellbird.ui import restream_pagina_destinos
+from bellbird.ui import restream_pagina_perfiles
 from bellbird.ui import restream_perfil
 from bellbird.ui import restream_ventana
 from bellbird.ui.preferencias_comun import nombre_de_etiqueta
@@ -54,6 +58,11 @@ def _canales():
     return [(1, "TikTok: uno"), (2, "YouTube: dos")]
 
 
+def _destinos():
+    return [Canal(1, 67, "TikTok", "uno", "", True),
+            Canal(2, 5, "YouTube", "dos", "", True)]
+
+
 def _esperar(prueba, limite=5.0):
     """Atiende eventos de wx hasta que se cumpla la condición o venza."""
     fin = time.monotonic() + limite
@@ -80,7 +89,7 @@ def _controles_en_orden(ventana):
     for hijo in ventana.GetChildren():
         if isinstance(hijo, (wx.ScrolledWindow, wx.Panel, wx.StaticBox)):
             orden.extend(_controles_en_orden(hijo))
-        elif hijo.AcceptsFocus():
+        elif hijo.IsShown() and hijo.AcceptsFocus():
             orden.append(hijo)
     return orden
 
@@ -108,23 +117,27 @@ class PruebaVentanaRestream(unittest.TestCase):
         self.ruta = Path(self.temporal.name) / "perfiles_restream.json"
 
     def _ventana(self, cuenta=None, guardados=None, al_conectar=None,
-                 al_reautorizar=None, al_desconectar=None, canales=None):
+                 al_reautorizar=None, al_desconectar=None, canales=None,
+                 destinos=None, perfil=None, eliminar=None):
         if guardados is not None:
             perfiles.guardar(self.ruta, guardados)
         dialogo = restream_ventana.VentanaRestream(
             None, cuenta or CuentaFalsa(), canales or _canales, self.ruta,
             al_conectar=al_conectar, al_reautorizar=al_reautorizar,
-            al_desconectar=al_desconectar)
+            al_desconectar=al_desconectar, destinos=destinos, perfil=perfil,
+            eliminar=eliminar)
         self.addCleanup(destruir, dialogo)
         return dialogo
 
-    def test_p1_dos_pestanas_con_cerrar_y_escape(self):
-        dialogo = self._ventana()
+    def test_p1_tres_pestanas_en_orden_y_abre_en_cuenta_sin_conectar(self):
+        dialogo = self._ventana(cuenta=CuentaFalsa(False))
         self.assertEqual("PestanasRestream", dialogo.nb.GetName())
-        self.assertEqual(2, dialogo.nb.GetPageCount())
-        self.assertEqual(["Cuenta", "Perfiles"],
-                         [dialogo.nb.GetPageText(i)
-                          for i in range(dialogo.nb.GetPageCount())])
+        self.assertEqual(3, dialogo.nb.GetPageCount())
+        self.assertEqual(
+            ["Perfiles de Restream", "Destinos", "Cuenta"],
+            [dialogo.nb.GetPageText(i)
+             for i in range(dialogo.nb.GetPageCount())])
+        self.assertEqual(2, dialogo.nb.GetSelection())
         self.assertEqual("Cerrar", dialogo.btn_cerrar.GetLabel())
         self.assertEqual(wx.ID_CANCEL, dialogo.btn_cerrar.GetId())
         self.assertEqual("Cerrar", dialogo.btn_cerrar.GetName())
@@ -140,13 +153,19 @@ class PruebaVentanaRestream(unittest.TestCase):
         dialogo._al_tecla_ventana(evento)
         evento.Skip.assert_called_once_with()
 
+    def test_p1_con_cuenta_abre_en_perfiles(self):
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), canales=lambda: [])
+        self.assertEqual(0, dialogo.nb.GetSelection())
+
     def test_p2_desconectada_muestra_conectar(self):
         dialogo = self._ventana(cuenta=CuentaFalsa(False))
-        self.assertEqual("Sin cuenta de Restream conectada.",
-                         dialogo.txt_estado.GetValue())
-        self.assertTrue(dialogo.btn_conectar.IsShown())
-        self.assertFalse(dialogo.btn_reautorizar.IsShown())
-        self.assertFalse(dialogo.btn_desconectar.IsShown())
+        self.assertEqual(
+            "Sin cuenta de Restream conectada.",
+            dialogo._pagina_cuenta.txt_estado.GetValue())
+        self.assertTrue(dialogo._pagina_cuenta.btn_conectar.IsShown())
+        self.assertFalse(dialogo._pagina_cuenta.btn_reautorizar.IsShown())
+        self.assertFalse(dialogo._pagina_cuenta.btn_desconectar.IsShown())
 
     def test_p2_p3_conectar_en_hilo_desactiva_y_al_terminar_anuncia(self):
         cuenta = CuentaFalsa(False)
@@ -177,8 +196,9 @@ class PruebaVentanaRestream(unittest.TestCase):
                 "Abriendo el navegador para iniciar sesión en Restream. "
                 "Autoriza y vuelve aquí.",
                 [llamada.args[0] for llamada in anunciar.call_args_list])
-            for boton in (dialogo.btn_conectar, dialogo.btn_reautorizar,
-                          dialogo.btn_desconectar):
+            for boton in (dialogo._pagina_cuenta.btn_conectar,
+                          dialogo._pagina_cuenta.btn_reautorizar,
+                          dialogo._pagina_cuenta.btn_desconectar):
                 self.assertFalse(boton.IsEnabled())
 
             self.assertTrue(_esperar(lambda: "parada" in hilo))
@@ -193,12 +213,14 @@ class PruebaVentanaRestream(unittest.TestCase):
         self.assertEqual([True], llamadas)
         sonar.assert_called_once_with("conectado")
         anunciar.assert_any_call("Cuenta de Restream conectada.")
-        self.assertEqual("Cuenta de Restream conectada.",
-                         dialogo.txt_estado.GetValue())
-        self.assertFalse(dialogo.btn_conectar.IsShown())
-        self.assertTrue(dialogo.btn_reautorizar.IsShown())
-        self.assertTrue(dialogo.btn_desconectar.IsShown())
-        for boton in (dialogo.btn_reautorizar, dialogo.btn_desconectar):
+        self.assertEqual(
+            "Cuenta de Restream conectada.",
+            dialogo._pagina_cuenta.txt_estado.GetValue())
+        self.assertFalse(dialogo._pagina_cuenta.btn_conectar.IsShown())
+        self.assertTrue(dialogo._pagina_cuenta.btn_reautorizar.IsShown())
+        self.assertTrue(dialogo._pagina_cuenta.btn_desconectar.IsShown())
+        for boton in (dialogo._pagina_cuenta.btn_reautorizar,
+                      dialogo._pagina_cuenta.btn_desconectar):
             self.assertTrue(boton.IsEnabled())
 
         self.assertTrue(_esperar(lambda: lecturas))
@@ -220,11 +242,12 @@ class PruebaVentanaRestream(unittest.TestCase):
         sonar.assert_called_once_with("error")
         anunciar.assert_any_call("Credenciales rechazadas")
         self.assertIn("Credenciales rechazadas",
-                      dialogo.txt_estado.GetValue())
+                      dialogo._pagina_cuenta.txt_estado.GetValue())
         self.assertFalse(cuenta.conectada())
-        self.assertTrue(dialogo.btn_conectar.IsShown())
-        for boton in (dialogo.btn_conectar, dialogo.btn_reautorizar,
-                      dialogo.btn_desconectar):
+        self.assertTrue(dialogo._pagina_cuenta.btn_conectar.IsShown())
+        for boton in (dialogo._pagina_cuenta.btn_conectar,
+                      dialogo._pagina_cuenta.btn_reautorizar,
+                      dialogo._pagina_cuenta.btn_desconectar):
             self.assertTrue(boton.IsEnabled())
 
     def test_p3_sin_mensaje_anuncia_el_texto_de_respaldo(self):
@@ -240,7 +263,7 @@ class PruebaVentanaRestream(unittest.TestCase):
         sonar.assert_called_once_with("error")
         anunciar.assert_any_call("No se pudo conectar con Restream.")
         self.assertIn("No se pudo conectar con Restream.",
-                      dialogo.txt_estado.GetValue())
+                      dialogo._pagina_cuenta.txt_estado.GetValue())
 
     def test_p2_reautorizar_y_desconectar(self):
         cuenta = CuentaFalsa(True)
@@ -272,7 +295,7 @@ class PruebaVentanaRestream(unittest.TestCase):
                 "Cuenta de Restream desconectada.")
 
         self.assertFalse(cuenta.conectada())
-        self.assertTrue(dialogo.btn_conectar.IsShown())
+        self.assertTrue(dialogo._pagina_cuenta.btn_conectar.IsShown())
 
     def test_p4_cerrar_corta_la_espera_y_no_toca_la_ventana_cerrada(self):
         cuenta = CuentaFalsa(False)
@@ -303,7 +326,7 @@ class PruebaVentanaRestream(unittest.TestCase):
         for funcion, args in pendientes:
             funcion(*args)
 
-    def test_p5_canales_que_fallan_van_a_la_segunda_linea_sin_sonido(self):
+    def test_p5_destinos_que_fallan_van_a_la_segunda_linea_sin_sonido(self):
         def canales():
             raise ValueError("sin red")
 
@@ -313,18 +336,34 @@ class PruebaVentanaRestream(unittest.TestCase):
                 mock.patch.object(restream_ventana._snd,
                                   "reproducir") as sonar:
             self.assertTrue(_esperar(
-                lambda: "No se pudieron leer los canales."
-                in dialogo.txt_estado.GetValue()))
+                lambda: "No se pudieron leer los destinos."
+                in dialogo._pagina_cuenta.txt_estado.GetValue()))
             wx.Yield()
 
-        lineas = dialogo.txt_estado.GetValue().splitlines()
+        lineas = dialogo._pagina_cuenta.txt_estado.GetValue().splitlines()
         self.assertEqual("Cuenta de Restream conectada.", lineas[0])
-        self.assertEqual("No se pudieron leer los canales. sin red",
-                         lineas[1])
+        self.assertEqual("No se pudieron leer los destinos.", lineas[1])
         sonar.assert_not_called()
         anunciar.assert_not_called()
 
-    def test_p6_el_editor_recibe_los_canales_leidos_y_no_consulta_la_red(self):
+    def test_fallo_al_leer_con_errorapi_usa_solo_su_mensaje(self):
+        error = ErrorApi()
+
+        def canales():
+            raise error
+
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), canales=canales)
+        self.assertTrue(_esperar(
+            lambda: str(error)
+            in dialogo._pagina_cuenta.txt_estado.GetValue()))
+
+        lineas = dialogo._pagina_cuenta.txt_estado.GetValue().splitlines()
+        self.assertEqual("Cuenta de Restream conectada.", lineas[0])
+        self.assertEqual(str(error), lineas[1])
+
+    def test_p6_el_editor_recibe_los_destinos_leidos_y_no_consulta_la_red(
+            self):
         llamadas = []
         recibidos = []
 
@@ -339,39 +378,45 @@ class PruebaVentanaRestream(unittest.TestCase):
         dialogo = self._ventana(
             cuenta=CuentaFalsa(True), canales=canales,
             guardados=[_perfil(nombre="Canal")])
-        self.assertTrue(_esperar(lambda: dialogo._canales_leidos))
-        with mock.patch.object(restream_ventana, "DialogoPerfilRestream",
+        self.assertTrue(_esperar(lambda: dialogo._destinos))
+        with mock.patch.object(restream_pagina_perfiles,
+                               "DialogoPerfilRestream",
                                side_effect=abrir_editor), \
-                mock.patch.object(restream_ventana, "anunciar"):
-            dialogo._nuevo()
-            dialogo.lista_perfiles.SetSelection(0)
-            dialogo._editar()
+                mock.patch.object(restream_pagina_perfiles, "anunciar"):
+            dialogo._pagina_perfiles.nuevo()
+            dialogo._pagina_perfiles.lista_perfiles.SetSelection(0)
+            dialogo._pagina_perfiles.editar()
 
         self.assertEqual(1, len(llamadas))
         self.assertEqual([_canales(), _canales()], recibidos)
 
-    def test_p3_lista_con_nombre_orientacion_y_canales(self):
+    def test_p3_lista_con_nombre_orientacion_y_destinos(self):
         primera = _perfil(nombre="TikTok", canales=(1,), orientacion="vertical")
         segunda = _perfil(nombre="TikTok y YouTube", canales=(1, 2))
         dialogo = self._ventana(guardados=[primera, segunda])
+        lista = dialogo._pagina_perfiles.lista_perfiles
 
-        self.assertEqual("Perfiles de Restream",
-                         dialogo.lista_perfiles.GetName())
+        self.assertEqual("Perfiles de Restream", lista.GetName())
         self.assertEqual(
-            ["TikTok, vertical, 1 canal",
-             "TikTok y YouTube, horizontal, 2 canales"],
-            list(dialogo.lista_perfiles.GetStrings()))
-        self.assertEqual("&Nuevo…", dialogo.btn_nuevo.GetLabel())
-        self.assertEqual("&Editar…", dialogo.btn_editar.GetLabel())
-        self.assertEqual("D&uplicar", dialogo.btn_duplicar.GetLabel())
-        self.assertEqual("E&liminar", dialogo.btn_eliminar.GetLabel())
+            ["TikTok, vertical, 1 destino",
+             "TikTok y YouTube, horizontal, 2 destinos"],
+            list(lista.GetStrings()))
+        self.assertEqual("&Nuevo…", dialogo._pagina_perfiles.btn_nuevo.GetLabel())
+        self.assertEqual("&Editar…",
+                         dialogo._pagina_perfiles.btn_editar.GetLabel())
+        self.assertEqual("D&uplicar",
+                         dialogo._pagina_perfiles.btn_duplicar.GetLabel())
+        self.assertEqual("E&liminar",
+                         dialogo._pagina_perfiles.btn_eliminar.GetLabel())
 
     def test_p3_sin_seleccion_anuncia_y_no_hace_nada(self):
         dialogo = self._ventana()
-        with mock.patch.object(restream_ventana, "anunciar") as anunciar:
-            dialogo._editar()
-            dialogo._duplicar()
-            dialogo._eliminar()
+        pagina = dialogo._pagina_perfiles
+        with mock.patch.object(restream_pagina_perfiles,
+                               "anunciar") as anunciar:
+            pagina.editar()
+            pagina.duplicar()
+            pagina.eliminar()
 
         self.assertEqual([mock.call("Sin selección")] * 3,
                          anunciar.call_args_list)
@@ -379,48 +424,53 @@ class PruebaVentanaRestream(unittest.TestCase):
 
     def test_p3_intro_edita_y_supr_elimina(self):
         dialogo = self._ventana(guardados=[_perfil()])
-        lista = dialogo.lista_perfiles
+        pagina = dialogo._pagina_perfiles
+        lista = pagina.lista_perfiles
         lista.SetSelection(0)
 
         evento = mock.Mock()
         evento.GetKeyCode.return_value = wx.WXK_RETURN
         evento.GetEventObject.return_value = lista
-        with mock.patch.object(dialogo, "_editar") as editar:
-            dialogo._al_tecla(evento)
+        with mock.patch.object(pagina, "editar") as editar:
+            pagina._al_tecla(evento)
         editar.assert_called_once_with()
 
         evento = mock.Mock()
         evento.GetKeyCode.return_value = wx.WXK_DELETE
         evento.GetEventObject.return_value = lista
-        with mock.patch.object(dialogo, "_eliminar") as eliminar:
-            dialogo._al_tecla(evento)
+        with mock.patch.object(pagina, "eliminar") as eliminar:
+            pagina._al_tecla(evento)
         eliminar.assert_called_once_with()
 
     def test_p5_nuevo_guarda_y_anuncia(self):
         nuevo = _perfil(nombre="Nuevo", canales=(1,))
         dialogo = self._ventana(guardados=[])
-        with mock.patch.object(restream_ventana, "DialogoPerfilRestream",
+        with mock.patch.object(restream_pagina_perfiles,
+                               "DialogoPerfilRestream",
                                return_value=_DialogoFalso(nuevo)), \
-                mock.patch.object(restream_ventana, "anunciar") as anunciar:
-            dialogo._nuevo()
+                mock.patch.object(restream_pagina_perfiles,
+                                  "anunciar") as anunciar:
+            dialogo._pagina_perfiles.nuevo()
 
         self.assertEqual([nuevo], perfiles.cargar(self.ruta))
-        self.assertEqual(0, dialogo.lista_perfiles.GetSelection())
-        anunciar.assert_called_once_with("Perfil guardado.")
+        self.assertEqual(0,
+                         dialogo._pagina_perfiles.lista_perfiles.GetSelection())
+        anunciar.assert_called_once_with("Perfil de Restream guardado.")
 
     def test_p5_duplicar_escribe_copia_de_x_y_su_numero(self):
         original = _perfil(nombre="Canal")
         dialogo = self._ventana(guardados=[original])
-        with mock.patch.object(restream_ventana, "anunciar") as anunciar:
-            dialogo._duplicar()
+        with mock.patch.object(restream_pagina_perfiles,
+                               "anunciar") as anunciar:
+            dialogo._pagina_perfiles.duplicar()
         self.assertEqual(
             [original, _perfil(nombre="Copia de Canal")],
             perfiles.cargar(self.ruta))
-        anunciar.assert_called_once_with("Perfil duplicado.")
+        anunciar.assert_called_once_with("Perfil de Restream duplicado.")
 
-        dialogo.lista_perfiles.SetSelection(0)
-        with mock.patch.object(restream_ventana, "anunciar"):
-            dialogo._duplicar()
+        dialogo._pagina_perfiles.lista_perfiles.SetSelection(0)
+        with mock.patch.object(restream_pagina_perfiles, "anunciar"):
+            dialogo._pagina_perfiles.duplicar()
         self.assertEqual(
             [original, _perfil(nombre="Copia de Canal"),
              _perfil(nombre="Copia de Canal 2")],
@@ -429,10 +479,10 @@ class PruebaVentanaRestream(unittest.TestCase):
     def test_p5_duplicar_tres_veces_no_repite_nombres(self):
         original = _perfil(nombre="Canal")
         dialogo = self._ventana(guardados=[original])
-        with mock.patch.object(restream_ventana, "anunciar"):
+        with mock.patch.object(restream_pagina_perfiles, "anunciar"):
             for _ in range(3):
-                dialogo.lista_perfiles.SetSelection(0)
-                dialogo._duplicar()
+                dialogo._pagina_perfiles.lista_perfiles.SetSelection(0)
+                dialogo._pagina_perfiles.duplicar()
 
         nombres = [perfil.nombre for perfil in perfiles.cargar(self.ruta)]
         self.assertEqual(
@@ -445,13 +495,190 @@ class PruebaVentanaRestream(unittest.TestCase):
         primera = _perfil(nombre="Primero")
         segunda = _perfil(nombre="Segundo")
         dialogo = self._ventana(guardados=[primera, segunda])
-        dialogo.lista_perfiles.SetSelection(0)
-        with mock.patch.object(restream_ventana, "anunciar") as anunciar:
-            dialogo._eliminar()
+        dialogo._pagina_perfiles.lista_perfiles.SetSelection(0)
+        with mock.patch.object(restream_pagina_perfiles,
+                               "anunciar") as anunciar:
+            dialogo._pagina_perfiles.eliminar()
 
         self.assertEqual([segunda], perfiles.cargar(self.ruta))
-        self.assertEqual(0, dialogo.lista_perfiles.GetSelection())
-        anunciar.assert_called_once_with("Perfil eliminado.")
+        self.assertEqual(0,
+                         dialogo._pagina_perfiles.lista_perfiles.GetSelection())
+        anunciar.assert_called_once_with("Perfil de Restream eliminado.")
+
+    def test_p3_destinos_muestra_plataforma_nombre_y_desactivado(self):
+        destinos = [Canal(1, 67, "TikTok", "uno", "", True),
+                    Canal(2, 5, "YouTube", "dos", "", False)]
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=lambda: list(destinos))
+        pagina = dialogo._pagina_destinos
+        self.assertTrue(_esperar(lambda: pagina.lista.GetCount() == 2))
+
+        self.assertEqual(["TikTok: uno", "YouTube: dos, desactivado"],
+                         list(pagina.lista.GetStrings()))
+        self.assertEqual("Destinos", pagina.lista.GetName())
+        self.assertEqual("&Agregar destino…", pagina.btn_agregar.GetLabel())
+        self.assertEqual("&Eliminar destino", pagina.btn_eliminar.GetLabel())
+        self.assertEqual("A&ctualizar", pagina.btn_actualizar.GetLabel())
+        self.assertEqual("Agregar destino", pagina.btn_agregar.GetName())
+        self.assertEqual("Eliminar destino", pagina.btn_eliminar.GetName())
+        self.assertEqual("Actualizar", pagina.btn_actualizar.GetName())
+
+    def test_p3_destinos_instala_la_busqueda_por_teclado(self):
+        with mock.patch.object(restream_pagina_destinos,
+                               "instalar_busqueda_tipo") as instalar:
+            dialogo = self._ventana()
+        instalar.assert_called_once()
+        self.assertIs(dialogo._pagina_destinos.lista,
+                      instalar.call_args.args[0])
+
+    def test_p3_destinos_supr_elimina(self):
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=_destinos)
+        pagina = dialogo._pagina_destinos
+        self.assertTrue(_esperar(lambda: pagina.lista.GetCount() == 2))
+        pagina.lista.SetSelection(0)
+
+        evento = mock.Mock()
+        evento.GetEventObject.return_value = pagina.lista
+        evento.GetKeyCode.return_value = wx.WXK_DELETE
+        with mock.patch.object(pagina, "_al_eliminar") as eliminar:
+            pagina._al_tecla(evento)
+        eliminar.assert_called_once_with()
+
+    def test_p4_agregar_destino_abre_la_pagina_y_al_volver_anuncia_los_nuevos(
+            self):
+        destinos = [Canal(1, 67, "TikTok", "uno", "", True)]
+        lecturas = []
+
+        def leer():
+            lecturas.append(True)
+            return list(destinos)
+
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=leer)
+        self.assertTrue(_esperar(lambda: dialogo._destinos))
+        with mock.patch.object(restream_pagina_destinos,
+                               "abrir_navegador") as abrir, \
+                mock.patch.object(restream_ventana,
+                                  "anunciar") as anunciar:
+            dialogo._pagina_destinos._agregar()
+            abrir.assert_called_once_with(restream_pagina_destinos.URL_DESTINOS)
+            anunciar.assert_called_once_with(
+                "Restream se abre en el navegador. Agrega el destino ahí y "
+                "vuelve a Bellbird.")
+
+            destinos.append(Canal(2, 5, "YouTube", "dos", "", True))
+            evento = mock.Mock()
+            evento.GetActive.return_value = True
+            dialogo._al_activar(evento)
+            self.assertTrue(_esperar(
+                lambda: "Destino agregado: YouTube: dos."
+                in [llamada.args[0] for llamada in anunciar.call_args_list]))
+            evento.Skip.assert_called()
+
+            anunciar.reset_mock()
+            antes = len(lecturas)
+            dialogo._al_activar(evento)
+            wx.Yield()
+            self.assertEqual(antes, len(lecturas))
+            anunciar.assert_not_called()
+
+    def test_p5_la_pregunta_nombra_el_destino_y_los_perfiles(self):
+        dialogo = self._ventana()
+        self.assertEqual(
+            "¿Eliminar TikTok: uno de la cuenta de Restream? Los perfiles "
+            "de Restream que lo usan dejan de transmitir ahí.",
+            dialogo._pagina_destinos.pregunta("TikTok: uno"))
+
+    def test_p5_eliminar_destino_pregunta_lo_borra_y_anuncia(self):
+        destinos = [Canal(1, 67, "TikTok", "uno", "", True),
+                    Canal(2, 5, "YouTube", "dos", "", True)]
+        eliminados = []
+
+        def eliminar(identificador):
+            eliminados.append(identificador)
+
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=lambda: list(destinos),
+            eliminar=eliminar)
+        pagina = dialogo._pagina_destinos
+        self.assertTrue(_esperar(lambda: pagina.lista.GetCount() == 2))
+        pagina.lista.SetSelection(0)
+
+        with mock.patch.object(pagina, "confirmar",
+                               return_value=True) as confirmar, \
+                mock.patch.object(restream_ventana,
+                                  "anunciar") as anunciar:
+            dialogo._eliminar_destino()
+            confirmar.assert_called_once_with("TikTok: uno")
+            self.assertTrue(_esperar(lambda: eliminados))
+            self.assertTrue(_esperar(
+                lambda: "Destino eliminado."
+                in [llamada.args[0] for llamada in anunciar.call_args_list]))
+
+        self.assertEqual([1], eliminados)
+        self.assertEqual([2], [destino.id for destino in dialogo._destinos])
+        self.assertEqual(["YouTube: dos"], list(pagina.lista.GetStrings()))
+
+    def test_p5_eliminar_destino_que_falla_suena_anuncia_y_deja_su_texto(
+            self):
+        destinos = [Canal(1, 67, "TikTok", "uno", "", True)]
+
+        def eliminar(_identificador):
+            raise ErrorApi()
+
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=lambda: list(destinos),
+            eliminar=eliminar)
+        pagina = dialogo._pagina_destinos
+        self.assertTrue(_esperar(lambda: pagina.lista.GetCount() == 1))
+        pagina.lista.SetSelection(0)
+
+        with mock.patch.object(pagina, "confirmar", return_value=True), \
+                mock.patch.object(restream_ventana,
+                                  "anunciar") as anunciar, \
+                mock.patch.object(restream_ventana._snd,
+                                  "reproducir") as sonar:
+            dialogo._eliminar_destino()
+            self.assertTrue(_esperar(lambda: sonar.called))
+            self.assertTrue(_esperar(lambda: anunciar.called))
+
+        sonar.assert_called_once_with("error")
+        anunciar.assert_called_once_with(
+            "No se pudo eliminar el destino. Vuelve a intentarlo.")
+        lineas = dialogo._pagina_cuenta.txt_estado.GetValue().splitlines()
+        self.assertEqual("Cuenta de Restream conectada.", lineas[0])
+        self.assertIn(
+            "No se pudo eliminar el destino. Vuelve a intentarlo.", lineas)
+        self.assertEqual([1], [destino.id for destino in dialogo._destinos])
+
+    def test_p6_la_cuenta_dice_correo_y_destinos(self):
+        datos = SimpleNamespace(correo="manu@example.com",
+                                usuario="manolopez643")
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=_destinos,
+            perfil=lambda: datos)
+        self.assertTrue(_esperar(
+            lambda: "manu@example.com"
+            in dialogo._pagina_cuenta.txt_estado.GetValue()))
+        self.assertTrue(_esperar(
+            lambda: "Destinos:" in dialogo._pagina_cuenta.txt_estado.GetValue()))
+
+        lineas = dialogo._pagina_cuenta.txt_estado.GetValue().splitlines()
+        self.assertEqual("Cuenta conectada: manu@example.com.", lineas[0])
+        self.assertEqual("Destinos: TikTok: uno, YouTube: dos.", lineas[1])
+
+    def test_p6_sin_correo_usa_el_nombre_de_usuario(self):
+        datos = SimpleNamespace(correo="", usuario="manolopez643")
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=lambda: [],
+            perfil=lambda: datos)
+        self.assertTrue(_esperar(
+            lambda: "manolopez643"
+            in dialogo._pagina_cuenta.txt_estado.GetValue()))
+        self.assertEqual(
+            "Cuenta conectada: manolopez643.",
+            dialogo._pagina_cuenta.txt_estado.GetValue().splitlines()[0])
 
     def test_letras_de_acceso_sin_repetir_en_cada_pestana(self):
         dialogo = self._ventana(guardados=[_perfil()])
@@ -465,6 +692,33 @@ class PruebaVentanaRestream(unittest.TestCase):
             dialogo = self._ventana(guardados=[_perfil(nombre="TikTok")])
             sin_marcar = textos_sin_marcar(dialogo, propios=("TikTok",))
         self.assertEqual([], sin_marcar)
+
+
+class PruebaVisibilidadYoutube(unittest.TestCase):
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def test_p7_privacidad_y_latencia_solo_con_youtube_marcado(self):
+        dialogo = restream_perfil.DialogoPerfilRestream(
+            None, None, _canales(), [])
+        self.addCleanup(destruir, dialogo)
+
+        nombres = [control.GetName() for control in _controles_en_orden(dialogo)]
+        self.assertNotIn("Privacidad en YouTube", nombres)
+        self.assertNotIn("Latencia en YouTube", nombres)
+
+        dialogo._casillas[1][1].SetValue(True)
+        dialogo._actualizar_youtube()
+        nombres = [control.GetName() for control in _controles_en_orden(dialogo)]
+        self.assertIn("Privacidad en YouTube", nombres)
+        self.assertIn("Latencia en YouTube", nombres)
+
+        dialogo._casillas[1][1].SetValue(False)
+        dialogo._actualizar_youtube()
+        nombres = [control.GetName() for control in _controles_en_orden(dialogo)]
+        self.assertNotIn("Privacidad en YouTube", nombres)
+        self.assertNotIn("Latencia en YouTube", nombres)
 
 
 class PruebaDialogoPerfil(unittest.TestCase):
@@ -486,9 +740,17 @@ class PruebaDialogoPerfil(unittest.TestCase):
         self.assertEqual("Nuevo perfil de Restream", dialogo.GetTitle())
         self.assertEqual(
             ["Nombre", "Orientación", "TikTok: uno", "YouTube: dos",
+             "Título", "Descripción, opcional", "Guardar", "Cancelar"],
+            [control.GetName() for control in _controles_en_orden(dialogo)])
+
+        dialogo._casillas[1][1].SetValue(True)
+        dialogo._actualizar_youtube()
+        self.assertEqual(
+            ["Nombre", "Orientación", "TikTok: uno", "YouTube: dos",
              "Título", "Descripción, opcional", "Privacidad en YouTube",
              "Latencia en YouTube", "Guardar", "Cancelar"],
             [control.GetName() for control in _controles_en_orden(dialogo)])
+
         self.assertEqual(
             [_(ETIQUETAS_PRIVACIDAD[p]) for p in PRIVACIDADES],
             list(dialogo.cho_privacidad.GetStrings()))
@@ -521,7 +783,7 @@ class PruebaDialogoPerfil(unittest.TestCase):
                     nombre_de_etiqueta(hijo.GetLabel()), siguiente.GetName())
         self.assertEqual(6, rotulos)
 
-    def test_p4_sin_canales_muestra_la_nota_y_valida(self):
+    def test_p4_sin_destinos_muestra_la_nota_y_valida(self):
         dialogo = self._dialogo(canales=[])
         dialogo.txt_nombre.SetValue("Prueba")
         with mock.patch.object(restream_perfil, "anunciar") as anunciar, \
@@ -529,7 +791,8 @@ class PruebaDialogoPerfil(unittest.TestCase):
             dialogo._guardar(None)
 
         texto = anunciar.call_args.args[0]
-        self.assertIn("Agrega al menos un canal al perfil.", texto)
+        self.assertIn("Agrega al menos un destino al perfil de Restream.",
+                      texto)
         fin.assert_not_called()
         self.assertIsNone(dialogo.perfil())
 
@@ -543,7 +806,8 @@ class PruebaDialogoPerfil(unittest.TestCase):
                 mock.patch.object(dialogo, "EndModal") as fin:
             dialogo._guardar(None)
 
-        anunciar.assert_called_once_with("Ya existe un perfil con ese nombre.")
+        anunciar.assert_called_once_with(
+            "Ya existe un perfil de Restream con ese nombre.")
         foco.assert_called_once_with()
         fin.assert_not_called()
 
@@ -565,14 +829,15 @@ class PruebaDialogoPerfil(unittest.TestCase):
                    latencia=LATENCIA_INICIAL),
             dialogo.perfil())
 
-    def test_p6_canal_sobrante_avisa_y_queda_fuera_al_guardar(self):
+    def test_p6_destino_sobrante_avisa_y_queda_fuera_al_guardar(self):
         perfil = _perfil(nombre="Viejo", canales=(1, 99))
         dialogo = self._dialogo(
             perfil=perfil, canales=[(1, "TikTok: uno")])
         self.assertEqual(1, len(dialogo._casillas))
         self.assertIn(
-            "Hay 1 canal del perfil que ya no está en Restream. Se eliminará "
-            "al guardar.", dialogo._nota_sobrantes.GetLabel())
+            "Hay 1 destino del perfil de Restream que ya no está en "
+            "Restream. Se eliminará al guardar.",
+            dialogo._nota_sobrantes.GetLabel())
 
         with mock.patch.object(dialogo, "EndModal") as fin:
             dialogo._guardar(None)
@@ -581,17 +846,18 @@ class PruebaDialogoPerfil(unittest.TestCase):
 
         plural = self._dialogo(perfil=_perfil(canales=(98, 99)))
         self.assertIn(
-            "Hay 2 canales del perfil que ya no están en Restream. Se "
-            "eliminarán al guardar.", plural._nota_sobrantes.GetLabel())
+            "Hay 2 destinos del perfil de Restream que ya no están en "
+            "Restream. Se eliminarán al guardar.",
+            plural._nota_sobrantes.GetLabel())
 
-    def test_p6_sin_canales_la_caja_lo_dice(self):
+    def test_p6_sin_destinos_la_caja_lo_dice(self):
         dialogo = self._dialogo(canales=[])
         caja = dialogo._caja_canales.GetStaticBox()
+        self.assertEqual("Destinos", caja.GetLabel())
         textos = [hijo.GetLabel() for hijo in caja.GetChildren()
                   if isinstance(hijo, wx.StaticText)]
         self.assertIn(
-            "No hay canales. Conecta la cuenta de Restream y agrega los "
-            "canales en su página.", textos)
+            "No hay destinos. Agrégalos en la pestaña Destinos.", textos)
 
     def test_letras_de_acceso_sin_repetir_en_el_dialogo(self):
         self.assertEqual({}, letras_repetidas(self._dialogo()))

@@ -117,22 +117,33 @@ def validar(perfil, existentes) -> list[str]:
     mensajes = []
     nombre = (perfil.nombre or "").strip()
     if not nombre:
-        mensajes.append(_("Escribe un nombre para el perfil."))
+        mensajes.append(_("Escribe un nombre para el perfil de Restream."))
     elif nombre.casefold() == "youtube":
         mensajes.append(_("El nombre «YouTube» está reservado. Elige otro."))
     else:
         for existente in existentes or []:
             if existente.nombre.strip().casefold() == nombre.casefold():
-                mensajes.append(_("Ya existe un perfil con ese nombre."))
+                mensajes.append(_("Ya existe un perfil de Restream con ese nombre."))
                 break
 
     if not perfil.canales:
-        mensajes.append(_("Agrega al menos un canal al perfil."))
+        mensajes.append(_("Agrega al menos un destino al perfil de Restream."))
+    mensajes.extend(_mensajes_de_opciones(perfil))
+    return mensajes
+
+
+def _mensajes_de_opciones(perfil):
+    mensajes = []
     if perfil.orientacion not in ORIENTACIONES:
         mensajes.append(
-            _("La orientación del perfil debe ser horizontal o vertical."))
+            _("La orientación del perfil de Restream debe ser horizontal o "
+              "vertical."))
     if perfil.privacidad not in PRIVACIDADES:
-        mensajes.append(_("La privacidad del perfil no está entre las opciones."))
+        mensajes.append(
+            _("La privacidad del perfil de Restream no está entre las "
+              "opciones."))
     if perfil.latencia not in LATENCIAS:
-        mensajes.append(_("La latencia del perfil no está entre las opciones."))
+        mensajes.append(
+            _("La latencia del perfil de Restream no está entre las "
+              "opciones."))
     return mensajes

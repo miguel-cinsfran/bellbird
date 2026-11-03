@@ -4215,8 +4215,8 @@ msgid "No se puede retroceder más en este directo"
 msgstr "Cannot go further back in this live stream"
 
 #: bellbird/restream/api.py
-msgid "No se pudieron leer los canales de Restream. Vuelve a intentarlo."
-msgstr "Could not read the Restream channels. Try again."
+msgid "No se pudieron leer los destinos de Restream. Vuelve a intentarlo."
+msgstr "Could not read the Restream destinations. Try again."
 
 #: bellbird/restream/api.py
 #, python-brace-format
@@ -4258,32 +4258,32 @@ msgstr ""
 "again from Bellbird."
 
 #: bellbird/restream/perfiles.py
-msgid "Escribe un nombre para el perfil."
-msgstr "Type a name for the profile."
+msgid "Escribe un nombre para el perfil de Restream."
+msgstr "Type a name for the Restream profile."
 
 #: bellbird/restream/perfiles.py
 msgid "El nombre «YouTube» está reservado. Elige otro."
 msgstr "The name «YouTube» is reserved. Choose another."
 
 #: bellbird/restream/perfiles.py
-msgid "Ya existe un perfil con ese nombre."
-msgstr "A profile with that name already exists."
+msgid "Ya existe un perfil de Restream con ese nombre."
+msgstr "A Restream profile with that name already exists."
 
 #: bellbird/restream/perfiles.py
-msgid "Agrega al menos un canal al perfil."
-msgstr "Add at least one channel to the profile."
+msgid "Agrega al menos un destino al perfil de Restream."
+msgstr "Add at least one destination to the Restream profile."
 
 #: bellbird/restream/perfiles.py
-msgid "La orientación del perfil debe ser horizontal o vertical."
-msgstr "The profile orientation must be horizontal or vertical."
+msgid "La orientación del perfil de Restream debe ser horizontal o vertical."
+msgstr "The Restream profile orientation must be horizontal or vertical."
 
 #: bellbird/restream/perfiles.py
-msgid "La privacidad del perfil no está entre las opciones."
-msgstr "The profile privacy is not one of the options."
+msgid "La privacidad del perfil de Restream no está entre las opciones."
+msgstr "The Restream profile privacy is not one of the options."
 
 #: bellbird/restream/perfiles.py
-msgid "La latencia del perfil no está entre las opciones."
-msgstr "The profile latency is not one of the options."
+msgid "La latencia del perfil de Restream no está entre las opciones."
+msgstr "The Restream profile latency is not one of the options."
 
 #: bellbird/restream/sesion.py
 msgid "La respuesta del servidor de tokens no trajo un token de acceso."
@@ -4440,12 +4440,12 @@ msgstr "Turn overload warnings on or off"
 
 #. Traductores: acción del atajo que conecta el chat.
 #: bellbird/ui/atajos_captura.py bellbird/ui/gui.py
-#: bellbird/ui/restream_ventana.py
+#: bellbird/ui/restream_pagina_cuenta.py
 msgid "Conectar"
 msgstr "Connect"
 
 #. Traductores: acción del atajo que desconecta el chat.
-#: bellbird/ui/atajos_captura.py bellbird/ui/restream_ventana.py
+#: bellbird/ui/atajos_captura.py bellbird/ui/restream_pagina_cuenta.py
 msgid "Desconectar"
 msgstr "Disconnect"
 
@@ -4898,7 +4898,7 @@ msgstr "Videos"
 msgid "Listas"
 msgstr "Playlists"
 
-#: bellbird/ui/buscador_filtros.py bellbird/ui/restream_perfil.py
+#: bellbird/ui/buscador_filtros.py
 msgid "Canales"
 msgstr "Channels"
 
@@ -5661,7 +5661,7 @@ msgstr ""
 
 #. Traductores: nombre accesible del botón para conectar.
 #: bellbird/ui/gui.py bellbird/ui/gui_historial.py bellbird/ui/gui_menu.py
-#: bellbird/ui/restream_ventana.py
+#: bellbird/ui/restream_pagina_cuenta.py
 msgid "&Conectar"
 msgstr "&Connect"
 
@@ -6021,7 +6021,8 @@ msgstr "TikTok live stream by @{usuario}: reading the chat."
 msgid "(no disponible)"
 msgstr "(not available)"
 
-#: bellbird/ui/gui.py bellbird/ui/gui_menu.py bellbird/ui/restream_ventana.py
+#: bellbird/ui/gui.py bellbird/ui/gui_menu.py
+#: bellbird/ui/restream_pagina_cuenta.py
 msgid "&Desconectar"
 msgstr "&Disconnect"
 
@@ -6796,7 +6797,7 @@ msgstr ""
 "regular video does."
 
 #: bellbird/ui/gui_historial.py bellbird/ui/preferencias_programados.py
-#: bellbird/ui/restream_ventana.py
+#: bellbird/ui/restream_pagina_perfiles.py
 msgid "E&liminar"
 msgstr "De&lete"
 
@@ -6810,7 +6811,8 @@ msgstr "Cl&ose"
 msgid "Historial de {plataforma}"
 msgstr "{plataforma} history"
 
-#: bellbird/ui/gui_historial.py bellbird/ui/restream_ventana.py
+#: bellbird/ui/gui_historial.py bellbird/ui/restream_pagina_perfiles.py
+#: bellbird/ui/restream_ventana.py
 msgid "Sin selección"
 msgstr "Nothing selected"
 
@@ -9286,6 +9288,140 @@ msgstr "&Delete from history"
 msgid "Abrir &historial completo"
 msgstr "Open full &history"
 
+#: bellbird/ui/restream_pagina_cuenta.py
+msgid "Estado de la cuenta"
+msgstr "Account status"
+
+#: bellbird/ui/restream_pagina_cuenta.py
+msgid "&Volver a autorizar"
+msgstr "&Reauthorize"
+
+#: bellbird/ui/restream_pagina_cuenta.py
+msgid "Volver a autorizar"
+msgstr "Reauthorize"
+
+#: bellbird/ui/restream_pagina_cuenta.py
+#, python-brace-format
+msgid "Cuenta conectada: {nombre}."
+msgstr "Account connected: {nombre}."
+
+#: bellbird/ui/restream_pagina_cuenta.py bellbird/ui/restream_ventana.py
+msgid "Cuenta de Restream conectada."
+msgstr "Restream account connected."
+
+#: bellbird/ui/restream_pagina_cuenta.py
+#, python-brace-format
+msgid "Destinos: {destinos}."
+msgstr "Destinations: {destinos}."
+
+#: bellbird/ui/restream_pagina_cuenta.py
+msgid "Sin cuenta de Restream conectada."
+msgstr "No Restream account connected."
+
+#: bellbird/ui/restream_pagina_destinos.py
+#, python-brace-format
+msgid "{destino}, desactivado"
+msgstr "{destino}, disabled"
+
+#: bellbird/ui/restream_pagina_destinos.py bellbird/ui/restream_perfil.py
+#: bellbird/ui/restream_ventana.py
+msgid "Destinos"
+msgstr "Destinations"
+
+#: bellbird/ui/restream_pagina_destinos.py
+msgid "&Agregar destino…"
+msgstr "&Add destination…"
+
+#: bellbird/ui/restream_pagina_destinos.py
+msgid "Agregar destino"
+msgstr "Add destination"
+
+#: bellbird/ui/restream_pagina_destinos.py
+msgid "&Eliminar destino"
+msgstr "&Delete destination"
+
+#: bellbird/ui/restream_pagina_destinos.py
+msgid "Eliminar destino"
+msgstr "Delete destination"
+
+#: bellbird/ui/restream_pagina_destinos.py
+msgid "A&ctualizar"
+msgstr "&Refresh"
+
+#: bellbird/ui/restream_pagina_destinos.py
+msgid "Actualizar"
+msgstr "Refresh"
+
+#: bellbird/ui/restream_pagina_destinos.py
+#, python-brace-format
+msgid ""
+"¿Eliminar {destino} de la cuenta de Restream? Los perfiles de Restream que "
+"lo usan dejan de transmitir ahí."
+msgstr ""
+"Delete {destino} from the Restream account? The Restream profiles that use "
+"it stop broadcasting there."
+
+#: bellbird/ui/restream_pagina_perfiles.py bellbird/ui/restream_ventana.py
+msgid "Perfiles de Restream"
+msgstr "Restream profiles"
+
+#: bellbird/ui/restream_pagina_perfiles.py
+msgid "&Nuevo…"
+msgstr "&New…"
+
+#: bellbird/ui/restream_pagina_perfiles.py
+msgid "Nuevo"
+msgstr "New"
+
+#: bellbird/ui/restream_pagina_perfiles.py
+msgid "&Editar…"
+msgstr "&Edit…"
+
+#: bellbird/ui/restream_pagina_perfiles.py
+msgid "Editar"
+msgstr "Edit"
+
+#: bellbird/ui/restream_pagina_perfiles.py
+msgid "D&uplicar"
+msgstr "D&uplicate"
+
+#: bellbird/ui/restream_pagina_perfiles.py
+msgid "Duplicar"
+msgstr "Duplicate"
+
+#: bellbird/ui/restream_pagina_perfiles.py
+msgid "Eliminar"
+msgstr "Delete"
+
+#: bellbird/ui/restream_pagina_perfiles.py
+#, python-brace-format
+msgid "{n} destino"
+msgid_plural "{n} destinos"
+msgstr[0] "{n} destination"
+msgstr[1] "{n} destinations"
+
+#: bellbird/ui/restream_pagina_perfiles.py
+#, python-brace-format
+msgid "{nombre}, {orientacion}, {destinos}"
+msgstr "{nombre}, {orientacion}, {destinos}"
+
+#: bellbird/ui/restream_pagina_perfiles.py
+msgid "Perfil de Restream guardado."
+msgstr "Restream profile saved."
+
+#: bellbird/ui/restream_pagina_perfiles.py
+msgid "Perfil de Restream duplicado."
+msgstr "Restream profile duplicated."
+
+#: bellbird/ui/restream_pagina_perfiles.py
+msgid "Perfil de Restream eliminado."
+msgstr "Restream profile deleted."
+
+#: bellbird/ui/restream_pagina_perfiles.py
+#, python-brace-format
+msgid "Copia de {nombre}"
+msgstr "Copy of {nombre}"
+
 #: bellbird/ui/restream_perfil.py
 msgid "Nuevo perfil de Restream"
 msgstr "New Restream profile"
@@ -9307,27 +9443,23 @@ msgid "Vertical"
 msgstr "Vertical"
 
 #: bellbird/ui/restream_perfil.py
-msgid ""
-"No hay canales. Conecta la cuenta de Restream y agrega los canales en su "
-"página."
-msgstr ""
-"There are no channels. Connect the Restream account and add the channels on"
-" its page."
+msgid "No hay destinos. Agrégalos en la pestaña Destinos."
+msgstr "There are no destinations. Add them on the Destinations tab."
 
 #: bellbird/ui/restream_perfil.py
 #, python-brace-format
 msgid ""
-"Hay {n} canal del perfil que ya no está en Restream. Se eliminará al "
-"guardar."
+"Hay {n} destino del perfil de Restream que ya no está en Restream. Se "
+"eliminará al guardar."
 msgid_plural ""
-"Hay {n} canales del perfil que ya no están en Restream. Se eliminarán al "
-"guardar."
+"Hay {n} destinos del perfil de Restream que ya no están en Restream. Se "
+"eliminarán al guardar."
 msgstr[0] ""
-"There is {n} channel in the profile that is no longer in Restream. It will "
-"be removed on save."
+"There is {n} destination in the Restream profile that is no longer in "
+"Restream. It will be deleted on save."
 msgstr[1] ""
-"There are {n} channels in the profile that are no longer in Restream. They "
-"will be removed on save."
+"There are {n} destinations in the Restream profile that are no longer in "
+"Restream. They will be deleted on save."
 
 #: bellbird/ui/restream_perfil.py
 msgid "&Título:"
@@ -9354,62 +9486,6 @@ msgid "Cuenta"
 msgstr "Account"
 
 #: bellbird/ui/restream_ventana.py
-msgid "Perfiles"
-msgstr "Profiles"
-
-#: bellbird/ui/restream_ventana.py
-msgid "Estado de la cuenta"
-msgstr "Account status"
-
-#: bellbird/ui/restream_ventana.py
-msgid "&Volver a autorizar"
-msgstr "&Reauthorize"
-
-#: bellbird/ui/restream_ventana.py
-msgid "Volver a autorizar"
-msgstr "Reauthorize"
-
-#: bellbird/ui/restream_ventana.py
-msgid "Perfiles de Restream"
-msgstr "Restream profiles"
-
-#: bellbird/ui/restream_ventana.py
-msgid "&Nuevo…"
-msgstr "&New…"
-
-#: bellbird/ui/restream_ventana.py
-msgid "Nuevo"
-msgstr "New"
-
-#: bellbird/ui/restream_ventana.py
-msgid "&Editar…"
-msgstr "&Edit…"
-
-#: bellbird/ui/restream_ventana.py
-msgid "Editar"
-msgstr "Edit"
-
-#: bellbird/ui/restream_ventana.py
-msgid "D&uplicar"
-msgstr "D&uplicate"
-
-#: bellbird/ui/restream_ventana.py
-msgid "Duplicar"
-msgstr "Duplicate"
-
-#: bellbird/ui/restream_ventana.py
-msgid "Eliminar"
-msgstr "Delete"
-
-#: bellbird/ui/restream_ventana.py
-msgid "Cuenta de Restream conectada."
-msgstr "Restream account connected."
-
-#: bellbird/ui/restream_ventana.py
-msgid "Sin cuenta de Restream conectada."
-msgstr "No Restream account connected."
-
-#: bellbird/ui/restream_ventana.py
 msgid ""
 "Abriendo el navegador para iniciar sesión en Restream. Autoriza y vuelve "
 "aquí."
@@ -9424,37 +9500,27 @@ msgid "Cuenta de Restream desconectada."
 msgstr "Restream account disconnected."
 
 #: bellbird/ui/restream_ventana.py
-msgid "No se pudieron leer los canales."
-msgstr "Could not read the channels."
-
-#: bellbird/ui/restream_ventana.py
 #, python-brace-format
-msgid "{n} canal"
-msgid_plural "{n} canales"
-msgstr[0] "{n} channel"
-msgstr[1] "{n} channels"
+msgid "Destino agregado: {destino}."
+msgstr "Destination added: {destino}."
 
 #: bellbird/ui/restream_ventana.py
-#, python-brace-format
-msgid "{nombre}, {orientacion}, {canales}"
-msgstr "{nombre}, {orientacion}, {canales}"
+msgid "No se pudieron leer los destinos."
+msgstr "Could not read the destinations."
 
 #: bellbird/ui/restream_ventana.py
-msgid "Perfil guardado."
-msgstr "Profile saved."
+msgid "Restream se abre en el navegador. Agrega el destino ahí y vuelve a Bellbird."
+msgstr ""
+"Restream opens in the browser. Add the destination there and return to "
+"Bellbird."
 
 #: bellbird/ui/restream_ventana.py
-msgid "Perfil duplicado."
-msgstr "Profile duplicated."
+msgid "No se pudo eliminar el destino. Vuelve a intentarlo."
+msgstr "Could not delete the destination. Try again."
 
 #: bellbird/ui/restream_ventana.py
-msgid "Perfil eliminado."
-msgstr "Profile deleted."
-
-#: bellbird/ui/restream_ventana.py
-#, python-brace-format
-msgid "Copia de {nombre}"
-msgstr "Copy of {nombre}"
+msgid "Destino eliminado."
+msgstr "Destination deleted."
 
 #: bellbird/ui/titulo_ventana.py
 msgid "(Transmitiendo y grabando)"

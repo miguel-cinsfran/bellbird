@@ -1,8 +1,10 @@
 """Diálogo para crear o editar un perfil de Restream (accesible).
 
-Pide el nombre, la orientación, los canales como casillas y lo que acepta
-YouTube: título, descripción, privacidad y latencia. La validación es de
-`perfiles.validar`; quien lo abrió guarda con `perfiles.guardar`.
+Pide el nombre, la orientación, los destinos como casillas y lo que acepta
+YouTube: título, descripción, privacidad y latencia. La privacidad y la
+latencia solo aparecen mientras haya marcado un destino de YouTube. La
+validación es de `perfiles.validar`; quien lo abrió guarda con
+`perfiles.guardar`.
 """
 
 from __future__ import annotations
@@ -15,7 +17,7 @@ from bellbird.restream.perfiles import ORIENTACIONES, Perfil
 from bellbird.ui import paleta
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.gui import caja_de_grupo
-from bellbird.ui.preferencias_comun import nombre_de_etiqueta
+from bellbird.ui.preferencias_comun import mostrar_control, nombre_de_etiqueta
 from bellbird.youtube.emision import (
     ETIQUETAS_LATENCIA,
     ETIQUETAS_PRIVACIDAD,
@@ -34,7 +36,7 @@ def _rotulo(padre, contenido, texto, crear_control):
     nombre_accesible(control, control.GetName())
     contenido.Add(rotulo, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
     contenido.Add(control, 0, wx.EXPAND | wx.ALL, 10)
-    return control
+    return rotulo, control
 
 
 class DialogoPerfilRestream(wx.Dialog):
@@ -51,6 +53,7 @@ class DialogoPerfilRestream(wx.Dialog):
                              in self._canales}
         self._resultado = None
         self._casillas = []
+        self._textos = {}
         self._nota_sobrantes = None
         self._crear_ui()
         paleta.pintar_ventana(self)
@@ -63,7 +66,7 @@ class DialogoPerfilRestream(wx.Dialog):
         contenido = wx.BoxSizer(wx.VERTICAL)
         self._agregar_nombre(zona, contenido)
         self._agregar_orientacion(zona, contenido)
-        self._agregar_canales(zona, contenido)
+        self._agregar_destinos(zona, contenido)
         self._agregar_youtube(zona, contenido)
         zona.SetSizer(contenido)
         vs.Add(zona, 1, wx.EXPAND)
@@ -90,20 +93,20 @@ class DialogoPerfilRestream(wx.Dialog):
 
     def _agregar_nombre(self, zona, contenido):
         valor = self._perfil.nombre if self._perfil is not None else ""
-        self.txt_nombre = _rotulo(
+        _rotulo_nombre, self.txt_nombre = _rotulo(
             zona, contenido, _("&Nombre:"),
             lambda: wx.TextCtrl(zona, value=valor))
 
     def _agregar_orientacion(self, zona, contenido):
-        self.cho_orientacion = _rotulo(
+        _rotulo_orientacion, self.cho_orientacion = _rotulo(
             zona, contenido, _("&Orientación:"),
             lambda: wx.Choice(zona, choices=[_("Horizontal"), _("Vertical")]))
         orientacion = (self._perfil.orientacion if self._perfil is not None
                        else ORIENTACIONES[0])
         self.cho_orientacion.SetSelection(ORIENTACIONES.index(orientacion))
 
-    def _agregar_canales(self, zona, contenido):
-        sizer, padre = caja_de_grupo(zona, _("Canales"))
+    def _agregar_destinos(self, zona, contenido):
+        sizer, padre = caja_de_grupo(zona, _("Destinos"))
         self._caja_canales = sizer
         for identificador, texto in self._canales:
             casilla = wx.CheckBox(padre, label=texto.replace("&", "&&"),
@@ -112,12 +115,15 @@ class DialogoPerfilRestream(wx.Dialog):
             if (self._perfil is not None
                     and identificador in self._perfil.canales):
                 casilla.SetValue(True)
+            casilla.Bind(wx.EVT_CHECKBOX,
+                         lambda evento: self._actualizar_youtube())
             self._casillas.append((identificador, casilla))
+            self._textos[identificador] = texto
             sizer.Add(casilla, 0, wx.ALL, 4)
         if not self._canales:
             sizer.Add(wx.StaticText(padre, label=_(
-                "No hay canales. Conecta la cuenta de Restream y agrega los "
-                "canales en su página.")), 0, wx.ALL, 4)
+                "No hay destinos. Agrégalos en la pestaña Destinos.")), 0,
+                wx.ALL, 4)
         contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
         self._nota_sobrantes = self._crear_nota_sobrantes(zona, contenido)
 
@@ -129,10 +135,10 @@ class DialogoPerfilRestream(wx.Dialog):
         if not sobrantes:
             return None
         texto = ngettext(
-            "Hay {n} canal del perfil que ya no está en Restream. Se eliminará "
-            "al guardar.",
-            "Hay {n} canales del perfil que ya no están en Restream. Se "
-            "eliminarán al guardar.",
+            "Hay {n} destino del perfil de Restream que ya no está en "
+            "Restream. Se eliminará al guardar.",
+            "Hay {n} destinos del perfil de Restream que ya no están en "
+            "Restream. Se eliminarán al guardar.",
             len(sobrantes)).format(n=len(sobrantes))
         nota = wx.StaticText(zona, label=texto)
         contenido.Add(nota, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
@@ -140,12 +146,12 @@ class DialogoPerfilRestream(wx.Dialog):
 
     def _agregar_youtube(self, zona, contenido):
         perfil = self._perfil
-        self.txt_titulo = _rotulo(
+        _rotulo_titulo, self.txt_titulo = _rotulo(
             zona, contenido, _("&Título:"),
             lambda: wx.TextCtrl(
                 zona, value=perfil.titulo if perfil is not None else ""))
 
-        self.txt_descripcion = _rotulo(
+        _rotulo_descripcion, self.txt_descripcion = _rotulo(
             zona, contenido, _("&Descripción, opcional:"),
             lambda: wx.TextCtrl(
                 zona, value=perfil.descripcion if perfil is not None else "",
@@ -153,7 +159,7 @@ class DialogoPerfilRestream(wx.Dialog):
         self.txt_descripcion.SetMinSize(
             (-1, 3 * self.txt_descripcion.GetCharHeight() + 12))
 
-        self.cho_privacidad = _rotulo(
+        self._rotulo_privacidad, self.cho_privacidad = _rotulo(
             zona, contenido, _("&Privacidad en YouTube:"),
             lambda: wx.Choice(
                 zona, choices=[_(ETIQUETAS_PRIVACIDAD[p])
@@ -162,12 +168,22 @@ class DialogoPerfilRestream(wx.Dialog):
                       else PRIVACIDAD_INICIAL)
         self.cho_privacidad.SetSelection(PRIVACIDADES.index(privacidad))
 
-        self.cho_latencia = _rotulo(
+        self._rotulo_latencia, self.cho_latencia = _rotulo(
             zona, contenido, _("&Latencia en YouTube:"),
             lambda: wx.Choice(
                 zona, choices=[_(ETIQUETAS_LATENCIA[l]) for l in LATENCIAS]))
         latencia = perfil.latencia if perfil is not None else LATENCIA_INICIAL
         self.cho_latencia.SetSelection(LATENCIAS.index(latencia))
+        self._actualizar_youtube()
+
+    def _actualizar_youtube(self):
+        youtube = any(casilla.GetValue()
+                      and self._textos[identificador].startswith("YouTube:")
+                      for identificador, casilla in self._casillas)
+        for control in (self._rotulo_privacidad, self.cho_privacidad,
+                        self._rotulo_latencia, self.cho_latencia):
+            mostrar_control(control, youtube, self.txt_titulo)
+        self.Layout()
 
     def perfil(self):
         return self._resultado

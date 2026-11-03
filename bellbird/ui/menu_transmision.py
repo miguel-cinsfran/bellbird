@@ -33,7 +33,10 @@ def abrir_restream(frame) -> None:
         frame, cuenta.sesion(), canales, paths.perfiles_restream(),
         al_conectar=cuenta.conectar,
         al_reautorizar=cuenta.conectar,
-        al_desconectar=cuenta.desconectar)
+        al_desconectar=cuenta.desconectar,
+        destinos=cuenta.canales,
+        perfil=cuenta.perfil,
+        eliminar=cuenta.eliminar_canal)
 
 
 def abrir_obs(frame) -> None:

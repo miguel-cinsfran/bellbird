@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 98c1cc81ca7c7e7b3519f029814284939fee5da6 -->
+<!-- original: es/MANUAL.md c2e1ff9ae8381b8579886bf08e45399a3bef8a63 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -371,6 +371,27 @@ stream.
 
 Everything can still be done by hand in OBS, and the application does not
 interrupt the OBS plugin for NVDA.
+
+### The Restream window
+
+*Restream…* opens the Restream window, with three tabs. With `Ctrl+Tab` you move
+from one to another.
+
+*Restream profiles* saves the broadcast profiles, which choose the destinations
+and the orientation. `Enter` edits the selected profile, `Delete` deletes it,
+and the buttons below create a new one, edit it, duplicate it or delete it. You
+can type to search the list.
+
+*Destinations* lists the channels of the account, with the platform and the
+name. Those Restream has disabled say "disabled" at the end. *Add destination…*
+opens the Restream page in the browser: add the destination there and return to
+Bellbird, which reads the list again and announces the new ones. *Delete
+destination* removes it from the account after confirming, and *Refresh* reads
+the list again.
+
+*Account* says which account is connected, with its email or its user name, and
+the destinations it has. From there you connect the account, reauthorize it or
+disconnect it.
 
 ## Camera framing
 

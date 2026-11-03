@@ -1,5 +1,6 @@
 """Pruebas de lo que se le pide a la API REST de Restream."""
 
+import os
 import unittest
 from unittest import mock
 
@@ -28,6 +29,21 @@ CANALES = [
      "displayName": "cuatro"},
 ]
 
+CANALES_ACTUALES = [
+    {"id": 10, "streamingPlatformId": 67, "embedUrl": "https://embed/uno",
+     "url": "https://tiktok.com/@uno", "identifier": "uno",
+     "displayName": "szeiryuGaming", "enabled": True},
+    {"id": 11, "streamingPlatformId": 5, "embedUrl": "https://embed/dos",
+     "url": "https://youtube.com/@dos", "identifier": "dos",
+     "displayName": "dos", "enabled": False},
+]
+
+PERFIL = {
+    "id": 1,
+    "username": "manolopez643_96db9af7",
+    "email": "manu@example.com",
+}
+
 
 def _sin_red(_pedido):
     raise httpx.ConnectError("sin red")
@@ -52,7 +68,7 @@ class TestCanales(unittest.TestCase):
             pedidos.append(pedido)
             if pedido.url.path == "/v2/platform/all":
                 return httpx.Response(200, json=PLATAFORMAS)
-            if pedido.url.path == "/v2/user/channels":
+            if pedido.url.path == "/v2/user/channel/all":
                 return httpx.Response(200, json=CANALES)
             return httpx.Response(404)
 
@@ -65,27 +81,39 @@ class TestCanales(unittest.TestCase):
              (11, 5, "YouTube", "dos", "https://youtube.com/@dos")],
             [(canal.id, canal.plataforma_id, canal.plataforma, canal.nombre,
               canal.url) for canal in resultado])
+        self.assertEqual([True, True, True, True],
+                         [canal.activo for canal in resultado])
         self.assertEqual(
             ["Facebook: cuatro", "TikTok: szeiryugaming",
              "Twitch: tres", "YouTube: dos"],
             [canal.texto for canal in resultado])
 
         pedido = [p for p in pedidos
-                  if p.url.path == "/v2/user/channels"][0]
+                  if p.url.path == "/v2/user/channel/all"][0]
         self.assertEqual(pedido.headers["authorization"], f"Bearer {TOKEN}")
         publicas = [p for p in pedidos if p.url.path == "/v2/platform/all"]
         self.assertEqual(len(publicas), 1)
         self.assertNotIn("authorization", publicas[0].headers)
 
-        def agrupado(pedido):
-            if pedido.url.path == "/v2/user/channels":
-                return httpx.Response(200, json={"channels": CANALES})
+    def test_p4_la_forma_de_channel_all_trae_la_plataforma_y_si_esta_activo(
+            self):
+        def manejar(pedido):
+            if pedido.url.path == "/v2/platform/all":
+                return httpx.Response(200, json=PLATAFORMAS)
+            if pedido.url.path == "/v2/user/channel/all":
+                return httpx.Response(200, json=CANALES_ACTUALES)
             return httpx.Response(404)
 
+        resultado = api.canales(TOKEN, self._cliente(manejar))
+
         self.assertEqual(
-            [13, 10, 12, 11],
-            [canal.id for canal in api.canales(
-                TOKEN, self._cliente(agrupado))])
+            [(10, 67, "TikTok", "szeiryuGaming",
+              "https://tiktok.com/@uno", True),
+             (11, 5, "YouTube", "dos", "https://youtube.com/@dos", False)],
+            [(canal.id, canal.plataforma_id, canal.plataforma, canal.nombre,
+              canal.url, canal.activo) for canal in resultado])
+        self.assertEqual(["TikTok: szeiryuGaming", "YouTube: dos"],
+                         [canal.texto for canal in resultado])
 
     def test_p4_salta_la_entrada_rota_y_cae_a_la_url(self):
         def manejar(pedido):
@@ -154,9 +182,105 @@ class TestCanales(unittest.TestCase):
                     with self.assertRaises(api.ErrorApi) as contexto:
                         api.canales(TOKEN, self._cliente(manejar))
 
-                self.assertIn("canales", str(contexto.exception).lower())
+                self.assertIn("destinos", str(contexto.exception).lower())
                 self.assertNotIn(TOKEN, str(contexto.exception))
                 self.assertNotIn(TOKEN, "\n".join(registro.output))
+
+
+class TestPerfil(unittest.TestCase):
+
+    def _cliente(self, manejar):
+        cliente = httpx.Client(transport=httpx.MockTransport(manejar))
+        self.addCleanup(cliente.close)
+        return cliente
+
+    def test_perfil_lee_correo_y_usuario(self):
+        visto = {}
+
+        def manejar(pedido):
+            visto["ruta"] = pedido.url.path
+            visto["autorizacion"] = pedido.headers.get("authorization")
+            return httpx.Response(200, json=PERFIL)
+
+        datos = api.perfil(TOKEN, self._cliente(manejar))
+
+        self.assertEqual("/v2/user/profile", visto["ruta"])
+        self.assertEqual(f"Bearer {TOKEN}", visto["autorizacion"])
+        self.assertEqual("manu@example.com", datos.correo)
+        self.assertEqual("manolopez643_96db9af7", datos.usuario)
+
+    def test_perfil_sin_correo_deja_el_correo_vacio(self):
+        def manejar(_pedido):
+            return httpx.Response(200, json={
+                "id": 1, "username": "manolopez643_96db9af7"})
+
+        datos = api.perfil(TOKEN, self._cliente(manejar))
+
+        self.assertEqual("", datos.correo)
+        self.assertEqual("manolopez643_96db9af7", datos.usuario)
+
+    def test_perfil_fuera_de_200_es_error_propio_sin_el_token(self):
+        def manejar(_pedido):
+            return httpx.Response(401, json={"error": "x"})
+
+        with self.assertLogs(api.logger, level="WARNING"):
+            with self.assertRaises(api.ErrorApi) as contexto:
+                api.perfil(TOKEN, self._cliente(manejar))
+
+        self.assertNotIn(TOKEN, str(contexto.exception))
+
+
+class TestEliminarCanal(unittest.TestCase):
+
+    def _cliente(self, manejar):
+        cliente = httpx.Client(transport=httpx.MockTransport(manejar))
+        self.addCleanup(cliente.close)
+        return cliente
+
+    def test_eliminar_canal_manda_delete_y_acepta_2xx(self):
+        visto = {}
+
+        def manejar(pedido):
+            visto["metodo"] = pedido.method
+            visto["url"] = str(pedido.url)
+            visto["autorizacion"] = pedido.headers.get("authorization")
+            return httpx.Response(204)
+
+        api.eliminar_canal(TOKEN, 10, self._cliente(manejar))
+
+        self.assertEqual("DELETE", visto["metodo"])
+        self.assertEqual("https://api.restream.io/v2/user/channels/10",
+                         visto["url"])
+        self.assertEqual(f"Bearer {TOKEN}", visto["autorizacion"])
+
+    def test_eliminar_canal_fuera_de_2xx_es_error_propio_sin_el_token(self):
+        def manejar(_pedido):
+            return httpx.Response(404, json={"error": "x"})
+
+        with self.assertLogs(api.logger, level="WARNING"):
+            with self.assertRaises(api.ErrorApi) as contexto:
+                api.eliminar_canal(TOKEN, 10, self._cliente(manejar))
+
+        self.assertNotIn(TOKEN, str(contexto.exception))
+
+
+@unittest.skipUnless(os.environ.get("BELLBIRD_PRUEBAS_CON_RED") == "1",
+                     "necesita la cuenta real de Restream")
+class TestContraRestreamReal(unittest.TestCase):
+
+    def test_perfil_y_canales_de_verdad(self):
+        from bellbird.restream import cuenta
+
+        token = cuenta.sesion().token()
+        if not token:
+            self.skipTest("no hay una cuenta de Restream conectada")
+
+        datos = api.perfil(token)
+        canales = api.canales(token)
+
+        self.assertIsInstance(datos.correo, str)
+        self.assertIsInstance(datos.usuario, str)
+        self.assertIsInstance(canales, list)
 
 
 if __name__ == "__main__":

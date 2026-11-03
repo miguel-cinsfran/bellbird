@@ -369,6 +369,27 @@ chat en el vídeo* con YouTube, y `Intro` nunca inicia ni finaliza un directo.
 Todo se puede seguir haciendo a mano en OBS, y la aplicación no interrumpe el
 complemento de OBS para NVDA.
 
+### La ventana de Restream
+
+*Restream…* abre la ventana de Restream, con tres pestañas. Con `Ctrl+Tab` pasas
+de una a otra.
+
+*Perfiles de Restream* guarda los perfiles de transmisión, que eligen los
+destinos y la orientación. `Intro` edita el perfil elegido, `Supr` lo elimina,
+y los botones de abajo crean uno nuevo, lo editan, lo duplican o lo eliminan.
+Puedes escribir para buscar en la lista.
+
+*Destinos* lista los canales de la cuenta, con la plataforma y el nombre. Los
+que Restream tiene desactivados dicen «desactivado» al final. *Agregar
+destino…* abre la página de Restream en el navegador: agrega ahí el destino y
+vuelve a Bellbird, que relee la lista y anuncia los nuevos. *Eliminar destino*
+lo quita de la cuenta después de confirmarlo, y *Actualizar* vuelve a leer la
+lista.
+
+*Cuenta* dice qué cuenta está conectada, con su correo o su nombre de usuario,
+y los destinos que tiene. Desde ahí conectas la cuenta, vuelves a autorizarla o
+la desconectas.
+
 ## Encuadre de cámara
 
 Si en la escena actual de OBS hay una cámara, la aplicación dice cómo se te ve

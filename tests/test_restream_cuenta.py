@@ -191,6 +191,22 @@ class TestCuenta(unittest.TestCase):
         with self.assertRaises(sesion.SesionVencida):
             cuenta.canales()
 
+    def test_perfil_usa_el_token_vigente(self):
+        self._sesion_conectada()
+
+        with mock.patch.object(api, "perfil", return_value="datos") as leer:
+            self.assertEqual("datos", cuenta.perfil("cliente"))
+
+        leer.assert_called_once_with(ACCESO, "cliente")
+
+    def test_eliminar_canal_usa_el_token_vigente(self):
+        self._sesion_conectada()
+
+        with mock.patch.object(api, "eliminar_canal") as borrar:
+            cuenta.eliminar_canal(7, "cliente")
+
+        borrar.assert_called_once_with(ACCESO, 7, "cliente")
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -32,6 +32,7 @@ from bellbird.ui import escena_pagina_fuentes
 from bellbird.ui import obs_ventana
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
+from bellbird.ui import restream_ventana
 from bellbird.voice import motores
 from tests.rutas_temporales import redirigir_rutas
 
@@ -334,6 +335,27 @@ class TestLetrasAccesoPanelObs(unittest.TestCase):
                     self.assertEqual(repetidas, {})
 
 
+class TestLetrasAccesoRestream(unittest.TestCase):
+    class _CuentaFalsa:
+        def conectada(self):
+            return False
+
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+        self.temporal = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporal.cleanup)
+        self.ruta = Path(self.temporal.name) / "perfiles_restream.json"
+
+    def test_cada_pestana_sin_letras_repetidas_con_lo_de_fuera(self):
+        dialogo = restream_ventana.VentanaRestream(
+            None, self._CuentaFalsa(), lambda: [], self.ruta)
+        self.addCleanup(destruir, dialogo)
+        for pagina, repetidas in repetidas_con_lo_de_fuera(
+                dialogo, dialogo.nb).items():
+            with self.subTest(pagina=pagina):
+                self.assertEqual(repetidas, {})
+
+
 class TestLetrasAccesoPrincipal(unittest.TestCase):
     def setUp(self):
         self.app = wx.App.Get() or wx.App(False)
@@ -491,6 +513,20 @@ class TestLetrasAccesoTransmisionEnIngles(TestLetrasAccesoTransmision):
 
 class TestLetrasAccesoPanelObsEnIngles(TestLetrasAccesoPanelObs):
     # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoRestreamEnIngles(TestLetrasAccesoRestream):
+    # Gemela en inglés: repite la prueba sin copiarla.
 
     @classmethod
     def setUpClass(cls):

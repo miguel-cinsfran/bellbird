@@ -24,6 +24,7 @@ from bellbird.restream import sesion
 logger = logging.getLogger(__name__)
 
 CLIENT_ID = "f6eefc35-0057-49eb-93a0-cd2d95ec18be"
+SERVICIO = "https://restream-tokens.bellbird.workers.dev"
 PUERTOS = (47615, 47616)
 RUTA_VUELTA = "/callback"
 PLAZO = 300.0

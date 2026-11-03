@@ -36,6 +36,8 @@ _DEFECTO = {
     "token": None,
     # Clave de ElevenLabs: es un secreto, va acá y nunca a config.ini.
     "elevenlabs_clave": "",
+    # Tokens de Restream: son secretos, van acá y nunca a config.ini.
+    "restream_token": None,
 }
 
 

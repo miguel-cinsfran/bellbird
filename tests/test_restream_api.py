@@ -1,0 +1,163 @@
+"""Pruebas de lo que se le pide a la API REST de Restream."""
+
+import unittest
+from unittest import mock
+
+import httpx
+
+from bellbird.restream import api
+
+
+TOKEN = "token-secreto-de-prueba"
+
+PLATAFORMAS = [
+    {"id": 1, "name": "Twitch"},
+    {"id": 5, "name": "Youtube"},
+    {"id": 37, "name": "Facebook"},
+    {"id": 67, "name": "TikTok"},
+]
+
+CANALES = [
+    {"id": 10, "platformId": 67, "channelUrl": "https://tiktok.com/@uno",
+     "displayName": "szeiryugaming"},
+    {"id": 11, "platformId": 5, "channelUrl": "https://youtube.com/@dos",
+     "displayName": "dos"},
+    {"id": 12, "platformId": 1, "channelUrl": "https://twitch.tv/tres",
+     "displayName": "tres"},
+    {"id": 13, "platformId": 37, "channelUrl": "https://facebook.com/cuatro",
+     "displayName": "cuatro"},
+]
+
+
+def _sin_red(_pedido):
+    raise httpx.ConnectError("sin red")
+
+
+class TestCanales(unittest.TestCase):
+
+    def setUp(self):
+        self._cache = mock.patch.object(api, "_PLATAFORMAS", None)
+        self._cache.start()
+        self.addCleanup(self._cache.stop)
+
+    def _cliente(self, manejar):
+        cliente = httpx.Client(transport=httpx.MockTransport(manejar))
+        self.addCleanup(cliente.close)
+        return cliente
+
+    def test_p4_lee_los_canales_y_los_ordena(self):
+        pedidos = []
+
+        def manejar(pedido):
+            pedidos.append(pedido)
+            if pedido.url.path == "/v2/platform/all":
+                return httpx.Response(200, json=PLATAFORMAS)
+            if pedido.url.path == "/v2/user/channels":
+                return httpx.Response(200, json=CANALES)
+            return httpx.Response(404)
+
+        resultado = api.canales(TOKEN, self._cliente(manejar))
+
+        self.assertEqual(
+            [(13, 37, "Facebook", "cuatro", "https://facebook.com/cuatro"),
+             (10, 67, "TikTok", "szeiryugaming", "https://tiktok.com/@uno"),
+             (12, 1, "Twitch", "tres", "https://twitch.tv/tres"),
+             (11, 5, "YouTube", "dos", "https://youtube.com/@dos")],
+            [(canal.id, canal.plataforma_id, canal.plataforma, canal.nombre,
+              canal.url) for canal in resultado])
+        self.assertEqual(
+            ["Facebook: cuatro", "TikTok: szeiryugaming",
+             "Twitch: tres", "YouTube: dos"],
+            [canal.texto for canal in resultado])
+
+        pedido = [p for p in pedidos
+                  if p.url.path == "/v2/user/channels"][0]
+        self.assertEqual(pedido.headers["authorization"], f"Bearer {TOKEN}")
+        publicas = [p for p in pedidos if p.url.path == "/v2/platform/all"]
+        self.assertEqual(len(publicas), 1)
+        self.assertNotIn("authorization", publicas[0].headers)
+
+        def agrupado(pedido):
+            if pedido.url.path == "/v2/user/channels":
+                return httpx.Response(200, json={"channels": CANALES})
+            return httpx.Response(404)
+
+        self.assertEqual(
+            [13, 10, 12, 11],
+            [canal.id for canal in api.canales(
+                TOKEN, self._cliente(agrupado))])
+
+    def test_p4_salta_la_entrada_rota_y_cae_a_la_url(self):
+        def manejar(pedido):
+            if pedido.url.path == "/v2/platform/all":
+                return httpx.Response(200, json=PLATAFORMAS)
+            return httpx.Response(200, json=[
+                {"id": "no-es-entero", "platformId": 67,
+                 "displayName": "roto", "channelUrl": "https://x"},
+                {"platformId": 67, "displayName": "sin id",
+                 "channelUrl": "https://x"},
+                {"id": 7, "platformId": 67, "displayName": "",
+                 "channelUrl": "https://tiktok.com/@siete"},
+            ])
+
+        resultado = api.canales(TOKEN, self._cliente(manejar))
+
+        self.assertEqual([7], [canal.id for canal in resultado])
+        self.assertEqual("https://tiktok.com/@siete", resultado[0].nombre)
+        self.assertEqual("https://tiktok.com/@siete", resultado[0].url)
+
+    def test_p5_la_lista_publica_corrige_youtube_y_se_lee_una_vez(self):
+        pedidos = []
+
+        def manejar(pedido):
+            pedidos.append(pedido)
+            return httpx.Response(200, json=PLATAFORMAS)
+
+        mapa = api.plataformas(self._cliente(manejar))
+        self.assertEqual("YouTube", mapa[5])
+        self.assertEqual("Twitch", mapa[1])
+        self.assertEqual("TikTok", mapa[67])
+        self.assertEqual(mapa, api.plataformas(self._cliente(manejar)))
+        self.assertEqual(1, len(pedidos))
+
+    def test_p5_una_plataforma_desconocida_se_muestra_como_plataforma_id(self):
+        def manejar(pedido):
+            if pedido.url.path == "/v2/platform/all":
+                return httpx.Response(200, json=PLATAFORMAS)
+            return httpx.Response(200, json=[
+                {"id": 7, "platformId": 999, "displayName": "raro",
+                 "channelUrl": "https://x"},
+            ])
+
+        resultado = api.canales(TOKEN, self._cliente(manejar))
+
+        self.assertEqual("Plataforma 999", resultado[0].plataforma)
+        self.assertEqual("Plataforma 999: raro", resultado[0].texto)
+
+    def test_p6_cualquier_fallo_es_error_propio_sin_el_token(self):
+        def sin_json(_pedido):
+            return httpx.Response(200, text="no es json")
+
+        casos = {
+            "401": lambda pedido: httpx.Response(401, json={"error": "x"}),
+            "sin red": _sin_red,
+            "sin json": sin_json,
+        }
+        for nombre, respuesta in casos.items():
+            with self.subTest(caso=nombre):
+                def manejar(pedido):
+                    if pedido.url.path == "/v2/platform/all":
+                        return httpx.Response(200, json=PLATAFORMAS)
+                    return respuesta(pedido)
+
+                with self.assertLogs(api.logger, level="WARNING") as registro:
+                    with self.assertRaises(api.ErrorApi) as contexto:
+                        api.canales(TOKEN, self._cliente(manejar))
+
+                self.assertIn("canales", str(contexto.exception).lower())
+                self.assertNotIn(TOKEN, str(contexto.exception))
+                self.assertNotIn(TOKEN, "\n".join(registro.output))
+
+
+if __name__ == "__main__":
+    unittest.main()

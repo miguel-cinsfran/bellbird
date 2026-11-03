@@ -4203,6 +4203,15 @@ msgstr "You are already live"
 msgid "No se puede retroceder más en este directo"
 msgstr "Cannot go further back in this live stream"
 
+#: bellbird/restream/api.py
+msgid "No se pudieron leer los canales de Restream. Vuelve a intentarlo."
+msgstr "Could not read the Restream channels. Try again."
+
+#: bellbird/restream/api.py
+#, python-brace-format
+msgid "Plataforma {id}"
+msgstr "Platform {id}"
+
 #: bellbird/restream/oauth.py
 msgid "Se canceló el inicio de sesión en Restream."
 msgstr "The Restream sign-in was canceled."

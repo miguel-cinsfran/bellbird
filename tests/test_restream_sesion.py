@@ -171,6 +171,16 @@ class TestGuardadoDeTokens(unittest.TestCase):
         self.assertIsNone(Tokens.desde_dict({"vence": 1000.0}))
         self.assertIsNone(Tokens.desde_dict(None))
 
+    def test_token_de_renovacion_guardado_y_vacio_sin_sesion(self):
+        conectada = _sesion(vence=1301.0, ahora=1000.0)
+        self.assertEqual(conectada.token_de_renovacion(), RENOVACION)
+        conectada.borrar()
+        self.assertEqual(conectada.token_de_renovacion(), "")
+
+        sin_sesion = Sesion(cargar=lambda: None, guardar=lambda datos: None,
+                            renovar=lambda token: {}, reloj=lambda: 1000.0)
+        self.assertEqual(sin_sesion.token_de_renovacion(), "")
+
 
 if __name__ == "__main__":
     unittest.main()

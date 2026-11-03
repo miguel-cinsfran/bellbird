@@ -26,10 +26,17 @@ class TestCredenciales(unittest.TestCase):
         d = credenciales.cargar()
         self.assertEqual(d["api_key"], "")
         self.assertIsNone(d["token"])
+        self.assertIsNone(d["restream_token"])
 
     def test_guardar_y_cargar(self):
         self.assertTrue(credenciales.guardar_campo("api_key", "AIzaTEST"))
         self.assertEqual(credenciales.cargar()["api_key"], "AIzaTEST")
+
+    def test_guardar_y_cargar_restream_token(self):
+        datos = {"acceso": "a", "renovacion": "r", "vence": 1000.0,
+                 "permisos": ""}
+        self.assertTrue(credenciales.guardar_campo("restream_token", datos))
+        self.assertEqual(credenciales.cargar()["restream_token"], datos)
 
     def test_guardar_campo_desconocido_falla(self):
         self.assertFalse(credenciales.guardar_campo("inexistente", "x"))

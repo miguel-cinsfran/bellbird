@@ -133,6 +133,13 @@ class Sesion:
         with self._candado:
             self._olvidar()
 
+    def token_de_renovacion(self) -> str:
+        """Devuelve el token de renovación guardado, o "" sin sesión."""
+        with self._candado:
+            if self._tokens is None:
+                return ""
+            return self._tokens.renovacion
+
     def _olvidar(self) -> None:
         self._tokens = None
         self._guardar(None)

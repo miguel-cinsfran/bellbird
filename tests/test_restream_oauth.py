@@ -193,6 +193,21 @@ class TestServidorLocal(unittest.TestCase):
         with self.assertRaises(oauth.PlazoVencido):
             oauth.esperar_codigo(lambda url: None, plazo=5, parada=parada)
 
+    def test_p4_la_parada_corta_la_espera_y_libera_el_puerto(self):
+        parada = threading.Event()
+        puerto = {}
+
+        def abrir(url):
+            _solo_puerto(url, puerto)
+            threading.Timer(0.3, parada.set).start()
+
+        inicio = time.monotonic()
+        with self.assertRaises(oauth.PlazoVencido):
+            oauth.esperar_codigo(abrir, plazo=60, parada=parada)
+        self.assertLess(time.monotonic() - inicio, 3.0)
+        with socket.socket() as libre:
+            libre.bind(("127.0.0.1", puerto["puerto"]))
+
     def test_p2_puerto_ocupado_usa_el_siguiente(self):
         ocupado = _ocupar(oauth.PUERTOS[0])
         if ocupado is None:

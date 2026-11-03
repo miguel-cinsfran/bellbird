@@ -103,13 +103,14 @@ _MIGRACION_ATAJOS = {
     "marcar_incidencia": ("ctrl+shift+i", "alt+shift+i"),
     "copiar_enlace":     ("ctrl+shift+e", "alt+shift+e"),
     "avisos_sobrecarga": ("ctrl+shift+a", "alt+shift+a"),
+    "mostrar_obs":       ("ctrl+shift+o", "alt+shift+o"),
     "conectar":          ("alt+c",        "alt+shift+c"),
     "desconectar":       ("alt+d",        "alt+shift+d"),
     "ir_lista":          ("alt+l",        "alt+shift+l"),
 }
 
 # Versión del mapa de atajos: una carga por debajo migra una sola vez.
-VERSION_ATAJOS = 2
+VERSION_ATAJOS = 3
 
 _SIMBOLOS_PERMITIDOS = {",", ".", ";", "'", "[", "]", "/", "-"}
 # Teclas con nombre admitidas (además de una letra/símbolo o una tecla F,

@@ -80,7 +80,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
     ("sesion", [
         ("silenciar_lectura", "false"),
-        ("version_atajos", "2"),
+        ("version_atajos", "3"),
     ]),
     ("tiktok", [
         ("usuario", ""),

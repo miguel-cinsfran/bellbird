@@ -89,21 +89,21 @@ class TestCargaReal(unittest.TestCase):
             for accion, nuevo in NUEVOS.items():
                 with self.subTest(accion=accion):
                     self.assertEqual(p.get("atajos", accion).strip(), nuevo)
-            self.assertEqual(p.getint("sesion", "version_atajos"), 2)
+            self.assertEqual(p.getint("sesion", "version_atajos"), 3)
 
-    def test_version_dos_no_vuelve_a_migrar(self):
+    def test_version_tres_no_vuelve_a_migrar(self):
         with tempfile.TemporaryDirectory() as tmp:
             carpeta = Path(tmp)
             (carpeta / "config.ini").write_text(
                 "[atajos]\nconectar = alt+c\n"
-                "[sesion]\nversion_atajos = 2\n",
+                "[sesion]\nversion_atajos = 3\n",
                 encoding="utf-8")
             with redirigir_rutas(carpeta):
                 config.cargar_configuracion()
             p = config._mk_parser()
             p.read(carpeta / "config.ini", encoding="utf-8")
             self.assertEqual(p.get("atajos", "conectar").strip(), "alt+c")
-            self.assertEqual(p.getint("sesion", "version_atajos"), 2)
+            self.assertEqual(p.getint("sesion", "version_atajos"), 3)
 
     def test_version_uno_con_ctrl_shift_i_migra_y_no_choca(self):
         with tempfile.TemporaryDirectory() as tmp:

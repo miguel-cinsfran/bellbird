@@ -530,6 +530,18 @@ class TestParsearAtajos(unittest.TestCase):
         ])
 
 
+    def test_mostrar_obs_migra_de_ctrl_shift_o_a_alt_shift_o(self):
+        self.assertEqual(
+            atajos.migrar_atajos({"mostrar_obs": "ctrl+shift+o"}),
+            {"mostrar_obs": "alt+shift+o"})
+
+    def test_abrir_obs_queda_en_ctrl_shift_o_sin_conflicto(self):
+        self.assertEqual(ATAJOS_DEFAULTS["abrir_obs"], "ctrl+shift+o")
+        self.assertEqual(ATAJOS_AREA["abrir_obs"], "ctrl+shift")
+        self.assertEqual(ATAJOS_DEFAULTS["mostrar_obs"], "alt+shift+o")
+        self.assertEqual(ATAJOS_AREA["mostrar_obs"], "alt+shift")
+        self.assertEqual(detectar_conflictos_atajos({}), [])
+
     def test_construccion_del_frame_anuncia_los_conflictos(self):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
         configuracion = {"atajos_raw": {"pausa": "f6"}}

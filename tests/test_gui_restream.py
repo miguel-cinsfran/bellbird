@@ -17,6 +17,7 @@ from bellbird.restream import perfiles
 from bellbird.restream.perfiles import Perfil
 from bellbird.ui import restream_perfil
 from bellbird.ui import restream_ventana
+from bellbird.ui.preferencias_comun import nombre_de_etiqueta
 from bellbird.youtube.emision import (
     ETIQUETAS_LATENCIA,
     ETIQUETAS_PRIVACIDAD,
@@ -25,7 +26,8 @@ from bellbird.youtube.emision import (
     PRIVACIDAD_INICIAL,
     PRIVACIDADES,
 )
-from tests.letras_acceso import letras_repetidas, repetidas_con_lo_de_fuera
+from tests.letras_acceso import (
+    _letra_de_acceso, letras_repetidas, repetidas_con_lo_de_fuera)
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import destruir
 
@@ -310,6 +312,25 @@ class PruebaDialogoPerfil(unittest.TestCase):
                          LATENCIAS[dialogo.cho_latencia.GetSelection()])
         self.assertEqual("Editar perfil de Restream",
                          self._dialogo(_perfil()).GetTitle())
+
+    def test_p4_cada_rotulo_se_crea_antes_de_su_control(self):
+        dialogo = self._dialogo()
+        padre = dialogo.txt_nombre.GetParent()
+        hijos = list(padre.GetChildren())
+        rotulos = 0
+        for posicion, hijo in enumerate(hijos):
+            if not isinstance(hijo, wx.StaticText):
+                continue
+            if not _letra_de_acceso(hijo.GetLabel()):
+                continue
+            rotulos += 1
+            with self.subTest(rotulo=hijo.GetLabel()):
+                self.assertLess(posicion + 1, len(hijos))
+                siguiente = hijos[posicion + 1]
+                self.assertNotIsInstance(siguiente, wx.StaticText)
+                self.assertEqual(
+                    nombre_de_etiqueta(hijo.GetLabel()), siguiente.GetName())
+        self.assertEqual(6, rotulos)
 
     def test_p4_sin_canales_muestra_la_nota_y_valida(self):
         dialogo = self._dialogo(canales=[])

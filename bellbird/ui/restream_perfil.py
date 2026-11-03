@@ -26,13 +26,15 @@ from bellbird.youtube.emision import (
 )
 
 
-def _rotulo(padre, contenido, texto, control):
-    """Rótulo y control en el orden de creación, para el orden de Tab."""
+def _rotulo(padre, contenido, texto, crear_control):
+    """Crea el rótulo antes que su control, para que Alt+letra lo enfoque."""
     rotulo = wx.StaticText(padre, label=texto)
+    control = crear_control()
     control.SetName(nombre_de_etiqueta(texto))
     nombre_accesible(control, control.GetName())
     contenido.Add(rotulo, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
     contenido.Add(control, 0, wx.EXPAND | wx.ALL, 10)
+    return control
 
 
 class DialogoPerfilRestream(wx.Dialog):
@@ -88,13 +90,14 @@ class DialogoPerfilRestream(wx.Dialog):
 
     def _agregar_nombre(self, zona, contenido):
         valor = self._perfil.nombre if self._perfil is not None else ""
-        self.txt_nombre = wx.TextCtrl(zona, value=valor)
-        _rotulo(zona, contenido, _("&Nombre:"), self.txt_nombre)
+        self.txt_nombre = _rotulo(
+            zona, contenido, _("&Nombre:"),
+            lambda: wx.TextCtrl(zona, value=valor))
 
     def _agregar_orientacion(self, zona, contenido):
-        self.cho_orientacion = wx.Choice(
-            zona, choices=[_("Horizontal"), _("Vertical")])
-        _rotulo(zona, contenido, _("&Orientación:"), self.cho_orientacion)
+        self.cho_orientacion = _rotulo(
+            zona, contenido, _("&Orientación:"),
+            lambda: wx.Choice(zona, choices=[_("Horizontal"), _("Vertical")]))
         orientacion = (self._perfil.orientacion if self._perfil is not None
                        else ORIENTACIONES[0])
         self.cho_orientacion.SetSelection(ORIENTACIONES.index(orientacion))
@@ -137,29 +140,32 @@ class DialogoPerfilRestream(wx.Dialog):
 
     def _agregar_youtube(self, zona, contenido):
         perfil = self._perfil
-        self.txt_titulo = wx.TextCtrl(
-            zona, value=perfil.titulo if perfil is not None else "")
-        _rotulo(zona, contenido, _("&Título:"), self.txt_titulo)
+        self.txt_titulo = _rotulo(
+            zona, contenido, _("&Título:"),
+            lambda: wx.TextCtrl(
+                zona, value=perfil.titulo if perfil is not None else ""))
 
-        self.txt_descripcion = wx.TextCtrl(
-            zona, value=perfil.descripcion if perfil is not None else "",
-            style=wx.TE_MULTILINE)
+        self.txt_descripcion = _rotulo(
+            zona, contenido, _("&Descripción, opcional:"),
+            lambda: wx.TextCtrl(
+                zona, value=perfil.descripcion if perfil is not None else "",
+                style=wx.TE_MULTILINE))
         self.txt_descripcion.SetMinSize(
             (-1, 3 * self.txt_descripcion.GetCharHeight() + 12))
-        _rotulo(zona, contenido, _("&Descripción, opcional:"),
-                self.txt_descripcion)
 
-        self.cho_privacidad = wx.Choice(
-            zona, choices=[_(ETIQUETAS_PRIVACIDAD[p]) for p in PRIVACIDADES])
-        _rotulo(zona, contenido, _("&Privacidad en YouTube:"),
-                self.cho_privacidad)
+        self.cho_privacidad = _rotulo(
+            zona, contenido, _("&Privacidad en YouTube:"),
+            lambda: wx.Choice(
+                zona, choices=[_(ETIQUETAS_PRIVACIDAD[p])
+                               for p in PRIVACIDADES]))
         privacidad = (perfil.privacidad if perfil is not None
                       else PRIVACIDAD_INICIAL)
         self.cho_privacidad.SetSelection(PRIVACIDADES.index(privacidad))
 
-        self.cho_latencia = wx.Choice(
-            zona, choices=[_(ETIQUETAS_LATENCIA[l]) for l in LATENCIAS])
-        _rotulo(zona, contenido, _("&Latencia en YouTube:"), self.cho_latencia)
+        self.cho_latencia = _rotulo(
+            zona, contenido, _("&Latencia en YouTube:"),
+            lambda: wx.Choice(
+                zona, choices=[_(ETIQUETAS_LATENCIA[l]) for l in LATENCIAS]))
         latencia = perfil.latencia if perfil is not None else LATENCIA_INICIAL
         self.cho_latencia.SetSelection(LATENCIAS.index(latencia))
 

@@ -4,6 +4,7 @@ import base64
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
+from bellbird.core import idioma
 from bellbird.core.idioma import _
 from bellbird.obs import obs_prevuelo
 from bellbird.obs.obs_prevuelo import (
@@ -466,6 +467,24 @@ class TestTiposDeEntradas(unittest.TestCase):
 
     def test_lista_vacia_no_rompe(self):
         self.assertEqual(obs_prevuelo.tipos_de_entradas(()), {})
+
+    def test_con_pseudo_el_tipo_conocido_sale_marcado(self):
+        idioma.instalar(idioma.IDIOMA_PSEUDO)
+        try:
+            tipos = obs_prevuelo.tipos_de_entradas(
+                ({"inputName": "Chat", "inputKind": "browser_source"},))
+        finally:
+            idioma._reiniciar()
+        self.assertTrue(tipos["Chat"].startswith("[¡"), tipos["Chat"])
+
+    def test_con_pseudo_lo_desconocido_sigue_vacio(self):
+        idioma.instalar(idioma.IDIOMA_PSEUDO)
+        try:
+            tipos = obs_prevuelo.tipos_de_entradas(
+                ({"inputName": "Rara", "inputKind": "clase_nueva"},))
+        finally:
+            idioma._reiniciar()
+        self.assertEqual(tipos["Rara"], "")
 
 
 class TestTablaTiposSinVentana(unittest.TestCase):

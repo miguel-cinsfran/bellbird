@@ -39,7 +39,7 @@ def tipos_de_entradas(entradas) -> dict:
         if not nombre:
             continue
         clase = entrada.get("inputKind", "") or ""
-        tipos[nombre] = _TIPOS.get(clase, "")
+        tipos[nombre] = _(_TIPOS[clase]) if clase in _TIPOS else ""
     return tipos
 
 

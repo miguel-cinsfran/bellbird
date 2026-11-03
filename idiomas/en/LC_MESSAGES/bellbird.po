@@ -2842,6 +2842,25 @@ msgstr "Bellbird, camera list"
 msgid "{nombre} {contador}"
 msgstr "{nombre} {contador}"
 
+#. Traductores: {fuente} es el nombre de la fuente.
+#: bellbird/obs/obs_capas.py
+#, python-brace-format
+msgid "{fuente} ya está al frente."
+msgstr "{fuente} is already at the front."
+
+#. Traductores: {fuente} es el nombre de la fuente.
+#: bellbird/obs/obs_capas.py
+#, python-brace-format
+msgid "{fuente} ya está al fondo."
+msgstr "{fuente} is already at the back."
+
+#. Traductores: {fuente} es el nombre; {n} es el lugar desde el frente y
+#. {total} la cantidad de capas.
+#: bellbird/obs/obs_capas.py
+#, python-brace-format
+msgid "{fuente}: capa {n} de {total}."
+msgstr "{fuente}: layer {n} of {total}."
+
 #: bellbird/obs/obs_captura.py
 msgid "Captura de ventana"
 msgstr "Window capture"
@@ -5517,10 +5536,6 @@ msgstr "Place source"
 msgid "Deshacer cambi&os"
 msgstr "&Undo changes"
 
-#: bellbird/ui/escena_pagina_fuentes.py
-msgid "&Detalle de la fuente:"
-msgstr "Source &details:"
-
 #: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
 msgid "&Fuente:"
 msgstr "S&ource:"
@@ -5532,6 +5547,10 @@ msgstr "&Position:"
 #: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
 msgid "&Mover fuente"
 msgstr "&Move source"
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "&Detalle de la fuente:"
+msgstr "Source &details:"
 
 #: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
 msgid "&Ancho:"
@@ -5562,12 +5581,24 @@ msgid "&Bloquear posición"
 msgstr "&Lock position"
 
 #: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
+msgid "Mover con flec&has"
+msgstr "Move with &arrows"
+
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
 msgid "Traer al f&rente"
 msgstr "Bring to &front"
 
-#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
-msgid "Mover con flec&has"
-msgstr "Move with &arrows"
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "Tra&er adelante"
+msgstr "&Bring Forward"
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "Enviar atrá&s"
+msgstr "&Send Backward"
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "En&viar al fondo"
+msgstr "Send to Ba&ck"
 
 #: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_organizar_escena.py
 msgid "La escena no tiene fuentes."

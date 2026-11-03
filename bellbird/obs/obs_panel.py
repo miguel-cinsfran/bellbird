@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from bellbird.obs import (fuente_chat, obs_disposicion, obs_captura,
+from bellbird.obs import (fuente_chat, obs_disposicion, obs_capas, obs_captura,
                         obs_cliente, obs_destinos, obs_entradas_audio,
                         obs_escena, obs_grabacion)
 from bellbird.obs.fuente_chat import (NOMBRE_FUENTE, TIPO_FUENTE,
@@ -305,6 +305,13 @@ class GestorPanelObs:
             "sceneName": escena, "sceneItemId": elemento["sceneItemId"],
             "sceneItemIndex": indice_mayor,
         }, parada)
+
+    def mover_capa(self, escena, movimiento, parada=None, *, fuente=NOMBRE_FUENTE):
+        elementos = self._elementos(escena, parada)
+        movio = obs_capas.mover(self._pedir, elementos, escena, fuente,
+                                movimiento, parada)
+        return movio, obs_capas.frase_de_movimiento(
+            elementos, fuente, movimiento, movio)
 
     def traer_panel_adelante(self, parada=None):
         """Sube el panel si otra fuente visible lo tapa en la escena actual.

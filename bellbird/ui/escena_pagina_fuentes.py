@@ -20,7 +20,6 @@ class PaginaFuentes(wx.Panel):
     def __init__(self, parent, ventana, gestor, operaciones, registro,
                  escena_elegida):
         super().__init__(parent, name="PaginaFuentes")
-        self._ventana = ventana
         self._gestor = gestor
         self._operaciones = operaciones
         self._registro = registro
@@ -32,7 +31,8 @@ class PaginaFuentes(wx.Panel):
         self.acciones = (
             self.cho_fuente, self.cho_posicion, self.btn_colocar,
             self.sp_ancho, self.sp_alto, self.btn_tamano, self.chk_mostrar,
-            self.chk_fijar, self.btn_frente, self.btn_ajuste, self.btn_restaurar,
+            self.chk_fijar, self.btn_frente, self.btn_adelante, self.btn_atras,
+            self.btn_fondo, self.btn_ajuste, self.btn_restaurar,
             self.txt_detalle)
         self._enlazar_eventos()
 
@@ -49,14 +49,6 @@ class PaginaFuentes(wx.Panel):
             self, _("Deshacer cambi&os"),
             nombre_de_etiqueta(_("Deshacer cambi&os")))
         caja.Add(self.btn_restaurar, 0, wx.ALL, 8)
-        rotulo_detalle = wx.StaticText(
-            self, label=_("&Detalle de la fuente:"))
-        self.txt_detalle = wx.TextCtrl(
-            self, style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name=nombre_de_etiqueta(_("&Detalle de la fuente:")))
-        nombre_accesible(self.txt_detalle, self.txt_detalle.GetName())
-        self.txt_detalle.SetMinSize((-1, 90))
-        fila_campo(caja, rotulo_detalle, self.txt_detalle)
         self.SetSizer(caja)
 
     def _crear_grupo_colocar(self, padre, sizer):
@@ -64,6 +56,14 @@ class PaginaFuentes(wx.Panel):
         rotulo_fuente = wx.StaticText(padre, label=_("&Fuente:"))
         self.cho_fuente = lista_con_nombre(padre, _("&Fuente:"))
         fila_grilla(grilla, rotulo_fuente, self.cho_fuente)
+        sizer.Add(grilla, 0, wx.EXPAND | wx.ALL, 6)
+        self._crear_detalle(padre, sizer)
+        self._crear_fila_posicion(padre, sizer)
+        self._crear_fila_tamano(padre, sizer)
+        self._crear_fila_controles(padre, sizer)
+
+    def _crear_fila_posicion(self, padre, sizer):
+        grilla = grilla_campos()
         rotulo_posicion = wx.StaticText(padre, label=_("&Posición:"))
         self.cho_posicion = lista_con_nombre(
             padre, _("&Posición:"),
@@ -71,10 +71,19 @@ class PaginaFuentes(wx.Panel):
              for nombre in obs_disposicion.ANCLAJES])
         self.btn_colocar = boton(
             padre, _("&Mover fuente"), nombre_de_etiqueta(_("&Mover fuente")))
-        fila_grilla(grilla, rotulo_posicion, self.cho_posicion, self.btn_colocar)
+        fila_grilla(grilla, rotulo_posicion, self.cho_posicion,
+                    self.btn_colocar)
         sizer.Add(grilla, 0, wx.EXPAND | wx.ALL, 6)
-        self._crear_fila_tamano(padre, sizer)
-        self._crear_fila_controles(padre, sizer)
+
+    def _crear_detalle(self, padre, sizer):
+        rotulo_detalle = wx.StaticText(
+            padre, label=_("&Detalle de la fuente:"))
+        self.txt_detalle = wx.TextCtrl(
+            padre, style=wx.TE_MULTILINE | wx.TE_READONLY,
+            name=nombre_de_etiqueta(_("&Detalle de la fuente:")))
+        nombre_accesible(self.txt_detalle, self.txt_detalle.GetName())
+        self.txt_detalle.SetMinSize((-1, 90))
+        fila_campo(sizer, rotulo_detalle, self.txt_detalle)
 
     def _crear_fila_tamano(self, padre, sizer):
         fila = wx.BoxSizer(wx.HORIZONTAL)
@@ -100,15 +109,28 @@ class PaginaFuentes(wx.Panel):
         self.chk_fijar = wx.CheckBox(
             padre, label=_("&Bloquear posición"),
             name=nombre_de_etiqueta(_("&Bloquear posición")))
-        self.btn_frente = boton(
-            padre, _("Traer al f&rente"), nombre_de_etiqueta(_("Traer al f&rente")))
+        botones = self._crear_botones_capa(padre)
         self._etiqueta_ajuste = _("Mover con flec&has")
         self.btn_ajuste = boton(
             padre, self._etiqueta_ajuste, nombre_de_etiqueta(self._etiqueta_ajuste))
-        for control in (self.chk_mostrar, self.chk_fijar, self.btn_frente,
+        for control in (self.chk_mostrar, self.chk_fijar, *botones,
                         self.btn_ajuste):
             fila.Add(control, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 4)
         sizer.Add(fila, 0, wx.EXPAND | wx.ALL, 6)
+
+    def _crear_botones_capa(self, padre):
+        self.btn_frente = boton(
+            padre, _("Traer al f&rente"), nombre_de_etiqueta(_("Traer al f&rente")))
+        self.btn_adelante = boton(
+            padre, _("Tra&er adelante"),
+            nombre_de_etiqueta(_("Tra&er adelante")))
+        self.btn_atras = boton(
+            padre, _("Enviar atrá&s"), nombre_de_etiqueta(_("Enviar atrá&s")))
+        self.btn_fondo = boton(
+            padre, _("En&viar al fondo"),
+            nombre_de_etiqueta(_("En&viar al fondo")))
+        return (self.btn_frente, self.btn_adelante, self.btn_atras,
+                self.btn_fondo)
 
     def _enlazar_eventos(self):
         self.cho_fuente.Bind(wx.EVT_CHOICE, self._cambiar_fuente)
@@ -118,6 +140,15 @@ class PaginaFuentes(wx.Panel):
         self.chk_mostrar.Bind(wx.EVT_CHECKBOX, self._mostrar)
         self.chk_fijar.Bind(wx.EVT_CHECKBOX, self._fijar)
         self.btn_frente.Bind(wx.EVT_BUTTON, self._frente)
+        self.btn_adelante.Bind(
+            wx.EVT_BUTTON,
+            lambda event: self._movimiento("adelante"))
+        self.btn_atras.Bind(
+            wx.EVT_BUTTON,
+            lambda event: self._movimiento("atras"))
+        self.btn_fondo.Bind(
+            wx.EVT_BUTTON,
+            lambda event: self._movimiento("fondo"))
         self.btn_restaurar.Bind(wx.EVT_BUTTON, self._restaurar)
 
     def cargar(self, fuentes, fuente, snap):
@@ -161,8 +192,11 @@ class PaginaFuentes(wx.Panel):
         self.chk_fijar.SetValue(snap.bloqueada)
 
     def _anunciar_snap(self, snap):
-        anunciar(obs_disposicion.describir_fuente(
-            self._fuente(), snap, obs_disposicion.ACTIVOS_DEFECTO))
+        anunciar(self._descripcion_corta(snap))
+
+    def _descripcion_corta(self, snap):
+        return obs_disposicion.describir_fuente(
+            self._fuente(), snap, obs_disposicion.ACTIVOS_DEFECTO)
 
     def _cambiar_fuente(self, event):
         if self._operaciones.en_vuelo:
@@ -229,6 +263,29 @@ class PaginaFuentes(wx.Panel):
                 self._gestor, self._registro, escena, fuente,
                 self._gestor.al_frente),
             self._anunciar_snap)
+
+    def _movimiento(self, movimiento):
+        escena, fuente = self._destino()
+        datos = {}
+
+        def mover(escena, movimiento, fuente):
+            datos["movio"], datos["frase"] = self._gestor.mover_capa(
+                escena, movimiento, fuente=fuente)
+            datos["fuentes"] = self._gestor.fuentes(escena)
+
+        self._operaciones.en_hilo(
+            lambda: consultas_transmision.cambiar_y_leer(
+                self._gestor, self._registro, escena, fuente, mover,
+                movimiento),
+            lambda snap: self._movimiento_aplicado(snap, datos, fuente))
+
+    def _movimiento_aplicado(self, snap, datos, fuente):
+        self.cho_fuente.Set(list(datos["fuentes"]))
+        self.cho_fuente.SetStringSelection(fuente)
+        texto = datos["frase"]
+        if datos["movio"]:
+            texto = f"{texto} {self._descripcion_corta(snap)}"
+        anunciar(texto)
 
     def _restaurar(self, event):
         escena, fuente = self._destino()

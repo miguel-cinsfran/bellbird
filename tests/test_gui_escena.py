@@ -6,7 +6,7 @@ from unittest import mock
 
 import wx
 
-from bellbird.obs import obs_disposicion
+from bellbird.obs import obs_capas, obs_disposicion
 from bellbird.ui import escena_pagina_agregar
 from bellbird.ui import escena_pagina_audio
 from bellbird.ui import escena_pagina_escena
@@ -24,6 +24,37 @@ class PrincipalFalsa:
 
     def __init__(self, preferido="Mic/Aux"):
         self._config = {"obs_microfono": preferido}
+
+
+class GestorConCapas(GestorFalso):
+
+    def __init__(self):
+        super().__init__()
+        self.orden = ["Cámara", "Chat en el vídeo", "Juego"]
+
+    def fuentes(self, escena):
+        if escena == "Principal":
+            return tuple(self.orden)
+        return super().fuentes(escena)
+
+    def mover_capa(self, escena, movimiento, parada=None, *, fuente=""):
+        self._llamar("mover_capa", (escena, movimiento), {"fuente": fuente})
+        total = len(self.orden)
+        elementos = [
+            {"sceneItemId": indice, "sourceName": nombre,
+             "sceneItemIndex": total - 1 - indice}
+            for indice, nombre in enumerate(self.orden)]
+        movio = obs_capas.mover(
+            lambda *args: None, elementos, escena, fuente, movimiento, parada)
+        frase = obs_capas.frase_de_movimiento(
+            elementos, fuente, movimiento, movio)
+        if movio:
+            indice = self.orden.index(fuente)
+            destino = obs_capas.indice_destino(
+                elementos, fuente, movimiento)
+            self.orden.pop(indice)
+            self.orden.insert(total - 1 - destino, fuente)
+        return movio, frase
 
 
 def _asegurar_obs(probar_conexion, al_anunciar=None, parada=None):
@@ -61,7 +92,7 @@ class TestVentanaEscena(unittest.TestCase):
         for parche in self.parches:
             parche.start()
         self.principal = PrincipalFalsa()
-        self.gestor = GestorFalso()
+        self.gestor = GestorConCapas()
         self.dialogo = self._crear()
         self.anuncios.clear()
         self.categorias.clear()
@@ -186,6 +217,56 @@ class TestVentanaEscena(unittest.TestCase):
         self.assertIn("800 por 500", pagina.txt_detalle.GetValue())
         self.assertIn("Fuente:", pagina.txt_detalle.GetValue())
 
+    def test_cada_boton_de_capa_llama_a_mover_capa_con_su_movimiento(self):
+        pagina = self.dialogo._pagina_fuentes
+        for boton, movimiento in (
+                (pagina.btn_adelante, "adelante"),
+                (pagina.btn_atras, "atras"),
+                (pagina.btn_fondo, "fondo")):
+            pagina.cho_fuente.SetStringSelection("Chat en el vídeo")
+            self._pulsar(boton)
+            self.assertIn(("mover_capa", "Principal", movimiento),
+                          self.gestor.llamadas)
+
+    def test_mover_anuncia_el_lugar_y_despues_la_descripcion(self):
+        pagina = self.dialogo._pagina_fuentes
+        pagina.cho_fuente.SetStringSelection("Chat en el vídeo")
+        self._pulsar(pagina.btn_adelante)
+        aviso = next(anuncio for anuncio in self.anuncios
+                     if anuncio.startswith("Chat en el vídeo: capa 1 de 3."))
+        self.assertIn("Chat en el vídeo.", aviso)
+
+    def test_mover_en_el_extremo_anuncia_que_ya_esta_en_el_borde(self):
+        pagina = self.dialogo._pagina_fuentes
+        pagina.cho_fuente.SetStringSelection("Cámara")
+        self._pulsar(pagina.btn_adelante)
+        self.assertIn("Cámara ya está al frente.", self.anuncios)
+        pagina.cho_fuente.SetStringSelection("Juego")
+        self._pulsar(pagina.btn_fondo)
+        self.assertIn("Juego ya está al fondo.", self.anuncios)
+
+    def test_la_lista_fuente_queda_ordenada_y_con_la_misma_fuente(self):
+        pagina = self.dialogo._pagina_fuentes
+        pagina.cho_fuente.SetStringSelection("Chat en el vídeo")
+        self._pulsar(pagina.btn_adelante)
+        self.assertEqual(pagina.cho_fuente.GetStrings(),
+                         ["Chat en el vídeo", "Cámara", "Juego"])
+        self.assertEqual(pagina.cho_fuente.GetStringSelection(),
+                         "Chat en el vídeo")
+
+    def test_los_tres_movimientos_entran_en_deshacer(self):
+        pagina = self.dialogo._pagina_fuentes
+        for fuente, boton in (("Cámara", pagina.btn_adelante),
+                              ("Chat en el vídeo", pagina.btn_atras),
+                              ("Juego", pagina.btn_fondo)):
+            pagina.cho_fuente.SetStringSelection(fuente)
+            self._pulsar(boton)
+        self.gestor.llamadas.clear()
+        self._pulsar(pagina.btn_restaurar)
+        self.assertEqual(
+            len([llamada for llamada in self.gestor.llamadas
+                 if llamada[0] == "posicionar"]), 3)
+
     def test_capturar_ventana_recarga_la_escena(self):
         pagina = self.dialogo._pagina_agregar
         pagina.cho_ventana.SetSelection(0)
@@ -267,6 +348,9 @@ class TestVentanaEscena(unittest.TestCase):
         self.assertEqual(fuentes.chk_mostrar.GetName(), "Mostrar en la escena")
         self.assertEqual(fuentes.chk_fijar.GetName(), "Bloquear posición")
         self.assertEqual(fuentes.btn_frente.GetName(), "Traer al frente")
+        self.assertEqual(fuentes.btn_adelante.GetName(), "Traer adelante")
+        self.assertEqual(fuentes.btn_atras.GetName(), "Enviar atrás")
+        self.assertEqual(fuentes.btn_fondo.GetName(), "Enviar al fondo")
         self.assertEqual(fuentes.btn_ajuste.GetName(), "Mover con flechas")
         self.assertEqual(fuentes.btn_restaurar.GetName(), "Deshacer cambios")
         self.assertEqual(fuentes.txt_detalle.GetName(), "Detalle de la fuente")
@@ -285,10 +369,11 @@ class TestVentanaEscena(unittest.TestCase):
             "Escena", "Cambiar escena", "Descripción de la escena",
             "Guardar imagen…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_fuentes), [
-            "Fuente", "Posición", "Mover fuente", "Ancho en píxeles",
-            "Alto en píxeles", "Cambiar tamaño", "Mostrar en la escena",
-            "Bloquear posición", "Traer al frente", "Mover con flechas",
-            "Deshacer cambios", "Detalle de la fuente"])
+            "Fuente", "Detalle de la fuente", "Posición", "Mover fuente",
+            "Ancho en píxeles", "Alto en píxeles", "Cambiar tamaño",
+            "Mostrar en la escena", "Bloquear posición", "Traer al frente",
+            "Traer adelante", "Enviar atrás", "Enviar al fondo",
+            "Mover con flechas", "Deshacer cambios"])
         self.assertEqual(self._nombres(self.dialogo._pagina_agregar), [
             "Ventana", "Capturar ventana", "Agregar cámara…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_audio), [

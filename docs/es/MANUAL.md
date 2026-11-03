@@ -439,11 +439,12 @@ cambia lo que se emite. *Cambiar escena* cambia la escena que se emite y
 *Guardar imagen…* guarda una imagen de ella.
 
 *Fuentes* elige una fuente de la escena y la mueve a una de las nueve
-posiciones, la cambia de tamaño, la oculta, la bloquea o la trae al frente.
+posiciones, la cambia de tamaño, la oculta, la bloquea o cambia su capa: la
+trae al frente, la trae adelante, la envía atrás o la envía al fondo.
 *Mover con flechas* la mueve en pasos pequeños: `Ctrl` da pasos grandes,
 `Mayús` pasos de un píxel, `Intro` confirma y `Esc` deshace. El campo *Detalle
-de la fuente* dice dónde está, cuánto mide y qué la tapa. *Deshacer cambios*
-vuelve a como estaba todo al abrir la ventana.
+de la fuente*, junto a la lista, dice dónde está, cuánto mide y qué la tapa.
+*Deshacer cambios* vuelve a como estaba todo al abrir la ventana.
 
 *Agregar* captura una ventana del equipo o agrega una cámara de Windows a la
 escena actual. *Audio* silencia el micrófono de OBS y elige cuál se usa. Al

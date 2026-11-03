@@ -1,0 +1,19 @@
+name = "restream-tokens"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+account_id = "eff07018df78533faad7040573fc85ec"
+
+# El client_id es público: lo trae la app en el pedido de autorización.
+# El client_secret no va en este archivo. Se carga una vez con
+# `wrangler secret put CLIENT_SECRET` y no se escribe en el repositorio.
+[vars]
+CLIENT_ID = "f6eefc35-0057-49eb-93a0-cd2d95ec18be"
+REDIRECTS = "http://localhost:47615/callback,http://127.0.0.1:47615/callback,http://localhost:47616/callback,http://127.0.0.1:47616/callback"
+
+# El binding de Rate Limiting no tiene disponibilidad confirmada en el plan
+# gratuito. El código lo consulta si existe y funciona igual sin él.
+[[ratelimits]]
+name = "LIMITE"
+namespace_id = "1001"
+simple = { limit = 20, period = 60 }

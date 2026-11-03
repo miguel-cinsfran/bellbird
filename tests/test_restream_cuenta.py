@@ -110,6 +110,24 @@ class TestCuenta(unittest.TestCase):
         self.assertTrue(cuenta.sesion().conectada())
         self.assertEqual(cuenta.sesion().token(), ACCESO)
 
+    def test_sesion_renueva_con_el_servicio_publicado(self):
+        viejo = sesion.Tokens("acceso-viejo", "renovacion-vieja",
+                              time.time() + 100)
+        self.assertTrue(credenciales.guardar_campo(
+            "restream_token", viejo.a_dict()))
+
+        with _servicio() as servicio, \
+                mock.patch.object(oauth, "SERVICIO", servicio):
+            self.assertEqual(ACCESO, cuenta.sesion().token())
+
+        recibido = _ServicioFalso.recibido[0]
+        self.assertEqual("/refresh", recibido["ruta"])
+        self.assertEqual("renovacion-vieja",
+                         recibido["json"]["refresh_token"])
+        guardado = credenciales.cargar()["restream_token"]
+        self.assertEqual(ACCESO, guardado["acceso"])
+        self.assertEqual(RENOVACION, guardado["renovacion"])
+
     def test_p2_conectar_abre_el_navegador_canjea_y_deja_la_sesion(self):
         visto = {}
         self._conectar(visto)

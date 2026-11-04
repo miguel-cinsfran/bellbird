@@ -153,7 +153,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("musica", "true"),
         ("igualando", "true"),
         ("camara", "true"),
-        ("cuota_youtube", "true"),
+        ("cuota_youtube", "false"),
     ]),
     ("descargas", [
         ("formato", "mp4"),

@@ -329,8 +329,8 @@ class TestCuotaYoutube(unittest.TestCase):
                              {"cuota_youtube"}),
             "Cuota de YouTube usada hoy en este equipo: unas 1.234 de 10.000.")
 
-    def test_activo_de_fabrica(self):
-        self.assertIn("cuota_youtube", ACTIVOS_DEFECTO)
+    def test_apagado_de_fabrica(self):
+        self.assertNotIn("cuota_youtube", ACTIVOS_DEFECTO)
 
     def test_solo_se_consulta_con_sesion_iniciada(self):
         from bellbird.ui import gui_estado

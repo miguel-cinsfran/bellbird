@@ -7,7 +7,8 @@ import wx
 from bellbird.core.idioma import _
 from bellbird.obs import consultas_transmision
 from bellbird.obs import obs_disposicion
-from bellbird.ui.accesibilidad import ContadorAccesible, anunciar, nombre_accesible
+from bellbird.ui import escena_tamano
+from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui.mover_con_flechas import MoverConFlechas
 from bellbird.ui.preferencias_comun import (
@@ -30,9 +31,8 @@ class PaginaFuentes(wx.Panel):
             self._destino, self._mostrar_snap)
         self.acciones = (
             self.cho_fuente, self.cho_posicion, self.btn_colocar,
-            self.sp_ancho, self.sp_alto, self.btn_tamano, self.chk_mostrar,
-            self.chk_fijar, self.btn_frente, self.btn_adelante, self.btn_atras,
-            self.btn_fondo, self.btn_ajuste, self.btn_restaurar,
+            self.chk_mostrar, self.chk_fijar, self.btn_capa,
+            self.btn_tamano, self.btn_ajuste, self.btn_restaurar,
             self.txt_detalle)
         self._enlazar_eventos()
 
@@ -41,6 +41,7 @@ class PaginaFuentes(wx.Panel):
         return self._mover.en_curso
 
     def _crear_controles(self):
+        self._ancho, self._alto = 460, 620
         caja = wx.BoxSizer(wx.VERTICAL)
         sizer, padre = caja_de_grupo(self, _("Colocar fuente"))
         self._crear_grupo_colocar(padre, sizer)
@@ -59,7 +60,6 @@ class PaginaFuentes(wx.Panel):
         sizer.Add(grilla, 0, wx.EXPAND | wx.ALL, 6)
         self._crear_detalle(padre, sizer)
         self._crear_fila_posicion(padre, sizer)
-        self._crear_fila_tamano(padre, sizer)
         self._crear_fila_controles(padre, sizer)
 
     def _crear_fila_posicion(self, padre, sizer):
@@ -85,71 +85,79 @@ class PaginaFuentes(wx.Panel):
         self.txt_detalle.SetMinSize((-1, 90))
         fila_campo(sizer, rotulo_detalle, self.txt_detalle)
 
-    def _crear_fila_tamano(self, padre, sizer):
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        rotulo_ancho = wx.StaticText(padre, label=_("&Ancho:"))
-        self.sp_ancho = ContadorAccesible(padre, min=100, max=4000, initial=460,
-                                          name=_("Ancho en píxeles"))
-        rotulo_alto = wx.StaticText(padre, label=_("A&lto:"))
-        self.sp_alto = ContadorAccesible(padre, min=100, max=4000, initial=620,
-                                         name=_("Alto en píxeles"))
-        self.btn_tamano = boton(
-            padre, _("Cambiar &tamaño"), nombre_de_etiqueta(_("Cambiar &tamaño")))
-        controles = (rotulo_ancho, self.sp_ancho, rotulo_alto, self.sp_alto,
-                     self.btn_tamano)
-        for control in controles:
-            fila.Add(control, 0, wx.ALIGN_CENTER_VERTICAL | wx.TOP | wx.BOTTOM | wx.RIGHT, 4)
-        sizer.Add(fila, 0, wx.ALIGN_LEFT | wx.ALL, 6)
-
     def _crear_fila_controles(self, padre, sizer):
         fila = wx.BoxSizer(wx.HORIZONTAL)
+        self._crear_casillas(padre)
+        self.btn_capa = boton(
+            padre, _("&Capa"), nombre_de_etiqueta(_("&Capa")))
+        self.btn_tamano = boton(
+            padre, _("&Tamaño…"), nombre_de_etiqueta(_("&Tamaño…")))
+        self.btn_ajuste = boton(
+            padre, _("Mover con flec&has"),
+            nombre_de_etiqueta(_("Mover con flec&has")))
+        for control in (self.chk_mostrar, self.chk_fijar, self.btn_capa,
+                        self.btn_tamano, self.btn_ajuste):
+            fila.Add(control, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 4)
+        sizer.Add(fila, 0, wx.EXPAND | wx.ALL, 6)
+
+    def _crear_casillas(self, padre):
         self.chk_mostrar = wx.CheckBox(
             padre, label=_("Mostrar en la esce&na"),
             name=nombre_de_etiqueta(_("Mostrar en la esce&na")))
         self.chk_fijar = wx.CheckBox(
             padre, label=_("&Bloquear posición"),
             name=nombre_de_etiqueta(_("&Bloquear posición")))
-        botones = self._crear_botones_capa(padre)
-        self._etiqueta_ajuste = _("Mover con flec&has")
-        self.btn_ajuste = boton(
-            padre, self._etiqueta_ajuste, nombre_de_etiqueta(self._etiqueta_ajuste))
-        for control in (self.chk_mostrar, self.chk_fijar, *botones,
-                        self.btn_ajuste):
-            fila.Add(control, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 4)
-        sizer.Add(fila, 0, wx.EXPAND | wx.ALL, 6)
-
-    def _crear_botones_capa(self, padre):
-        self.btn_frente = boton(
-            padre, _("Traer al f&rente"), nombre_de_etiqueta(_("Traer al f&rente")))
-        self.btn_adelante = boton(
-            padre, _("Tra&er adelante"),
-            nombre_de_etiqueta(_("Tra&er adelante")))
-        self.btn_atras = boton(
-            padre, _("Enviar atrá&s"), nombre_de_etiqueta(_("Enviar atrá&s")))
-        self.btn_fondo = boton(
-            padre, _("En&viar al fondo"),
-            nombre_de_etiqueta(_("En&viar al fondo")))
-        return (self.btn_frente, self.btn_adelante, self.btn_atras,
-                self.btn_fondo)
 
     def _enlazar_eventos(self):
         self.cho_fuente.Bind(wx.EVT_CHOICE, self._cambiar_fuente)
+        self.cho_fuente.Bind(wx.EVT_KEY_DOWN, self._tecla_fuente)
+        self.cho_fuente.Bind(wx.EVT_CONTEXT_MENU,
+                             self._menu_contextual_fuente)
         # Recorrer con flechas dispara EVT_CHOICE y esto no debe mover nada.
         self.btn_colocar.Bind(wx.EVT_BUTTON, self._colocar)
         self.btn_tamano.Bind(wx.EVT_BUTTON, self._tamano)
+        self.btn_capa.Bind(wx.EVT_BUTTON, self._capa)
         self.chk_mostrar.Bind(wx.EVT_CHECKBOX, self._mostrar)
         self.chk_fijar.Bind(wx.EVT_CHECKBOX, self._fijar)
-        self.btn_frente.Bind(wx.EVT_BUTTON, self._frente)
-        self.btn_adelante.Bind(
-            wx.EVT_BUTTON,
-            lambda event: self._movimiento("adelante"))
-        self.btn_atras.Bind(
-            wx.EVT_BUTTON,
-            lambda event: self._movimiento("atras"))
-        self.btn_fondo.Bind(
-            wx.EVT_BUTTON,
-            lambda event: self._movimiento("fondo"))
         self.btn_restaurar.Bind(wx.EVT_BUTTON, self._restaurar)
+
+    def _capa(self, _event):
+        self._mostrar_menu_capa(self.btn_capa)
+
+    def _tecla_fuente(self, event):
+        tecla = event.GetKeyCode()
+        if (tecla == wx.WXK_WINDOWS_MENU
+                or (tecla == wx.WXK_F10 and event.ShiftDown())):
+            self._mostrar_menu_capa(self.cho_fuente)
+            return
+        event.Skip()
+
+    def _menu_contextual_fuente(self, _event):
+        self._mostrar_menu_capa(self.cho_fuente)
+
+    def _mostrar_menu_capa(self, ancla):
+        if not self._fuente():
+            anunciar(_("Sin selección"))
+            return
+        menu = self._menu_de_capa()
+        ancla.PopupMenu(menu)
+        menu.Destroy()
+
+    def _menu_de_capa(self):
+        menu = wx.Menu()
+        for etiqueta, accion in (
+                (_("Traer al f&rente"), lambda: self._frente(None)),
+                (_("Tra&er adelante"),
+                 lambda: self._movimiento("adelante")),
+                (_("Enviar atrá&s"), lambda: self._movimiento("atras")),
+                (_("En&viar al fondo"),
+                 lambda: self._movimiento("fondo"))):
+            identificador = wx.NewIdRef()
+            menu.Append(identificador, etiqueta)
+            menu.Bind(wx.EVT_MENU,
+                      lambda _evento, funcion=accion: funcion(),
+                      id=identificador)
+        return menu
 
     def cargar(self, fuentes, fuente, snap):
         self.cho_fuente.Set(list(fuentes))
@@ -185,9 +193,9 @@ class PaginaFuentes(wx.Panel):
             tuple(obs_disposicion.ANCLAJES).index(anclaje)
             if anclaje else wx.NOT_FOUND)
         if snap.ancho:
-            self.sp_ancho.SetValue(snap.ancho)
+            self._ancho = snap.ancho
         if snap.alto:
-            self.sp_alto.SetValue(snap.alto)
+            self._alto = snap.alto
         self.chk_mostrar.SetValue(snap.visible)
         self.chk_fijar.SetValue(snap.bloqueada)
 
@@ -221,7 +229,14 @@ class PaginaFuentes(wx.Panel):
 
     def _tamano(self, event):
         escena, fuente = self._destino()
-        ancho, alto = self.sp_ancho.GetValue(), self.sp_alto.GetValue()
+        if not fuente:
+            anunciar(_("Sin selección"))
+            return
+        tamano = escena_tamano.pedir_tamano(self, self._ancho, self._alto)
+        self.btn_tamano.SetFocus()
+        if tamano is None:
+            return
+        ancho, alto = tamano
         self._operaciones.en_hilo(
             lambda: consultas_transmision.aplicar_tamano(
                 self._gestor, self._registro, escena, fuente, ancho, alto),

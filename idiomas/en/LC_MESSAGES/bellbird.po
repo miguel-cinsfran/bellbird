@@ -5424,9 +5424,10 @@ msgstr "&Download"
 msgid "Descargar"
 msgstr "Download"
 
-#: bellbird/ui/elegir_formato.py bellbird/ui/gui_redactar.py
-#: bellbird/ui/ia_agregar_captura.py bellbird/ui/musica_dialogo_enlace.py
-#: bellbird/ui/musica_editor_lista.py bellbird/ui/restream_perfil.py
+#: bellbird/ui/elegir_formato.py bellbird/ui/escena_tamano.py
+#: bellbird/ui/gui_redactar.py bellbird/ui/ia_agregar_captura.py
+#: bellbird/ui/musica_dialogo_enlace.py bellbird/ui/musica_editor_lista.py
+#: bellbird/ui/restream_perfil.py
 msgid "Cancelar"
 msgstr "Cancel"
 
@@ -5527,24 +5528,16 @@ msgid "&Detalle de la fuente:"
 msgstr "Source &details:"
 
 #: bellbird/ui/escena_pagina_fuentes.py
-msgid "&Ancho:"
-msgstr "Wid&th:"
+msgid "&Capa"
+msgstr "La&yer"
 
 #: bellbird/ui/escena_pagina_fuentes.py
-msgid "Ancho en píxeles"
-msgstr "Width in pixels"
+msgid "&Tamaño…"
+msgstr "&Size…"
 
 #: bellbird/ui/escena_pagina_fuentes.py
-msgid "A&lto:"
-msgstr "H&eight:"
-
-#: bellbird/ui/escena_pagina_fuentes.py
-msgid "Alto en píxeles"
-msgstr "Height in pixels"
-
-#: bellbird/ui/escena_pagina_fuentes.py
-msgid "Cambiar &tamaño"
-msgstr "&Resize"
+msgid "Mover con flec&has"
+msgstr "Move with &arrows"
 
 #: bellbird/ui/escena_pagina_fuentes.py
 msgid "Mostrar en la esce&na"
@@ -5554,9 +5547,10 @@ msgstr "Show i&n scene"
 msgid "&Bloquear posición"
 msgstr "&Lock position"
 
-#: bellbird/ui/escena_pagina_fuentes.py
-msgid "Mover con flec&has"
-msgstr "Move with &arrows"
+#: bellbird/ui/escena_pagina_fuentes.py bellbird/ui/gui_historial.py
+#: bellbird/ui/restream_pagina_perfiles.py bellbird/ui/restream_ventana.py
+msgid "Sin selección"
+msgstr "Nothing selected"
 
 #: bellbird/ui/escena_pagina_fuentes.py
 msgid "Traer al f&rente"
@@ -5586,6 +5580,30 @@ msgstr "{fuente} does not report its size yet."
 #: bellbird/ui/escena_pagina_fuentes.py
 msgid "Cambios deshechos"
 msgstr "Changes undone"
+
+#: bellbird/ui/escena_tamano.py
+msgid "Tamaño de la fuente"
+msgstr "Source size"
+
+#: bellbird/ui/escena_tamano.py
+msgid "&Ancho:"
+msgstr "Wid&th:"
+
+#: bellbird/ui/escena_tamano.py
+msgid "Ancho en píxeles"
+msgstr "Width in pixels"
+
+#: bellbird/ui/escena_tamano.py
+msgid "A&lto:"
+msgstr "H&eight:"
+
+#: bellbird/ui/escena_tamano.py
+msgid "Alto en píxeles"
+msgstr "Height in pixels"
+
+#: bellbird/ui/escena_tamano.py
+msgid "Aceptar"
+msgstr "OK"
 
 #: bellbird/ui/gui.py
 msgid ""
@@ -6798,11 +6816,6 @@ msgstr "Cl&ose"
 #, python-brace-format
 msgid "Historial de {plataforma}"
 msgstr "{plataforma} history"
-
-#: bellbird/ui/gui_historial.py bellbird/ui/restream_pagina_perfiles.py
-#: bellbird/ui/restream_ventana.py
-msgid "Sin selección"
-msgstr "Nothing selected"
 
 #: bellbird/ui/gui_historial.py bellbird/ui/recientes_inicio.py
 msgid "Entrada eliminada del historial"

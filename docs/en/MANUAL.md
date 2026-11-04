@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 3d0d4fcd0a9393bd48b3d5448d546e8f7554bc5c -->
+<!-- original: es/MANUAL.md 0b2fd00d71072a6e13143996d123ce1b289ca172 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -458,12 +458,14 @@ is broadcast.
 image of it.
 
 *Sources* chooses a source of the scene and moves it to one of the nine
-positions, changes its size, hides it, locks it or changes its layer: brings
-it to the front, brings it forward, sends it backward or sends it to the back.
-*Move with arrows* moves it in small steps: `Ctrl` gives large steps, `Shift`
-one-pixel steps, `Enter` confirms and `Esc` undoes. The *Source details* field,
-next to the list, says where it is, how big it is and what covers it.
-*Undo changes* returns everything to how it was when the window was opened.
+positions, changes its size, hides it or locks it. *Layer* opens a menu to
+bring it to the front, bring it forward, send it backward or send it to the
+back, and the Applications key in the list opens the same menu. *Size…* opens a
+dialog to type the width and height in pixels. *Move with arrows* moves it in
+small steps: `Ctrl` gives large steps, `Shift` one-pixel steps, `Enter`
+confirms and `Esc` undoes. The *Source details* field, next to the list, says
+where it is, how big it is and what covers it. *Undo changes* returns
+everything to how it was when the window was opened.
 
 *Add* captures a window from the computer or adds a Windows camera to the
 current scene. *Audio* mutes the OBS microphone and chooses which one is used.

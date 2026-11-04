@@ -3945,7 +3945,6 @@ def _version_coherente(textos: list, res: Resultado) -> None:
     unico sintoma seria que el «Acerca de» dijera una cosa y las novedades
     otra. Quien lo sufre es el que descarga el ZIP y no sabe que tiene.
     """
-    import re
     mostrada = ""
     for x in textos:
         m = re.search(r"v(\d+\.\d+\.\d+)", x)
@@ -5492,6 +5491,7 @@ SUPERFICIES = {
     "escena_pagina_fuentes.py": "escena",
     "escena_pagina_agregar.py": "escena",
     "escena_pagina_audio.py": "escena",
+    "escena_tamano.py": "escena",
     "control_grabacion.py": "transmision",
     "directo_panel.py": "transmision",
     "mover_con_flechas.py": "escena",

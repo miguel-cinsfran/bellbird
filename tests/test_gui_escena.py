@@ -11,6 +11,7 @@ from bellbird.ui import escena_pagina_agregar
 from bellbird.ui import escena_pagina_audio
 from bellbird.ui import escena_pagina_escena
 from bellbird.ui import escena_pagina_fuentes
+from bellbird.ui import escena_tamano
 from bellbird.ui import gui_grabaciones
 from bellbird.ui import obs_ventana
 from bellbird.ui import gui_microfono
@@ -145,6 +146,27 @@ class TestVentanaObs(unittest.TestCase):
         casilla.GetEventHandler().ProcessEvent(
             wx.CommandEvent(wx.EVT_CHECKBOX.typeId, casilla.GetId()))
 
+    def _abrir_menu_de_capa(self, pagina, al_elegir=None):
+        etiquetas = []
+
+        def falso_popup(menu):
+            for item in menu.GetMenuItems():
+                etiqueta = item.GetItemLabelText()
+                etiquetas.append(etiqueta)
+                if etiqueta == al_elegir:
+                    menu.ProcessEvent(
+                        wx.CommandEvent(wx.EVT_MENU.typeId, item.GetId()))
+
+        with mock.patch.object(pagina.btn_capa, "PopupMenu", falso_popup):
+            pagina._mostrar_menu_capa(pagina.btn_capa)
+        return etiquetas
+
+    def _cuadro_tamano(self, ancho=460, alto=620):
+        dialogo = escena_tamano.TamanoFuenteDialog(
+            self.dialogo, ancho, alto)
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
     def _nombres(self, ventana):
         nombres = []
         for hijo in ventana.GetChildren():
@@ -237,12 +259,12 @@ class TestVentanaObs(unittest.TestCase):
         pagina = self.dialogo._pagina_fuentes
         pagina.cho_posicion.SetSelection(8)
         self._pulsar(pagina.btn_colocar)
-        pagina.sp_ancho.SetValue(800)
-        pagina.sp_alto.SetValue(500)
-        self._pulsar(pagina.btn_tamano)
+        with mock.patch.object(escena_tamano, "pedir_tamano",
+                               return_value=(800, 500)):
+            self._pulsar(pagina.btn_tamano)
         self._marcar(pagina.chk_mostrar, False)
         self._marcar(pagina.chk_fijar, True)
-        self._pulsar(pagina.btn_frente)
+        self._abrir_menu_de_capa(pagina, "Traer al frente")
         self._pulsar(pagina.btn_restaurar)
         self.assertIn(("colocar", "Principal", "inferior-derecha"),
                       self.gestor.llamadas)
@@ -259,25 +281,94 @@ class TestVentanaObs(unittest.TestCase):
             lienzo_ancho=1600, lienzo_alto=900, izquierda=32, arriba=18,
             visible=False, bloqueada=True)
         pagina = self.dialogo._pagina_fuentes
-        self._pulsar(pagina.btn_frente)
+        self._abrir_menu_de_capa(pagina, "Traer al frente")
         self.assertIn("800 por 500", pagina.txt_detalle.GetValue())
         self.assertIn("Fuente:", pagina.txt_detalle.GetValue())
 
-    def test_cada_boton_de_capa_llama_a_mover_capa_con_su_movimiento(self):
+    def test_el_menu_de_capa_tiene_las_cuatro_acciones_en_orden(self):
         pagina = self.dialogo._pagina_fuentes
-        for boton, movimiento in (
-                (pagina.btn_adelante, "adelante"),
-                (pagina.btn_atras, "atras"),
-                (pagina.btn_fondo, "fondo")):
+        pagina.cho_fuente.SetStringSelection("Juego")
+        self.assertEqual(
+            self._abrir_menu_de_capa(pagina),
+            ["Traer al frente", "Traer adelante", "Enviar atrás",
+             "Enviar al fondo"])
+
+    def test_cada_entrada_del_menu_de_capa_llama_a_su_movimiento(self):
+        pagina = self.dialogo._pagina_fuentes
+        for etiqueta, movimiento in (
+                ("Traer adelante", "adelante"),
+                ("Enviar atrás", "atras"),
+                ("Enviar al fondo", "fondo")):
             pagina.cho_fuente.SetStringSelection("Chat en el vídeo")
-            self._pulsar(boton)
+            self._abrir_menu_de_capa(pagina, etiqueta)
             self.assertIn(("mover_capa", "Principal", movimiento),
                           self.gestor.llamadas)
+
+    def test_la_tecla_aplicaciones_abre_el_menu_de_capa(self):
+        pagina = self.dialogo._pagina_fuentes
+        pagina.cho_fuente.SetStringSelection("Juego")
+        evento = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
+        evento.KeyCode = wx.WXK_WINDOWS_MENU
+        with mock.patch.object(pagina, "_mostrar_menu_capa") as mostrar:
+            pagina.cho_fuente.ProcessEvent(evento)
+        mostrar.assert_called_once_with(pagina.cho_fuente)
+
+    def test_mayus_f10_abre_el_mismo_menu_de_capa(self):
+        pagina = self.dialogo._pagina_fuentes
+        pagina.cho_fuente.SetStringSelection("Juego")
+        evento = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
+        evento.KeyCode = wx.WXK_F10
+        evento.SetShiftDown(True)
+        with mock.patch.object(pagina, "_mostrar_menu_capa") as mostrar:
+            pagina.cho_fuente.ProcessEvent(evento)
+        mostrar.assert_called_once_with(pagina.cho_fuente)
+
+    def test_capa_sin_seleccion_anuncia_y_no_abre_el_menu(self):
+        pagina = self.dialogo._pagina_fuentes
+        pagina.cho_fuente.SetSelection(wx.NOT_FOUND)
+        with mock.patch.object(pagina.btn_capa, "PopupMenu") as popup:
+            self._pulsar(pagina.btn_capa)
+        popup.assert_not_called()
+        self.assertIn("Sin selección", self.anuncios)
+
+    def test_tamano_sin_seleccion_anuncia_y_no_abre_el_cuadro(self):
+        pagina = self.dialogo._pagina_fuentes
+        pagina.cho_fuente.SetSelection(wx.NOT_FOUND)
+        with mock.patch.object(escena_tamano, "pedir_tamano") as pedir:
+            self._pulsar(pagina.btn_tamano)
+        pedir.assert_not_called()
+        self.assertIn("Sin selección", self.anuncios)
+
+    def test_tamano_abre_con_el_ultimo_tamano_de_la_fuente(self):
+        pagina = self.dialogo._pagina_fuentes
+        with mock.patch.object(escena_tamano, "pedir_tamano",
+                               return_value=None) as pedir:
+            self._pulsar(pagina.btn_tamano)
+        pedir.assert_called_once_with(pagina, 460, 620)
+
+    def test_aceptar_el_tamano_lo_aplica_y_devuelve_el_foco(self):
+        pagina = self.dialogo._pagina_fuentes
+        with mock.patch.object(pagina.btn_tamano, "SetFocus") as foco, \
+                mock.patch.object(escena_tamano, "pedir_tamano",
+                                  return_value=(800, 500)):
+            self._pulsar(pagina.btn_tamano)
+        self.assertIn(("redimensionar", "Principal", 800, 500),
+                      self.gestor.llamadas)
+        foco.assert_called_once_with()
+
+    def test_cancelar_el_tamano_no_aplica_nada(self):
+        pagina = self.dialogo._pagina_fuentes
+        with mock.patch.object(pagina.btn_tamano, "SetFocus"), \
+                mock.patch.object(escena_tamano, "pedir_tamano",
+                                  return_value=None):
+            self._pulsar(pagina.btn_tamano)
+        self.assertNotIn("redimensionar",
+                         [llamada[0] for llamada in self.gestor.llamadas])
 
     def test_mover_anuncia_el_lugar_y_despues_la_descripcion(self):
         pagina = self.dialogo._pagina_fuentes
         pagina.cho_fuente.SetStringSelection("Chat en el vídeo")
-        self._pulsar(pagina.btn_adelante)
+        self._abrir_menu_de_capa(pagina, "Traer adelante")
         aviso = next(anuncio for anuncio in self.anuncios
                      if anuncio.startswith("Chat en el vídeo: capa 1 de 3."))
         self.assertIn("Chat en el vídeo.", aviso)
@@ -285,16 +376,16 @@ class TestVentanaObs(unittest.TestCase):
     def test_mover_en_el_extremo_anuncia_que_ya_esta_en_el_borde(self):
         pagina = self.dialogo._pagina_fuentes
         pagina.cho_fuente.SetStringSelection("Cámara")
-        self._pulsar(pagina.btn_adelante)
+        self._abrir_menu_de_capa(pagina, "Traer adelante")
         self.assertIn("Cámara ya está al frente.", self.anuncios)
         pagina.cho_fuente.SetStringSelection("Juego")
-        self._pulsar(pagina.btn_fondo)
+        self._abrir_menu_de_capa(pagina, "Enviar al fondo")
         self.assertIn("Juego ya está al fondo.", self.anuncios)
 
     def test_la_lista_fuente_queda_ordenada_y_con_la_misma_fuente(self):
         pagina = self.dialogo._pagina_fuentes
         pagina.cho_fuente.SetStringSelection("Chat en el vídeo")
-        self._pulsar(pagina.btn_adelante)
+        self._abrir_menu_de_capa(pagina, "Traer adelante")
         self.assertEqual(pagina.cho_fuente.GetStrings(),
                          ["Chat en el vídeo", "Cámara", "Juego"])
         self.assertEqual(pagina.cho_fuente.GetStringSelection(),
@@ -302,11 +393,11 @@ class TestVentanaObs(unittest.TestCase):
 
     def test_los_tres_movimientos_entran_en_deshacer(self):
         pagina = self.dialogo._pagina_fuentes
-        for fuente, boton in (("Cámara", pagina.btn_adelante),
-                              ("Chat en el vídeo", pagina.btn_atras),
-                              ("Juego", pagina.btn_fondo)):
+        for fuente, etiqueta in (("Cámara", "Traer adelante"),
+                                 ("Chat en el vídeo", "Enviar atrás"),
+                                 ("Juego", "Enviar al fondo")):
             pagina.cho_fuente.SetStringSelection(fuente)
-            self._pulsar(boton)
+            self._abrir_menu_de_capa(pagina, etiqueta)
         self.gestor.llamadas.clear()
         self._pulsar(pagina.btn_restaurar)
         self.assertEqual(
@@ -390,13 +481,10 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(fuentes.cho_fuente.GetName(), "Fuente")
         self.assertEqual(fuentes.cho_posicion.GetName(), "Posición")
         self.assertEqual(fuentes.btn_colocar.GetName(), "Mover fuente")
-        self.assertEqual(fuentes.btn_tamano.GetName(), "Cambiar tamaño")
+        self.assertEqual(fuentes.btn_tamano.GetName(), "Tamaño…")
         self.assertEqual(fuentes.chk_mostrar.GetName(), "Mostrar en la escena")
         self.assertEqual(fuentes.chk_fijar.GetName(), "Bloquear posición")
-        self.assertEqual(fuentes.btn_frente.GetName(), "Traer al frente")
-        self.assertEqual(fuentes.btn_adelante.GetName(), "Traer adelante")
-        self.assertEqual(fuentes.btn_atras.GetName(), "Enviar atrás")
-        self.assertEqual(fuentes.btn_fondo.GetName(), "Enviar al fondo")
+        self.assertEqual(fuentes.btn_capa.GetName(), "Capa")
         self.assertEqual(fuentes.btn_ajuste.GetName(), "Mover con flechas")
         self.assertEqual(fuentes.btn_restaurar.GetName(), "Deshacer cambios")
         self.assertEqual(fuentes.txt_detalle.GetName(), "Detalle de la fuente")
@@ -416,15 +504,47 @@ class TestVentanaObs(unittest.TestCase):
             "Guardar imagen…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_fuentes), [
             "Fuente", "Detalle de la fuente", "Posición", "Mover fuente",
-            "Ancho en píxeles", "Alto en píxeles", "Cambiar tamaño",
-            "Mostrar en la escena", "Bloquear posición", "Traer al frente",
-            "Traer adelante", "Enviar atrás", "Enviar al fondo",
+            "Mostrar en la escena", "Bloquear posición", "Capa", "Tamaño…",
             "Mover con flechas", "Deshacer cambios"])
         self.assertEqual(self._nombres(self.dialogo._pagina_agregar), [
             "Ventana", "Capturar ventana", "Agregar cámara…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_audio), [
             "Silenciar micrófono", "Elegir micrófono…"])
         self.assertEqual(self._nombres(self.dialogo)[-2:], ["Ayuda", "Cerrar"])
+
+    def test_cuadro_tamano_abre_con_el_tamano_actual(self):
+        dialogo = self._cuadro_tamano(460, 620)
+        self.assertEqual(dialogo.GetTitle(), "Tamaño de la fuente")
+        self.assertEqual(dialogo.sp_ancho.GetValue(), 460)
+        self.assertEqual(dialogo.sp_alto.GetValue(), 620)
+        self.assertEqual(dialogo.sp_ancho.GetName(), "Ancho en píxeles")
+        self.assertEqual(dialogo.sp_alto.GetName(), "Alto en píxeles")
+        self.assertIs(dialogo.GetDefaultItem(), dialogo.btn_aceptar)
+
+    def test_aceptar_en_el_cuadro_devuelve_ancho_y_alto(self):
+        dialogo = self._cuadro_tamano()
+        dialogo.sp_ancho.SetValue(800)
+        dialogo.sp_alto.SetValue(500)
+        dialogo.EndModal = mock.Mock()
+        dialogo._al_aceptar(None)
+        dialogo.EndModal.assert_called_once_with(wx.ID_OK)
+        self.assertEqual(dialogo.tamano_elegido(), (800, 500))
+
+    def test_cancelar_en_el_cuadro_no_devuelve_tamano(self):
+        dialogo = self._cuadro_tamano()
+        dialogo.EndModal = mock.Mock()
+        dialogo._al_cancelar(None)
+        dialogo.EndModal.assert_called_once_with(wx.ID_CANCEL)
+        self.assertIsNone(dialogo.tamano_elegido())
+
+    def test_escape_cierra_el_cuadro_sin_tamano(self):
+        dialogo = self._cuadro_tamano()
+        dialogo.EndModal = mock.Mock()
+        evento = wx.KeyEvent(wx.wxEVT_CHAR_HOOK)
+        evento.KeyCode = wx.WXK_ESCAPE
+        dialogo.ProcessEvent(evento)
+        dialogo.EndModal.assert_called_once_with(wx.ID_CANCEL)
+        self.assertIsNone(dialogo.tamano_elegido())
 
     def test_escape_durante_el_ajuste_lo_deshace_sin_cerrar(self):
         self.dialogo.EndModal = mock.Mock()

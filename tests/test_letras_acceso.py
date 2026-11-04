@@ -29,6 +29,7 @@ from bellbird.ui import escena_pagina_agregar
 from bellbird.ui import escena_pagina_audio
 from bellbird.ui import escena_pagina_escena
 from bellbird.ui import escena_pagina_fuentes
+from bellbird.ui import escena_tamano
 from bellbird.ui import obs_ventana
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
@@ -335,6 +336,16 @@ class TestLetrasAccesoPanelObs(unittest.TestCase):
                     self.assertEqual(repetidas, {})
 
 
+class TestLetrasAccesoTamano(unittest.TestCase):
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def test_cuadro_sin_letras_repetidas(self):
+        dialogo = escena_tamano.TamanoFuenteDialog(None, 460, 620)
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(letras_repetidas(dialogo), {})
+
+
 class TestLetrasAccesoRestream(unittest.TestCase):
     class _CuentaFalsa:
         def conectada(self):
@@ -513,6 +524,20 @@ class TestLetrasAccesoTransmisionEnIngles(TestLetrasAccesoTransmision):
 
 class TestLetrasAccesoPanelObsEnIngles(TestLetrasAccesoPanelObs):
     # Gemela en inglés: repite las pruebas sin copiarlas.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoTamanoEnIngles(TestLetrasAccesoTamano):
+    # Gemela en inglés: repite la prueba sin copiarla.
 
     @classmethod
     def setUpClass(cls):

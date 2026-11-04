@@ -572,6 +572,7 @@ class TestVentanaObs(unittest.TestCase):
         audio = self.dialogo._pagina_audio
         self.assertEqual(audio.chk_silenciar.GetName(), "Silenciar micrófono")
         self.assertEqual(audio.btn_microfono.GetName(), "Elegir micrófono…")
+        self.assertEqual(audio.btn_probar.GetName(), "Probar micrófono")
         self.assertEqual(self.dialogo.btn_ayuda.GetName(), "Ayuda")
         self.assertEqual(self.dialogo.btn_cerrar.GetName(), "Cerrar")
 
@@ -586,7 +587,7 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(self._nombres(self.dialogo._pagina_agregar), [
             "Ventana", "Capturar ventana", "Agregar cámara…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_audio), [
-            "Silenciar micrófono", "Elegir micrófono…"])
+            "Silenciar micrófono", "Elegir micrófono…", "Probar micrófono"])
         self.assertEqual(self._nombres(self.dialogo)[-2:], ["Ayuda", "Cerrar"])
 
     def test_cuadro_tamano_abre_con_el_tamano_actual(self):

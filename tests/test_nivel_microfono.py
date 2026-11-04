@@ -5,7 +5,8 @@ import unittest
 from dataclasses import FrozenInstanceError
 
 from bellbird.obs.nivel_microfono import (
-    ALTO, BAJO, BIEN, SATURADO, SILENCIO, SIN_MUESTRAS, nivel_de)
+    ALTO, BAJO, BIEN, SATURADO, SILENCIO, SIN_MUESTRAS, Nivel,
+    frase_de_tramo, nivel_de, sonido_de_tramo)
 
 
 def _evento(canales, fuente="Mic/Aux"):
@@ -120,6 +121,47 @@ class SinMuestrasTest(unittest.TestCase):
             nivel_de([{"inputs": []}], "Mic/Aux").estado, SIN_MUESTRAS)
         self.assertEqual(
             nivel_de([_evento([])], "Mic/Aux").estado, SIN_MUESTRAS)
+
+
+class FraseDeTramoTest(unittest.TestCase):
+    def test_cada_estado_tiene_su_frase(self):
+        casos = {
+            BIEN: "Nivel bien.",
+            BAJO: "Nivel bajo. Acércate al micrófono o sube su volumen "
+                  "en Windows.",
+            ALTO: "Nivel alto. Aléjate un poco del micrófono.",
+            SATURADO: "El sonido se satura. Aléjate del micrófono o baja su "
+                      "volumen en Windows.",
+            SILENCIO: "No llega sonido. Revisa que el micrófono esté "
+                      "conectado y no silenciado en Windows.",
+            SIN_MUESTRAS: "OBS no mide este micrófono. Revisa que la fuente "
+                          "esté activa en OBS.",
+        }
+        for estado, esperado in casos.items():
+            with self.subTest(estado=estado):
+                self.assertEqual(frase_de_tramo(Nivel(estado, -3.0)), esperado)
+
+
+class SonidoDeTramoTest(unittest.TestCase):
+    def test_cada_estado_tiene_su_sonido(self):
+        casos = {
+            BIEN: "microfono_bien",
+            BAJO: "microfono_revisar",
+            ALTO: "microfono_revisar",
+            SATURADO: "microfono_revisar",
+            SILENCIO: "microfono_sin_senal",
+            SIN_MUESTRAS: "microfono_sin_senal",
+        }
+        for estado, esperado in casos.items():
+            with self.subTest(estado=estado):
+                self.assertEqual(
+                    sonido_de_tramo(Nivel(estado, -3.0)), esperado)
+
+    def test_bajo_alto_y_saturado_comparten_sonido(self):
+        sonidos = {
+            sonido_de_tramo(Nivel(estado, -3.0))
+            for estado in (BAJO, ALTO, SATURADO)}
+        self.assertEqual(sonidos, {"microfono_revisar"})
 
 
 class ResultadoTest(unittest.TestCase):

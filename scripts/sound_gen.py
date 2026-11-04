@@ -554,6 +554,22 @@ def gen_microfono_sin_senal():
     return _normalizar(_concat(arriba, _silencio(0.03), abajo), 0.5)
 
 
+def gen_microfono_bien():
+    # Tres notas que suben, E5, G5 y C6: la voz llega con buen nivel.
+    primera = _perc(_seno(E5, 0.08, 0.34), 0.004, 0.10)
+    segunda = _perc(_seno(G5, 0.08, 0.34), 0.004, 0.10)
+    tercera = _perc(_seno(C6, 0.18, 0.36), 0.004, 0.18)
+    return _normalizar(_concat(primera, segunda, tercera), 0.62)
+
+
+def gen_microfono_revisar():
+    # Dos toques iguales y uno más grave, A4, A4 y F4: hay algo que ajustar.
+    toque = _perc(_seno(A4, 0.09, 0.38), 0.004, 0.12)
+    bajo = _perc(_seno(F4, 0.16, 0.38), 0.004, 0.16)
+    return _normalizar(
+        _concat(toque, _silencio(0.04), toque, _silencio(0.04), bajo), 0.55)
+
+
 def gen_directo_pausado():
     # Pausa del directo: dos notas graves que bajan, E4 y C4, con hueco.
     alta = _perc(_seno(E4, 0.12, 0.45), 0.005, 0.35)
@@ -995,6 +1011,22 @@ def s_microfono_sin_senal():
     return _normalizar(_concat(arriba, _silencio(0.03), abajo), 0.45)
 
 
+def s_microfono_bien():
+    # Las mismas tres notas que suben, en madera.
+    return _normalizar(_concat(
+        _madera(E5, 0.08, 0.40, 0.10),
+        _madera(G5, 0.08, 0.40, 0.10),
+        _madera(C6, 0.18, 0.42, 0.18)), 0.66)
+
+
+def s_microfono_revisar():
+    # Los mismos dos toques y la nota grave, en madera.
+    toque = _madera(A4, 0.09, 0.40, 0.12)
+    bajo = _madera(F4, 0.16, 0.40, 0.16)
+    return _normalizar(
+        _concat(toque, _silencio(0.04), toque, _silencio(0.04), bajo), 0.5)
+
+
 def s_directo_pausado():
     # La misma pausa grave que baja, en madera.
     alta = _madera(E4, 0.12, 0.45, 0.35)
@@ -1263,6 +1295,8 @@ TEMAS = {
         "atajos_ocupados.wav":         gen_atajos_ocupados,
         # Micrófono activado sin señal que entre.
         "microfono_sin_senal.wav":     gen_microfono_sin_senal,
+        "microfono_bien.wav":          gen_microfono_bien,
+        "microfono_revisar.wav":       gen_microfono_revisar,
         # Pausa del directo de TikTok y su vuelta.
         "directo_pausado.wav":         gen_directo_pausado,
         "directo_reanudado.wav":       gen_directo_reanudado,
@@ -1358,6 +1392,8 @@ TEMAS = {
         "atajos_ocupados.wav":         s_atajos_ocupados,
         # Micrófono activado sin señal que entre.
         "microfono_sin_senal.wav":     s_microfono_sin_senal,
+        "microfono_bien.wav":          s_microfono_bien,
+        "microfono_revisar.wav":       s_microfono_revisar,
         # Pausa del directo de TikTok y su vuelta.
         "directo_pausado.wav":         s_directo_pausado,
         "directo_reanudado.wav":       s_directo_reanudado,

@@ -28,7 +28,7 @@ EVENTOS_NUEVOS = [
     "ia_enviada", "ia_respuesta", "ia_error",
     "ia_analizando", "ia_captura", "ia_cancelada", "ia_imagen_negra",
     "atajos_ocupados",
-    "microfono_sin_senal",
+    "microfono_sin_senal", "microfono_bien", "microfono_revisar",
     "directo_pausado", "directo_reanudado",
     "busqueda_iniciada", "busqueda_resultados", "busqueda_sin_resultados",
     "busqueda_fallida",

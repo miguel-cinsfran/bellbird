@@ -5,6 +5,8 @@ from __future__ import annotations
 import math
 from dataclasses import dataclass
 
+from bellbird.core.idioma import _
+
 SILENCIO = "silencio"
 BAJO = "bajo"
 BIEN = "bien"
@@ -67,3 +69,59 @@ def nivel_de(eventos, fuente: str) -> Nivel:
         return Nivel(SIN_MUESTRAS, None)
     pico_dbfs = _a_dbfs(max(picos))
     return Nivel(_estado(pico_dbfs), round(pico_dbfs, 1))
+
+
+SONIDO_BIEN = "microfono_bien"
+SONIDO_REVISAR = "microfono_revisar"
+
+
+def _frase_bien() -> str:
+    return _("Nivel bien.")
+
+
+def _frase_bajo() -> str:
+    return _("Nivel bajo. Acércate al micrófono o sube su volumen "
+             "en Windows.")
+
+
+def _frase_alto() -> str:
+    return _("Nivel alto. Aléjate un poco del micrófono.")
+
+
+def _frase_saturado() -> str:
+    return _("El sonido se satura. Aléjate del micrófono o baja su "
+             "volumen en Windows.")
+
+
+def _frase_silencio() -> str:
+    return _("No llega sonido. Revisa que el micrófono esté conectado y "
+             "no silenciado en Windows.")
+
+
+def _frase_sin_muestras() -> str:
+    return _("OBS no mide este micrófono. Revisa que la fuente esté activa "
+             "en OBS.")
+
+
+_FRASES = {
+    BIEN: _frase_bien,
+    BAJO: _frase_bajo,
+    ALTO: _frase_alto,
+    SATURADO: _frase_saturado,
+    SILENCIO: _frase_silencio,
+    SIN_MUESTRAS: _frase_sin_muestras,
+}
+
+
+def frase_de_tramo(nivel: Nivel) -> str:
+    """Anuncio del nivel de un tramo con qué hacer para mejorarlo."""
+    return _FRASES.get(nivel.estado, _frase_sin_muestras)()
+
+
+def sonido_de_tramo(nivel: Nivel) -> str:
+    """Evento de sonido que acompaña el anuncio de un tramo."""
+    if nivel.estado == BIEN:
+        return SONIDO_BIEN
+    if nivel.estado in (BAJO, ALTO, SATURADO):
+        return SONIDO_REVISAR
+    return "microfono_sin_senal"

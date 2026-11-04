@@ -10287,3 +10287,71 @@ msgstr "Signed in. You can go back to the application."
 msgid "Sin título"
 msgstr "Untitled"
 
+#: bellbird/obs/nivel_microfono.py
+msgid "Nivel bien."
+msgstr "Good level."
+
+#: bellbird/obs/nivel_microfono.py
+msgid "Nivel bajo. Acércate al micrófono o sube su volumen en Windows."
+msgstr "Low level. Move closer to the microphone or turn up its volume in Windows."
+
+#: bellbird/obs/nivel_microfono.py
+msgid "Nivel alto. Aléjate un poco del micrófono."
+msgstr "High level. Move a little away from the microphone."
+
+#: bellbird/obs/nivel_microfono.py
+msgid "El sonido se satura. Aléjate del micrófono o baja su volumen en Windows."
+msgstr ""
+"The sound is clipping. Move away from the microphone or turn down its "
+"volume in Windows."
+
+#: bellbird/obs/nivel_microfono.py
+msgid ""
+"No llega sonido. Revisa que el micrófono esté conectado y no silenciado en "
+"Windows."
+msgstr ""
+"No sound is coming in. Check that the microphone is connected and not muted"
+" in Windows."
+
+#: bellbird/obs/nivel_microfono.py
+msgid "OBS no mide este micrófono. Revisa que la fuente esté activa en OBS."
+msgstr ""
+"OBS is not measuring this microphone. Check that the source is active in "
+"OBS."
+
+#: bellbird/obs/prueba_microfono.py
+msgid "Prueba del micrófono iniciada. Habla como en un directo."
+msgstr "Microphone test started. Talk as you would on a live stream."
+
+#. Traductores: {nombre} es el nombre del dispositivo de audio.
+#: bellbird/obs/prueba_microfono.py
+#, python-brace-format
+msgid ""
+"{nombre} es un auricular en modo manos libres y suena con poca calidad. "
+"Para el directo conviene otro micrófono."
+msgstr ""
+"{nombre} is a hands-free headset and sounds low quality. Another microphone"
+" is better for the live stream."
+
+#: bellbird/ui/escena_pagina_audio.py
+msgid "&Probar micrófono"
+msgstr "&Test microphone"
+
+#: bellbird/ui/escena_pagina_audio.py
+msgid "&Detener prueba"
+msgstr "&Stop test"
+
+#: bellbird/ui/escena_pagina_audio.py
+msgid ""
+"El micrófono está silenciado en OBS. Desmarca Silenciar micrófono y vuelve "
+"a probar."
+msgstr "The microphone is muted in OBS. Uncheck Mute microphone and try again."
+
+#: bellbird/ui/escena_pagina_audio.py
+msgid "No se pudo medir el micrófono en OBS. Prueba detenida."
+msgstr "Could not measure the microphone in OBS. Test stopped."
+
+#: bellbird/ui/escena_pagina_audio.py
+msgid "Prueba del micrófono detenida."
+msgstr "Microphone test stopped."
+

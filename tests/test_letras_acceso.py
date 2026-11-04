@@ -343,7 +343,7 @@ class TestLetrasAccesoTamano(unittest.TestCase):
         self.app = wx.App.Get() or wx.App(False)
 
     def test_cuadro_sin_letras_repetidas(self):
-        dialogo = escena_tamano.TamanoFuenteDialog(None, 460, 620)
+        dialogo = escena_tamano.TamanoFuenteDialog(None, 29, 69)
         self.addCleanup(destruir, dialogo)
         self.assertEqual(letras_repetidas(dialogo), {})
 

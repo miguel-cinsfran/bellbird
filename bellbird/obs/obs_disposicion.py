@@ -234,15 +234,16 @@ def _escena(s, largo) -> str:
 
 
 def _tamano(s, largo) -> str:
-    if not s.ancho or not s.alto or not s.lienzo_ancho:
+    if not s.ancho or not s.alto or not s.lienzo_ancho or not s.lienzo_alto:
         return ""
-    porcentaje = _porcentaje(s.ancho / s.lienzo_ancho * 100)
+    pancho = _porcentaje(s.ancho / s.lienzo_ancho * 100)
+    palto = _porcentaje(s.alto / s.lienzo_alto * 100)
     if largo:
-        return _("Tamaño: {ancho} por {alto} píxeles, {porcentaje}% del "
-                 "ancho de pantalla").format(ancho=s.ancho, alto=s.alto,
-                                             porcentaje=porcentaje)
-    return _("{ancho} por {alto}, {porcentaje}% del ancho").format(
-        ancho=s.ancho, alto=s.alto, porcentaje=porcentaje)
+        return _("Tamaño: {pancho}% del ancho y {palto}% del alto del vídeo "
+                 "({ancho} por {alto} píxeles)").format(
+                     pancho=pancho, palto=palto, ancho=s.ancho, alto=s.alto)
+    return _("{pancho}% del ancho y {palto}% del alto").format(
+        pancho=pancho, palto=palto)
 
 
 def _capa(s, largo) -> str:

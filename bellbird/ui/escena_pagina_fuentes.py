@@ -7,7 +7,7 @@ import wx
 from bellbird.core.idioma import _, pgettext
 from bellbird.obs import (
     aplicar_diseno, consultas_transmision, disenos_fabrica, disenos_guardados,
-    obs_disposicion)
+    obs_disposicion, tamano_relativo)
 from bellbird.ui import escena_disenos, escena_tamano
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.gui import caja_de_grupo
@@ -43,6 +43,7 @@ class PaginaFuentes(wx.Panel):
 
     def _crear_controles(self):
         self._ancho, self._alto = 460, 620
+        self._lienzo_ancho, self._lienzo_alto = 0, 0
         caja = wx.BoxSizer(wx.VERTICAL)
         sizer, padre = caja_de_grupo(self, _("Colocar fuente"))
         self._crear_grupo_colocar(padre, sizer)
@@ -199,12 +200,19 @@ class PaginaFuentes(wx.Panel):
         self.cho_posicion.SetSelection(
             tuple(obs_disposicion.ANCLAJES).index(anclaje)
             if anclaje else wx.NOT_FOUND)
+        self._guardar_tamano(snap)
+        self.chk_mostrar.SetValue(snap.visible)
+        self.chk_fijar.SetValue(snap.bloqueada)
+
+    def _guardar_tamano(self, snap):
         if snap.ancho:
             self._ancho = snap.ancho
         if snap.alto:
             self._alto = snap.alto
-        self.chk_mostrar.SetValue(snap.visible)
-        self.chk_fijar.SetValue(snap.bloqueada)
+        if snap.lienzo_ancho:
+            self._lienzo_ancho = snap.lienzo_ancho
+        if snap.lienzo_alto:
+            self._lienzo_alto = snap.lienzo_alto
 
     def _anunciar_snap(self, snap):
         anunciar(self._descripcion_corta(snap))
@@ -239,15 +247,28 @@ class PaginaFuentes(wx.Panel):
         if not fuente:
             anunciar(_("Sin selección"))
             return
-        tamano = escena_tamano.pedir_tamano(self, self._ancho, self._alto)
-        self.btn_tamano.SetFocus()
-        if tamano is None:
+        ancho, alto = self._pedir_pixeles(fuente)
+        if ancho is None:
             return
-        ancho, alto = tamano
         self._operaciones.en_hilo(
             lambda: consultas_transmision.aplicar_tamano(
                 self._gestor, self._registro, escena, fuente, ancho, alto),
             self._tamano_aplicado)
+
+    def _pedir_pixeles(self, fuente):
+        porcentajes = tamano_relativo.porcentajes(
+            self._ancho, self._alto, self._lienzo_ancho, self._lienzo_alto)
+        if not all(porcentajes):
+            anunciar(_("{fuente} todavía no informa su tamaño.").format(
+                fuente=fuente))
+            return None, None
+        tamano = escena_tamano.pedir_tamano(self, *porcentajes)
+        self.btn_tamano.SetFocus()
+        if tamano is None:
+            return None, None
+        return tamano_relativo.a_pixeles(
+            *tamano, self._lienzo_ancho, self._lienzo_alto,
+            self._ancho, self._alto)
 
     def _tamano_aplicado(self, datos):
         snap, aplicado = datos

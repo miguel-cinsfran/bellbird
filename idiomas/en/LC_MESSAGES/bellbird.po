@@ -3346,13 +3346,17 @@ msgstr "Scene: {valor}"
 
 #: bellbird/obs/obs_disposicion.py
 #, python-brace-format, python-format
-msgid "Tamaño: {ancho} por {alto} píxeles, {porcentaje}% del ancho de pantalla"
-msgstr "Size: {ancho} by {alto} pixels, {porcentaje}% of the screen width"
+msgid ""
+"Tamaño: {pancho}% del ancho y {palto}% del alto del vídeo ({ancho} por "
+"{alto} píxeles)"
+msgstr ""
+"Size: {pancho}% of the width and {palto}% of the height of the video "
+"({ancho} by {alto} pixels)"
 
 #: bellbird/obs/obs_disposicion.py
 #, python-brace-format, python-format
-msgid "{ancho} por {alto}, {porcentaje}% del ancho"
-msgstr "{ancho} by {alto}, {porcentaje}% of the width"
+msgid "{pancho}% del ancho y {palto}% del alto"
+msgstr "{pancho}% of the width and {palto}% of the height"
 
 #: bellbird/obs/obs_disposicion.py
 #, python-brace-format
@@ -3939,6 +3943,30 @@ msgid ""
 msgstr ""
 "{nombre} is a headset in hands-free mode and sounds low quality. For "
 "streaming, use another microphone."
+
+#: bellbird/obs/tamano_relativo.py
+msgid "Un quinto del vídeo"
+msgstr "One fifth of the video"
+
+#: bellbird/obs/tamano_relativo.py
+msgid "Un cuarto del vídeo"
+msgstr "One quarter of the video"
+
+#: bellbird/obs/tamano_relativo.py
+msgid "Un tercio del vídeo"
+msgstr "One third of the video"
+
+#: bellbird/obs/tamano_relativo.py
+msgid "La mitad del vídeo"
+msgstr "Half of the video"
+
+#: bellbird/obs/tamano_relativo.py
+msgid "Dos tercios del vídeo"
+msgstr "Two thirds of the video"
+
+#: bellbird/obs/tamano_relativo.py
+msgid "Todo el vídeo"
+msgstr "The whole video"
 
 #: bellbird/obs/transmision_directa.py
 msgid "Finalizando el directo"
@@ -5331,8 +5359,8 @@ msgid "Antes de transmitir"
 msgstr "Before broadcasting"
 
 #. Traductores: botón para cerrar sin publicar.
-#: bellbird/ui/confirmar_transmision.py bellbird/ui/gui_preferencias.py
-#: bellbird/ui/gui_redactar.py
+#: bellbird/ui/confirmar_transmision.py bellbird/ui/escena_tamano.py
+#: bellbird/ui/gui_preferencias.py bellbird/ui/gui_redactar.py
 msgid "&Cancelar"
 msgstr "&Cancel"
 
@@ -5694,10 +5722,9 @@ msgstr "&Download"
 msgid "Descargar"
 msgstr "Download"
 
-#: bellbird/ui/elegir_formato.py bellbird/ui/escena_tamano.py
-#: bellbird/ui/gui_redactar.py bellbird/ui/ia_agregar_captura.py
-#: bellbird/ui/musica_dialogo_enlace.py bellbird/ui/musica_editor_lista.py
-#: bellbird/ui/restream_perfil.py
+#: bellbird/ui/elegir_formato.py bellbird/ui/gui_redactar.py
+#: bellbird/ui/ia_agregar_captura.py bellbird/ui/musica_dialogo_enlace.py
+#: bellbird/ui/musica_editor_lista.py bellbird/ui/restream_perfil.py
 msgid "Cancelar"
 msgstr "Cancel"
 
@@ -5808,7 +5835,7 @@ msgstr "Fit:"
 msgid "Es&quina:"
 msgstr "Cor&ner:"
 
-#: bellbird/ui/escena_disenos.py
+#: bellbird/ui/escena_disenos.py bellbird/ui/escena_tamano.py
 msgid "&Tamaño:"
 msgstr "&Size:"
 
@@ -5824,7 +5851,7 @@ msgstr "C&hat:"
 msgid "Esquina del c&hat:"
 msgstr "Chat co&rner:"
 
-#: bellbird/ui/escena_disenos.py
+#: bellbird/ui/escena_disenos.py bellbird/ui/escena_tamano.py
 msgid "&Aceptar"
 msgstr "&Accept"
 
@@ -6039,24 +6066,28 @@ msgid "Tamaño de la fuente"
 msgstr "Source size"
 
 #: bellbird/ui/escena_tamano.py
-msgid "&Ancho:"
-msgstr "Wid&th:"
+msgid "Personalizado"
+msgstr "Custom"
 
 #: bellbird/ui/escena_tamano.py
-msgid "Ancho en píxeles"
-msgstr "Width in pixels"
+msgid "A&ncho:"
+msgstr "Wi&dth:"
+
+#: bellbird/ui/escena_tamano.py
+msgid "Ancho en porcentaje del vídeo"
+msgstr "Width as a percentage of the video"
+
+#: bellbird/ui/escena_tamano.py
+msgid "&Mantener proporción"
+msgstr "&Keep aspect ratio"
 
 #: bellbird/ui/escena_tamano.py
 msgid "A&lto:"
 msgstr "H&eight:"
 
 #: bellbird/ui/escena_tamano.py
-msgid "Alto en píxeles"
-msgstr "Height in pixels"
-
-#: bellbird/ui/escena_tamano.py
-msgid "Aceptar"
-msgstr "OK"
+msgid "Alto en porcentaje del vídeo"
+msgstr "Height as a percentage of the video"
 
 #: bellbird/ui/gui.py
 msgid ""

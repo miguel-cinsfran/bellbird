@@ -163,9 +163,9 @@ class TestVentanaObs(unittest.TestCase):
             pagina._mostrar_menu_capa(pagina.btn_capa)
         return etiquetas
 
-    def _cuadro_tamano(self, ancho=460, alto=620):
+    def _cuadro_tamano(self, porcentaje_ancho=29, porcentaje_alto=69):
         dialogo = escena_tamano.TamanoFuenteDialog(
-            self.dialogo, ancho, alto)
+            self.dialogo, porcentaje_ancho, porcentaje_alto)
         self.addCleanup(destruir, dialogo)
         return dialogo
 
@@ -262,7 +262,7 @@ class TestVentanaObs(unittest.TestCase):
         pagina.cho_posicion.SetSelection(8)
         self._pulsar(pagina.btn_colocar)
         with mock.patch.object(escena_tamano, "pedir_tamano",
-                               return_value=(800, 500)):
+                               return_value=(50, None)):
             self._pulsar(pagina.btn_tamano)
         self._marcar(pagina.chk_mostrar, False)
         self._marcar(pagina.chk_fijar, True)
@@ -270,7 +270,7 @@ class TestVentanaObs(unittest.TestCase):
         self._pulsar(pagina.btn_restaurar)
         self.assertIn(("colocar", "Principal", "inferior-derecha"),
                       self.gestor.llamadas)
-        self.assertIn(("redimensionar", "Principal", 800, 500),
+        self.assertIn(("redimensionar", "Principal", 800, 1078),
                       self.gestor.llamadas)
         self.assertIn(("mostrar", "Principal", False), self.gestor.llamadas)
         self.assertIn(("fijar", "Principal", True), self.gestor.llamadas)
@@ -350,20 +350,31 @@ class TestVentanaObs(unittest.TestCase):
         pedir.assert_not_called()
         self.assertIn("Sin selección", self.anuncios)
 
+    def test_tamano_sin_lienzo_anuncia_y_no_abre_el_cuadro(self):
+        pagina = self.dialogo._pagina_fuentes
+        pagina._lienzo_ancho = 0
+        pagina._lienzo_alto = 0
+        with mock.patch.object(escena_tamano, "pedir_tamano") as pedir:
+            self._pulsar(pagina.btn_tamano)
+        pedir.assert_not_called()
+        self.assertIn(
+            f"{pagina._fuente()} todavía no informa su tamaño.",
+            self.anuncios)
+
     def test_tamano_abre_con_el_ultimo_tamano_de_la_fuente(self):
         pagina = self.dialogo._pagina_fuentes
         with mock.patch.object(escena_tamano, "pedir_tamano",
                                return_value=None) as pedir:
             self._pulsar(pagina.btn_tamano)
-        pedir.assert_called_once_with(pagina, 460, 620)
+        pedir.assert_called_once_with(pagina, 29, 69)
 
-    def test_aceptar_el_tamano_lo_aplica_y_devuelve_el_foco(self):
+    def test_elegir_la_mitad_aplica_la_mitad_del_ancho_del_lienzo(self):
         pagina = self.dialogo._pagina_fuentes
         with mock.patch.object(pagina.btn_tamano, "SetFocus") as foco, \
                 mock.patch.object(escena_tamano, "pedir_tamano",
-                                  return_value=(800, 500)):
+                                  return_value=(50, None)):
             self._pulsar(pagina.btn_tamano)
-        self.assertIn(("redimensionar", "Principal", 800, 500),
+        self.assertIn(("redimensionar", "Principal", 800, 1078),
                       self.gestor.llamadas)
         foco.assert_called_once_with()
 
@@ -591,23 +602,61 @@ class TestVentanaObs(unittest.TestCase):
             "Silenciar micrófono", "Elegir micrófono…", "Probar micrófono"])
         self.assertEqual(self._nombres(self.dialogo)[-2:], ["Ayuda", "Cerrar"])
 
-    def test_cuadro_tamano_abre_con_el_tamano_actual(self):
-        dialogo = self._cuadro_tamano(460, 620)
+    def test_cuadro_tamano_abre_con_el_comun_actual(self):
+        dialogo = self._cuadro_tamano(25, 33)
         self.assertEqual(dialogo.GetTitle(), "Tamaño de la fuente")
-        self.assertEqual(dialogo.sp_ancho.GetValue(), 460)
-        self.assertEqual(dialogo.sp_alto.GetValue(), 620)
-        self.assertEqual(dialogo.sp_ancho.GetName(), "Ancho en píxeles")
-        self.assertEqual(dialogo.sp_alto.GetName(), "Alto en píxeles")
+        self.assertEqual(dialogo.cho_tamano.GetStringSelection(),
+                         "Un cuarto del vídeo")
+        self.assertEqual(dialogo.sp_ancho.GetName(),
+                         "Ancho en porcentaje del vídeo")
+        self.assertEqual(dialogo.sp_alto.GetName(),
+                         "Alto en porcentaje del vídeo")
+        self.assertTrue(dialogo.chk_proporcion.GetValue())
+        self.assertFalse(dialogo.sp_ancho.IsShown())
+        self.assertFalse(dialogo.sp_alto.IsShown())
         self.assertIs(dialogo.GetDefaultItem(), dialogo.btn_aceptar)
 
-    def test_aceptar_en_el_cuadro_devuelve_ancho_y_alto(self):
-        dialogo = self._cuadro_tamano()
-        dialogo.sp_ancho.SetValue(800)
-        dialogo.sp_alto.SetValue(500)
+    def test_cuadro_tamano_personalizado_abre_con_el_porcentaje_actual(self):
+        dialogo = self._cuadro_tamano(29, 69)
+        self.assertEqual(dialogo.cho_tamano.GetStringSelection(),
+                         "Personalizado")
+        self.assertEqual(dialogo.sp_ancho.GetValue(), 29)
+        self.assertEqual(dialogo.sp_alto.GetValue(), 69)
+        self.assertTrue(dialogo.sp_ancho.IsShown())
+
+    def test_elegir_personalizado_muestra_ancho(self):
+        dialogo = self._cuadro_tamano(25, 33)
+        dialogo.cho_tamano.SetStringSelection("Personalizado")
+        self._elegir(dialogo.cho_tamano)
+        self.assertTrue(dialogo.rotulo_ancho.IsShown())
+        self.assertTrue(dialogo.sp_ancho.IsShown())
+
+    def test_desmarcar_mantener_proporcion_muestra_alto(self):
+        dialogo = self._cuadro_tamano(29, 69)
+        self.assertFalse(dialogo.sp_alto.IsShown())
+        self._marcar(dialogo.chk_proporcion, False)
+        self.assertTrue(dialogo.rotulo_alto.IsShown())
+        self.assertTrue(dialogo.sp_alto.IsShown())
+
+    def test_elegir_la_mitad_del_video_devuelve_su_porcentaje(self):
+        dialogo = self._cuadro_tamano(25, 33)
+        dialogo.cho_tamano.SetStringSelection("La mitad del vídeo")
+        self._elegir(dialogo.cho_tamano)
+        self.assertFalse(dialogo.sp_ancho.IsShown())
         dialogo.EndModal = mock.Mock()
         dialogo._al_aceptar(None)
         dialogo.EndModal.assert_called_once_with(wx.ID_OK)
-        self.assertEqual(dialogo.tamano_elegido(), (800, 500))
+        self.assertEqual(dialogo.tamano_elegido(), (50, None))
+
+    def test_aceptar_en_el_cuadro_devuelve_los_porcentajes(self):
+        dialogo = self._cuadro_tamano(29, 69)
+        dialogo.sp_ancho.SetValue(80)
+        self._marcar(dialogo.chk_proporcion, False)
+        dialogo.sp_alto.SetValue(50)
+        dialogo.EndModal = mock.Mock()
+        dialogo._al_aceptar(None)
+        dialogo.EndModal.assert_called_once_with(wx.ID_OK)
+        self.assertEqual(dialogo.tamano_elegido(), (80, 50))
 
     def test_cancelar_en_el_cuadro_no_devuelve_tamano(self):
         dialogo = self._cuadro_tamano()

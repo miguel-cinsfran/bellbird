@@ -13,14 +13,11 @@ un lugar concreto donde dejar el WAV de cada frase.
 
 from __future__ import annotations
 
-import logging
 import os
 import sys
 from pathlib import Path
 
 from bellbird.core.carpetas_windows import carpeta_musica_windows
-
-logger = logging.getLogger(f"bellbird.{__name__}")
 
 
 # Depende de la ubicación de este archivo: vive en `bellbird/core/`, así que

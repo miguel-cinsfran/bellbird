@@ -14,12 +14,13 @@ import time
 
 from bellbird.capture import tiktok_vivo
 from bellbird.core import diagnostico
-from bellbird.core.idioma import _, ngettext
+from bellbird.core.idioma import _
 from bellbird.obs import obs_activacion
 from bellbird.obs import obs_cliente
 from bellbird.obs import obs_estado
 from bellbird.obs import obs_lanzador
 from bellbird.obs import obs_salida
+from bellbird.obs.duraciones import duracion_legible
 from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.youtube import emision
 from bellbird.youtube import fin_pendiente
@@ -48,28 +49,6 @@ SONIDOS_AVISO = {
 LIMITE_ESPERA_OBS = 90.0
 INTERVALO_ESPERA_OBS = 1.0
 AVISO_ESPERA_OBS = 3.0
-
-
-def duracion_legible(segundos) -> str:
-    """Duración en horas, minutos y segundos para leer en voz alta."""
-    try:
-        total = int(segundos)
-    except (TypeError, ValueError):
-        total = 0
-    if total < 0:
-        total = 0
-    horas, resto = divmod(total, 3600)
-    minutos, resto = divmod(resto, 60)
-    partes = []
-    if horas:
-        partes.append(ngettext("{n} hora", "{n} horas", horas).format(n=horas))
-    if minutos:
-        partes.append(ngettext("{n} minuto", "{n} minutos", minutos).format(n=minutos))
-    if resto or not partes:
-        partes.append(ngettext("{n} segundo", "{n} segundos", resto).format(n=resto))
-    if len(partes) == 1:
-        return partes[0]
-    return ", ".join(partes[:-1]) + " y " + partes[-1]
 
 
 class SupervisorTransmision:

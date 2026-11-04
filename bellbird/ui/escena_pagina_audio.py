@@ -7,7 +7,7 @@ import wx
 from bellbird.core.idioma import _
 from bellbird.obs import (
     filtros_microfono, nivel_microfono, obs_entradas_audio, prueba_microfono)
-from bellbird.ui import escena_filtros, gui_microfono
+from bellbird.ui import escena_escucha, escena_filtros, gui_microfono
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.ui.preferencias_comun import boton, nombre_de_etiqueta
 from bellbird.voice import sound_player
@@ -31,13 +31,17 @@ class PaginaAudio(wx.Panel):
 
     def _crear_controles(self):
         caja = wx.BoxSizer(wx.VERTICAL)
-        self.chk_silenciar = self._crear_casilla()
+        self.chk_silenciar = self._crear_casilla(_("Si&lenciar micrófono"))
         self._crear_botones()
+        self.chk_escuchar = self._crear_casilla(_("&Escuchar micrófono"))
         caja.Add(self._crear_fila(), 0, wx.ALL, 8)
         self.SetSizer(caja)
         self.acciones = (
             self.chk_silenciar, self.btn_microfono, self.btn_probar,
-            self.btn_filtros)
+            self.btn_filtros, self.chk_escuchar)
+        self._escucha = escena_escucha.ControlEscucha(
+            self.chk_escuchar, self._gestor, self._operaciones,
+            lambda: gui_microfono.microfono_preferido(self._principal))
 
     def _crear_botones(self):
         etiquetas = (_("Elegir &micrófono…"), _("&Probar micrófono"),
@@ -46,8 +50,7 @@ class PaginaAudio(wx.Panel):
             boton(self, etiqueta, nombre_de_etiqueta(etiqueta))
             for etiqueta in etiquetas)
 
-    def _crear_casilla(self):
-        etiqueta = _("Si&lenciar micrófono")
+    def _crear_casilla(self, etiqueta):
         return wx.CheckBox(
             self, label=etiqueta, name=nombre_de_etiqueta(etiqueta))
 
@@ -57,6 +60,7 @@ class PaginaAudio(wx.Panel):
         fila.Add(self.btn_microfono, 0, wx.ALL, 6)
         fila.Add(self.btn_probar, 0, wx.ALL, 6)
         fila.Add(self.btn_filtros, 0, wx.ALL, 6)
+        fila.Add(self.chk_escuchar, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
         return fila
 
     def _enlazar_eventos(self):
@@ -146,4 +150,5 @@ class PaginaAudio(wx.Panel):
         self._viva = False
         if self._prueba is not None:
             self._prueba.detener()
+        self._escucha.al_cerrar()
         evento.Skip()

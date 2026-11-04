@@ -9,14 +9,17 @@ from unittest import mock
 
 import wx
 
-from bellbird.obs import nivel_microfono
+from bellbird.obs import escucha_microfono, nivel_microfono
 from bellbird.obs.filtros_microfono import Estado
+from bellbird.obs.obs_cliente import ObsError
 from bellbird.ui import escena_pagina_audio
 from tests.ventanas_prueba import destruir
 
 TEXTO_INICIO = "Prueba del micrófono iniciada. Habla como en un directo."
 TEXTO_SILENCIADO = ("El micrófono está silenciado en OBS. Desmarca "
                     "Silenciar micrófono y vuelve a probar.")
+AVISO_SIN_MICROFONO = ("OBS no tiene ningún micrófono. Elige uno en "
+                       "Preferencias, categoría Transmisión, Micrófono de OBS.")
 
 
 class OperacionesFalsas:
@@ -24,6 +27,33 @@ class OperacionesFalsas:
         resultado = funcion()
         if al_terminar is not None:
             al_terminar(resultado)
+
+
+class OperacionesConFallo(OperacionesFalsas):
+    def __init__(self):
+        self.fallos = []
+
+    def en_hilo(self, funcion, al_terminar=None):
+        try:
+            resultado = funcion()
+        except ObsError as error:
+            self.fallo(str(error))
+            return
+        if al_terminar is not None:
+            al_terminar(resultado)
+
+    def fallo(self, mensaje):
+        self.fallos.append(mensaje)
+
+
+class HiloInmediato:
+    def __init__(self, target, args=(), kwargs=None, **resto):
+        self._target = target
+        self._args = args
+        self._kwargs = kwargs or {}
+
+    def start(self):
+        self._target(*self._args, **self._kwargs)
 
 
 class TestPaginaAudioPrueba(unittest.TestCase):
@@ -211,6 +241,99 @@ class TestPaginaAudioFiltros(unittest.TestCase):
         with mock.patch.object(self.pagina.btn_filtros, "SetFocus") as foco:
             self._pulsar()
         foco.assert_called_once_with()
+
+
+class TestPaginaAudioEscucha(unittest.TestCase):
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+        self.marco = wx.Frame(None)
+        self.addCleanup(destruir, self.marco)
+        self.principal = SimpleNamespace(_config={"obs_microfono": "Mic/Aux"})
+        self.gestor = object()
+        self.parches = [
+            mock.patch.object(
+                escena_pagina_audio.prueba_microfono, "preparar",
+                return_value=("Mic/Aux", False, "Micrófono USB")),
+            mock.patch.object(
+                escena_pagina_audio.escena_escucha.escucha_microfono, "activar",
+                return_value=escucha_microfono.NINGUNA),
+            mock.patch.object(
+                escena_pagina_audio.escena_escucha.escucha_microfono,
+                "restaurar"),
+            mock.patch.object(
+                escena_pagina_audio.escena_escucha, "anunciar"),
+            mock.patch.object(
+                escena_pagina_audio.escena_escucha.threading, "Thread",
+                HiloInmediato),
+        ]
+        for parche in self.parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        self.activar = escena_pagina_audio.escena_escucha.escucha_microfono.activar
+        self.restaurar = (
+            escena_pagina_audio.escena_escucha.escucha_microfono.restaurar)
+        self.preparar = escena_pagina_audio.prueba_microfono.preparar
+        self.anunciar = escena_pagina_audio.escena_escucha.anunciar
+        self.operaciones = OperacionesFalsas()
+        self.pagina = self._crear(self.operaciones)
+
+    def _crear(self, operaciones):
+        return escena_pagina_audio.PaginaAudio(
+            self.marco, self.principal, self.gestor, operaciones)
+
+    def _marcar(self, valor):
+        self.pagina.chk_escuchar.SetValue(valor)
+        self.pagina.chk_escuchar.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_CHECKBOX.typeId,
+                            self.pagina.chk_escuchar.GetId()))
+
+    def test_marcar_activa_y_anuncia_el_acople(self):
+        with mock.patch.object(self.pagina.chk_escuchar, "SetFocus") as foco:
+            self._marcar(True)
+        self.activar.assert_called_once_with("Mic/Aux")
+        self.assertTrue(self.pagina.chk_escuchar.GetValue())
+        self.anunciar.assert_called_once_with(
+            "Monitorización activada. Te oyes por el dispositivo de "
+            "monitorización de OBS. Usa auriculares para evitar acople.")
+        foco.assert_called_once_with()
+
+    def test_desmarcar_restaura_el_tipo_anterior_y_anuncia(self):
+        self._marcar(True)
+        self.anunciar.reset_mock()
+        with mock.patch.object(self.pagina.chk_escuchar, "SetFocus") as foco:
+            self._marcar(False)
+        self.restaurar.assert_called_once_with(
+            "Mic/Aux", escucha_microfono.NINGUNA)
+        self.assertFalse(self.pagina.chk_escuchar.GetValue())
+        self.anunciar.assert_called_once_with("Monitorización desactivada.")
+        foco.assert_called_once_with()
+
+    def test_sin_microfono_anuncia_y_queda_desmarcada(self):
+        self.preparar.return_value = ("", False, "")
+        self._marcar(True)
+        self.activar.assert_not_called()
+        self.assertFalse(self.pagina.chk_escuchar.GetValue())
+        self.anunciar.assert_called_once_with(AVISO_SIN_MICROFONO)
+
+    def test_un_fallo_de_activar_deja_la_casilla_como_estaba(self):
+        self.activar.side_effect = ObsError("sin conexión")
+        operaciones = OperacionesConFallo()
+        pagina = self._crear(operaciones)
+        pagina.chk_escuchar.SetValue(True)
+        pagina.chk_escuchar.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_CHECKBOX.typeId,
+                            pagina.chk_escuchar.GetId()))
+        self.assertFalse(pagina.chk_escuchar.GetValue())
+        self.assertEqual(operaciones.fallos, ["sin conexión"])
+        self.anunciar.assert_not_called()
+
+    def test_destruir_con_la_escucha_activa_restaura_sin_anunciar(self):
+        self._marcar(True)
+        self.anunciar.reset_mock()
+        destruir(self.pagina)
+        self.restaurar.assert_called_once_with(
+            "Mic/Aux", escucha_microfono.NINGUNA)
+        self.anunciar.assert_not_called()
 
 
 if __name__ == "__main__":

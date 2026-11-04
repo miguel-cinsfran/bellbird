@@ -2764,6 +2764,26 @@ msgid_plural "{n} segundos"
 msgstr[0] "{n} second"
 msgstr[1] "{n} seconds"
 
+#: bellbird/obs/escucha_microfono.py
+msgid "La monitorización ya estaba activada en OBS."
+msgstr "Audio monitoring was already enabled in OBS."
+
+#: bellbird/obs/escucha_microfono.py
+msgid ""
+"Monitorización activada. Te oyes por el dispositivo de monitorización de "
+"OBS. Usa auriculares para evitar acople."
+msgstr ""
+"Audio monitoring enabled. You hear yourself through the OBS audio "
+"monitoring device. Use headphones to avoid feedback."
+
+#: bellbird/obs/escucha_microfono.py
+msgid "Monitorización desactivada."
+msgstr "Audio monitoring disabled."
+
+#: bellbird/obs/escucha_microfono.py
+msgid "Monitorización restablecida como estaba en OBS."
+msgstr "Audio monitoring restored to how it was in OBS."
+
 #: bellbird/obs/estado_grabacion.py
 msgid "Sin grabar"
 msgstr "Not recording"
@@ -6001,6 +6021,14 @@ msgid "Elige primero una ventana en Ventana."
 msgstr "First choose a window in Window."
 
 #: bellbird/ui/escena_pagina_audio.py
+msgid "Si&lenciar micrófono"
+msgstr "&Mute microphone"
+
+#: bellbird/ui/escena_pagina_audio.py
+msgid "&Escuchar micrófono"
+msgstr "&Listen to microphone"
+
+#: bellbird/ui/escena_pagina_audio.py
 msgid "Elegir &micrófono…"
 msgstr "Choose a &device…"
 
@@ -6011,10 +6039,6 @@ msgstr "&Test microphone"
 #: bellbird/ui/escena_pagina_audio.py
 msgid "&Filtros del micrófono…"
 msgstr "Microphone &filters…"
-
-#: bellbird/ui/escena_pagina_audio.py
-msgid "Si&lenciar micrófono"
-msgstr "&Mute microphone"
 
 #: bellbird/ui/escena_pagina_audio.py
 msgid "&Detener prueba"

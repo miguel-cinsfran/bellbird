@@ -152,7 +152,7 @@ class DisenoEscenaDialog(wx.Dialog):
                 fabrica.diseno, fabrica.papeles, self._fuentes)
         else:
             _nombre, guardado = self._guardados[indice - len(self._fabrica)]
-            papeles = {lugar: disenos_fabrica.PAPEL_OTRA
+            papeles = {lugar: disenos_fabrica.PAPEL_PRINCIPAL
                        for lugar in disenos_fabrica.lugares(guardado.clase)}
             diseno = disenos_fabrica.completar(
                 guardado, papeles, self._fuentes)

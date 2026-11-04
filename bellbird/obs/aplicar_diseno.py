@@ -6,36 +6,70 @@ from bellbird.obs import disenos_escena
 from bellbird.obs.fuente_chat import NOMBRE_FUENTE
 
 _TIPO_CAMARA = "dshow_input"
+_TIPOS_CAPTURA = ("game_capture", "monitor_capture", "window_capture")
+_TIPOS_AUDIO = ("wasapi_input_capture", "wasapi_output_capture",
+                "wasapi_process_output_capture")
+_ORDEN_TIPOS = {"captura": 0, "otra": 1, "camara": 2, "chat": 3}
 
 
 def fuentes_de_escena(gestor, escena):
-    """Las fuentes de la escena con el tipo y el tamaño de origen."""
-    return [
-        disenos_escena.Fuente(
-            nombre=elemento.get("sourceName", ""),
-            tipo=_tipo(elemento),
-            ancho=elemento.get("sceneItemTransform", {}).get("sourceWidth", 0) or 0,
-            alto=elemento.get("sceneItemTransform", {}).get("sourceHeight", 0) or 0)
-        for elemento in gestor.elementos(escena)]
+    """Las fuentes de la escena sin las de solo audio, en orden de prioridad.
+
+    Primero las capturas, después las demás, la cámara y el chat. Dentro de
+    cada grupo van las visibles antes que las ocultas y, entre iguales, el
+    orden de OBS, de abajo hacia arriba.
+    """
+    fuentes, _nombres = _leer(gestor, escena)
+    return fuentes
+
+
+def _leer(gestor, escena):
+    elementos = [
+        elemento for elemento in gestor.elementos(escena)
+        if elemento.get("inputKind") not in _TIPOS_AUDIO]
+    pares = [(_fuente(elemento),
+              elemento.get("sceneItemEnabled", True))
+             for elemento in elementos]
+    pares.sort(key=lambda par: (
+        _ORDEN_TIPOS[par[0].tipo], 0 if par[1] else 1))
+    return ([fuente for fuente, _visible in pares],
+            [elemento.get("sourceName", "") for elemento in elementos])
+
+
+def _fuente(elemento):
+    return disenos_escena.Fuente(
+        nombre=elemento.get("sourceName", ""),
+        tipo=_tipo(elemento),
+        ancho=elemento.get("sceneItemTransform", {}).get("sourceWidth", 0) or 0,
+        alto=elemento.get("sceneItemTransform", {}).get("sourceHeight", 0) or 0)
 
 
 def _tipo(elemento):
     if elemento.get("sourceName") == NOMBRE_FUENTE:
         return "chat"
-    if elemento.get("inputKind") == _TIPO_CAMARA:
+    clase = elemento.get("inputKind")
+    if clase in _TIPOS_CAPTURA:
+        return "captura"
+    if clase == _TIPO_CAMARA:
         return "camara"
     return "otra"
 
 
 def aplicar_diseno(gestor, registro, escena, diseno):
-    """Calcula el diseño con el lienzo de la escena y lo aplica."""
-    fuentes = fuentes_de_escena(gestor, escena)
+    """Calcula el diseño con el lienzo de la escena y lo aplica.
+
+    Devuelve los estados de las fuentes colocadas y los nombres de las que
+    quedaron como estaban, en el orden de OBS.
+    """
+    fuentes, orden_obs = _leer(gestor, escena)
     if not fuentes:
         raise ValueError("La escena no tiene fuentes")
     lienzo = gestor.instantanea(escena, fuente=fuentes[0].nombre)
     colocaciones = disenos_escena.calcular(
         lienzo.lienzo_ancho, lienzo.lienzo_alto, fuentes, diseno)
-    return aplicar(gestor, registro, escena, colocaciones)
+    estados = aplicar(gestor, registro, escena, colocaciones)
+    colocadas = {colocacion["nombre"] for colocacion in colocaciones}
+    return estados, [nombre for nombre in orden_obs if nombre not in colocadas]
 
 
 def aplicar(gestor, registro, escena, colocaciones):

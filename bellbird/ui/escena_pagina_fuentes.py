@@ -333,8 +333,8 @@ class PaginaFuentes(wx.Panel):
         self._operaciones.en_hilo(
             lambda: aplicar_diseno.aplicar_diseno(
                 self._gestor, self._registro, escena, diseno),
-            lambda estados: anunciar(
-                disenos_fabrica.resumen(nombre, estados)))
+            lambda resultado: anunciar(disenos_fabrica.resumen(
+                nombre, resultado[0], sin_mover=resultado[1])))
 
     def _restaurar(self, event):
         escena, fuente = self._destino()

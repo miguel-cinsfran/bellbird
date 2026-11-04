@@ -14,7 +14,7 @@ from bellbird.obs.disenos_escena import (
 
 
 PAPEL_CAMARA = "camara"
-PAPEL_OTRA = "otra"
+PAPEL_PRINCIPAL = ("captura", "otra")
 
 _ETIQUETAS_LUGAR = {
     "principal": N_("la fuente principal"),
@@ -37,21 +37,21 @@ class DisenoFabrica:
 FABRICA = (
     DisenoFabrica(
         clave="imagen_esquina",
-        nombre=N_("Juego con cámara en una esquina"),
+        nombre=N_("Fuente principal con cámara en una esquina"),
         diseno=Diseno(clase="imagen_en_imagen", esquina="inferior-derecha",
                       tamano="mediana"),
-        papeles={"principal": PAPEL_OTRA, "secundaria": PAPEL_CAMARA}),
+        papeles={"principal": PAPEL_PRINCIPAL, "secundaria": PAPEL_CAMARA}),
     DisenoFabrica(
         clave="imagen_esquina_chat",
-        nombre=N_("Juego con cámara y chat al costado"),
+        nombre=N_("Fuente principal con cámara y chat al costado"),
         diseno=Diseno(clase="imagen_en_imagen", esquina="superior-derecha",
                       tamano="mediana", chat="franja"),
-        papeles={"principal": PAPEL_OTRA, "secundaria": PAPEL_CAMARA}),
+        papeles={"principal": PAPEL_PRINCIPAL, "secundaria": PAPEL_CAMARA}),
     DisenoFabrica(
         clave="pantalla_juego",
-        nombre=N_("Juego a pantalla completa"),
+        nombre=N_("Fuente principal a pantalla completa"),
         diseno=Diseno(clase="pantalla_completa"),
-        papeles={"principal": PAPEL_OTRA}),
+        papeles={"principal": PAPEL_PRINCIPAL}),
     DisenoFabrica(
         clave="pantalla_camara",
         nombre=N_("Cámara a pantalla completa"),
@@ -59,14 +59,14 @@ FABRICA = (
         papeles={"principal": PAPEL_CAMARA}),
     DisenoFabrica(
         clave="dividida_mitades",
-        nombre=N_("Juego y cámara lado a lado"),
+        nombre=N_("Fuente principal y cámara lado a lado"),
         diseno=Diseno(clase="dividida", proporcion="mitades"),
-        papeles={"izquierda": PAPEL_OTRA, "derecha": PAPEL_CAMARA}),
+        papeles={"izquierda": PAPEL_PRINCIPAL, "derecha": PAPEL_CAMARA}),
     DisenoFabrica(
         clave="dividida_dos_tercios",
-        nombre=N_("Juego grande y cámara al costado"),
+        nombre=N_("Fuente principal grande y cámara al costado"),
         diseno=Diseno(clase="dividida", proporcion="dos_tercios"),
-        papeles={"izquierda": PAPEL_OTRA, "derecha": PAPEL_CAMARA}),
+        papeles={"izquierda": PAPEL_PRINCIPAL, "derecha": PAPEL_CAMARA}),
 )
 
 
@@ -122,7 +122,7 @@ def motivo_para_no_aplicar(diseno, fuentes):
     return None
 
 
-def resumen(nombre_diseno, estados):
+def resumen(nombre_diseno, estados, sin_mover=()):
     """El anuncio de un diseño aplicado, con una frase por fuente."""
     frases = [_("Diseño aplicado: {nombre}.").format(nombre=nombre_diseno)]
     for fuente, estado in estados:
@@ -135,6 +135,9 @@ def resumen(nombre_diseno, estados):
         elif estado == ESTADO_AJUSTA_SIN_ORIGEN:
             frases.append(_("{fuente} todavía no informa su tamaño y se ajusta "
                             "a su lugar.").format(fuente=fuente))
+    if sin_mover:
+        frases.append(_("No se movieron: {fuentes}.").format(
+            fuentes=", ".join(sin_mover)))
     return " ".join(frases)
 
 
@@ -148,6 +151,12 @@ def _primera_sin_usar(fuentes, usadas, papel=None):
     for fuente in fuentes:
         if fuente.nombre in usadas or fuente.tipo == "chat":
             continue
-        if papel is None or fuente.tipo == papel:
+        if papel is None or _acepta(papel, fuente.tipo):
             return fuente.nombre
     return ""
+
+
+def _acepta(papel, tipo):
+    if isinstance(papel, tuple):
+        return tipo in papel
+    return tipo == papel

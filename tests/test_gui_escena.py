@@ -389,9 +389,9 @@ class TestVentanaObs(unittest.TestCase):
         args = pedir.call_args.args
         self.assertIs(args[0], pagina)
         self.assertEqual([fuente.nombre for fuente in args[1]],
-                         ["Cámara", "Chat en el vídeo", "Juego"])
+                         ["Cámara", "Juego", "Chat en el vídeo"])
         self.assertEqual([fuente.tipo for fuente in args[1]],
-                         ["otra", "chat", "otra"])
+                         ["otra", "otra", "chat"])
         self.assertEqual(args[2], [])
 
     def test_cancelar_el_diseno_no_aplica_nada(self):
@@ -419,8 +419,9 @@ class TestVentanaObs(unittest.TestCase):
                 mock.patch.object(pagina.btn_diseno, "SetFocus") as foco:
             self._pulsar(pagina.btn_diseno)
         self.assertIn(("transformar", "Juego"), self.gestor.fuentes_enviadas)
-        self.assertIn("Diseño aplicado: Diseño. Juego se ajusta a su lugar.",
-                      self.anuncios)
+        self.assertIn(
+            "Diseño aplicado: Diseño. Juego se ajusta a su lugar. "
+            "No se movieron: Cámara, Chat en el vídeo.", self.anuncios)
         foco.assert_called_once_with()
 
     def test_sin_fuentes_para_un_diseno_anuncia_y_no_abre_el_cuadro(self):

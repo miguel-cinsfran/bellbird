@@ -2,7 +2,8 @@
 
 import unittest
 
-from bellbird.obs import aplicar_diseno, disenos_escena, obs_panel
+from bellbird.obs import (
+    aplicar_diseno, disenos_escena, disenos_fabrica, obs_panel)
 from bellbird.obs.fuente_chat import NOMBRE_FUENTE, TIPO_FUENTE
 from tests.test_obs_panel import DobleObs, elemento
 
@@ -57,15 +58,29 @@ def _diseno(chat="franja"):
         chat=chat)
 
 
+def _con_tipo(identificador, nombre, indice, tipo, visible=True, **tamano):
+    creado = elemento(identificador, nombre, indice, visible=visible, **tamano)
+    creado["inputKind"] = tipo
+    return creado
+
+
+def _principal(elementos):
+    gestor = obs_panel.GestorPanelObs(DobleObs(elementos))
+    fuentes = aplicar_diseno.fuentes_de_escena(gestor, "Escena")
+    fabrica = disenos_fabrica.FABRICA[2]
+    return disenos_fabrica.completar(
+        fabrica.diseno, fabrica.papeles, fuentes).principal
+
+
 class FuentesDeEscenaTest(unittest.TestCase):
 
-    def test_reconoce_camara_chat_y_otra(self):
+    def test_reconoce_captura_camara_y_chat(self):
         gestor = obs_panel.GestorPanelObs(DobleObs(_escena()))
         fuentes = aplicar_diseno.fuentes_de_escena(gestor, "Escena")
         self.assertEqual(
             [(fuente.nombre, fuente.tipo, fuente.ancho, fuente.alto)
              for fuente in fuentes],
-            [("Juego", "otra", 1600, 900),
+            [("Juego", "captura", 1600, 900),
              ("Cámara", "camara", 1280, 720),
              (NOMBRE_FUENTE, "chat", 460, 620)])
 
@@ -75,6 +90,56 @@ class FuentesDeEscenaTest(unittest.TestCase):
         gestor = obs_panel.GestorPanelObs(DobleObs(elementos))
         fuente = aplicar_diseno.fuentes_de_escena(gestor, "Escena")[0]
         self.assertEqual((fuente.ancho, fuente.alto), (0, 0))
+
+    def test_los_tres_tipos_de_captura_son_captura(self):
+        for tipo in ("game_capture", "monitor_capture", "window_capture"):
+            with self.subTest(tipo=tipo):
+                elementos = [_con_tipo(1, "Fuente", 0, tipo)]
+                gestor = obs_panel.GestorPanelObs(DobleObs(elementos))
+                fuente = aplicar_diseno.fuentes_de_escena(gestor, "Escena")[0]
+                self.assertEqual(fuente.tipo, "captura")
+
+    def test_las_fuentes_de_solo_audio_no_aparecen(self):
+        elementos = [
+            _con_tipo(1, "Micrófono", 0, "wasapi_input_capture"),
+            _con_tipo(2, "Escritorio", 1, "wasapi_output_capture"),
+            _con_tipo(3, "Proceso", 2, "wasapi_process_output_capture"),
+            _con_tipo(4, "Pantalla", 3, "monitor_capture")]
+        gestor = obs_panel.GestorPanelObs(DobleObs(elementos))
+        fuentes = aplicar_diseno.fuentes_de_escena(gestor, "Escena")
+        self.assertEqual([fuente.nombre for fuente in fuentes], ["Pantalla"])
+
+    def test_el_lugar_principal_prefiere_una_captura_sobre_una_imagen(self):
+        elementos = [
+            _con_tipo(1, "Imagen", 0, "image_source"),
+            _con_tipo(2, "Pantalla", 1, "monitor_capture")]
+        self.assertEqual(_principal(elementos), "Pantalla")
+
+    def test_entre_dos_capturas_gana_la_visible(self):
+        elementos = [
+            _con_tipo(1, "Oculta", 0, "monitor_capture", visible=False),
+            _con_tipo(2, "Visible", 1, "game_capture")]
+        self.assertEqual(_principal(elementos), "Visible")
+
+    def test_entre_dos_capturas_visibles_gana_la_de_abajo(self):
+        elementos = [
+            _con_tipo(1, "Abajo", 0, "window_capture"),
+            _con_tipo(2, "Arriba", 1, "monitor_capture")]
+        self.assertEqual(_principal(elementos), "Abajo")
+
+    def test_sin_capturas_la_principal_es_otra_fuente(self):
+        elementos = [
+            _con_tipo(1, "Cámara", 0, "dshow_input"),
+            _con_tipo(2, "Imagen", 1, "image_source")]
+        self.assertEqual(_principal(elementos), "Imagen")
+
+    def test_fuentes_de_escena_lee_los_elementos_una_sola_vez(self):
+        doble = DobleObs(_escena())
+        gestor = obs_panel.GestorPanelObs(doble)
+        aplicar_diseno.fuentes_de_escena(gestor, "Escena")
+        self.assertEqual(
+            [llamada[0] for llamada in doble.llamadas].count(
+                "GetSceneItemList"), 1)
 
 
 class AplicarDisenoTest(unittest.TestCase):
@@ -138,16 +203,28 @@ class AplicarDisenoTest(unittest.TestCase):
         gestor = GestorQueAnota(doble, eventos)
         diseno = disenos_escena.Diseno(
             clase="pantalla_completa", principal="Juego")
-        resultado = aplicar_diseno.aplicar_diseno(
+        resultado, sin_mover = aplicar_diseno.aplicar_diseno(
             gestor, RegistroFalso(eventos), "Escena", diseno)
         self.assertEqual(resultado,
                          [("Juego", disenos_escena.ESTADO_AJUSTA)])
+        self.assertEqual(sin_mover, ["Cámara", NOMBRE_FUENTE])
         escritura = next(
             llamada[1]["sceneItemTransform"] for llamada in doble.llamadas
             if llamada[0] == "SetSceneItemTransform"
             and llamada[1]["sceneItemId"] == 1)
         self.assertEqual(
             (escritura["boundsWidth"], escritura["boundsHeight"]), (1600, 900))
+
+    def test_aplicar_diseno_nombra_la_fuente_que_no_entro(self):
+        extra = elemento(4, "Extra", 3)
+        extra["inputKind"] = "image_source"
+        eventos = []
+        gestor = GestorQueAnota(DobleObs(_escena() + [extra]), eventos)
+        resultado, sin_mover = aplicar_diseno.aplicar_diseno(
+            gestor, RegistroFalso(eventos), "Escena", _diseno())
+        self.assertEqual([nombre for nombre, _estado in resultado],
+                         [NOMBRE_FUENTE, "Cámara", "Juego"])
+        self.assertEqual(sin_mover, ["Extra"])
 
     def test_chat_superpuesto_solo_se_coloca(self):
         doble, eventos, colocaciones, _resultado = self._aplicar("superpuesto")

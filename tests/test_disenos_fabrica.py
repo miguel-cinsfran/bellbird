@@ -18,12 +18,12 @@ class FabricaTest(unittest.TestCase):
     def test_los_seis_disenos_en_orden(self):
         self.assertEqual(
             [fabrica.nombre for fabrica in disenos_fabrica.FABRICA],
-            ["Juego con cámara en una esquina",
-             "Juego con cámara y chat al costado",
-             "Juego a pantalla completa",
+            ["Fuente principal con cámara en una esquina",
+             "Fuente principal con cámara y chat al costado",
+             "Fuente principal a pantalla completa",
              "Cámara a pantalla completa",
-             "Juego y cámara lado a lado",
-             "Juego grande y cámara al costado"])
+             "Fuente principal y cámara lado a lado",
+             "Fuente principal grande y cámara al costado"])
 
     def test_cada_diseno_se_calcula_con_juego_camara_y_chat(self):
         fuentes = _fuentes()
@@ -47,6 +47,27 @@ class FabricaTest(unittest.TestCase):
             dividida.diseno, dividida.papeles, fuentes)
         self.assertEqual((completa.izquierda, completa.derecha),
                          ("Juego", "Cámara"))
+
+    def test_papel_principal_acepta_captura_y_otra(self):
+        self.assertIn("captura", disenos_fabrica.PAPEL_PRINCIPAL)
+        self.assertIn("otra", disenos_fabrica.PAPEL_PRINCIPAL)
+        fuentes = [disenos_escena.Fuente("Pantalla", "captura", 1600, 900),
+                   disenos_escena.Fuente("Imagen", "otra", 800, 600)]
+        for fuente in fuentes:
+            with self.subTest(tipo=fuente.tipo):
+                completa = disenos_fabrica.completar(
+                    disenos_escena.Diseno(clase="pantalla_completa"),
+                    {"principal": disenos_fabrica.PAPEL_PRINCIPAL}, [fuente])
+                self.assertEqual(completa.principal, fuente.nombre)
+
+    def test_el_chat_y_la_camara_no_van_a_la_principal_si_hay_otra(self):
+        fuentes = [disenos_escena.Fuente("Cámara", "camara", 1280, 720),
+                   disenos_escena.Fuente("Juego", "otra", 1600, 900),
+                   disenos_escena.Fuente("Chat en el vídeo", "chat", 460, 620)]
+        completa = disenos_fabrica.completar(
+            disenos_escena.Diseno(clase="pantalla_completa"),
+            {"principal": disenos_fabrica.PAPEL_PRINCIPAL}, fuentes)
+        self.assertEqual(completa.principal, "Juego")
 
     def test_completar_conserva_el_nombre_guardado_que_sigue_en_la_escena(self):
         diseno = disenos_escena.Diseno(
@@ -125,6 +146,18 @@ class ResumenTest(unittest.TestCase):
             "bordes recortados. Juego se ajusta a su lugar. Tarde todavía no "
             "informa su tamaño y se ajusta a su lugar.")
         self.assertNotIn("Chat en el vídeo", texto)
+
+    def test_sin_fuentes_que_no_se_movieron_no_agrega_la_frase(self):
+        texto = disenos_fabrica.resumen("Mi diseño", [])
+        self.assertEqual(texto, "Diseño aplicado: Mi diseño.")
+
+    def test_nombra_las_fuentes_de_la_escena_que_no_se_movieron(self):
+        texto = disenos_fabrica.resumen(
+            "Mi diseño", [], sin_mover=("Cámara", "Chat en el vídeo"))
+        self.assertEqual(
+            texto,
+            "Diseño aplicado: Mi diseño. No se movieron: Cámara, "
+            "Chat en el vídeo.")
 
 
 if __name__ == "__main__":

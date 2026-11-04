@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 50c222cd6bfd6e9db9cae1e20231bfc6e657b30b -->
+<!-- original: es/MANUAL.md db913e3c466a77358398a7178541e7de0ba67c56 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -511,8 +511,10 @@ positions, changes its size, hides it or locks it. *Order* opens a menu with
 *Move to Top*, *Move Up*, *Move Down* and *Move to Bottom*, which decide which
 source covers which, and the Applications key in the list opens the same
 menu. *Size…* opens a
-dialog to type the width and height in pixels. *Move with arrows* moves it in
-small steps: `Ctrl` gives large steps, `Shift` one-pixel steps, `Enter`
+dialog with common sizes, from one fifth to the whole width of the video, or a
+percentage by hand with *Custom*. The aspect ratio is kept unless you clear
+*Keep aspect ratio*, which also lets you choose the height. *Move with arrows*
+moves it in small steps: `Ctrl` gives large steps, `Shift` one-pixel steps, `Enter`
 confirms and `Esc` undoes. The *Source details* field, next to the list, says
 where it is, how big it is and what covers it. *Undo changes* returns
 everything to how it was when the window was opened.

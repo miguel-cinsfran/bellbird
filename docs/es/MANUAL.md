@@ -504,7 +504,9 @@ ella.
 posiciones, la cambia de tamaño, la oculta o la bloquea. *Ordenar* abre un menú
 con *Mover a la cima*, *Subir*, *Bajar* y *Mover al fondo*, que deciden qué
 fuente tapa a cuál, y la tecla Aplicaciones en la lista abre el mismo menú. *Tamaño…* abre un cuadro
-para escribir el ancho y el alto en píxeles. *Mover con flechas* la mueve en
+con tamaños comunes, de un quinto a todo el ancho del vídeo, o un porcentaje
+a mano con *Personalizado*. La proporción se mantiene salvo que desmarques
+*Mantener proporción*, que deja elegir también el alto. *Mover con flechas* la mueve en
 pasos pequeños: `Ctrl` da pasos grandes, `Mayús` pasos de un píxel, `Intro`
 confirma y `Esc` deshace. El campo *Detalle de la fuente*, junto a la lista,
 dice dónde está, cuánto mide y qué la tapa. *Deshacer cambios* vuelve a como

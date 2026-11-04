@@ -106,6 +106,16 @@ def _activo(cliente, tipo, parada=None) -> bool:
     return bool(_datos(cliente.pedir(tipo, parada=parada)).get("outputActive"))
 
 
+def _buffer_activo(cliente, parada=None) -> bool:
+    """El búfer apagado hace fallar la consulta; eso significa apagado."""
+    try:
+        return _activo(cliente, "GetReplayBufferStatus", parada)
+    except obs_cliente.ObsError as error:
+        logger.debug("OBS no informó el búfer, se toma como apagado: %s",
+                     error)
+        return False
+
+
 def _leer_perfil(cliente, parada=None):
     """Modo, calidad de grabación y parámetros del búfer del perfil."""
     modo = _parametro(cliente, "Output", "Mode", parada)
@@ -137,7 +147,7 @@ def leer_estado(cliente, segundos, parada=None) -> EstadoClips:
     return EstadoClips(
         salida_activa=(_activo(cliente, "GetStreamStatus", parada)
                        or _activo(cliente, "GetRecordStatus", parada)),
-        buffer_activo=_activo(cliente, "GetReplayBufferStatus", parada),
+        buffer_activo=_buffer_activo(cliente, parada),
         preparado=(conocido and str(rb).strip().lower() == "true"
                    and _mismos_segundos(rb_time, segundos)),
         soportado=soporta_buffer(modo, calidad, codificador),
@@ -186,19 +196,30 @@ def preparar(cliente, segundos, parada=None) -> None:
     iniciar(cliente, parada)
 
 
-def _ruta_guardada(cliente, parada=None) -> str:
-    datos = _datos(cliente.pedir("GetLastReplayBufferReplay", parada=parada))
+def _ruta_guardada(cliente, parada=None, tolerar_error=False) -> str:
+    try:
+        datos = _datos(cliente.pedir("GetLastReplayBufferReplay",
+                                     parada=parada))
+    except obs_cliente.ObsError as error:
+        if not tolerar_error:
+            raise
+        logger.debug("OBS todavía no tiene un clip guardado: %s", error)
+        return ""
     return str(datos.get("savedReplayPath") or "")
 
 
 def guardar(cliente, parada=None, dormir=time.sleep, reloj=time.monotonic,
             limite=LIMITE_CLIP, intervalo=INTERVALO_CLIP) -> str:
     """Guarda el clip y devuelve su ruta cuando OBS termina de escribirlo."""
-    anterior = _ruta_guardada(cliente, parada)
+    anterior = _ruta_guardada(cliente, parada, tolerar_error=True)
     cliente.pedir("SaveReplayBuffer", parada=parada)
     inicio = reloj()
     while True:
-        ruta = _ruta_guardada(cliente, parada)
+        try:
+            ruta = _ruta_guardada(cliente, parada)
+        except obs_cliente.ObsError as error:
+            logger.debug("OBS todavía no devolvió el clip: %s", error)
+            ruta = ""
         if ruta and ruta != anterior:
             return ruta
         if reloj() - inicio >= limite:

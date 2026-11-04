@@ -7,6 +7,7 @@ responde como el websocket de OBS.
 import importlib.util
 import os
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -19,7 +20,7 @@ class ObsFalso:
     def __init__(self, modo="Simple", calidad="HQ", codificador="x264",
                  transmitiendo=False, grabando=False, buffer=False,
                  perfil="Principal", perfiles=("Principal", "Otro"),
-                 rutas=None):
+                 rutas=None, fallo_buffer=False, fallo_ruta_antes=False):
         self.modo = modo
         self.calidad = calidad
         self.codificador = codificador
@@ -30,11 +31,16 @@ class ObsFalso:
         self.perfiles = list(perfiles)
         self.parametros = {}
         self.rutas = list(rutas if rutas is not None else ["C:/clips/clip.mkv"])
+        self.fallo_buffer = fallo_buffer
+        self.fallo_ruta_antes = fallo_ruta_antes
+        self.llamadas_ruta = 0
         self.llamadas = []
 
     def pedir(self, tipo, datos=None, parada=None):
         datos = dict(datos or {})
         self.llamadas.append((tipo, datos))
+        if tipo == "GetReplayBufferStatus" and self.fallo_buffer:
+            raise obs_cliente.ObsError("OBS no pudo completar la operación.")
         if tipo == "GetStreamStatus":
             return {"outputActive": self.transmitiendo}
         if tipo == "GetRecordStatus":
@@ -67,6 +73,10 @@ class ObsFalso:
         if tipo == "SaveReplayBuffer":
             return {}
         if tipo == "GetLastReplayBufferReplay":
+            self.llamadas_ruta += 1
+            if self.fallo_ruta_antes and self.llamadas_ruta == 1:
+                raise obs_cliente.ObsError(
+                    "OBS no pudo completar la operación.")
             ruta = self.rutas.pop(0) if len(self.rutas) > 1 else self.rutas[0]
             return {"responseData": {"savedReplayPath": ruta}}
         if tipo == "SetCurrentProfile":
@@ -151,6 +161,28 @@ class LeerSegundosTest(unittest.TestCase):
 
 
 class LeerEstadoTest(unittest.TestCase):
+
+    def test_un_error_del_bufer_cuenta_como_apagado(self):
+        estado = obs_clips.leer_estado(ObsFalso(fallo_buffer=True), 30)
+        self.assertFalse(estado.buffer_activo)
+        self.assertFalse(estado.salida_activa)
+
+    def test_los_errores_de_transmision_y_grabacion_siguen_lanzando(self):
+        class ObsConFallo(ObsFalso):
+            def __init__(self, tipo):
+                super().__init__()
+                self.tipo = tipo
+
+            def pedir(self, tipo, datos=None, parada=None):
+                if tipo == self.tipo:
+                    raise obs_cliente.ObsError(
+                        "OBS no pudo completar la operación.")
+                return super().pedir(tipo, datos, parada)
+
+        for tipo in ("GetStreamStatus", "GetRecordStatus"):
+            with self.subTest(tipo=tipo), self.assertRaises(
+                    obs_cliente.ObsError):
+                obs_clips.leer_estado(ObsConFallo(tipo), 30)
 
     def test_perfil_simple_preparado_con_la_duracion(self):
         cliente = ObsFalso(modo="Simple", buffer=False)
@@ -246,6 +278,14 @@ class GuardarTest(unittest.TestCase):
         self.assertIn("SaveReplayBuffer", cliente.tipos())
         self.assertGreaterEqual(reloj.ahora, 0.2)
 
+    def test_el_primer_clip_no_necesita_una_ruta_anterior(self):
+        cliente = ObsFalso(rutas=["C:/clips/clip.mkv"],
+                           fallo_ruta_antes=True)
+        reloj = Reloj()
+        ruta = obs_clips.guardar(cliente, dormir=reloj.dormir,
+                                 reloj=reloj, intervalo=0.2, limite=1.0)
+        self.assertEqual(ruta, "C:/clips/clip.mkv")
+
     def test_sin_ruta_a_tiempo_falla(self):
         cliente = ObsFalso(rutas=[""])
         reloj = Reloj()
@@ -331,6 +371,10 @@ def _cargar_conducir():
 class ObsRealTest(unittest.TestCase):
     """Prepara el búfer, guarda un clip y deja el perfil como estaba."""
 
+    # Medido el 03/11/2026 con OBS 33: guardar justo después de arrancar el
+    # búfer devuelve error 500. Dos segundos ya dejan datos que guardar.
+    ESPERA_BUFFER = 2.0
+
     def setUp(self):
         self.conducir = _cargar_conducir()
         self.estaba_abierto = self.conducir.obs_abierto()
@@ -345,8 +389,8 @@ class ObsRealTest(unittest.TestCase):
                 self.cliente, self.categoria, "RecRB")
             self.rb_time = obs_clips._parametro(
                 self.cliente, self.categoria, "RecRBTime")
-        self.buffer_inicial = bool(obs_clips._datos(
-            self.cliente.pedir("GetReplayBufferStatus")).get("outputActive"))
+        self.buffer_inicial = obs_clips.leer_estado(
+            self.cliente, 30).buffer_activo
 
     def _probar(self):
         self.cliente.conectar()
@@ -375,6 +419,7 @@ class ObsRealTest(unittest.TestCase):
 
     def test_prepara_guarda_un_clip_y_restaura_el_perfil(self):
         obs_clips.preparar(self.cliente, 30)
+        time.sleep(self.ESPERA_BUFFER)
         ruta = obs_clips.guardar(self.cliente)
         archivo = Path(ruta)
         self.addCleanup(lambda: archivo.unlink(missing_ok=True))

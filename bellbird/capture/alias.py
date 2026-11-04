@@ -6,7 +6,7 @@ import json
 import logging
 from pathlib import Path
 
-from bellbird.core import diagnostico
+from bellbird.core import archivos, diagnostico
 
 logger = diagnostico.obtener_logger(__name__)
 _vigente: dict = {}
@@ -30,8 +30,7 @@ def cargar(ruta: Path) -> dict:
 def guardar(ruta: Path, mapa: dict) -> None:
     """Escribe los alias sin interrumpir la aplicación si falla."""
     try:
-        ruta.write_text(json.dumps(mapa, ensure_ascii=False, indent=1),
-                        encoding="utf-8")
+        archivos.escribir_json_atomico(ruta, mapa, indent=1)
     except Exception as exc:
         logger.debug("guardar alias: %s", exc)
 

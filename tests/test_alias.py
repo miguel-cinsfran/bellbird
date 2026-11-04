@@ -3,6 +3,7 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from bellbird.capture import alias
 
@@ -47,6 +48,25 @@ class PruebasAlias(unittest.TestCase):
             ruta = Path(directorio) / "alias.json"
             alias.guardar(ruta, {"nino": "Niño Ágil"})
             self.assertEqual(alias.cargar(ruta), {"nino": "Niño Ágil"})
+
+    def test_guardar_y_cargar_conservan_un_emoji(self):
+        with tempfile.TemporaryDirectory() as directorio:
+            ruta = Path(directorio) / "alias.json"
+            mapa = {"ana": "Ana 😀 ¡Hola!"}
+            alias.guardar(ruta, mapa)
+            self.assertEqual(alias.cargar(ruta), mapa)
+            self.assertIn("😀", ruta.read_text(encoding="utf-8"))
+
+    def test_guardar_fallido_conserva_el_archivo_anterior(self):
+        with tempfile.TemporaryDirectory() as directorio:
+            ruta = Path(directorio) / "alias.json"
+            alias.guardar(ruta, {"ana": "Anita"})
+            anterior = ruta.read_bytes()
+            with mock.patch("os.replace", side_effect=OSError("sin permiso")):
+                with mock.patch.object(alias.logger, "debug") as registro:
+                    alias.guardar(ruta, {"juan": "Juancho"})
+            self.assertEqual(ruta.read_bytes(), anterior)
+            registro.assert_called_once()
 
     def test_aplicar_con_y_sin_alias(self):
         self.assertEqual(alias.aplicar("Juan", {"juan": "Juancho"}), "Juancho")

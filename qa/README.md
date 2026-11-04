@@ -25,6 +25,19 @@ viendo.
 Una corrida con comprobaciones sin probar no dice «Sin fallos» y sale con
 código 2; con fallos sale con código 1.
 
+## Tiempos y ventanas que quedan abiertas
+
+Cada orden que el banco manda a la sonda queda anotada con su escenario, su
+`op` y los segundos que tardó en contestar, también las que vencen. Al final
+de la corrida, `qa/salida/qa-informe.txt` termina con una sección TIEMPOS:
+los diez pasos más lentos y la duración total de cada escenario, en el orden
+en que corrieron. La misma sección sale por pantalla.
+
+Al terminar cada escenario, el banco cierra las ventanas visibles de nivel
+superior que no sean la principal. Si una no se deja cerrar, anota un fallo
+con el nombre del escenario y sigue, para que el escenario siguiente empiece
+con la mesa limpia.
+
 ## Capturas
 
 Con `--capturas` el banco corre igual que siempre y además guarda un PNG
@@ -306,7 +319,7 @@ y audita cada pestaña entera, también su Tab.
 
 **Un cuadro nativo con solo Sí y No no responde a Escape.** Medido el
 15/10/2026 con «Directo sin imagen», que ofrece «Finalizar directo» y
-«Dejarlo al aire» sin Cancelar: ni Escape ni cerrar lo mueven. El banco lo
+«Dejarlo en curso» sin Cancelar: ni Escape ni cerrar lo mueven. El banco lo
 intentaba cerrar con Escape, el cuadro quedaba abierto, y con ese modal en
 pantalla fallaron después redactar, transmitir_destino, el menú del chat,
 comentarios y el cierre de la aplicación: siete fallos que no eran de esos

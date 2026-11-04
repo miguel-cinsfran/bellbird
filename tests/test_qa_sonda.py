@@ -8,6 +8,7 @@ con el suyo: importarla no arranca nada ni abre ventanas. La barra y sus
 import importlib.util
 import unittest
 from pathlib import Path
+from unittest import mock
 
 _RUTA = Path(__file__).resolve().parent.parent / "qa" / "sonda.py"
 _paquete = importlib.util.spec_from_file_location("sonda_qa", _RUTA)
@@ -86,6 +87,23 @@ def _barra_repetida():
         MenuFalso("Reproductor", [ItemFalso(11, "&Reproducir o pausar")]),
         MenuFalso("Música", [ItemFalso(21, "Reproducir o &pausar")]),
     ])
+
+
+class HilosVivosTest(unittest.TestCase):
+
+    def test_devuelve_el_nombre_junto_al_daemon(self):
+        class HiloFalso:
+            def __init__(self, nombre, daemon):
+                self.name = nombre
+                self.daemon = daemon
+
+        hilos = [HiloFalso("captura", False), HiloFalso("vigilancia", True)]
+        with mock.patch.object(sonda.threading, "enumerate",
+                               return_value=hilos):
+            self.assertEqual(sonda._hilos_vivos(), [
+                {"nombre": "captura", "daemon": False},
+                {"nombre": "vigilancia", "daemon": True},
+            ])
 
 
 class BuscarItemMenuTest(unittest.TestCase):

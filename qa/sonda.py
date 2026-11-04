@@ -122,6 +122,12 @@ def _limpiar_etiqueta(texto) -> str:
 
 # ── Inspección de la interfaz, desde dentro ──────────────────────────────────
 
+def _hilos_vivos() -> list[dict]:
+    """Los hilos vivos con su nombre y si son daemon."""
+    return [{"nombre": hilo.name, "daemon": bool(hilo.daemon)}
+            for hilo in threading.enumerate()]
+
+
 def _describir(ventana, profundidad=0):
     """Describe un control de wx como lo vería quien lo usa."""
     import wx
@@ -592,12 +598,16 @@ class Sonda:
                 self.responder(id_orden, True, {"ventanas": abiertas})
 
             elif op == "hilos":
-                # Los hilos vivos, por nombre. Sirve para atar un congelamiento
-                # de la ventana a quien lo esta causando: si `ReproductorWarmup`
-                # sigue vivo mientras los `ping` no vuelven, el precalentamiento
-                # de libVLC y el bloqueo son el mismo suceso y no dos.
+                # Los hilos vivos, por nombre y con su daemon. Sirve para atar
+                # un congelamiento de la ventana a quien lo esta causando: si
+                # `ReproductorWarmup` sigue vivo mientras los `ping` no
+                # vuelven, el precalentamiento de libVLC y el bloqueo son el
+                # mismo suceso y no dos. Los que no son daemon pueden retener
+                # el cierre de la aplicación.
+                detallados = _hilos_vivos()
                 self.responder(id_orden, True, {
-                    "vivos": sorted(h.name for h in threading.enumerate()),
+                    "vivos": sorted(h["nombre"] for h in detallados),
+                    "hilos": sorted(detallados, key=lambda h: h["nombre"]),
                 })
 
             elif op == "llamar":

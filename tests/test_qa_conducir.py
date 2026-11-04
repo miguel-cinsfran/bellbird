@@ -251,6 +251,136 @@ class TestOrdenarPedidos(unittest.TestCase):
             ["principal", "directo_youtube", "musica_real"])
 
 
+class TestTiemposDeLasOrdenes(unittest.TestCase):
+
+    def setUp(self):
+        conducir._TIEMPOS.clear()
+
+    def tearDown(self):
+        conducir._TIEMPOS.clear()
+
+    def test_pedir_anota_la_orden_que_contesta(self):
+        with tempfile.TemporaryDirectory() as base:
+            app = conducir.Aplicacion(Path(base))
+            app.resultados_ruta.write_text(
+                '{"id": 1, "ok": true, "datos": {}}\n', encoding="utf-8")
+            with mock.patch.object(conducir, "_ESCENARIO_EN_CURSO", "prueba"):
+                app.pedir("ping", tiempo=1.0)
+
+        self.assertEqual(len(conducir._TIEMPOS), 1)
+        anotacion = conducir._TIEMPOS[0]
+        self.assertEqual(anotacion["escenario"], "prueba")
+        self.assertEqual(anotacion["orden"], "ping")
+        self.assertGreaterEqual(anotacion["segundos"], 0.0)
+
+    def test_pedir_anota_tambien_la_orden_que_vence(self):
+        with tempfile.TemporaryDirectory() as base:
+            app = conducir.Aplicacion(Path(base))
+            with mock.patch.object(conducir, "_ESCENARIO_EN_CURSO", "prueba"):
+                with self.assertRaises(TimeoutError):
+                    app.pedir("ping", tiempo=0.05)
+
+        self.assertEqual(len(conducir._TIEMPOS), 1)
+        anotacion = conducir._TIEMPOS[0]
+        self.assertEqual(anotacion["escenario"], "prueba")
+        self.assertEqual(anotacion["orden"], "ping")
+        self.assertGreaterEqual(anotacion["segundos"], 0.05)
+
+
+class _ProcesoVivo:
+
+    def poll(self):
+        return None
+
+
+class _AppConVentanas:
+
+    def __init__(self, se_cierra=True):
+        self.proceso = _ProcesoVivo()
+        self.se_cierra = se_cierra
+        self.ventanas_actuales = [
+            {"titulo": "Bellbird v3.0.0", "visible": True},
+            {"titulo": "Directo sin imagen", "visible": True},
+            {"titulo": "Oculta", "visible": False},
+        ]
+        self.cerradas = []
+
+    def ventanas(self):
+        return list(self.ventanas_actuales)
+
+    def pedir(self, op, **kwargs):
+        if op == "cerrar_ventana":
+            self.cerradas.append(kwargs["ventana"])
+            if self.se_cierra:
+                self.ventanas_actuales = [
+                    v for v in self.ventanas_actuales
+                    if v["titulo"] != kwargs["ventana"]]
+        return {"ok": True, "datos": {}}
+
+    def esperar_ventana(self, titulo, segundos=15):
+        return next((v for v in self.ventanas_actuales
+                     if v["titulo"] == titulo and v["visible"]), None)
+
+
+class TestCierreDeVentanasSobrantes(unittest.TestCase):
+
+    def test_el_corredor_cierra_la_sobrante_y_nombra_el_escenario(self):
+        app = _AppConVentanas()
+        res = conducir.Resultado()
+        duraciones = []
+
+        with mock.patch.dict(conducir.ESCENARIOS, {"fuga": lambda *a: None}):
+            conducir.correr_escenario("fuga", app, None, res, duraciones)
+
+        self.assertEqual(app.cerradas, ["Directo sin imagen"])
+        self.assertIn("fuga: dejó abierta la ventana «Directo sin imagen»",
+                      res.fallos)
+        self.assertEqual(duraciones[0][0], "fuga")
+
+    def test_si_no_se_cierra_lo_anota_y_sigue(self):
+        app = _AppConVentanas(se_cierra=False)
+        res = conducir.Resultado()
+
+        with mock.patch.dict(conducir.ESCENARIOS, {"fuga": lambda *a: None}):
+            conducir.correr_escenario("fuga", app, None, res, [])
+
+        self.assertIn("fuga: no se pudo cerrar la ventana "
+                      "«Directo sin imagen»", res.fallos)
+
+
+class TestPestanaDeRestream(unittest.TestCase):
+
+    def test_audita_la_pestana_por_defecto_y_despues_la_de_la_cuenta(self):
+        llamadas = []
+
+        def auditar_falso(*args, **kwargs):
+            llamadas.append(kwargs)
+            return True
+
+        with mock.patch.object(conducir, "auditar_dialogo",
+                               side_effect=auditar_falso):
+            conducir.escenario_restream(mock.Mock(), None,
+                                       conducir.Resultado())
+
+        self.assertEqual(len(llamadas), 2)
+        self.assertIsNone(llamadas[0].get("pestana"))
+        self.assertEqual(llamadas[1].get("pestana"), "Cuenta")
+        self.assertEqual(llamadas[1].get("esperados_en_tab"),
+                         ("Estado de la cuenta", "Conectar", "Cerrar"))
+
+
+class TestHilosSinDaemon(unittest.TestCase):
+
+    def test_nombra_solo_los_que_pueden_retener_el_cierre(self):
+        hilos = [
+            {"nombre": "captura", "daemon": False},
+            {"nombre": "vigilancia", "daemon": True},
+            {"nombre": "cierre", "daemon": False},
+        ]
+        self.assertEqual(conducir.nombres_sin_daemon(hilos),
+                         ["captura", "cierre"])
+
+
 class TestAvisosWx(unittest.TestCase):
 
     def test_salta_registro_y_traza_y_cuenta_wx(self):

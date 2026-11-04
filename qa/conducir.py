@@ -53,6 +53,8 @@ from bellbird.core.config import APP_NAME  # noqa: E402
 from sonda import VAR_DESTINO, VAR_ORDENES, VAR_RESULTADOS  # noqa: E402
 
 import capturas  # noqa: E402
+import fugas_banco  # noqa: E402
+import tiempos_banco  # noqa: E402
 import ventanas_obs  # noqa: E402
 
 try:
@@ -61,6 +63,7 @@ except Exception:
     medidor_sonido = None
 
 TIEMPO_ORDEN = 20.0
+_TIEMPOS: list[dict] = []
 
 # La consola de Windows va en cp1252 y el chat lleva emojis. Sin esto, imprimir
 # un super chat revienta la corrida entera con UnicodeEncodeError, y el fallo
@@ -208,20 +211,29 @@ class Aplicacion:
         self._siguiente_id += 1
         orden = {"id": id_orden, "op": op}
         orden.update(extra)
-        with open(self.ordenes_ruta, "a", encoding="utf-8") as f:
-            f.write(json.dumps(orden, ensure_ascii=False) + "\n")
-            f.flush()
+        inicio = time.monotonic()
+        try:
+            with open(self.ordenes_ruta, "a", encoding="utf-8") as f:
+                f.write(json.dumps(orden, ensure_ascii=False) + "\n")
+                f.flush()
 
-        limite = time.time() + tiempo
-        while time.time() < limite:
-            for linea in self._lineas(self.resultados_ruta):
-                if linea.get("id") == id_orden:
-                    if not linea.get("ok") and not tolerar:
-                        raise OrdenRechazada(
-                            f"{op}({extra}): {linea.get('error')}")
-                    return linea
-            time.sleep(0.05)
-        raise TimeoutError(f"la orden {op!r} no contestó en {tiempo} s")
+            limite = time.time() + tiempo
+            while time.time() < limite:
+                for linea in self._lineas(self.resultados_ruta):
+                    if linea.get("id") == id_orden:
+                        if not linea.get("ok") and not tolerar:
+                            raise OrdenRechazada(
+                                f"{op}({extra}): {linea.get('error')}")
+                        return linea
+                time.sleep(0.05)
+            raise TimeoutError(
+                f"la orden {op!r} no contestó en {tiempo} s")
+        finally:
+            _TIEMPOS.append({
+                "escenario": _ESCENARIO_EN_CURSO,
+                "orden": op,
+                "segundos": time.monotonic() - inicio,
+            })
 
     @staticmethod
     def _lineas(ruta: Path) -> list[dict]:
@@ -315,6 +327,10 @@ class Aplicacion:
     def hilos(self) -> list[str]:
         """Los hilos vivos de la aplicación, por nombre."""
         return self.pedir("hilos").get("datos", {}).get("vivos", [])
+
+    def hilos_con_daemon(self) -> list[dict]:
+        """Los hilos vivos con su nombre y si son daemon."""
+        return self.pedir("hilos").get("datos", {}).get("hilos", [])
 
     def reproductor(self) -> dict:
         """La posición que la aplicación le da al usuario, no lo que anuncia."""
@@ -565,6 +581,47 @@ def es_ventana_de_la_app(nombre: str) -> bool:
     return minusculas.startswith(f"{app} v") or minusculas.endswith(f" — {app}")
 
 
+def nombres_sin_daemon(hilos: list[dict]) -> list[str]:
+    """Los nombres de los hilos que pueden retener el cierre, en orden."""
+    return sorted(hilo.get("nombre", "") for hilo in hilos
+                  if not hilo.get("daemon"))
+
+
+def titulo_de_la_principal(ventanas: list[dict]) -> str:
+    """El título de la ventana principal entre las visibles, o "" si no está."""
+    for ventana in ventanas:
+        titulo = ventana.get("titulo") or ""
+        if ventana.get("visible") and es_ventana_de_la_app(titulo):
+            return titulo
+    return ""
+
+
+def cerrar_ventanas_sobrantes(app: Aplicacion, res: Resultado,
+                              escenario: str) -> None:
+    """Cierra las ventanas visibles que un escenario dejó fuera de la principal.
+
+    No cierra la principal ni las invisibles. Si una no se deja cerrar, lo
+    anota y sigue con las demás.
+    """
+    if app.proceso is None or app.proceso.poll() is not None:
+        return
+    try:
+        ventanas = app.ventanas()
+    except Exception:
+        return
+    principal = titulo_de_la_principal(ventanas)
+    for ventana in fugas_banco.ventanas_sobrantes(ventanas, principal):
+        titulo = ventana.get("titulo") or ""
+        res.fallo(f"{escenario}: dejó abierta la ventana «{titulo}»")
+        try:
+            app.pedir("cerrar_ventana", ventana=titulo, tiempo=5.0)
+        except Exception:
+            res.fallo(f"{escenario}: no se pudo cerrar la ventana «{titulo}»")
+            continue
+        if app.esperar_ventana(titulo, segundos=2) is not None:
+            res.fallo(f"{escenario}: no se pudo cerrar la ventana «{titulo}»")
+
+
 def _candidatas_uia(Desktop):
     """Las ventanas donde puede estar algo nuestro, primero las mas probables.
 
@@ -653,8 +710,13 @@ def auditar_dialogo(app: Aplicacion, res: Resultado, etiqueta_menu: str,
                     esperados: tuple[str, ...] = (),
                     esperados_en_tab: tuple[str, ...] = (),
                     esperar_habilitados: tuple[str, ...] = (),
-                    segundos_espera_habilitados: float = 20.0) -> bool:
-    """Abre un diálogo desde el menú, lo audita entero y lo cierra."""
+                    segundos_espera_habilitados: float = 20.0,
+                    pestana: str | None = None) -> bool:
+    """Abre un diálogo desde el menú, lo audita entero y lo cierra.
+
+    Con `pestana`, elige esa página antes de recorrer el Tab, porque una
+    pestaña que no está seleccionada esconde a sus hijos.
+    """
     app.pedir("frente")
     try:
         app.abrir_por_menu(etiqueta_menu)
@@ -667,6 +729,16 @@ def auditar_dialogo(app: Aplicacion, res: Resultado, etiqueta_menu: str,
         res.fallo(f"{titulo}: el menú no abrió ninguna ventana con ese título")
         return False
     res.nota(f"{titulo}: abre desde «{etiqueta_menu}», clase {dlg['clase']}")
+
+    if pestana is not None:
+        paginas = app.pedir("pestanas", ventana=titulo).get(
+            "datos", {}).get("paginas", [])
+        indice = next((i for i, pagina in enumerate(paginas)
+                       if pagina.strip().lower() == pestana.lower()), None)
+        if indice is None:
+            res.fallo(f"{titulo}: no hay pestaña «{pestana}»")
+        else:
+            app.pedir("pestanas", ventana=titulo, indice=indice)
 
     # Un diálogo que consulta algo de fuera nace con sus controles
     # deshabilitados y los habilita cuando la carga inicial termina. Si el
@@ -1723,11 +1795,18 @@ def escenario_historial(app: Aplicacion, args, res: Resultado):
 
 
 def escenario_restream(app: Aplicacion, args, res: Resultado):
-    """La ventana de la cuenta de Restream, sin cuenta conectada."""
+    """La ventana de Restream: la pestaña por defecto y la de la cuenta.
+
+    Primero se audita la pestaña que abre sola, y después la de la cuenta,
+    elegida con la orden `pestanas`. Los controles de una pestaña que no está
+    seleccionada no existen para el servicio de accesibilidad de Windows.
+    """
+    auditar_dialogo(app, res, "Transmisión > Restream…", "Restream",
+                    vueltas_tab=12)
     esperados = ("Estado de la cuenta", "Conectar", "Cerrar")
     auditar_dialogo(app, res, "Transmisión > Restream…", "Restream",
                     vueltas_tab=12, esperados=esperados,
-                    esperados_en_tab=esperados)
+                    esperados_en_tab=esperados, pestana="Cuenta")
 
 
 def obs_abierto() -> bool:
@@ -4749,7 +4828,7 @@ def escenario_directo_sin_imagen(app: Aplicacion, args, res: Resultado):
     """La pregunta de directo al aire sin imagen, que es un cuadro nativo.
 
     El diálogo es un `wx.MessageDialog`, invisible para la sonda: se lo
-    busca desde fuera con `dialogo_nativo` y se pulsa «Dejarlo al aire»
+    busca desde fuera con `dialogo_nativo` y se pulsa «Dejarlo en curso»
     por UI Automation, la respuesta segura. Nunca se pulsa
     «Finalizar directo». Escape no sirve acá: el cuadro no tiene Cancelar
     y Windows no lo cierra.
@@ -4773,9 +4852,9 @@ def escenario_directo_sin_imagen(app: Aplicacion, args, res: Resultado):
     if not textos:
         res.fallo("directo sin imagen: la pregunta no expone ningún texto, "
                   "así que un lector de pantalla no tiene qué leer")
-        if not _pulsar_dejarlo_al_aire(dlg):
+        if not _pulsar_dejarlo_en_curso(dlg):
             res.fallo("directo sin imagen: no apareció el botón "
-                      "«Dejarlo al aire» para cerrar la pregunta")
+                      "«Dejarlo en curso» para cerrar la pregunta")
             _cerrar_nativo(dlg)
         return
     if not any("prueba del banco" in (x or "").lower() for x in textos):
@@ -4795,11 +4874,11 @@ def escenario_directo_sin_imagen(app: Aplicacion, args, res: Resultado):
         pass
     juntos = " ".join(textos + botones).lower()
     res.nota("directo sin imagen ofrece «Finalizar directo»: %s, "
-             "«Dejarlo al aire»: %s"
+             "«Dejarlo en curso»: %s"
              % ("sí" if "finalizar directo" in juntos else "no",
-                "sí" if "dejarlo al aire" in juntos else "no"))
-    if not _pulsar_dejarlo_al_aire(dlg):
-        res.fallo("directo sin imagen: no apareció el botón «Dejarlo al aire»")
+                "sí" if "dejarlo en curso" in juntos else "no"))
+    if not _pulsar_dejarlo_en_curso(dlg):
+        res.fallo("directo sin imagen: no apareció el botón «Dejarlo en curso»")
         _cerrar_nativo(dlg)
         if dialogo_nativo("Directo sin imagen", segundos=1.0) is not None:
             res.fallo("directo sin imagen: la pregunta sigue abierta y no se "
@@ -4812,22 +4891,22 @@ def escenario_directo_sin_imagen(app: Aplicacion, args, res: Resultado):
             cerrado = True
             break
     if not cerrado:
-        res.fallo("directo sin imagen: «Dejarlo al aire» no cerró la pregunta")
-        _pulsar_dejarlo_al_aire_por_coordenadas(dlg)
+        res.fallo("directo sin imagen: «Dejarlo en curso» no cerró la pregunta")
+        _pulsar_dejarlo_en_curso_por_coordenadas(dlg)
         if dialogo_nativo("Directo sin imagen", segundos=1.0) is not None:
             res.fallo("directo sin imagen: la pregunta sigue abierta y no hay "
                       "forma de cerrarla sin arrastrar a los demás escenarios")
             return
-    if app.esperar_dicho("El directo sigue al aire", segundos=5.0, desde=n):
-        res.nota("directo sin imagen con «Dejarlo al aire» anuncia que sigue "
-                 "al aire")
+    if app.esperar_dicho("El directo sigue en curso", segundos=5.0, desde=n):
+        res.nota("directo sin imagen con «Dejarlo en curso» anuncia que sigue "
+                 "en curso")
     else:
-        res.fallo("directo sin imagen: al dejarlo al aire no se anunció "
-                  "«El directo sigue al aire»")
+        res.fallo("directo sin imagen: al dejarlo en curso no se anunció "
+                  "«El directo sigue en curso»")
 
 
-def _boton_dejarlo_al_aire(dlg):
-    """El botón «Dejarlo al aire» entre los descendientes. None si no está.
+def _boton_dejarlo_en_curso(dlg):
+    """El botón «Dejarlo en curso» entre los descendientes. None si no está.
 
     Se compara sin la marca de mnemónico. NUNCA devuelve el otro botón.
     """
@@ -4840,16 +4919,16 @@ def _boton_dejarlo_al_aire(dlg):
                     "&", "").strip()
             except Exception:
                 continue
-            if nombre.lower() == "dejarlo al aire":
+            if nombre.lower() == "dejarlo en curso":
                 return d
     except Exception:
         pass
     return None
 
 
-def _pulsar_dejarlo_al_aire(dlg) -> bool:
-    """Pulsa «Dejarlo al aire» por UI Automation. NUNCA el otro."""
-    boton = _boton_dejarlo_al_aire(dlg)
+def _pulsar_dejarlo_en_curso(dlg) -> bool:
+    """Pulsa «Dejarlo en curso» por UI Automation. NUNCA el otro."""
+    boton = _boton_dejarlo_en_curso(dlg)
     if boton is None:
         return False
     try:
@@ -4865,13 +4944,13 @@ def _pulsar_dejarlo_al_aire(dlg) -> bool:
     return True
 
 
-def _pulsar_dejarlo_al_aire_por_coordenadas(dlg) -> bool:
+def _pulsar_dejarlo_en_curso_por_coordenadas(dlg) -> bool:
     """Último recurso: el mismo botón, con clic por coordenadas.
 
     Si ni eso sale, quien llama lo dice y no arrastra el modal abierto a
     los demás escenarios.
     """
-    boton = _boton_dejarlo_al_aire(dlg)
+    boton = _boton_dejarlo_en_curso(dlg)
     if boton is None:
         return False
     try:
@@ -4913,7 +4992,7 @@ def _boton_nativo(dlg, nombre):
     """Un botón de un cuadro nativo por su nombre. None si no está.
 
     Compara sin marca de mnemónico y sin mayúsculas, como
-    `_boton_dejarlo_al_aire`, pero con el nombre por parámetro: la pregunta
+    `_boton_dejarlo_en_curso`, pero con el nombre por parámetro: la pregunta
     «Salir» pide «Sí» y No es el botón por defecto, así que Enter no sirve.
     """
     objetivo = (nombre or "").replace("&", "").strip().lower()
@@ -5359,9 +5438,11 @@ def escenario_cierre(app: Aplicacion, args, res: Resultado):
     app.simular_sesion_youtube(titulo="Prueba de cierre")
     app.mensaje("Ana", "hola")
     time.sleep(1.5)
-    hilos = app.hilos()
+    hilos = app.hilos_con_daemon()
+    nombres = sorted(hilo["nombre"] for hilo in hilos)
+    sin_daemon = nombres_sin_daemon(hilos)
     res.nota("cierre: antes de cerrar hay %d hilos: %s"
-             % (len(hilos), ", ".join(sorted(hilos)[:8])))
+             % (len(hilos), ", ".join(nombres[:8])))
 
     arranque = time.time()
     try:
@@ -5400,7 +5481,8 @@ def escenario_cierre(app: Aplicacion, args, res: Resultado):
 
     if not murio:
         res.fallo("cierre: la aplicacion no cerro en 20 s con una sesion "
-                  "abierta")
+                  "abierta; hilos que no eran daemon: "
+                  + (", ".join(sin_daemon) or "ninguno"))
         return
     res.nota("cierre: la aplicacion cerro sola en %.1f s" % tardanza)
     # `apagado.TOPE_ESPERA_CIERRE` son 3 segundos. Con margen para que arranque
@@ -5726,6 +5808,24 @@ def _argumentos(argv=None):
 _CAPTURA_EN_CURSO = {"captor": None, "escenario": ""}
 
 
+def correr_escenario(nombre: str, app: Aplicacion, args, res: Resultado,
+                     duraciones: list[tuple[str, float]]) -> None:
+    """Corre un escenario, mide lo que tarda y cierra lo que dejó abierto."""
+    global _ESCENARIO_EN_CURSO
+    _ESCENARIO_EN_CURSO = nombre
+    _CAPTURA_EN_CURSO["escenario"] = nombre
+    print()
+    print(f"--- escenario: {nombre} ---")
+    inicio = time.monotonic()
+    try:
+        ESCENARIOS[nombre](app, args, res)
+    except Exception as exc:
+        res.fallo(f"{nombre}: el escenario reventó, {exc!r}")
+    finally:
+        duraciones.append((nombre, time.monotonic() - inicio))
+        cerrar_ventanas_sobrantes(app, res, nombre)
+
+
 class Captor:
     """Pide PNG a la sonda y lleva el índice. Nunca hace fallar nada."""
 
@@ -5879,6 +5979,8 @@ def main() -> int:
     carpeta.mkdir(parents=True, exist_ok=True)
     app = Aplicacion(carpeta)
     res = Resultado()
+    duraciones: list[tuple[str, float]] = []
+    _TIEMPOS.clear()
     # Sin `--capturas` esto queda en `None` y el banco pide exactamente las
     # mismas órdenes que hoy: ninguna llamada nueva a la sonda.
     captor = None
@@ -5899,32 +6001,17 @@ def main() -> int:
     # a la vez. Va antes de levantar la compartida, y no dentro del bucle.
     if "arranque_frio" in pedidos:
         pedidos = [n for n in pedidos if n != "arranque_frio"]
-        print()
-        print("--- escenario: arranque_frio ---")
-        try:
-            escenario_arranque_frio(app, args, res)
-        except Exception as exc:
-            res.fallo(f"arranque_frio: el escenario reventó, {exc!r}")
+        correr_escenario("arranque_frio", app, args, res, duraciones)
 
     # `musica_real` también monta su propia aplicación con datos preparados,
     # igual que `arranque_frio`: la configuración se escribe ANTES de lanzar.
     # `encuadre` monta la suya con la cámara ya elegida, por el mismo motivo.
     if "encuadre" in pedidos:
         pedidos = [n for n in pedidos if n != "encuadre"]
-        print()
-        print("--- escenario: encuadre ---")
-        try:
-            escenario_encuadre(app, args, res)
-        except Exception as exc:
-            res.fallo(f"encuadre: el escenario reventó, {exc!r}")
+        correr_escenario("encuadre", app, args, res, duraciones)
     if "musica_real" in pedidos:
         pedidos = [n for n in pedidos if n != "musica_real"]
-        print()
-        print("--- escenario: musica_real ---")
-        try:
-            escenario_musica_real(app, args, res)
-        except Exception as exc:
-            res.fallo(f"musica_real: el escenario reventó, {exc!r}")
+        correr_escenario("musica_real", app, args, res, duraciones)
 
     print("Arrancando la aplicación con la sonda puesta. No va a hablar.")
     obs_al_empezar = obs_abierto()
@@ -5942,15 +6029,7 @@ def main() -> int:
             captor.capturar(app, "arranque", "principal")
 
         for nombre in pedidos:
-            global _ESCENARIO_EN_CURSO
-            _ESCENARIO_EN_CURSO = nombre
-            _CAPTURA_EN_CURSO["escenario"] = nombre
-            print()
-            print(f"--- escenario: {nombre} ---")
-            try:
-                ESCENARIOS[nombre](app, args, res)
-            except Exception as exc:
-                res.fallo(f"{nombre}: el escenario reventó, {exc!r}")
+            correr_escenario(nombre, app, args, res, duraciones)
             if captor is not None and nombre in ESCENARIOS_QUE_CONECTAN:
                 captor.capturar(app, nombre, "principal")
     finally:
@@ -5990,6 +6069,7 @@ def main() -> int:
     # minutos y mas de cien lineas: buscar los fallos volviendo atras en la
     # terminal es incomodo con lector de pantalla, y con el buffer lleno
     # directamente se pierden.
+    seccion_tiempos = tiempos_banco.lineas_tiempos(_TIEMPOS, duraciones)
     informe = carpeta / "qa-informe.txt"
     try:
         lineas = [f"Banco de QA de {APP_NAME}",
@@ -6011,10 +6091,13 @@ def main() -> int:
                           "sin probar." % len(res.sin_probar))
         lineas += ["", "NOTAS"]
         lineas += ["    " + x for x in res.notas]
+        lineas += [""] + seccion_tiempos
         informe.write_text("\n".join(lineas) + "\n", encoding="utf-8")
         print(f"  Informe con los fallos en {informe}")
     except Exception as exc:
         print(f"  AVISO: no se pudo escribir el informe: {exc}")
+    print()
+    print("\n".join(seccion_tiempos))
     if res.fallos:
         return 1
     if res.sin_probar:

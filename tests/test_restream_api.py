@@ -10,6 +10,8 @@ from bellbird.restream import api
 
 
 TOKEN = "token-secreto-de-prueba"
+ID_EVENTO = "fa2f5c54-4de5-4118-a4b0-925c648c49d6"
+ID_HISTORIA = "0b6b1f7e-2f34-4d0a-9c11-4c3f7d2a5e10"
 
 PLATAFORMAS = [
     {"id": 1, "name": "Twitch"},
@@ -264,6 +266,89 @@ class TestEliminarCanal(unittest.TestCase):
         self.assertNotIn(TOKEN, str(contexto.exception))
 
 
+class TestEventos(unittest.TestCase):
+
+    def _cliente(self, manejar):
+        cliente = httpx.Client(transport=httpx.MockTransport(manejar))
+        self.addCleanup(cliente.close)
+        return cliente
+
+    def test_pide_la_ruta_de_cada_tipo_y_su_token(self):
+        from bellbird.restream.eventos import TIPO_EN_DIRECTO, TIPO_HISTORIAL, TIPO_PROXIMOS
+
+        rutas = {
+            TIPO_PROXIMOS:
+                "https://api.restream.io/v2/user/events/upcoming?source=2",
+            TIPO_EN_DIRECTO:
+                "https://api.restream.io/v2/user/events/in-progress",
+            TIPO_HISTORIAL:
+                "https://api.restream.io/v2/user/events/history?page=1&limit=50",
+        }
+        for tipo, esperada in rutas.items():
+            with self.subTest(tipo=tipo):
+                visto = {}
+
+                def manejar(pedido):
+                    visto["url"] = str(pedido.url)
+                    visto["autorizacion"] = pedido.headers.get("authorization")
+                    return httpx.Response(200, json=[
+                        {"id": ID_EVENTO, "status": "upcoming",
+                         "title": "Charla", "destinations": []}])
+
+                leidos = api.eventos(TOKEN, tipo, self._cliente(manejar))
+
+                self.assertEqual(esperada, visto["url"])
+                self.assertEqual(f"Bearer {TOKEN}",
+                                 visto["autorizacion"])
+                self.assertEqual([ID_EVENTO],
+                                 [evento.id for evento in leidos])
+
+    def test_el_historial_llega_con_items(self):
+        def manejar(_pedido):
+            return httpx.Response(200, json={
+                "items": [{"id": ID_HISTORIA, "status": "finished",
+                           "title": "Terminada", "destinations": []}],
+                "pagination": {"page": 1},
+            })
+
+        leidos = api.eventos(TOKEN, "historial", self._cliente(manejar))
+
+        self.assertEqual([ID_HISTORIA],
+                         [evento.id for evento in leidos])
+
+    def test_estadisticas_pide_el_evento_y_lee_el_total(self):
+        visto = {}
+
+        def manejar(pedido):
+            visto["url"] = str(pedido.url)
+            return httpx.Response(200, json={
+                "total": {"mean": 3, "max": 8, "viewsTotal": 20,
+                          "watchedTime": 90},
+                "byChannel": {},
+            })
+
+        leidas = api.estadisticas(TOKEN, ID_EVENTO, self._cliente(manejar))
+
+        self.assertEqual(
+            "https://api.restream.io/v2/user/events/"
+            f"{ID_EVENTO}/analytics/viewers",
+            visto["url"])
+        self.assertEqual(3, leidas.promedio)
+        self.assertEqual(8, leidas.maximo)
+        self.assertEqual(20, leidas.vistas)
+        self.assertEqual(90, leidas.tiempo_visto)
+
+    def test_un_fallo_es_error_propio_sin_el_token(self):
+        def manejar(_pedido):
+            return httpx.Response(500, json={"error": "x"})
+
+        with self.assertLogs(api.logger, level="WARNING"):
+            with self.assertRaises(api.ErrorApi) as contexto:
+                api.eventos(TOKEN, "proximos", self._cliente(manejar))
+
+        self.assertNotIn(TOKEN, str(contexto.exception))
+
+
 @unittest.skipUnless(os.environ.get("BELLBIRD_PRUEBAS_CON_RED") == "1",
                      "necesita la cuenta real de Restream")
 class TestContraRestreamReal(unittest.TestCase):
@@ -281,6 +366,39 @@ class TestContraRestreamReal(unittest.TestCase):
         self.assertIsInstance(datos.correo, str)
         self.assertIsInstance(datos.usuario, str)
         self.assertIsInstance(canales, list)
+
+    def test_los_tres_tipos_de_eventos_y_sus_estadisticas(self):
+        from bellbird.restream import cuenta
+        from bellbird.restream.eventos import (
+            TIPO_EN_DIRECTO, TIPO_HISTORIAL, TIPO_PROXIMOS)
+
+        token = cuenta.sesion().token()
+        if not token:
+            self.skipTest("no hay una cuenta de Restream conectada")
+
+        cabeceras = {"Authorization": f"Bearer {token}"}
+        for tipo in (TIPO_PROXIMOS, TIPO_EN_DIRECTO, TIPO_HISTORIAL):
+            with self.subTest(tipo=tipo):
+                crudo = api._leer(
+                    api._pedir(None, api.EVENTOS[tipo], cabeceras))
+                if isinstance(crudo, dict):
+                    crudo = crudo.get("items")
+                self.assertIsInstance(crudo, list)
+                leidos = api.eventos(token, tipo)
+                self.assertEqual(
+                    len(crudo), len(leidos),
+                    f"{tipo}: la API trajo {len(crudo)} eventos crudos y "
+                    f"se leyeron {len(leidos)}")
+                for evento in leidos:
+                    self.assertIsInstance(evento.id, str)
+                    self.assertTrue(evento.id)
+
+        historial = api.eventos(token, TIPO_HISTORIAL)
+        self.assertTrue(historial, "la cuenta no tiene eventos terminados")
+
+        leidas = api.estadisticas(token, historial[0].id)
+        self.assertGreaterEqual(leidas.vistas, 0)
+        self.assertGreaterEqual(leidas.tiempo_visto, 0)
 
 
 if __name__ == "__main__":

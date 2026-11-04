@@ -2115,7 +2115,6 @@ def agujas_unicas(nombres, indice, tope=6):
     buscador de la aplicación: cada palabra buscada empieza una palabra del
     nombre, título, artista o álbum.
     """
-    import re
     from bellbird.music.biblioteca import coincide_por_palabras
     if tope <= 0:
         return []
@@ -5465,6 +5464,7 @@ SUPERFICIES = {
     "restream_pagina_perfiles.py": "restream",
     "restream_pagina_destinos.py": "restream",
     "restream_pagina_cuenta.py": "restream",
+    "restream_pagina_eventos.py": "restream",
     "recientes_inicio.py": "principal",
     "gui_menu.py": "menus",
     "menu_obs.py": "menus",

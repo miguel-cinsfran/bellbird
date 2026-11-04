@@ -1,8 +1,9 @@
-"""Ventana de Restream: la cuenta, los perfiles y los destinos (accesible).
+"""Ventana de Restream: la cuenta, los perfiles, los destinos y los eventos.
 
-Tres pestañas: Perfiles de Restream, Destinos y Cuenta. Cada una vive en su
-módulo y crea sus controles. La ventana guarda lo común, lee la cuenta y los
-destinos en un hilo aparte y conecta, reautoriza o desconecta la cuenta.
+Cuatro pestañas: Perfiles de Restream, Destinos, Eventos y Cuenta. Cada una
+vive en su módulo y crea sus controles. La ventana guarda lo común, lee la
+cuenta y los destinos en un hilo aparte y conecta, reautoriza o desconecta
+la cuenta.
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ from bellbird.ui import paleta
 from bellbird.ui.accesibilidad import anunciar, enlazar_anuncio_de_pestana, nombre_accesible
 from bellbird.ui.restream_pagina_cuenta import PaginaCuenta
 from bellbird.ui.restream_pagina_destinos import PaginaDestinos
+from bellbird.ui.restream_pagina_eventos import PaginaEventos
 from bellbird.ui.restream_pagina_perfiles import PaginaPerfiles
 from bellbird.voice import sound_player as _snd
 
@@ -34,7 +36,8 @@ class VentanaRestream(wx.Dialog):
 
     def __init__(self, parent, cuenta, canales, ruta_perfiles,
                  al_conectar=None, al_reautorizar=None, al_desconectar=None,
-                 destinos=None, perfil=None, eliminar=None):
+                 destinos=None, perfil=None, eliminar=None, eventos=None,
+                 estadisticas=None):
         super().__init__(parent, title=_("Restream"), size=(640, 480),
                          name="DialogoRestream")
         self._cuenta = cuenta
@@ -45,6 +48,8 @@ class VentanaRestream(wx.Dialog):
         self._al_desconectar = al_desconectar
         self._funcion_perfil = perfil
         self._funcion_eliminar = eliminar
+        self._funcion_eventos = eventos
+        self._funcion_estadisticas = estadisticas
         self._destinos = []
         self._nombre_cuenta = ""
         self._esperando_destinos = False
@@ -55,6 +60,9 @@ class VentanaRestream(wx.Dialog):
         self._error_destinos = ""
         self._error_perfil = ""
         self._crear_ui()
+        self._preparar()
+
+    def _preparar(self):
         paleta.pintar_ventana(self)
         self.Centre()
         if self._cuenta.conectada():
@@ -69,32 +77,52 @@ class VentanaRestream(wx.Dialog):
         panel = wx.Panel(self, name="PanelRestream")
         vs = wx.BoxSizer(wx.VERTICAL)
         self.nb = wx.Notebook(panel, name="PestanasRestream")
+        self._crear_paginas()
+        vs.Add(self.nb, 1, wx.EXPAND | wx.ALL, 10)
+        self._crear_cerrar(panel, vs)
+        panel.SetSizer(vs)
+        self._enlazar_ventana()
+        self._actualizar_cuenta()
+
+    def _enlazar_ventana(self):
+        self.Bind(wx.EVT_CLOSE, self._al_cerrar)
+        self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla_ventana)
+        self.Bind(wx.EVT_ACTIVATE, self._al_activar)
+
+    def _crear_cerrar(self, panel, vs):
+        self.btn_cerrar = wx.Button(
+            panel, wx.ID_CANCEL, _("Cerrar"), name=_("Cerrar"))
+        nombre_accesible(self.btn_cerrar, self.btn_cerrar.GetName())
+        vs.Add(self.btn_cerrar, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
+        self.btn_cerrar.Bind(
+            wx.EVT_BUTTON, lambda evento: self._cerrar())
+
+    def _crear_paginas(self):
         self._pagina_perfiles = PaginaPerfiles(
             self.nb, self._ruta, lambda: self._canales_leidos)
         self._pagina_destinos = PaginaDestinos(
             self.nb, self._agregar_destino, self._eliminar_destino,
             self._leer_canales)
+        self._pagina_eventos = PaginaEventos(
+            self.nb, self._funcion_eventos, self._funcion_estadisticas,
+            self._nombres_destinos, self._cuenta.conectada)
         self._pagina_cuenta = PaginaCuenta(
             self.nb, self._conectar, self._reautorizar, self._desconectar)
         self.nb.AddPage(self._pagina_perfiles, _("Perfiles de Restream"))
         self.nb.AddPage(self._pagina_destinos, _("Destinos"))
+        self.nb.AddPage(self._pagina_eventos, _("Eventos"))
         self.nb.AddPage(self._pagina_cuenta, _("Cuenta"))
-        self.nb.SetSelection(0 if self._cuenta.conectada() else 2)
+        self.nb.SetSelection(0 if self._cuenta.conectada() else 3)
         enlazar_anuncio_de_pestana(self.nb)
-        vs.Add(self.nb, 1, wx.EXPAND | wx.ALL, 10)
+        self.nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._al_cambiar_pestana)
 
-        self.btn_cerrar = wx.Button(
-            panel, wx.ID_CANCEL, _("Cerrar"), name=_("Cerrar"))
-        nombre_accesible(self.btn_cerrar, self.btn_cerrar.GetName())
-        vs.Add(self.btn_cerrar, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
-        panel.SetSizer(vs)
+    def _nombres_destinos(self):
+        return {destino.id: destino.texto for destino in self._destinos}
 
-        self.btn_cerrar.Bind(
-            wx.EVT_BUTTON, lambda evento: self._cerrar())
-        self.Bind(wx.EVT_CLOSE, self._al_cerrar)
-        self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla_ventana)
-        self.Bind(wx.EVT_ACTIVATE, self._al_activar)
-        self._actualizar_cuenta()
+    def _al_cambiar_pestana(self, evento):
+        if self.nb.GetPage(evento.GetSelection()) is self._pagina_eventos:
+            self._pagina_eventos.al_mostrarse()
+        evento.Skip()
 
     def _actualizar_cuenta(self):
         conectada = bool(self._cuenta.conectada())
@@ -163,6 +191,7 @@ class VentanaRestream(wx.Dialog):
         self._error_perfil = ""
         self._actualizar_cuenta()
         anunciar(_("Cuenta de Restream conectada."))
+        self._pagina_eventos.reiniciar()
         self._leer_canales()
         self._leer_perfil()
 
@@ -174,6 +203,7 @@ class VentanaRestream(wx.Dialog):
         self._destinos = []
         self._nombre_cuenta = ""
         self._pagina_destinos.mostrar([])
+        self._pagina_eventos.reiniciar()
         self._actualizar_cuenta()
         anunciar(_("Cuenta de Restream desconectada."))
 
@@ -205,6 +235,7 @@ class VentanaRestream(wx.Dialog):
         self._destinos = list(leidos)
         self._error_destinos = ""
         self._pagina_destinos.mostrar(self._destinos)
+        self._pagina_eventos.actualizar_nombres()
         self._actualizar_cuenta()
         if anunciar_nuevos:
             for destino in self._destinos:
@@ -314,10 +345,12 @@ class VentanaRestream(wx.Dialog):
 
 def abrir_restream(padre, cuenta, canales, ruta_perfiles, al_conectar=None,
                    al_reautorizar=None, al_desconectar=None, destinos=None,
-                   perfil=None, eliminar=None):
+                   perfil=None, eliminar=None, eventos=None,
+                   estadisticas=None):
     dialogo = VentanaRestream(
         padre, cuenta, canales, ruta_perfiles, al_conectar, al_reautorizar,
-        al_desconectar, destinos=destinos, perfil=perfil, eliminar=eliminar)
+        al_desconectar, destinos=destinos, perfil=perfil, eliminar=eliminar,
+        eventos=eventos, estadisticas=estadisticas)
     try:
         dialogo.ShowModal()
     finally:

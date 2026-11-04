@@ -14,6 +14,7 @@ from dataclasses import dataclass
 import httpx
 
 from bellbird.core.idioma import _
+from bellbird.restream import eventos as eventos_restream
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,15 @@ PLATAFORMAS = "https://api.restream.io/v2/platform/all"
 CANALES = "https://api.restream.io/v2/user/channel/all"
 PERFIL = "https://api.restream.io/v2/user/profile"
 ELIMINAR_CANAL = "https://api.restream.io/v2/user/channels/{id}"
+EVENTOS = {
+    eventos_restream.TIPO_PROXIMOS:
+        "https://api.restream.io/v2/user/events/upcoming?source=2",
+    eventos_restream.TIPO_EN_DIRECTO:
+        "https://api.restream.io/v2/user/events/in-progress",
+    eventos_restream.TIPO_HISTORIAL:
+        "https://api.restream.io/v2/user/events/history?page=1&limit=50",
+}
+ESTADISTICAS = "https://api.restream.io/v2/user/events/{id}/analytics/viewers"
 ESPERA = 15.0
 
 # Restream escribe «Youtube» en su lista pública.
@@ -193,3 +203,18 @@ def eliminar_canal(token, identificador, cliente=None) -> None:
         logger.warning("la API de Restream respondió %s al eliminar un canal",
                        respuesta.status_code)
         raise ErrorApi()
+
+
+def eventos(token, tipo, cliente=None) -> list:
+    """Eventos de Restream del tipo pedido, ya interpretados."""
+    cabeceras = {"Authorization": f"Bearer {token}"}
+    datos = _leer(_pedir(cliente, EVENTOS[tipo], cabeceras))
+    return eventos_restream.leer_eventos(datos, tipo)
+
+
+def estadisticas(token, identificador, cliente=None):
+    """Estadísticas de espectadores y tiempo visto de un evento."""
+    cabeceras = {"Authorization": f"Bearer {token}"}
+    url = ESTADISTICAS.format(id=identificador)
+    datos = _leer(_pedir(cliente, url, cabeceras))
+    return eventos_restream.leer_estadisticas(datos)

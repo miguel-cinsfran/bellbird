@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 0cb004920f66bbb34d75a04f3644938ebd8e1631 -->
+<!-- original: es/MANUAL.md 21671b057832bccbc7f32ab00a82da08179291a9 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -402,7 +402,7 @@ interrupt the OBS plugin for NVDA.
 
 ### The Restream window
 
-*Restream…* opens the Restream window, with three tabs. With `Ctrl+Tab` you move
+*Restream…* opens the Restream window, with four tabs. With `Ctrl+Tab` you move
 from one to another.
 
 *Restream profiles* saves the broadcast profiles, which choose the destinations
@@ -416,6 +416,15 @@ opens the Restream page in the browser: add the destination there and return to
 Bellbird, which reads the list again and announces the new ones. *Delete
 destination* removes it from the account after confirming, and *Refresh* reads
 the list again.
+
+*Events* lists upcoming events, live events and history. *Show* chooses which of
+the three. Each row has the title and its moment: when it is scheduled, since
+what time it is live, or when it was and how long it lasted. When you select
+one, *Event detail* shows its status, its moments, its destinations and the
+description. *Copy links* copies one link per line from the destinations that
+have one, and *Statistics* adds the average and peak viewers, the views and the
+time watched to the detail. *Update* reads the list again. Everything is
+read-only: events are not created or edited here.
 
 *Account* says which account is connected, with its email or its user name, and
 the destinations it has. From there you connect the account, reauthorize it or

@@ -105,6 +105,11 @@ class TestSuperficiesQa(unittest.TestCase):
                        "ia_consulta_rapida.py"):
             self.assertEqual(conducir.SUPERFICIES.get(nombre), "ia")
 
+    def test_declara_la_pestana_de_eventos_de_restream(self):
+        self.assertEqual(
+            conducir.SUPERFICIES.get("restream_pagina_eventos.py"),
+            "restream")
+
 
 class TestTodosCubreLosEscenarios(unittest.TestCase):
 

@@ -207,6 +207,23 @@ class TestCuenta(unittest.TestCase):
 
         borrar.assert_called_once_with(ACCESO, 7, "cliente")
 
+    def test_eventos_usa_el_token_vigente(self):
+        self._sesion_conectada()
+
+        with mock.patch.object(api, "eventos", return_value=["evento"]) as leer:
+            self.assertEqual(["evento"],
+                             cuenta.eventos("proximos", "cliente"))
+
+        leer.assert_called_once_with(ACCESO, "proximos", "cliente")
+
+    def test_estadisticas_usa_el_token_vigente(self):
+        self._sesion_conectada()
+
+        with mock.patch.object(api, "estadisticas", return_value="cifras") as leer:
+            self.assertEqual("cifras", cuenta.estadisticas(7, "cliente"))
+
+        leer.assert_called_once_with(ACCESO, 7, "cliente")
+
 
 if __name__ == "__main__":
     unittest.main()

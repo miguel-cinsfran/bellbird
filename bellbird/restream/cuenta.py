@@ -72,6 +72,16 @@ def eliminar_canal(identificador, cliente=None):
     return api.eliminar_canal(sesion().token(), identificador, cliente)
 
 
+def eventos(tipo, cliente=None):
+    """Eventos del tipo pedido, con el token vigente."""
+    return api.eventos(sesion().token(), tipo, cliente)
+
+
+def estadisticas(identificador, cliente=None):
+    """Estadísticas del evento, con el token vigente."""
+    return api.estadisticas(sesion().token(), identificador, cliente)
+
+
 def _reiniciar() -> None:
     """Olvida la sesión creada, solo para las pruebas."""
     global _sesion

@@ -21,12 +21,10 @@ def abrir_restream(frame) -> None:
 
     restream_ventana.abrir_restream(
         frame, cuenta.sesion(), canales, paths.perfiles_restream(),
-        al_conectar=cuenta.conectar,
-        al_reautorizar=cuenta.conectar,
-        al_desconectar=cuenta.desconectar,
-        destinos=cuenta.canales,
-        perfil=cuenta.perfil,
-        eliminar=cuenta.eliminar_canal)
+        al_conectar=cuenta.conectar, al_reautorizar=cuenta.conectar,
+        al_desconectar=cuenta.desconectar, destinos=cuenta.canales,
+        perfil=cuenta.perfil, eliminar=cuenta.eliminar_canal,
+        eventos=cuenta.eventos, estadisticas=cuenta.estadisticas)
 
 
 def _agregar_encuadre(frame, m):

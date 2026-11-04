@@ -399,8 +399,8 @@ complemento de OBS para NVDA.
 
 ### La ventana de Restream
 
-*Restream…* abre la ventana de Restream, con tres pestañas. Con `Ctrl+Tab` pasas
-de una a otra.
+*Restream…* abre la ventana de Restream, con cuatro pestañas. Con `Ctrl+Tab`
+pasas de una a otra.
 
 *Perfiles de Restream* guarda los perfiles de transmisión, que eligen los
 destinos y la orientación. `Intro` edita el perfil elegido, `Supr` lo elimina,
@@ -413,6 +413,15 @@ destino…* abre la página de Restream en el navegador: agrega ahí el destino 
 vuelve a Bellbird, que relee la lista y anuncia los nuevos. *Eliminar destino*
 lo quita de la cuenta después de confirmarlo, y *Actualizar* vuelve a leer la
 lista.
+
+*Eventos* lista los próximos, los que están en directo y el historial. *Mostrar*
+elige cuál de los tres. Cada fila trae el título y su momento: cuándo está
+programado, desde qué hora está en directo o cuándo fue y cuánto duró. Al
+elegir uno, *Detalle del evento* muestra su estado, sus momentos, sus destinos
+y la descripción. *Copiar enlaces* copia un enlace por línea de los destinos
+que lo tengan, y *Estadísticas* agrega al detalle el promedio y el máximo de
+espectadores, las vistas y el tiempo visto. *Actualizar* vuelve a leer la
+lista. Todo es de solo lectura: desde acá no se crean ni se editan eventos.
 
 *Cuenta* dice qué cuenta está conectada, con su correo o su nombre de usuario,
 y los destinos que tiene. Desde ahí conectas la cuenta, vuelves a autorizarla o

@@ -3002,6 +3002,11 @@ msgstr "Clip saved: {archivo}."
 
 #: bellbird/obs/obs_clips.py
 #, python-brace-format
+msgid "Clip guardado por {autor}: {archivo}."
+msgstr "Clip saved by {autor}: {archivo}."
+
+#: bellbird/obs/obs_clips.py
+#, python-brace-format
 msgid "Clips listos: desde ahora se guardan los últimos {segundos} segundos."
 msgstr "Clips ready: from now on the last {segundos} seconds are saved."
 
@@ -9137,6 +9142,24 @@ msgstr "C&lips:"
 #: bellbird/ui/preferencias_transmision.py
 msgid "Clips"
 msgstr "Clips"
+
+#: bellbird/ui/preferencias_transmision.py
+#, python-brace-format
+msgid "Permitir {comando} en el &chat"
+msgstr "Allow {comando} in &chat"
+
+#: bellbird/ui/preferencias_transmision.py
+#, python-brace-format
+msgid "Permitir {comando} en el chat"
+msgstr "Allow {comando} in chat"
+
+#: bellbird/ui/preferencias_transmision.py
+msgid "Espe&ra entre clips del chat (minutos):"
+msgstr "Wa&it between chat clips (minutes):"
+
+#: bellbird/ui/preferencias_transmision.py
+msgid "Espera entre clips del chat"
+msgstr "Wait between chat clips"
 
 #: bellbird/ui/preferencias_transmision.py
 msgid "&Puerto del chat en el vídeo:"

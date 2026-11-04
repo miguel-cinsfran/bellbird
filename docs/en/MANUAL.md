@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md bebec23d1532fcf57b20b315b92770e3b059127a -->
+<!-- original: es/MANUAL.md 0cb004920f66bbb34d75a04f3644938ebd8e1631 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -371,6 +371,16 @@ stop the live stream and the recording before preparing it. With *Off*, Save
 clip says that clips are turned off. If the profile records lossless or with
 FFmpeg output, OBS does not offer clips: Save clip says so and the live stream
 goes on.
+
+Below *Clips* are the *Allow !clip in chat* checkbox and *Wait between chat
+clips (minutes)*. With the checkbox on, which is the default, anyone in the
+chat saves a clip by typing `!clip`; the message appears and is read like any
+other. When it is saved, the same sound as Save clip plays and the
+application announces “Clip saved by” with the author and the file. The wait
+goes from 1 to 60 minutes, 1 by default, and counts from the last clip
+requested from chat: during that time, other `!clip` messages do nothing. The
+command does not reply in chat and does not prepare the buffer: if clips are
+off, the checkbox is off or the buffer is not running, it does nothing.
 
 ### The Broadcast tab
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 import wx
 
 from bellbird.core import diagnostico
+from bellbird.core.comando_clip import COMANDO as COMANDO_CLIP
 from bellbird.core.idioma import N_, _
 from bellbird.obs import obs_activacion
 from bellbird.obs import obs_cliente
@@ -60,6 +61,27 @@ class PaginaTransmision:
         self.cho_clips.SetSelection(
             valores.index(guardado) if guardado in valores else 1)
         vs.Add(self.cho_clips, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        self.chk_clips_chat = wx.CheckBox(
+            p,
+            label=_("Permitir {comando} en el &chat").format(
+                comando=COMANDO_CLIP),
+            name=_("Permitir {comando} en el chat").format(
+                comando=COMANDO_CLIP))
+        self.chk_clips_chat.SetValue(bool(self._config.get("clips_chat", True)))
+        vs.Add(self.chk_clips_chat, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+        vs.Add(fila_label(p, _("Espe&ra entre clips del chat (minutos):")),
+               0, wx.LEFT | wx.RIGHT, 10)
+        self.sp_clips_chat_espera = ContadorAccesible(
+            p, min=1, max=60,
+            name=_("Espera entre clips del chat"))
+        try:
+            minutos = int(self._config.get("clips_chat_espera", 1))
+        except (TypeError, ValueError):
+            minutos = 1
+        self.sp_clips_chat_espera.SetValue(min(60, max(1, minutos)))
+        vs.Add(self.sp_clips_chat_espera, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _agregar_puerto(self, p, vs):
         vs.Add(fila_label(p, _("&Puerto del chat en el vídeo:")),
@@ -158,3 +180,9 @@ class PaginaTransmision:
         segundos = OPCIONES_CLIPS[max(0, self.cho_clips.GetSelection())][0]
         fijar("transmision", "clips", str(segundos))
         en_memoria["clips"] = segundos
+        clips_chat = self.chk_clips_chat.GetValue()
+        fijar("transmision", "clips_chat", "true" if clips_chat else "false")
+        en_memoria["clips_chat"] = clips_chat
+        minutos = int(self.sp_clips_chat_espera.GetValue())
+        fijar("transmision", "clips_chat_espera", str(minutos))
+        en_memoria["clips_chat_espera"] = minutos

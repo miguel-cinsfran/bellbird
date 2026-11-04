@@ -41,6 +41,7 @@ MENSAJE_SALIDA_ACTIVA = N_(
     "Los clips se preparan antes de transmitir o grabar. Detén el directo "
     "y la grabación y vuelve a intentarlo.")
 MENSAJE_CLIP_GUARDADO = N_("Clip guardado: {archivo}.")
+MENSAJE_CLIP_GUARDADO_POR = N_("Clip guardado por {autor}: {archivo}.")
 MENSAJE_CLIPS_LISTOS = N_(
     "Clips listos: desde ahora se guardan los últimos {segundos} segundos.")
 MENSAJE_SIN_ARCHIVO = N_("OBS no devolvió el archivo del clip.")

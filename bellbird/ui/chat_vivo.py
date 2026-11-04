@@ -11,12 +11,14 @@ import time
 import wx
 
 from bellbird.capture.tiktok_captura import debe_pasar_me_gusta
+from bellbird.core import comando_clip
 from bellbird.core import diagnostico
 from bellbird.core import sonidos_eventos
 from bellbird.core.avisos_tiktok import pasa_filtro
 from bellbird.core.config import (
     TIPO_ME_GUSTA, TIPO_MIEMBRO, TIPO_STICKER, TIPO_SUPERCHAT,
 )
+from bellbird.ui import comandos_clips
 from bellbird.ui.lista_chat import ListaChat, MensajeChat
 from bellbird.voice import sound_player as _snd
 
@@ -34,7 +36,8 @@ class ControladorChat:
     """Estado y volcado del chat en vivo, separado de la ventana principal."""
 
     def __init__(self, lista, maximo, *, activo, autor_oculto,
-                 formatear, al_superchat):
+                 formatear, al_superchat, ajustes_clip=None,
+                 guardar_clip=None, reloj=time.monotonic):
         self.lista = lista
         self.modelo = ListaChat(maximo)
         self.filtro = None
@@ -45,14 +48,46 @@ class ControladorChat:
         self._formatear = formatear
         self._al_superchat = al_superchat
         self._ultimo_me_gusta = None
+        self._ajustes_clip = ajustes_clip or comandos_clips.leer_ajustes_clips_chat
+        self._guardar_clip = guardar_clip or comandos_clips.guardar_clip_del_chat
+        self._reloj = reloj
+        self._ultimo_clip_chat = None
+        self._clip_en_curso = False
 
     def encolar(self, registro: MensajeChat) -> None:
+        self._quizas_clip(registro)
         self._pendientes.append(registro)
         # Si el temporizador ya corre, NO reiniciarlo: con un chat activo
         # (mensajes cada menos de MS_VOLCADO_CHAT) reiniciar pospondría el
         # volcado indefinidamente y no aparecería nada hasta una pausa.
         if self._timer is None:
             self._timer = wx.CallLater(MS_VOLCADO_CHAT, self.volcar)
+
+    def _quizas_clip(self, registro: MensajeChat) -> None:
+        """Atiende el comando !clip que llega en el hilo de la interfaz."""
+        try:
+            if not comando_clip.es_pedido(registro.texto):
+                return
+            ajustes = self._ajustes_clip()
+            if not ajustes.activo:
+                return
+            ahora = self._reloj()
+            if not comando_clip.decidir(
+                    registro.texto, ahora, self._ultimo_clip_chat,
+                    ajustes.minutos):
+                return
+            if self._clip_en_curso:
+                return
+            self._clip_en_curso = True
+            self._guardar_clip(registro.autor, self._clip_terminado)
+        except Exception as error:
+            self._clip_en_curso = False
+            logger.debug("no se pudo atender el comando !clip: %s", error)
+
+    def _clip_terminado(self, guardado: bool) -> None:
+        self._clip_en_curso = False
+        if guardado:
+            self._ultimo_clip_chat = self._reloj()
 
     def _procesar(self, registro: MensajeChat) -> bool:
         """Aplica UN mensaje ya desencolado al modelo y a la lista. Devuelve si

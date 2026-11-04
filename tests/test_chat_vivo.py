@@ -1,6 +1,7 @@
 """Pruebas del ControladorChat, sin ventana: lista falsa y parches locales."""
 
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 
 from bellbird.core.config import (
@@ -189,6 +190,67 @@ class TestControladorChat(unittest.TestCase):
         control.lista.Append.assert_called_once_with("Ana: nuevo, 12:00")
         self.assertEqual(len(control.modelo.todos), 2)
         self.assertEqual(len(control.modelo.visibles), 1)
+
+
+class TestClipDelChat(unittest.TestCase):
+    def _control(self, *, activo=True, minutos=1, guardar=None, reloj=None):
+        lista = mock.Mock()
+        lista.GetCount.return_value = 1
+        return ControladorChat(
+            lista, 500, activo=lambda: True,
+            autor_oculto=lambda autor: False,
+            formatear=lambda autor, texto, hora, tipo, monto: texto,
+            al_superchat=mock.Mock(),
+            ajustes_clip=lambda: SimpleNamespace(
+                activo=activo, minutos=minutos),
+            guardar_clip=guardar or mock.Mock(),
+            reloj=reloj or (lambda: 0.0))
+
+    def _encolar(self, control, texto):
+        with mock.patch.object(chat_vivo.wx, "CallLater",
+                               return_value=mock.Mock()):
+            control.encolar(_registro(texto=texto))
+
+    def test_un_mensaje_clip_pide_guardarlo(self):
+        guardar = mock.Mock()
+        control = self._control(guardar=guardar)
+        self._encolar(control, "!clip")
+        guardar.assert_called_once()
+        self.assertEqual(guardar.call_args.args[0], "Ana")
+        self.assertEqual(len(control._pendientes), 1)
+
+    def test_un_mensaje_normal_no_pide_guardarlo(self):
+        guardar = mock.Mock()
+        control = self._control(guardar=guardar)
+        self._encolar(control, "hola")
+        guardar.assert_not_called()
+
+    def test_otro_clip_durante_la_espera_no_guarda(self):
+        ahora = [0.0]
+        guardar = mock.Mock()
+        control = self._control(guardar=guardar, reloj=lambda: ahora[0])
+        self._encolar(control, "!clip")
+        al_terminar = guardar.call_args.args[1]
+        al_terminar(True)
+        ahora[0] = 30.0
+        self._encolar(control, "!clip")
+        self.assertEqual(guardar.call_count, 1)
+
+    def test_en_el_borde_de_la_espera_vuelve_a_guardar(self):
+        ahora = [0.0]
+        guardar = mock.Mock()
+        control = self._control(guardar=guardar, reloj=lambda: ahora[0])
+        self._encolar(control, "!clip")
+        guardar.call_args.args[1](True)
+        ahora[0] = 60.0
+        self._encolar(control, "!clip")
+        self.assertEqual(guardar.call_count, 2)
+
+    def test_con_la_opcion_apagada_no_pide_guardarlo(self):
+        guardar = mock.Mock()
+        control = self._control(activo=False, guardar=guardar)
+        self._encolar(control, "!clip")
+        guardar.assert_not_called()
 
 
 if __name__ == "__main__":

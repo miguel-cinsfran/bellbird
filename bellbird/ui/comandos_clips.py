@@ -5,6 +5,7 @@ from pathlib import Path
 import wx
 
 from bellbird.core import diagnostico
+from bellbird.core.config_transmision import leer_ajustes_clips_chat
 from bellbird.core.idioma import _
 from bellbird.obs import obs_cliente, obs_clips
 from bellbird.obs.obs_panel import GestorPanelObs
@@ -62,6 +63,65 @@ def _operacion(gestor):
         obs_clips.iniciar(cliente)
     return (_(obs_clips.MENSAJE_CLIPS_LISTOS).format(segundos=segundos),
             "clip")
+
+
+def _operacion_chat(gestor, autor):
+    """Guarda el clip solo si el búfer ya está en marcha; nunca lo prepara."""
+    cliente = getattr(gestor, "_cliente", gestor)
+    segundos = obs_clips.leer_segundos()
+    if not segundos:
+        return None
+    estado = obs_clips.leer_estado(cliente, segundos)
+    if not estado.buffer_activo:
+        return None
+    ruta = obs_clips.guardar(cliente)
+    return (_(obs_clips.MENSAJE_CLIP_GUARDADO_POR).format(
+        autor=autor, archivo=Path(ruta).name), "clip")
+
+
+def _terminar(al_terminar, guardado):
+    if al_terminar is None:
+        return
+    try:
+        wx.CallAfter(al_terminar, guardado)
+    except Exception as error:
+        logger.debug("no se pudo avisar el fin del clip del chat: %s", error)
+
+
+def _ejecutar_chat(operacion, al_terminar):
+    def _trabajar():
+        gestor = None
+        resultado = None
+        try:
+            gestor = GestorPanelObs()
+            gestor.conectar()
+            resultado = operacion(gestor)
+        except Exception as error:
+            logger.debug("el clip pedido desde el chat no se guardó: %s", error)
+        finally:
+            if gestor is not None:
+                try:
+                    gestor.cerrar()
+                except Exception as error:
+                    logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
+        if resultado is not None:
+            _avisar(*resultado)
+        _terminar(al_terminar, resultado is not None)
+    diagnostico.crear_hilo(_trabajar, "ClipsChat").start()
+
+
+def guardar_clip_del_chat(autor, al_terminar=None):
+    """Atiende un !clip del chat sin preparar ni encender el búfer."""
+    ajustes = leer_ajustes_clips_chat()
+    if not ajustes.activo or not obs_clips.leer_segundos():
+        _terminar(al_terminar, False)
+        return
+    try:
+        _ejecutar_chat(lambda gestor: _operacion_chat(gestor, autor),
+                       al_terminar)
+    except Exception as error:
+        logger.debug("no se pudo lanzar el clip del chat: %s", error)
+        _terminar(al_terminar, False)
 
 
 def guardar_clip(frame):

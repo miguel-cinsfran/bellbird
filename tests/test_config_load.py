@@ -747,6 +747,37 @@ class TestCargarConfiguracion(unittest.TestCase):
         cfg = self._cargar_en("[transmision]\ndestino = Twitch\n")
         self.assertEqual(cfg["transmision_destino"], "")
 
+    def test_ajustes_de_clip_del_chat_se_leen_del_archivo(self):
+        from bellbird.core.config_transmision import leer_ajustes_clips_chat
+
+        ruta = Path(self._tmp.name) / "otro.ini"
+        ruta.write_text(
+            "[transmision]\nclips_chat = false\nclips_chat_espera = 7\n",
+            encoding="utf-8")
+        ajustes = leer_ajustes_clips_chat(ruta)
+        self.assertFalse(ajustes.activo)
+        self.assertEqual(ajustes.minutos, 7)
+        vacio = leer_ajustes_clips_chat(Path(self._tmp.name) / "no-existe.ini")
+        self.assertTrue(vacio.activo)
+        self.assertEqual(vacio.minutos, 1)
+
+    def test_clip_del_chat_activo_y_un_minuto_de_fabrica(self):
+        cfg = self._cargar_en("[voz]\nvoz = 0\n")
+        self.assertTrue(cfg["clips_chat"])
+        self.assertEqual(cfg["clips_chat_espera"], 1)
+
+    def test_clip_del_chat_se_lee_y_su_espera_se_limita(self):
+        cfg = self._cargar_en(
+            "[transmision]\nclips_chat = false\nclips_chat_espera = 0\n")
+        self.assertFalse(cfg["clips_chat"])
+        self.assertEqual(cfg["clips_chat_espera"], 1)
+        cfg = self._cargar_en("[transmision]\nclips_chat_espera = 90\n")
+        self.assertEqual(cfg["clips_chat_espera"], 60)
+        cfg = self._cargar_en("[transmision]\nclips_chat_espera = 15\n")
+        self.assertEqual(cfg["clips_chat_espera"], 15)
+        cfg = self._cargar_en("[transmision]\nclips_chat_espera = raro\n")
+        self.assertEqual(cfg["clips_chat_espera"], 1)
+
     def test_titulo_estado_obs_se_lee_y_sin_la_clave_queda_apagado(self):
         cfg = self._cargar_en("[transmision]\ntitulo_estado_obs = true\n")
         self.assertTrue(cfg["titulo_estado_obs"])

@@ -369,6 +369,17 @@ grabación antes de prepararlo. Con *Desactivados*, Guardar clip avisa que los
 clips están apagados. Si el perfil graba sin pérdidas o con salida FFmpeg, OBS
 no ofrece clips: Guardar clip lo dice y el directo sigue.
 
+Debajo de *Clips* están la casilla *Permitir !clip en el chat* y *Espera entre
+clips del chat (minutos)*. Con la casilla activada, que es lo de fábrica,
+cualquiera del chat guarda un clip escribiendo `!clip`; el mensaje se ve y se
+lee como cualquier otro. Al guardarse suena el mismo sonido de Guardar clip y
+la aplicación anuncia «Clip guardado por» con el autor y el archivo. La espera
+va de 1 a 60 minutos, con 1 de fábrica, y se cuenta desde que se guardó el
+último clip pedido desde el chat: durante ese tiempo, otros `!clip` no hacen
+nada. El comando no responde en el chat y no prepara el búfer: si los clips
+están desactivados, la casilla está apagada o el búfer no está en marcha, no
+hace nada.
+
 ### La pestaña Transmisión
 
 El *Panel de OBS* (`Ctrl+Mayús+O`) reúne en pestañas lo que se hace con OBS.

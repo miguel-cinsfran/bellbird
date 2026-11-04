@@ -114,6 +114,8 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("titulo_estado_obs", "false"),
         ("grabar_al_transmitir", "false"),
         ("clips", "30"),
+        ("clips_chat", "true"),
+        ("clips_chat_espera", "1"),
         ("avisar_encuadre", "false"),
         ("camara_fuente", ""),
         ("camara_invertir", "false"),
@@ -243,6 +245,8 @@ _COMENTARIOS: dict[str, str] = {
         "# la fija por nombre. camara_invertir invierte izquierda y\n"
         "# derecha además del espejo que informa OBS.\n"
         "# clips: 0 desactivados, 30 o 60 segundos de búfer.\n"
+        "# clips_chat: permitir !clip en el chat; clips_chat_espera: minutos\n"
+        "# entre clips pedidos desde el chat.\n"
     ),
     "estado": (
         "# Componentes que anuncia F2. true se dice, false se omite.\n"

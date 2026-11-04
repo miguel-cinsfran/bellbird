@@ -150,6 +150,85 @@ class TestComandosClips(unittest.TestCase):
         sonar.assert_called_once_with("error")
         self.assertTrue(gestor.cerrado)
 
+    def _correr_chat(self, gestor=None, segundos=30, estado_leido=None,
+                     ruta="", activo=True, minutos=1):
+        gestor = gestor or GestorClipsFalso()
+        funciones = {
+            "leer_segundos": mock.Mock(return_value=segundos),
+            "leer_estado": mock.Mock(return_value=estado_leido or estado()),
+            "preparar": mock.Mock(),
+            "iniciar": mock.Mock(),
+            "guardar": mock.Mock(return_value=ruta),
+        }
+        anunciar = mock.Mock()
+        sonar = mock.Mock()
+        al_terminar = mock.Mock()
+        ajustes = SimpleNamespace(activo=activo, minutos=minutos)
+        parches = [mock.patch.object(comandos_clips.obs_clips, nombre, valor)
+                   for nombre, valor in funciones.items()]
+        parches.extend([
+            mock.patch.object(comandos_clips, "leer_ajustes_clips_chat",
+                              return_value=ajustes),
+            mock.patch.object(comandos_clips, "GestorPanelObs",
+                              return_value=gestor),
+            mock.patch.object(comandos_clips.diagnostico, "crear_hilo",
+                              HiloInmediato),
+            mock.patch.object(comandos_clips.wx, "CallAfter",
+                              side_effect=_llamada_inmediata),
+            mock.patch.object(comandos_clips, "anunciar", anunciar),
+            mock.patch.object(comandos_clips.sound_player,
+                              "reproducir", sonar),
+        ])
+        for aplicado in parches:
+            aplicado.start()
+            self.addCleanup(aplicado.stop)
+        comandos_clips.guardar_clip_del_chat("Ana", al_terminar)
+        return gestor, funciones, anunciar, sonar, al_terminar
+
+    def test_clip_del_chat_guarda_y_anuncia_al_autor(self):
+        gestor, parche, anunciar, sonar, al_terminar = self._correr_chat(
+            estado_leido=estado(buffer=True, preparado=True),
+            ruta="C:/Videos/clips/clip 1.mkv")
+        parche["guardar"].assert_called_once()
+        parche["preparar"].assert_not_called()
+        parche["iniciar"].assert_not_called()
+        anunciar.assert_called_once_with(
+            "Clip guardado por Ana: clip 1.mkv.")
+        sonar.assert_called_once_with("clip")
+        al_terminar.assert_called_once_with(True)
+        self.assertTrue(gestor.cerrado)
+
+    def test_clip_del_chat_sin_buffer_no_hace_nada_ni_prepara(self):
+        gestor, parche, anunciar, sonar, al_terminar = self._correr_chat(
+            estado_leido=estado(salida=False, buffer=False, preparado=False))
+        parche["guardar"].assert_not_called()
+        parche["preparar"].assert_not_called()
+        parche["iniciar"].assert_not_called()
+        anunciar.assert_not_called()
+        sonar.assert_not_called()
+        al_terminar.assert_called_once_with(False)
+        self.assertTrue(gestor.cerrado)
+
+    def test_clip_del_chat_con_clips_desactivados_no_conecta(self):
+        with mock.patch.object(comandos_clips, "GestorPanelObs") as gestor:
+            with mock.patch.object(
+                    comandos_clips, "leer_ajustes_clips_chat",
+                    return_value=SimpleNamespace(activo=True, minutos=1)), \
+                    mock.patch.object(comandos_clips.obs_clips,
+                                      "leer_segundos", return_value=0):
+                comandos_clips.guardar_clip_del_chat("Ana", mock.Mock())
+        gestor.assert_not_called()
+
+    def test_clip_del_chat_con_la_opcion_apagada_no_conecta(self):
+        with mock.patch.object(comandos_clips, "GestorPanelObs") as gestor:
+            with mock.patch.object(
+                    comandos_clips, "leer_ajustes_clips_chat",
+                    return_value=SimpleNamespace(activo=False, minutos=1)), \
+                    mock.patch.object(comandos_clips.obs_clips,
+                                      "leer_segundos", return_value=30):
+                comandos_clips.guardar_clip_del_chat("Ana", mock.Mock())
+        gestor.assert_not_called()
+
     def test_la_interfaz_no_espera_a_obs(self):
         gestor = GestorClipsFalso()
         hilos = []

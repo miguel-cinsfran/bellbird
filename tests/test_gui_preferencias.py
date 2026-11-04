@@ -143,6 +143,29 @@ class TestPaginaObsClips(unittest.TestCase):
                 (seccion, clave), valor), {})
         self.assertEqual(guardados[("transmision", "clips")], "60")
 
+    def test_clip_del_chat_activo_y_un_minuto_de_fabrica(self):
+        pagina = self._dialogo().pagina_transmision
+        self.assertTrue(pagina.chk_clips_chat.GetValue())
+        self.assertEqual(pagina.chk_clips_chat.GetLabel(),
+                         "Permitir !clip en el &chat")
+        self.assertEqual(pagina.chk_clips_chat.GetName(),
+                         "Permitir !clip en el chat")
+        self.assertEqual(pagina.sp_clips_chat_espera.GetValue(), 1)
+        self.assertEqual(pagina.sp_clips_chat_espera.GetName(),
+                         "Espera entre clips del chat")
+
+    def test_guardar_clip_del_chat_escribe_sus_dos_opciones(self):
+        pagina = self._dialogo().pagina_transmision
+        pagina.chk_clips_chat.SetValue(False)
+        pagina.sp_clips_chat_espera.SetValue(15)
+        guardados = {}
+        pagina.guardar(
+            lambda seccion, clave, valor: guardados.__setitem__(
+                (seccion, clave), valor), {})
+        self.assertEqual(guardados[("transmision", "clips_chat")], "false")
+        self.assertEqual(
+            guardados[("transmision", "clips_chat_espera")], "15")
+
 
 class TestPaginaDescargas(unittest.TestCase):
     def setUp(self):

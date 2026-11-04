@@ -9,7 +9,31 @@ función para no cerrar un import circular.
 
 from __future__ import annotations
 
+import configparser
+from dataclasses import dataclass
+
+from bellbird.core import paths
 from bellbird.core.ini_tipado import leer_booleano, leer_entero, leer_texto
+
+
+@dataclass(frozen=True, slots=True)
+class AjustesClipsChat:
+    activo: bool
+    minutos: int
+
+
+def ajustes_clips_chat(p) -> AjustesClipsChat:
+    """La opción !clip del chat y su espera en minutos."""
+    return AjustesClipsChat(
+        leer_booleano(p, "transmision", "clips_chat"),
+        leer_entero(p, "transmision", "clips_chat_espera", lo=1, hi=60))
+
+
+def leer_ajustes_clips_chat(ruta=None) -> AjustesClipsChat:
+    """Los ajustes de !clip desde config.ini, con los de fábrica si faltan."""
+    parser = configparser.ConfigParser(interpolation=None)
+    parser.read(ruta or paths.config_ini(), encoding="utf-8")
+    return ajustes_clips_chat(parser)
 
 
 def opciones_transmision(p) -> dict:
@@ -18,6 +42,7 @@ def opciones_transmision(p) -> dict:
     destino = leer_texto(p, "transmision", "destino")
     if destino not in _destinos.DESTINOS:
         destino = ""
+    clips_chat = ajustes_clips_chat(p)
 
     return {
         "transmision_destino": destino,
@@ -25,6 +50,8 @@ def opciones_transmision(p) -> dict:
         "titulo_estado_obs": leer_booleano(p, "transmision", "titulo_estado_obs"),
         "grabar_al_transmitir": leer_booleano(p, "transmision", "grabar_al_transmitir"),
         "clips": _clips(p),
+        "clips_chat": clips_chat.activo,
+        "clips_chat_espera": clips_chat.minutos,
         "avisar_encuadre": leer_booleano(p, "transmision", "avisar_encuadre"),
         "camara_fuente": leer_texto(p, "transmision", "camara_fuente"),
         "camara_invertir": leer_booleano(p, "transmision", "camara_invertir"),

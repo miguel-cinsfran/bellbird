@@ -17,9 +17,8 @@ from bellbird.ui.busqueda_teclado import instalar_busqueda_tipo
 from bellbird.ui.preferencias_comun import fila_horizontal
 from bellbird.voice import sound_player as _snd
 
-# La página donde se agregan los destinos. La dirección exacta de agregar un
-# canal dentro de Restream está sin medir.
-URL_DESTINOS = "https://app.restream.io/"
+# Página donde Restream agrega los canales de la cuenta.
+URL_DESTINOS = "https://app.restream.io/channels"
 abrir_navegador = webbrowser.open
 
 

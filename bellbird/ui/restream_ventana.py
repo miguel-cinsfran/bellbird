@@ -15,6 +15,7 @@ import wx
 
 from bellbird.core import diagnostico
 from bellbird.core.idioma import _
+from bellbird.restream import canal_youtube
 from bellbird.restream.api import ErrorApi
 from bellbird.ui import paleta
 from bellbird.ui.accesibilidad import anunciar, enlazar_anuncio_de_pestana, nombre_accesible
@@ -23,6 +24,18 @@ from bellbird.ui.restream_pagina_destinos import PaginaDestinos
 from bellbird.ui.restream_pagina_eventos import PaginaEventos
 from bellbird.ui.restream_pagina_perfiles import PaginaPerfiles
 from bellbird.voice import sound_player as _snd
+
+
+logger = diagnostico.obtener_logger(__name__)
+
+
+def _id_canal_de_la_sesion():
+    """Identificador del canal de YouTube de la sesión, o "" sin sesión."""
+    from bellbird.youtube import credenciales, youtube_api
+    if not credenciales.hay_sesion():
+        return ""
+    cliente = youtube_api.ClienteYouTube(credenciales.efectivas())
+    return cliente.id_canal_propio() or ""
 
 
 def _como_destino(entrada):
@@ -37,7 +50,7 @@ class VentanaRestream(wx.Dialog):
     def __init__(self, parent, cuenta, canales, ruta_perfiles,
                  al_conectar=None, al_reautorizar=None, al_desconectar=None,
                  destinos=None, perfil=None, eliminar=None, eventos=None,
-                 estadisticas=None):
+                 estadisticas=None, id_canal=None):
         super().__init__(parent, title=_("Restream"), size=(640, 480),
                          name="DialogoRestream")
         self._cuenta = cuenta
@@ -50,7 +63,9 @@ class VentanaRestream(wx.Dialog):
         self._funcion_eliminar = eliminar
         self._funcion_eventos = eventos
         self._funcion_estadisticas = estadisticas
+        self._funcion_id_canal = id_canal or _id_canal_de_la_sesion
         self._destinos = []
+        self._id_canal = ""
         self._nombre_cuenta = ""
         self._esperando_destinos = False
         self._parada = threading.Event()
@@ -129,9 +144,11 @@ class VentanaRestream(wx.Dialog):
         errores = [error for error in
                    (self._error_cuenta, self._error_destinos,
                     self._error_perfil) if error]
+        linea_youtube = canal_youtube.texto(self._destinos, self._id_canal)
         self._pagina_cuenta.mostrar(
             conectada, self._nombre_cuenta,
-            [destino.texto for destino in self._destinos], errores)
+            [destino.texto for destino in self._destinos], errores,
+            linea_youtube)
         self._pagina_cuenta.fijar_botones(not self._trabajo_en_curso)
 
     def _conectar(self):
@@ -201,6 +218,7 @@ class VentanaRestream(wx.Dialog):
         self._error_destinos = ""
         self._error_perfil = ""
         self._destinos = []
+        self._id_canal = ""
         self._nombre_cuenta = ""
         self._pagina_destinos.mostrar([])
         self._pagina_eventos.reiniciar()
@@ -224,15 +242,26 @@ class VentanaRestream(wx.Dialog):
                           for destino in self._fuente_destinos()]
             except Exception as exc:
                 self._en_hilo_principal(self._fallo_destinos, exc)
-            else:
-                self._en_hilo_principal(
-                    self._destinos_listos, leidos, anunciar_nuevos)
+                return
+            self._en_hilo_principal(
+                self._destinos_listos, leidos, anunciar_nuevos,
+                self._leer_id_canal())
 
         diagnostico.crear_hilo(_correr, "RestreamCanales").start()
 
-    def _destinos_listos(self, leidos, anunciar_nuevos=False):
+    def _leer_id_canal(self):
+        try:
+            return self._funcion_id_canal() or ""
+        except Exception:
+            logger.warning(
+                "no se pudo leer el identificador del canal de la sesión",
+                exc_info=True)
+            return ""
+
+    def _destinos_listos(self, leidos, anunciar_nuevos=False, id_canal=""):
         antes = {destino.id for destino in self._destinos}
         self._destinos = list(leidos)
+        self._id_canal = id_canal
         self._error_destinos = ""
         self._pagina_destinos.mostrar(self._destinos)
         self._pagina_eventos.actualizar_nombres()
@@ -346,11 +375,11 @@ class VentanaRestream(wx.Dialog):
 def abrir_restream(padre, cuenta, canales, ruta_perfiles, al_conectar=None,
                    al_reautorizar=None, al_desconectar=None, destinos=None,
                    perfil=None, eliminar=None, eventos=None,
-                   estadisticas=None):
+                   estadisticas=None, id_canal=None):
     dialogo = VentanaRestream(
         padre, cuenta, canales, ruta_perfiles, al_conectar, al_reautorizar,
         al_desconectar, destinos=destinos, perfil=perfil, eliminar=eliminar,
-        eventos=eventos, estadisticas=estadisticas)
+        eventos=eventos, estadisticas=estadisticas, id_canal=id_canal)
     try:
         dialogo.ShowModal()
     finally:

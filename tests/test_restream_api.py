@@ -117,6 +117,17 @@ class TestCanales(unittest.TestCase):
         self.assertEqual(["TikTok: szeiryuGaming", "YouTube: dos"],
                          [canal.texto for canal in resultado])
 
+    def test_p1_lee_el_identificador_de_la_plataforma(self):
+        def manejar(pedido):
+            if pedido.url.path == "/v2/platform/all":
+                return httpx.Response(200, json=PLATAFORMAS)
+            return httpx.Response(200, json=CANALES_ACTUALES)
+
+        resultado = api.canales(TOKEN, self._cliente(manejar))
+
+        self.assertEqual(["uno", "dos"],
+                         [canal.identificador for canal in resultado])
+
     def test_p4_salta_la_entrada_rota_y_cae_a_la_url(self):
         def manejar(pedido):
             if pedido.url.path == "/v2/platform/all":
@@ -366,6 +377,11 @@ class TestContraRestreamReal(unittest.TestCase):
         self.assertIsInstance(datos.correo, str)
         self.assertIsInstance(datos.usuario, str)
         self.assertIsInstance(canales, list)
+        youtube = [canal for canal in canales if canal.plataforma_id == 5]
+        self.assertTrue(youtube, "la cuenta no tiene un canal de YouTube")
+        for canal in youtube:
+            self.assertTrue(canal.identificador.startswith("UC"),
+                            f"{canal.nombre} no trae un identificador de canal")
 
     def test_los_tres_tipos_de_eventos_y_sus_estadisticas(self):
         from bellbird.restream import cuenta

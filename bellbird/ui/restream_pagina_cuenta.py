@@ -50,7 +50,7 @@ class PaginaCuenta(wx.Panel):
                                 self.btn_desconectar)), 0, wx.ALL, 10)
         self.SetSizer(vs)
 
-    def mostrar(self, conectada, nombre, destinos, errores):
+    def mostrar(self, conectada, nombre, destinos, errores, youtube=""):
         lineas = []
         if conectada:
             if nombre:
@@ -61,6 +61,8 @@ class PaginaCuenta(wx.Panel):
             if destinos:
                 lineas.append(_("Destinos: {destinos}.").format(
                     destinos=", ".join(destinos)))
+            if youtube:
+                lineas.append(youtube)
         else:
             lineas.append(_("Sin cuenta de Restream conectada."))
         lineas.extend(errores)

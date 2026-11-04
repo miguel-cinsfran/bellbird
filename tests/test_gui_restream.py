@@ -121,7 +121,7 @@ class PruebaVentanaRestream(unittest.TestCase):
     def _ventana(self, cuenta=None, guardados=None, al_conectar=None,
                  al_reautorizar=None, al_desconectar=None, canales=None,
                  destinos=None, perfil=None, eliminar=None, eventos=None,
-                 estadisticas=None):
+                 estadisticas=None, id_canal=None):
         if guardados is not None:
             perfiles.guardar(self.ruta, guardados)
         dialogo = restream_ventana.VentanaRestream(
@@ -129,7 +129,8 @@ class PruebaVentanaRestream(unittest.TestCase):
             al_conectar=al_conectar, al_reautorizar=al_reautorizar,
             al_desconectar=al_desconectar, destinos=destinos, perfil=perfil,
             eliminar=eliminar, eventos=eventos,
-            estadisticas=estadisticas)
+            estadisticas=estadisticas,
+            id_canal=id_canal if id_canal is not None else (lambda: ""))
         self.addCleanup(destruir, dialogo)
         return dialogo
 
@@ -685,6 +686,94 @@ class PruebaVentanaRestream(unittest.TestCase):
         self.assertEqual(
             "Cuenta conectada: manolopez643.",
             dialogo._pagina_cuenta.txt_estado.GetValue().splitlines()[0])
+
+    def test_p3_dice_que_el_youtube_de_restream_es_el_de_la_sesion(self):
+        destinos = [Canal(1, 5, "YouTube", "uno", "", True, "UCsesion")]
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=lambda: list(destinos),
+            id_canal=lambda: "UCsesion")
+
+        self.assertTrue(_esperar(
+            lambda: "YouTube en Restream" in
+            dialogo._pagina_cuenta.txt_estado.GetValue()))
+        self.assertIn(
+            "YouTube en Restream: uno, el mismo canal de la sesión de "
+            "Bellbird.",
+            dialogo._pagina_cuenta.txt_estado.GetValue().splitlines())
+
+    def test_p3_dice_que_el_youtube_de_restream_no_es_el_de_la_sesion(self):
+        destinos = [Canal(1, 5, "YouTube", "uno", "", True, "UCotro")]
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=lambda: list(destinos),
+            id_canal=lambda: "UCsesion")
+
+        self.assertTrue(_esperar(
+            lambda: "YouTube en Restream" in
+            dialogo._pagina_cuenta.txt_estado.GetValue()))
+        self.assertIn(
+            "YouTube en Restream: uno, que no es el canal de la sesión de "
+            "Bellbird.",
+            dialogo._pagina_cuenta.txt_estado.GetValue().splitlines())
+
+    def test_p4_sin_identificador_de_la_sesion_no_hay_linea(self):
+        destinos = [Canal(1, 5, "YouTube", "uno", "", True, "UCsesion")]
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=lambda: list(destinos),
+            id_canal=lambda: "")
+
+        self.assertTrue(_esperar(lambda: dialogo._destinos))
+        wx.Yield()
+        self.assertNotIn(
+            "YouTube en Restream",
+            dialogo._pagina_cuenta.txt_estado.GetValue())
+
+    def test_p4_un_fallo_al_pedir_el_identificador_no_deja_linea_ni_avisa(
+            self):
+        def id_canal():
+            raise ValueError("sin red")
+
+        destinos = [Canal(1, 5, "YouTube", "uno", "", True, "UCsesion")]
+        with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
+                mock.patch.object(restream_ventana._snd,
+                                  "reproducir") as sonar, \
+                self.assertLogs(restream_ventana.logger, level="WARNING"):
+            dialogo = self._ventana(
+                cuenta=CuentaFalsa(True), destinos=lambda: list(destinos),
+                id_canal=id_canal)
+            self.assertTrue(_esperar(lambda: dialogo._destinos))
+            wx.Yield()
+
+        self.assertNotIn(
+            "YouTube en Restream",
+            dialogo._pagina_cuenta.txt_estado.GetValue())
+        self.assertIn("Destinos: YouTube: uno.",
+                      dialogo._pagina_cuenta.txt_estado.GetValue())
+        anunciar.assert_not_called()
+        sonar.assert_not_called()
+
+    def test_p4_lo_pide_una_vez_por_lectura_y_no_al_cambiar_de_pestana(self):
+        llamadas = []
+        principal = []
+
+        def id_canal():
+            llamadas.append(True)
+            principal.append(_es_hilo_principal())
+            return ""
+
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=_destinos, id_canal=id_canal)
+        self.assertTrue(_esperar(lambda: len(llamadas) == 1))
+        wx.Yield()
+        self.assertEqual([False], principal)
+
+        evento = mock.Mock()
+        evento.GetSelection.return_value = 3
+        dialogo._al_cambiar_pestana(evento)
+        wx.Yield()
+        self.assertEqual(1, len(llamadas))
+
+        dialogo._leer_canales()
+        self.assertTrue(_esperar(lambda: len(llamadas) == 2))
 
     def test_p7_al_cambiar_a_eventos_la_pestana_se_muestra(self):
         dialogo = self._ventana(cuenta=CuentaFalsa(True))

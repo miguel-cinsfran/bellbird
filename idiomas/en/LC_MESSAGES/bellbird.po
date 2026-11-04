@@ -4263,6 +4263,16 @@ msgstr "Could not read the Restream destinations. Try again."
 msgid "Plataforma {id}"
 msgstr "Platform {id}"
 
+#: bellbird/restream/canal_youtube.py
+#, python-brace-format
+msgid "YouTube en Restream: {canales}, el mismo canal de la sesión de Bellbird."
+msgstr "YouTube on Restream: {canales}, the same channel as the Bellbird session."
+
+#: bellbird/restream/canal_youtube.py
+#, python-brace-format
+msgid "YouTube en Restream: {canales}, que no es el canal de la sesión de Bellbird."
+msgstr "YouTube on Restream: {canales}, which is not the Bellbird session's channel."
+
 #: bellbird/restream/eventos.py
 #, python-brace-format
 msgid "{titulo}, sin programar"

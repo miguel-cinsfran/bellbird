@@ -58,6 +58,7 @@ class Canal:
     nombre: str
     url: str
     activo: bool = True
+    identificador: str = ""
 
     @property
     def texto(self) -> str:
@@ -151,14 +152,14 @@ def _canal(entrada, mapa):
     if not plataforma:
         plataforma = _("Plataforma {id}").format(id=plataforma_id)
     url = _texto(entrada.get("channelUrl")) or _texto(entrada.get("url"))
-    nombre = _nombre(entrada, url)
     return Canal(
         id=identificador,
         plataforma_id=plataforma_id,
         plataforma=plataforma,
-        nombre=nombre,
+        nombre=_nombre(entrada, url),
         url=url,
         activo=entrada.get("enabled") is not False,
+        identificador=_texto(entrada.get("identifier")),
     )
 
 

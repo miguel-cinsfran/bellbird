@@ -78,7 +78,7 @@ def _nombre_libre(filtros, base):
     return f"{base} {numero}"
 
 
-def _peticiones_de_tipo(tipo, nombre, activo, filtros, ajustes, actual=None):
+def _peticiones_de_tipo(tipo, nombre, activo, filtros, ajustes):
     """Peticiones para dejar un tipo como se pide, reutilizando el que haya."""
     existente = next((filtro for filtro in filtros
                       if filtro.get("filterKind") == tipo), None)

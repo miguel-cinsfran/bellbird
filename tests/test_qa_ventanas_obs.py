@@ -189,7 +189,7 @@ class TestEsperadosDePestana(unittest.TestCase):
         esperados = ventanas_obs.esperados_de_pestana("Grabación")
         self.assertIn("Estado", esperados)
         self.assertIn("Iniciar grabación", esperados)
-        self.assertIn("Grabaciones", esperados)
+        self.assertIn("Grabaciones y clips", esperados)
         self.assertNotIn("Escena…", esperados)
         self.assertNotIn("Grabaciones…", esperados)
 

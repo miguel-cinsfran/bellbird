@@ -61,11 +61,11 @@ class TestPanelGrabaciones(unittest.TestCase):
 
     def test_nombres_accesibles_exactos(self):
         panel = self._panel()
-        self.assertEqual(panel._lista.GetName(), "Grabaciones")
+        self.assertEqual(panel._lista.GetName(), "Grabaciones y clips")
 
     def test_orden_de_tab(self):
         panel = self._panel()
-        self.assertEqual([panel._lista.GetName()], ["Grabaciones"])
+        self.assertEqual([panel._lista.GetName()], ["Grabaciones y clips"])
 
     def test_poblar_deja_la_primera_fila_seleccionada(self):
         grabaciones.anotar(self._archivo("primera.mp4"), ruta=self.ruta,
@@ -76,14 +76,22 @@ class TestPanelGrabaciones(unittest.TestCase):
         self.assertEqual(panel._lista.GetSelection(), 0)
         self.assertIn("segunda.mp4", panel._lista.GetString(0))
 
+    def test_una_fila_de_clip_dice_clip(self):
+        archivo = self._archivo("clip.mp4", 2 * 1024 * 1024)
+        grabaciones.anotar(archivo, ruta=self.ruta, ahora=1000, tipo="clip")
+        panel = self._panel()
+        fila = panel._lista.GetString(0)
+        self.assertTrue(fila.startswith("Clip, clip.mp4, "))
+        self.assertTrue(fila.endswith("2 MB"))
+
     def test_sin_grabaciones_la_fila_y_las_acciones_lo_dicen(self):
         panel = self._panel()
         self.assertEqual(panel._lista.GetCount(), 1)
         self.assertEqual(panel._lista.GetString(0),
-                         "No hay grabaciones guardadas.")
+                         "No hay grabaciones ni clips guardados.")
         panel._abrir()
         gui_grabaciones.anunciar.assert_called_with(
-            "No hay grabaciones guardadas.")
+            "No hay grabaciones ni clips guardados.")
 
     def test_supr_saca_la_fila_y_deja_el_archivo_en_el_disco(self):
         primero = self._archivo("primero.mp4")

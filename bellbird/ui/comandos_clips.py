@@ -8,6 +8,7 @@ from bellbird.core import diagnostico
 from bellbird.core.config_transmision import leer_ajustes_clips_chat
 from bellbird.core.idioma import _
 from bellbird.obs import obs_cliente, obs_clips
+from bellbird.obs import grabaciones
 from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.voice import sound_player
@@ -41,6 +42,18 @@ def _ejecutar_en_obs(operacion):
     diagnostico.crear_hilo(_trabajar, "ClipsObs").start()
 
 
+def _anotar_clip(ruta):
+    if ruta:
+        grabaciones.anotar(ruta, tipo="clip")
+
+
+def _guardar_el_clip(cliente):
+    ruta = obs_clips.guardar(cliente)
+    _anotar_clip(ruta)
+    return _(obs_clips.MENSAJE_CLIP_GUARDADO).format(
+        archivo=Path(ruta).name), "clip"
+
+
 def _operacion(gestor):
     cliente = getattr(gestor, "_cliente", gestor)
     segundos = obs_clips.leer_segundos()
@@ -52,9 +65,7 @@ def _operacion(gestor):
     decision = obs_clips.decidir(
         estado.salida_activa, estado.buffer_activo, estado.preparado)
     if decision == obs_clips.GUARDAR:
-        ruta = obs_clips.guardar(cliente)
-        return _(obs_clips.MENSAJE_CLIP_GUARDADO).format(
-            archivo=Path(ruta).name), "clip"
+        return _guardar_el_clip(cliente)
     if decision == obs_clips.RECHAZAR:
         return _(obs_clips.MENSAJE_SALIDA_ACTIVA), "error"
     if decision == obs_clips.PREPARAR:
@@ -75,6 +86,7 @@ def _operacion_chat(gestor, autor):
     if not estado.buffer_activo:
         return None
     ruta = obs_clips.guardar(cliente)
+    _anotar_clip(ruta)
     return (_(obs_clips.MENSAJE_CLIP_GUARDADO_POR).format(
         autor=autor, archivo=Path(ruta).name), "clip")
 

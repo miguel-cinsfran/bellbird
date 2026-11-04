@@ -132,10 +132,16 @@ class VentanaObs(wx.Dialog):
 
     def _enlazar_eventos(self):
         enlazar_anuncio_de_pestana(self.nb)
+        self.nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._al_cambiar_pestana)
         self.btn_ayuda.Bind(wx.EVT_BUTTON, self._ayuda)
         self.btn_cerrar.Bind(wx.EVT_BUTTON, self._cerrar)
         self.Bind(wx.EVT_CLOSE, self._cerrar)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
+
+    def _al_cambiar_pestana(self, evento):
+        if self.nb.GetPage(evento.GetSelection()) is self._pagina_grabacion:
+            self._pagina_grabacion.releer_lista()
+        evento.Skip()
 
     def _primer_control(self, indice):
         controles = (

@@ -1249,7 +1249,7 @@ class TestAliasDesdeElChat(unittest.TestCase):
         self.assertIn("Silenciar voz de Carlos", menu.etiquetas.values())
         self.assertIn("Suspender temporalmente a Carlos (5 minutos)", menu.etiquetas.values())
         self.assertIn("Ocultar a Carlos en el canal de YouTube", menu.etiquetas.values())
-        self.assertIn("Cambiar el &alias de Carlos…", menu.etiquetas.values())
+        self.assertIn("Cambiar &alias de Carlos…", menu.etiquetas.values())
         identificador_ban = next(i for i, texto in menu.etiquetas.items()
                                  if texto.startswith("Ocultar a"))
         identificador_silenciar = next(i for i, texto in menu.etiquetas.items()
@@ -1261,6 +1261,24 @@ class TestAliasDesdeElChat(unittest.TestCase):
         frame._moderar.assert_called_once_with(self.autor, "canal-real", None)
         frame._silenciar_autor.assert_called_once_with(self.autor, False)
         alias.usar({})
+
+    def test_menu_sin_alias_dice_asignar(self):
+        frame = self._frame()
+        frame.lb_chat.GetSelection.return_value = 0
+        registro = MensajeChat(plataforma="youtube", autor=self.autor,
+                               identificador="canal-real", texto="hola",
+                               hora="12:00:00", tipo="text", monto="")
+        frame._get_selected_data = mock.Mock(return_value=registro)
+        frame._autor_esta_silenciado = mock.Mock(return_value=False)
+        frame.sesion.live_chat_id = "chat"
+        menu = MenuChatFalso()
+        alias.usar({})
+        with mock.patch.object(gui.wx, "Menu", return_value=menu), \
+                mock.patch.object(gui.wx, "NewIdRef", side_effect=range(1, 11)):
+            frame._mostrar_menu_chat()
+        self.assertIn(
+            "Asignar &alias a {autor}…".format(autor=self.autor),
+            menu.etiquetas.values())
 
 
 class TestIdentidadModeracionChat(unittest.TestCase):

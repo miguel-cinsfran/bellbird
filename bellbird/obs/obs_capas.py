@@ -56,12 +56,12 @@ def frase_de_movimiento(elementos, fuente, movimiento, movido):
     if not movido:
         if movimiento == "adelante":
             # Traductores: {fuente} es el nombre de la fuente.
-            return _("{fuente} ya está al frente.").format(fuente=fuente)
+            return _("{fuente} ya está en la cima.").format(fuente=fuente)
         # Traductores: {fuente} es el nombre de la fuente.
         return _("{fuente} ya está al fondo.").format(fuente=fuente)
     destino = indice_destino(elementos, fuente, movimiento)
     total = len(elementos)
-    # Traductores: {fuente} es el nombre; {n} es el lugar desde el frente y
-    # {total} la cantidad de capas.
-    return _("{fuente}: capa {n} de {total}.").format(
+    # Traductores: {fuente} es el nombre; {n} es el lugar desde la cima y
+    # {total} la cantidad de fuentes en la escena.
+    return _("{fuente}: {n} de {total} en el orden.").format(
         fuente=fuente, n=total - destino, total=total)

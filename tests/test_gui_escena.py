@@ -264,7 +264,7 @@ class TestVentanaObs(unittest.TestCase):
             self._pulsar(pagina.btn_tamano)
         self._marcar(pagina.chk_mostrar, False)
         self._marcar(pagina.chk_fijar, True)
-        self._abrir_menu_de_capa(pagina, "Traer al frente")
+        self._abrir_menu_de_capa(pagina, "Mover a la cima")
         self._pulsar(pagina.btn_restaurar)
         self.assertIn(("colocar", "Principal", "inferior-derecha"),
                       self.gestor.llamadas)
@@ -281,7 +281,7 @@ class TestVentanaObs(unittest.TestCase):
             lienzo_ancho=1600, lienzo_alto=900, izquierda=32, arriba=18,
             visible=False, bloqueada=True)
         pagina = self.dialogo._pagina_fuentes
-        self._abrir_menu_de_capa(pagina, "Traer al frente")
+        self._abrir_menu_de_capa(pagina, "Mover a la cima")
         self.assertIn("800 por 500", pagina.txt_detalle.GetValue())
         self.assertIn("Fuente:", pagina.txt_detalle.GetValue())
 
@@ -290,15 +290,24 @@ class TestVentanaObs(unittest.TestCase):
         pagina.cho_fuente.SetStringSelection("Juego")
         self.assertEqual(
             self._abrir_menu_de_capa(pagina),
-            ["Traer al frente", "Traer adelante", "Enviar atrás",
-             "Enviar al fondo"])
+            ["Mover a la cima", "Subir", "Bajar",
+             "Mover al fondo"])
+
+    def test_el_menu_de_capa_no_repite_letras_de_acceso(self):
+        pagina = self.dialogo._pagina_fuentes
+        menu = pagina._menu_de_capa()
+        self.addCleanup(menu.Destroy)
+        letras = [etiqueta[etiqueta.index("&") + 1].lower()
+                  for etiqueta in (item.GetItemLabel()
+                                   for item in menu.GetMenuItems())]
+        self.assertEqual(len(set(letras)), len(letras))
 
     def test_cada_entrada_del_menu_de_capa_llama_a_su_movimiento(self):
         pagina = self.dialogo._pagina_fuentes
         for etiqueta, movimiento in (
-                ("Traer adelante", "adelante"),
-                ("Enviar atrás", "atras"),
-                ("Enviar al fondo", "fondo")):
+                ("Subir", "adelante"),
+                ("Bajar", "atras"),
+                ("Mover al fondo", "fondo")):
             pagina.cho_fuente.SetStringSelection("Chat en el vídeo")
             self._abrir_menu_de_capa(pagina, etiqueta)
             self.assertIn(("mover_capa", "Principal", movimiento),
@@ -368,24 +377,24 @@ class TestVentanaObs(unittest.TestCase):
     def test_mover_anuncia_el_lugar_y_despues_la_descripcion(self):
         pagina = self.dialogo._pagina_fuentes
         pagina.cho_fuente.SetStringSelection("Chat en el vídeo")
-        self._abrir_menu_de_capa(pagina, "Traer adelante")
+        self._abrir_menu_de_capa(pagina, "Subir")
         aviso = next(anuncio for anuncio in self.anuncios
-                     if anuncio.startswith("Chat en el vídeo: capa 1 de 3."))
+                     if anuncio.startswith("Chat en el vídeo: 1 de 3 en el orden."))
         self.assertIn("Chat en el vídeo.", aviso)
 
     def test_mover_en_el_extremo_anuncia_que_ya_esta_en_el_borde(self):
         pagina = self.dialogo._pagina_fuentes
         pagina.cho_fuente.SetStringSelection("Cámara")
-        self._abrir_menu_de_capa(pagina, "Traer adelante")
-        self.assertIn("Cámara ya está al frente.", self.anuncios)
+        self._abrir_menu_de_capa(pagina, "Subir")
+        self.assertIn("Cámara ya está en la cima.", self.anuncios)
         pagina.cho_fuente.SetStringSelection("Juego")
-        self._abrir_menu_de_capa(pagina, "Enviar al fondo")
+        self._abrir_menu_de_capa(pagina, "Mover al fondo")
         self.assertIn("Juego ya está al fondo.", self.anuncios)
 
     def test_la_lista_fuente_queda_ordenada_y_con_la_misma_fuente(self):
         pagina = self.dialogo._pagina_fuentes
         pagina.cho_fuente.SetStringSelection("Chat en el vídeo")
-        self._abrir_menu_de_capa(pagina, "Traer adelante")
+        self._abrir_menu_de_capa(pagina, "Subir")
         self.assertEqual(pagina.cho_fuente.GetStrings(),
                          ["Chat en el vídeo", "Cámara", "Juego"])
         self.assertEqual(pagina.cho_fuente.GetStringSelection(),
@@ -393,9 +402,9 @@ class TestVentanaObs(unittest.TestCase):
 
     def test_los_tres_movimientos_entran_en_deshacer(self):
         pagina = self.dialogo._pagina_fuentes
-        for fuente, etiqueta in (("Cámara", "Traer adelante"),
-                                 ("Chat en el vídeo", "Enviar atrás"),
-                                 ("Juego", "Enviar al fondo")):
+        for fuente, etiqueta in (("Cámara", "Subir"),
+                                 ("Chat en el vídeo", "Bajar"),
+                                 ("Juego", "Mover al fondo")):
             pagina.cho_fuente.SetStringSelection(fuente)
             self._abrir_menu_de_capa(pagina, etiqueta)
         self.gestor.llamadas.clear()
@@ -484,7 +493,7 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(fuentes.btn_tamano.GetName(), "Tamaño…")
         self.assertEqual(fuentes.chk_mostrar.GetName(), "Mostrar en la escena")
         self.assertEqual(fuentes.chk_fijar.GetName(), "Bloquear posición")
-        self.assertEqual(fuentes.btn_capa.GetName(), "Capa")
+        self.assertEqual(fuentes.btn_capa.GetName(), "Ordenar")
         self.assertEqual(fuentes.btn_ajuste.GetName(), "Mover con flechas")
         self.assertEqual(fuentes.btn_restaurar.GetName(), "Deshacer cambios")
         self.assertEqual(fuentes.txt_detalle.GetName(), "Detalle de la fuente")
@@ -504,7 +513,7 @@ class TestVentanaObs(unittest.TestCase):
             "Guardar imagen…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_fuentes), [
             "Fuente", "Detalle de la fuente", "Posición", "Mover fuente",
-            "Mostrar en la escena", "Bloquear posición", "Capa", "Tamaño…",
+            "Mostrar en la escena", "Bloquear posición", "Ordenar", "Tamaño…",
             "Mover con flechas", "Deshacer cambios"])
         self.assertEqual(self._nombres(self.dialogo._pagina_agregar), [
             "Ventana", "Capturar ventana", "Agregar cámara…"])

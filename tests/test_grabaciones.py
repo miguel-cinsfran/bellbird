@@ -28,6 +28,12 @@ class TestAnotarYLeer(unittest.TestCase):
         self.assertEqual(grabaciones.leer(self.ruta), [
             {"ruta": str(archivo), "fecha": 1000}])
 
+    def test_un_clip_se_anota_con_su_tipo(self):
+        archivo = self._archivo("clip.mp4")
+        grabaciones.anotar(archivo, ruta=self.ruta, ahora=1000, tipo="clip")
+        self.assertEqual(grabaciones.leer(self.ruta), [
+            {"ruta": str(archivo), "fecha": 1000, "tipo": "clip"}])
+
     def test_lo_mas_nuevo_queda_primero(self):
         primero = self._archivo("primera.mp4")
         segunda = self._archivo("segunda.mp4")
@@ -127,6 +133,13 @@ class TestTextoFila(unittest.TestCase):
                    "tamano": 2 * 1024 * 1024}
         self.assertEqual(grabaciones.texto_fila(entrada),
                          "clip.mp4, 02/11/2026 00:15, 2 MB")
+
+    def test_un_clip_lleva_clip_adelante(self):
+        fecha = datetime(2026, 11, 2, 0, 15, 51).timestamp()
+        entrada = {"ruta": "C:/Users/x/Videos/clip.mp4", "fecha": fecha,
+                   "tamano": 2 * 1024 * 1024, "tipo": "clip"}
+        self.assertEqual(grabaciones.texto_fila(entrada),
+                         "Clip, clip.mp4, 02/11/2026 00:15, 2 MB")
 
 
 if __name__ == "__main__":

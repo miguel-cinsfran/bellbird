@@ -133,7 +133,20 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
         self.assertEqual(self._nombres(self.dialogo._pagina_grabacion), [
             "Estado", "Iniciar grabación",
             "Grabar también al transmitir", "Actualizar estado",
-            "Grabaciones"])
+            "Grabaciones y clips"])
+
+    def test_volver_a_grabacion_relee_la_lista(self):
+        entrada = {"ruta": "C:/Videos/clips/clip.mp4", "fecha": 1000,
+                   "tamano": 2 * 1024 * 1024, "tipo": "clip"}
+        evento = wx.BookCtrlEvent(
+            wx.EVT_NOTEBOOK_PAGE_CHANGED.typeId, self.dialogo.nb.GetId())
+        evento.SetSelection(obs_ventana.PESTANA_GRABACION)
+        with mock.patch.object(gui_grabaciones.grabaciones, "existentes",
+                               return_value=[entrada]):
+            self.dialogo.nb.GetEventHandler().ProcessEvent(evento)
+        lista = self.dialogo._pagina_grabacion.lista._lista
+        self.assertEqual(lista.GetCount(), 1)
+        self.assertIn("Clip, clip.mp4", lista.GetString(0))
 
     def test_abrir_con_pestana_elige_grabacion(self):
         self.assertEqual(self.dialogo.nb.GetSelection(),

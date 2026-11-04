@@ -45,13 +45,20 @@ def leer(ruta=None) -> list:
         return _leer_sin_candado(ruta)
 
 
-def anotar(archivo, ruta=None, ahora=None) -> None:
+def _entrada(archivo, ahora, tipo):
+    entrada = {"ruta": str(archivo),
+               "fecha": ahora if ahora is not None else datetime.now().timestamp()}
+    if tipo is not None:
+        entrada["tipo"] = tipo
+    return entrada
+
+
+def anotar(archivo, ruta=None, ahora=None, tipo=None) -> None:
     """Agrega la grabación al principio y conserva como mucho 200.
 
     Un fallo de disco se registra y no llega a quien anunció el archivo.
     """
-    entrada = {"ruta": str(archivo),
-               "fecha": ahora if ahora is not None else datetime.now().timestamp()}
+    entrada = _entrada(archivo, ahora, tipo)
     with _CANDADO:
         try:
             entradas = _leer_sin_candado(ruta)
@@ -92,6 +99,9 @@ def texto_fila(entrada) -> str:
     nombre = Path(str(entrada.get("ruta") or "")).name
     fecha = _fecha_mostrada(entrada.get("fecha"))
     tamano = texto_tamano(entrada.get("tamano") or 0)
+    if entrada.get("tipo") == "clip":
+        return _("Clip, {nombre}, {fecha}, {tamano}").format(
+            nombre=nombre, fecha=fecha, tamano=tamano)
     return _("{nombre}, {fecha}, {tamano}").format(
         nombre=nombre, fecha=fecha, tamano=tamano)
 

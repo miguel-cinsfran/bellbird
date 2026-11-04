@@ -61,6 +61,9 @@ class PaginaGrabacion(wx.Panel):
         self.lista.poblar()
         self._al_cambiar()
 
+    def releer_lista(self):
+        self.lista.poblar()
+
     def _alternar_casilla(self, event):
         gui_transmitir.alternar_grabar_al_transmitir(self._principal)
         event.Skip()

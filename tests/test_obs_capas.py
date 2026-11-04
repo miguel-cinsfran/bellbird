@@ -62,6 +62,27 @@ class LugarTest(unittest.TestCase):
         self.assertEqual(obs_capas.lugar(elementos(), "Fondo"), (3, 3))
 
 
+class FraseDeMovimientoTest(unittest.TestCase):
+
+    def test_al_mover_dice_el_lugar_en_el_orden(self):
+        self.assertEqual(
+            obs_capas.frase_de_movimiento(
+                elementos(), "Medio", "adelante", True),
+            "Medio: 1 de 3 en el orden.")
+
+    def test_si_ya_esta_en_la_cima_lo_dice_asi(self):
+        self.assertEqual(
+            obs_capas.frase_de_movimiento(
+                elementos(), "Frente", "adelante", False),
+            "Frente ya está en la cima.")
+
+    def test_si_ya_esta_al_fondo_lo_sigue_diciendo(self):
+        self.assertEqual(
+            obs_capas.frase_de_movimiento(
+                elementos(), "Fondo", "atras", False),
+            "Fondo ya está al fondo.")
+
+
 class MoverTest(unittest.TestCase):
 
     def test_no_pide_nada_si_ya_esta_en_el_extremo(self):

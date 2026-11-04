@@ -2882,21 +2882,8 @@ msgstr "{nombre} {contador}"
 #. Traductores: {fuente} es el nombre de la fuente.
 #: bellbird/obs/obs_capas.py
 #, python-brace-format
-msgid "{fuente} ya está al frente."
-msgstr "{fuente} is already at the front."
-
-#. Traductores: {fuente} es el nombre de la fuente.
-#: bellbird/obs/obs_capas.py
-#, python-brace-format
 msgid "{fuente} ya está al fondo."
 msgstr "{fuente} is already at the back."
-
-#. Traductores: {fuente} es el nombre; {n} es el lugar desde el frente y
-#. {total} la cantidad de capas.
-#: bellbird/obs/obs_capas.py
-#, python-brace-format
-msgid "{fuente}: capa {n} de {total}."
-msgstr "{fuente}: layer {n} of {total}."
 
 #: bellbird/obs/obs_captura.py
 msgid "Captura de ventana"
@@ -5654,10 +5641,6 @@ msgid "&Detalle de la fuente:"
 msgstr "Source &details:"
 
 #: bellbird/ui/escena_pagina_fuentes.py
-msgid "&Capa"
-msgstr "La&yer"
-
-#: bellbird/ui/escena_pagina_fuentes.py
 msgid "&Tamaño…"
 msgstr "&Size…"
 
@@ -5678,22 +5661,6 @@ msgstr "&Lock position"
 #: bellbird/ui/restream_ventana.py
 msgid "Sin selección"
 msgstr "Nothing selected"
-
-#: bellbird/ui/escena_pagina_fuentes.py
-msgid "Traer al f&rente"
-msgstr "Bring to &front"
-
-#: bellbird/ui/escena_pagina_fuentes.py
-msgid "Tra&er adelante"
-msgstr "&Bring Forward"
-
-#: bellbird/ui/escena_pagina_fuentes.py
-msgid "Enviar atrá&s"
-msgstr "&Send Backward"
-
-#: bellbird/ui/escena_pagina_fuentes.py
-msgid "En&viar al fondo"
-msgstr "Send to Ba&ck"
 
 #: bellbird/ui/escena_pagina_fuentes.py
 msgid "La escena no tiene fuentes."
@@ -6016,16 +5983,6 @@ msgstr "Mute voice of {autor}"
 #, python-brace-format
 msgid "Ocultar y silenciar a {autor}"
 msgstr "Hide and mute {autor}"
-
-#: bellbird/ui/gui.py
-#, python-brace-format
-msgid "Poner &alias a {autor}…"
-msgstr "Set &alias for {autor}…"
-
-#: bellbird/ui/gui.py
-#, python-brace-format
-msgid "Cambiar el &alias de {autor}…"
-msgstr "Change &alias of {autor}…"
 
 #: bellbird/ui/gui.py
 #, python-brace-format
@@ -6889,10 +6846,6 @@ msgstr "Last message read from {autor}"
 msgid "Todavía no se leyó ningún mensaje."
 msgstr "No message has been read yet."
 
-#: bellbird/ui/gui_grabaciones.py
-msgid "No hay grabaciones guardadas."
-msgstr "No saved recordings."
-
 #: bellbird/ui/gui_grabaciones.py bellbird/ui/recientes_inicio.py
 msgid "&Abrir"
 msgstr "&Open"
@@ -6904,10 +6857,6 @@ msgstr "Open &folder"
 #: bellbird/ui/gui_grabaciones.py
 msgid "&Copiar ruta"
 msgstr "&Copy path"
-
-#: bellbird/ui/gui_grabaciones.py
-msgid "Grabaciones"
-msgstr "Recordings"
 
 #: bellbird/ui/gui_grabaciones.py
 msgid "Ruta copiada"
@@ -10039,4 +9988,62 @@ msgstr "Signed in. You can go back to the application."
 #: bellbird/youtube/youtube_api.py
 msgid "Sin título"
 msgstr "Untitled"
+
+#: bellbird/obs/grabaciones.py
+#, python-brace-format
+msgid "Clip, {nombre}, {fecha}, {tamano}"
+msgstr "Clip, {nombre}, {fecha}, {tamano}"
+
+#. Traductores: {fuente} es el nombre de la fuente.
+#: bellbird/obs/obs_capas.py
+#, python-brace-format
+msgid "{fuente} ya está en la cima."
+msgstr "{fuente} is already at the top."
+
+#. Traductores: {fuente} es el nombre; {n} es el lugar desde la cima y
+#. {total} la cantidad de fuentes en la escena.
+#: bellbird/obs/obs_capas.py
+#, python-brace-format
+msgid "{fuente}: {n} de {total} en el orden."
+msgstr "{fuente}: {n} of {total} in order."
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "Ord&enar"
+msgstr "Ord&er"
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "Mover a la &cima"
+msgstr "Move to &Top"
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgctxt "orden de fuentes"
+msgid "&Subir"
+msgstr "Move &Up"
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgctxt "orden de fuentes"
+msgid "&Bajar"
+msgstr "Move &Down"
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "Mover al &fondo"
+msgstr "Move to &Bottom"
+
+#: bellbird/ui/gui.py
+#, python-brace-format
+msgid "Asignar &alias a {autor}…"
+msgstr "Assign &alias to {autor}…"
+
+#: bellbird/ui/gui.py
+#, python-brace-format
+msgid "Cambiar &alias de {autor}…"
+msgstr "Change &alias of {autor}…"
+
+#: bellbird/ui/gui_grabaciones.py
+msgid "No hay grabaciones ni clips guardados."
+msgstr "No saved recordings or clips."
+
+#: bellbird/ui/gui_grabaciones.py
+msgid "Grabaciones y clips"
+msgstr "Recordings and clips"
 

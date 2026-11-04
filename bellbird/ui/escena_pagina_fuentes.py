@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import wx
 
-from bellbird.core.idioma import _
+from bellbird.core.idioma import _, pgettext
 from bellbird.obs import consultas_transmision
 from bellbird.obs import obs_disposicion
 from bellbird.ui import escena_tamano
@@ -89,7 +89,7 @@ class PaginaFuentes(wx.Panel):
         fila = wx.BoxSizer(wx.HORIZONTAL)
         self._crear_casillas(padre)
         self.btn_capa = boton(
-            padre, _("&Capa"), nombre_de_etiqueta(_("&Capa")))
+            padre, _("Ord&enar"), nombre_de_etiqueta(_("Ord&enar")))
         self.btn_tamano = boton(
             padre, _("&Tamaño…"), nombre_de_etiqueta(_("&Tamaño…")))
         self.btn_ajuste = boton(
@@ -146,11 +146,12 @@ class PaginaFuentes(wx.Panel):
     def _menu_de_capa(self):
         menu = wx.Menu()
         for etiqueta, accion in (
-                (_("Traer al f&rente"), lambda: self._frente(None)),
-                (_("Tra&er adelante"),
+                (_("Mover a la &cima"), lambda: self._frente(None)),
+                (pgettext("orden de fuentes", "&Subir"),
                  lambda: self._movimiento("adelante")),
-                (_("Enviar atrá&s"), lambda: self._movimiento("atras")),
-                (_("En&viar al fondo"),
+                (pgettext("orden de fuentes", "&Bajar"),
+                 lambda: self._movimiento("atras")),
+                (_("Mover al &fondo"),
                  lambda: self._movimiento("fondo"))):
             identificador = wx.NewIdRef()
             menu.Append(identificador, etiqueta)

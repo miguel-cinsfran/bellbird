@@ -1059,9 +1059,9 @@ class YTChatFrame(wx.Frame):
                 menu.Append(id_sil_tts,  _("Silenciar voz de {autor}").format(autor=autor_mostrado))
                 menu.Append(id_sil_full, _("Ocultar y silenciar a {autor}").format(autor=autor_mostrado))
             if alias.clave(autor) not in alias.vigente():
-                menu.Append(id_alias, _("Poner &alias a {autor}…").format(autor=autor_mostrado))
+                menu.Append(id_alias, _("Asignar &alias a {autor}…").format(autor=autor_mostrado))
             else:
-                menu.Append(id_alias, _("Cambiar el &alias de {autor}…").format(autor=autor_mostrado))
+                menu.Append(id_alias, _("Cambiar &alias de {autor}…").format(autor=autor_mostrado))
 
         id_ban     = wx.NewIdRef()
         id_timeout = wx.NewIdRef()

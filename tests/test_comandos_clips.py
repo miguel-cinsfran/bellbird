@@ -1,11 +1,13 @@
 """Pruebas sin ventana de `bellbird/ui/comandos_clips.py`."""
 
+import tempfile
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
 from bellbird.core.idioma import _
-from bellbird.obs import obs_cliente, obs_clips
+from bellbird.obs import grabaciones, obs_cliente, obs_clips
 from bellbird.ui import comandos_clips
 
 
@@ -50,6 +52,15 @@ def estado(salida=False, buffer=False, preparado=False, soportado=True,
 
 
 class TestComandosClips(unittest.TestCase):
+
+    def setUp(self):
+        self.temporal = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporal.cleanup)
+        self.ruta = Path(self.temporal.name) / "grabaciones.json"
+        parche = mock.patch.object(grabaciones.paths, "grabaciones",
+                                   return_value=self.ruta)
+        parche.start()
+        self.addCleanup(parche.stop)
 
     def _correr(self, gestor=None, segundos=30, estado_leido=None,
                 ruta="", decision=None):
@@ -110,6 +121,19 @@ class TestComandosClips(unittest.TestCase):
         anunciar.assert_called_once_with("Clip guardado: clip 1.mkv.")
         sonar.assert_called_once_with("clip")
         self.assertTrue(gestor.cerrado)
+
+    def test_el_clip_del_atajo_queda_anotado_como_clip(self):
+        self._correr(estado_leido=estado(buffer=True, preparado=True),
+                     ruta="C:/Videos/clips/clip 1.mkv")
+        entradas = grabaciones.leer(self.ruta)
+        self.assertEqual(len(entradas), 1)
+        self.assertEqual(entradas[0]["ruta"], "C:/Videos/clips/clip 1.mkv")
+        self.assertEqual(entradas[0]["tipo"], "clip")
+
+    def test_el_clip_del_atajo_sin_ruta_no_se_anota(self):
+        self._correr(estado_leido=estado(buffer=True, preparado=True),
+                     ruta="")
+        self.assertEqual(grabaciones.leer(self.ruta), [])
 
     def test_sin_salida_activa_prepara_y_avisa(self):
         gestor, parche, anunciar, sonar = self._correr(
@@ -197,6 +221,19 @@ class TestComandosClips(unittest.TestCase):
         sonar.assert_called_once_with("clip")
         al_terminar.assert_called_once_with(True)
         self.assertTrue(gestor.cerrado)
+
+    def test_el_clip_del_chat_queda_anotado_como_clip(self):
+        self._correr_chat(estado_leido=estado(buffer=True, preparado=True),
+                          ruta="C:/Videos/clips/clip 2.mkv")
+        entradas = grabaciones.leer(self.ruta)
+        self.assertEqual(len(entradas), 1)
+        self.assertEqual(entradas[0]["ruta"], "C:/Videos/clips/clip 2.mkv")
+        self.assertEqual(entradas[0]["tipo"], "clip")
+
+    def test_el_clip_del_chat_sin_ruta_no_se_anota(self):
+        self._correr_chat(estado_leido=estado(buffer=True, preparado=True),
+                          ruta="")
+        self.assertEqual(grabaciones.leer(self.ruta), [])
 
     def test_clip_del_chat_sin_buffer_no_hace_nada_ni_prepara(self):
         gestor, parche, anunciar, sonar, al_terminar = self._correr_chat(

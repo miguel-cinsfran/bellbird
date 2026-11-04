@@ -1,8 +1,8 @@
-"""Lista de grabaciones de la app, como panel de la pestaña Grabación.
+"""Lista de grabaciones y clips de la app, como panel de la pestaña Grabación.
 
-Su única razón para cambiar: la lista de grabaciones. Las teclas, el menú
-contextual y el foco siguen el patrón de `HistorialDialog`, y abrir un archivo
-o su carpeta, el de las acciones de descargas.
+Su única razón para cambiar: la lista de grabaciones y clips. Las teclas, el
+menú contextual y el foco siguen el patrón de `HistorialDialog`, y abrir un
+archivo o su carpeta, el de las acciones de descargas.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from bellbird.voice import sound_player
 
 logger = diagnostico.obtener_logger(__name__)
 
-_NO_HAY = N_("No hay grabaciones guardadas.")
+_NO_HAY = N_("No hay grabaciones ni clips guardados.")
 _ABRIR = N_("&Abrir")
 _ABRIR_CARPETA = N_("Abrir ca&rpeta")
 _COPIAR_RUTA = N_("&Copiar ruta")
@@ -29,7 +29,7 @@ _ELIMINAR = N_("E&liminar de la lista")
 
 
 class PanelGrabaciones(wx.Panel):
-    """Lista las grabaciones de la app, de la más nueva a la más vieja."""
+    """Lista las grabaciones y los clips de la app, del más nuevo al más viejo."""
 
     def __init__(self, parent):
         super().__init__(parent, name="PanelGrabaciones")
@@ -40,8 +40,8 @@ class PanelGrabaciones(wx.Panel):
     def _crear_controles(self):
         vertical = wx.BoxSizer(wx.VERTICAL)
         self._lista = wx.ListBox(self, style=wx.LB_SINGLE | wx.LB_HSCROLL,
-                                 name=_("Grabaciones"))
-        nombre_accesible(self._lista, _("Grabaciones"))
+                                 name=_("Grabaciones y clips"))
+        nombre_accesible(self._lista, _("Grabaciones y clips"))
         self._lista.Bind(wx.EVT_KEY_DOWN, self._on_key)
         self._lista.Bind(wx.EVT_CONTEXT_MENU, self._on_context_menu)
         vertical.Add(self._lista, 1, wx.EXPAND | wx.ALL, 6)

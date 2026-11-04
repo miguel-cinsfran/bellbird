@@ -233,6 +233,8 @@ class Aplicacion:
                 "escenario": _ESCENARIO_EN_CURSO,
                 "orden": op,
                 "segundos": time.monotonic() - inicio,
+                "tipo": "orden",
+                "inicio": inicio,
             })
 
     @staticmethod
@@ -483,25 +485,35 @@ VUELTAS_TAB_TRANSMISION = 40
 def recorrer_tab(app: Aplicacion, res: Resultado, donde: str,
                  vueltas: int = 20, ventana: str | None = None) -> list[str]:
     """Pulsa Tab y anota dónde cae el foco, preguntándoselo a wx."""
-    visto: list[str] = []
-    for _ in range(vueltas):
-        ctrl = app.foco()
-        if ctrl:
-            nombre = (ctrl.get("nombre") or "").strip()
-            etiqueta = (ctrl.get("etiqueta") or "").strip().replace("&", "")
-            legible = etiqueta or nombre
-            if nombre.lower() in NOMBRES_POR_DEFECTO and not etiqueta:
-                legible = "(SIN NOMBRE)"
-            etiq = f"{ctrl['clase']}: {legible}"
-            if etiq not in visto:
-                visto.append(etiq)
-        app.navegar(ventana)
-    for v in visto:
-        if "(SIN NOMBRE)" in v:
-            res.fallo(f"{donde}: el foco cae en algo sin nombre, {v}")
-    if not visto:
-        res.fallo(f"{donde}: Tab no movió el foco a ningún sitio legible")
-    return visto
+    inicio = time.monotonic()
+    try:
+        visto: list[str] = []
+        for _ in range(vueltas):
+            ctrl = app.foco()
+            if ctrl:
+                nombre = (ctrl.get("nombre") or "").strip()
+                etiqueta = (ctrl.get("etiqueta") or "").strip().replace("&", "")
+                legible = etiqueta or nombre
+                if nombre.lower() in NOMBRES_POR_DEFECTO and not etiqueta:
+                    legible = "(SIN NOMBRE)"
+                etiq = f"{ctrl['clase']}: {legible}"
+                if etiq not in visto:
+                    visto.append(etiq)
+            app.navegar(ventana)
+        for v in visto:
+            if "(SIN NOMBRE)" in v:
+                res.fallo(f"{donde}: el foco cae en algo sin nombre, {v}")
+        if not visto:
+            res.fallo(f"{donde}: Tab no movió el foco a ningún sitio legible")
+        return visto
+    finally:
+        _TIEMPOS.append({
+            "escenario": _ESCENARIO_EN_CURSO,
+            "orden": f"tab: {donde}",
+            "segundos": time.monotonic() - inicio,
+            "tipo": "tab",
+            "inicio": inicio,
+        })
 
 
 def _con_tope(funcion, segundos: float, por_defecto):
@@ -513,6 +525,7 @@ def _con_tope(funcion, segundos: float, por_defecto):
     """
     import threading
     resultado = [por_defecto]
+    inicio = time.monotonic()
 
     def _correr():
         try:
@@ -523,6 +536,17 @@ def _con_tope(funcion, segundos: float, por_defecto):
     hilo = threading.Thread(target=_correr, daemon=True)
     hilo.start()
     hilo.join(segundos)
+    nombre = (getattr(funcion, "__qualname__", "")
+              or getattr(funcion, "__name__", ""))
+    if getattr(funcion, "__name__", "") == "<lambda>":
+        nombre = sys._getframe(1).f_code.co_qualname
+    _TIEMPOS.append({
+        "escenario": _ESCENARIO_EN_CURSO,
+        "orden": nombre,
+        "segundos": time.monotonic() - inicio,
+        "tipo": "uia",
+        "inicio": inicio,
+    })
     return resultado[0]
 
 

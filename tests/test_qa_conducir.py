@@ -8,6 +8,7 @@ arranca nada; la aplicación solo se levanta desde `main()`.
 import importlib.util
 import os
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -271,6 +272,8 @@ class TestTiemposDeLasOrdenes(unittest.TestCase):
         anotacion = conducir._TIEMPOS[0]
         self.assertEqual(anotacion["escenario"], "prueba")
         self.assertEqual(anotacion["orden"], "ping")
+        self.assertEqual(anotacion["tipo"], "orden")
+        self.assertIn("inicio", anotacion)
         self.assertGreaterEqual(anotacion["segundos"], 0.0)
 
     def test_pedir_anota_tambien_la_orden_que_vence(self):
@@ -285,6 +288,52 @@ class TestTiemposDeLasOrdenes(unittest.TestCase):
         self.assertEqual(anotacion["escenario"], "prueba")
         self.assertEqual(anotacion["orden"], "ping")
         self.assertGreaterEqual(anotacion["segundos"], 0.05)
+
+    def test_con_tope_anota_la_uia_aunque_venza_el_tope(self):
+        def lenta():
+            time.sleep(0.3)
+
+        with mock.patch.object(conducir, "_ESCENARIO_EN_CURSO", "prueba"):
+            conducir._con_tope(lenta, 0.05, "por defecto")
+
+        self.assertEqual(len(conducir._TIEMPOS), 1)
+        anotacion = conducir._TIEMPOS[0]
+        self.assertEqual(anotacion["escenario"], "prueba")
+        self.assertEqual(anotacion["orden"], lenta.__qualname__)
+        self.assertEqual(anotacion["tipo"], "uia")
+        self.assertIn("inicio", anotacion)
+        self.assertGreaterEqual(anotacion["segundos"], 0.05)
+
+    def test_con_tope_con_lambda_toma_el_nombre_de_quien_la_pide(self):
+        with mock.patch.object(conducir, "_ESCENARIO_EN_CURSO", "prueba"):
+            conducir._con_tope(lambda: "listo", 1.0, None)
+
+        self.assertEqual(
+            conducir._TIEMPOS[0]["orden"],
+            self.test_con_tope_con_lambda_toma_el_nombre_de_quien_la_pide
+            .__qualname__)
+
+    def test_recorrer_tab_deja_una_anotacion_tab(self):
+        class _AppDoble:
+
+            def foco(self):
+                return {"nombre": "Aceptar", "etiqueta": "Aceptar",
+                        "clase": "Button"}
+
+            def navegar(self, ventana=None):
+                pass
+
+        with mock.patch.object(conducir, "_ESCENARIO_EN_CURSO", "prueba"):
+            conducir.recorrer_tab(_AppDoble(), conducir.Resultado(),
+                                  "Preferencias", vueltas=1)
+
+        self.assertEqual(len(conducir._TIEMPOS), 1)
+        anotacion = conducir._TIEMPOS[0]
+        self.assertEqual(anotacion["escenario"], "prueba")
+        self.assertEqual(anotacion["orden"], "tab: Preferencias")
+        self.assertEqual(anotacion["tipo"], "tab")
+        self.assertIn("inicio", anotacion)
+        self.assertGreaterEqual(anotacion["segundos"], 0.0)
 
 
 class TestInformeDelBanco(unittest.TestCase):

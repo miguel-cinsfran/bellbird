@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md db913e3c466a77358398a7178541e7de0ba67c56 -->
+<!-- original: es/MANUAL.md 374123199419610c2379a61aaa6cc70241108224 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -542,6 +542,15 @@ sound for each case. It stops with the same button, which changes its name to
 headset in hands-free mode, it warns at the start, because in that mode it
 sounds low quality. When it finishes, the source lists and the description
 update by themselves.
+
+*Microphone filters…* opens a dialog with three OBS filters for the
+microphone source. *Noise Suppression* removes background noise, such as a
+fan. *Noise Gate* cuts the sound when you are not speaking. *Gain* raises or
+lowers the voice volume by a few decibels. The dialog shows how they are set
+in OBS right now and, on accepting, the application says what is active. If
+you already set up one of those filters in OBS, that one is used: the
+application does not create another one or delete any. While you test the
+microphone, the announced level already includes the filters.
 
 If OBS is closed, the panel opens it. If it does not respond, it says so in
 the description and does not freeze. The panel help explains each tab.

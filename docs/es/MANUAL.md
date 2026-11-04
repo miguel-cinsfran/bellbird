@@ -537,6 +537,15 @@ Bluetooth en modo manos libres, lo avisa al empezar, porque en ese modo suena
 con poca calidad. Al terminar, las listas de fuentes y la descripción se
 actualizan solas.
 
+*Filtros del micrófono…* abre un cuadro con tres filtros de OBS para la
+fuente del micrófono. *Eliminación de ruido* quita el ruido de fondo, como un
+ventilador. *Puerta anti-ruidos* corta el sonido cuando no hablas. *Ganancia*
+sube o baja el volumen de la voz en unos pocos decibelios. El cuadro muestra
+cómo están hoy en OBS y, al aceptar, la aplicación dice qué quedó activo. Si
+ya tenías uno de esos filtros configurado en OBS, se usa ese: la aplicación
+no crea otro igual ni elimina ninguno. Mientras pruebas el micrófono, el
+nivel que se anuncia ya incluye los filtros.
+
 Si OBS está cerrado, el panel lo abre. Si no responde, lo dice en la
 descripción y no se queda congelado. La ayuda del panel explica cada pestaña.
 

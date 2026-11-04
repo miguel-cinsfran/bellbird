@@ -111,6 +111,12 @@ def catalogo_ia() -> Path:
     return carpeta_datos() / "catalogo_ia.json"
 
 
+def disenos_escena() -> Path:
+    # Diseños de escena propios del usuario: nacen ya dentro de data/, así
+    # que no entran en datos_a_migrar().
+    return carpeta_datos() / "disenos_escena.json"
+
+
 def gratis_ia() -> Path:
     # Marcas de qué modelos responde la clave gratuita de un proveedor: se
     # rehacen al actualizar la lista, así que no entra en datos_a_migrar().

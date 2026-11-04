@@ -159,6 +159,29 @@ class EsMicrofonoTest(unittest.TestCase):
                 self.assertFalse(obs_audio.es_microfono(nombre))
 
 
+class EsManosLibresTest(unittest.TestCase):
+    def test_los_auriculares_bluetooth_manos_libres(self):
+        for nombre in (
+            "Auriculares con micrófono (950BT Hands-Free AG Audio)",
+            "Auriculares con micrófono (Redmi Buds 4 Hands-Free AG Audio)",
+        ):
+            with self.subTest(nombre=nombre):
+                self.assertTrue(obs_audio.es_manos_libres(nombre))
+
+    def test_los_otros_microfonos_no_son_manos_libres(self):
+        for nombre in (
+            "Micrófono (Realtek(R) Audio)",
+            "Micrófono (WO Mic Device)",
+        ):
+            with self.subTest(nombre=nombre):
+                self.assertFalse(obs_audio.es_manos_libres(nombre))
+
+    def test_reconoce_manos_libres_en_espanol_sin_distinguir_mayusculas(self):
+        self.assertTrue(obs_audio.es_manos_libres("Auriculares MANOS LIBRES"))
+        self.assertTrue(obs_audio.es_manos_libres("handsfree"))
+        self.assertFalse(obs_audio.es_manos_libres(""))
+
+
 class TieneSenalTest(unittest.TestCase):
     def test_las_constantes_son_las_del_diseno(self):
         self.assertEqual(obs_audio.UMBRAL_SENAL, 0.0001)

@@ -18,6 +18,13 @@ def es_microfono(fuente: str) -> bool:
     return _contiene_microfono(fuente)
 
 
+def es_manos_libres(nombre: str) -> bool:
+    """¿El dispositivo es un auricular Bluetooth en modo manos libres?"""
+    texto = str(nombre or "").casefold()
+    return any(clave in texto
+               for clave in ("hands-free", "handsfree", "manos libres"))
+
+
 def elegir_microfono(entradas, preferido: str, especial: str = "") -> str:
     nombres = [nombre for nombre, _tipo in entradas]
     for candidato in (preferido, especial):

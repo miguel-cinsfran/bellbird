@@ -43,7 +43,7 @@ FABRICA = (
         papeles={"principal": PAPEL_PRINCIPAL, "secundaria": PAPEL_CAMARA}),
     DisenoFabrica(
         clave="imagen_esquina_chat",
-        nombre=N_("Fuente principal con cámara y chat al costado"),
+        nombre=N_("Fuente principal con cámara y chat a la derecha"),
         diseno=Diseno(clase="imagen_en_imagen", esquina="superior-derecha",
                       tamano="mediana", chat="franja"),
         papeles={"principal": PAPEL_PRINCIPAL, "secundaria": PAPEL_CAMARA}),
@@ -64,7 +64,7 @@ FABRICA = (
         papeles={"izquierda": PAPEL_PRINCIPAL, "derecha": PAPEL_CAMARA}),
     DisenoFabrica(
         clave="dividida_dos_tercios",
-        nombre=N_("Fuente principal grande y cámara al costado"),
+        nombre=N_("Fuente principal grande y cámara a la derecha"),
         diseno=Diseno(clase="dividida", proporcion="dos_tercios"),
         papeles={"izquierda": PAPEL_PRINCIPAL, "derecha": PAPEL_CAMARA}),
 )
@@ -117,8 +117,9 @@ def motivo_para_no_aplicar(diseno, fuentes):
         vistos.add(nombre)
     if diseno.chat != "ninguno" and not any(
             fuente.tipo == "chat" for fuente in fuentes):
-        return ("chat", _("La escena no tiene el panel de chat. Elige Sin chat "
-                          "o agrega el panel en la pestaña Agregar."))
+        return ("chat", _("La escena no tiene el chat en el vídeo. Elige Sin "
+                          "chat o activa Mostrar chat en el vídeo en la "
+                          "pestaña Transmisión."))
     return None
 
 

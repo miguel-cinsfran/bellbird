@@ -121,7 +121,7 @@ class FraseDeInicioTest(unittest.TestCase):
             prueba_microfono.frase_de_inicio(nombre),
             "Prueba del micrófono iniciada. Habla como en un directo. "
             f"{nombre} es un auricular en modo manos libres y suena con poca "
-            "calidad. Para el directo conviene otro micrófono.")
+            "calidad. Para el directo, usa otro micrófono.")
 
 
 class PruebaMicrofonoTest(unittest.TestCase):

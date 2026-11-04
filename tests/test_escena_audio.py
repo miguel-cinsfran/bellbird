@@ -81,7 +81,7 @@ class TestPaginaAudioPrueba(unittest.TestCase):
         al_tramo = self.clase.call_args.args[1]
         al_tramo(nivel_microfono.Nivel(nivel_microfono.BIEN, -3.0))
         self.reproducir.assert_called_once_with("microfono_bien")
-        self.anunciar.assert_called_once_with("Nivel bien.", False)
+        self.anunciar.assert_called_once_with("Nivel correcto.", False)
         instancia.detener.assert_not_called()
 
     def test_pulsar_otra_vez_detiene_la_prueba(self):

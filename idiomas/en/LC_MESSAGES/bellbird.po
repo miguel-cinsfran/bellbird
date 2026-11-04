@@ -2674,8 +2674,8 @@ msgid "Fuente principal con cámara en una esquina"
 msgstr "Main source with camera in a corner"
 
 #: bellbird/obs/disenos_fabrica.py
-msgid "Fuente principal con cámara y chat al costado"
-msgstr "Main source with camera and chat on the side"
+msgid "Fuente principal con cámara y chat a la derecha"
+msgstr "Main source with camera and chat on the right"
 
 #: bellbird/obs/disenos_fabrica.py
 msgid "Fuente principal a pantalla completa"
@@ -2690,8 +2690,8 @@ msgid "Fuente principal y cámara lado a lado"
 msgstr "Main source and camera side by side"
 
 #: bellbird/obs/disenos_fabrica.py
-msgid "Fuente principal grande y cámara al costado"
-msgstr "Large main source and camera on the side"
+msgid "Fuente principal grande y cámara a la derecha"
+msgstr "Large main source and camera on the right"
 
 #: bellbird/obs/disenos_fabrica.py
 #, python-brace-format
@@ -2705,11 +2705,11 @@ msgstr "{fuente} is in two places. Select another."
 
 #: bellbird/obs/disenos_fabrica.py
 msgid ""
-"La escena no tiene el panel de chat. Elige Sin chat o agrega el panel en la"
-" pestaña Agregar."
+"La escena no tiene el chat en el vídeo. Elige Sin chat o activa Mostrar "
+"chat en el vídeo en la pestaña Transmisión."
 msgstr ""
-"The scene does not have the chat panel. Select No chat or add the panel on "
-"the Add tab."
+"The scene does not have the chat on video. Select No chat or turn on Show "
+"chat on video on the Stream tab."
 
 #: bellbird/obs/disenos_fabrica.py
 #, python-brace-format
@@ -2860,7 +2860,7 @@ msgid "Grabación guardada: {nombre}"
 msgstr "Recording saved: {nombre}"
 
 #: bellbird/obs/nivel_microfono.py
-msgid "Nivel bien."
+msgid "Nivel correcto."
 msgstr "Good level."
 
 #: bellbird/obs/nivel_microfono.py
@@ -3935,10 +3935,10 @@ msgstr "Microphone test started. Talk as you would on a live stream."
 #, python-brace-format
 msgid ""
 "{nombre} es un auricular en modo manos libres y suena con poca calidad. "
-"Para el directo conviene otro micrófono."
+"Para el directo, usa otro micrófono."
 msgstr ""
-"{nombre} is a hands-free headset and sounds low quality. Another microphone"
-" is better for the live stream."
+"{nombre} is a headset in hands-free mode and sounds low quality. For "
+"streaming, use another microphone."
 
 #: bellbird/obs/transmision_directa.py
 msgid "Finalizando el directo"
@@ -5824,9 +5824,9 @@ msgstr "C&hat:"
 msgid "Esquina del c&hat:"
 msgstr "Chat co&rner:"
 
-#: bellbird/ui/escena_disenos.py bellbird/ui/gui_microfono.py
-msgid "&Aplicar"
-msgstr "&Apply"
+#: bellbird/ui/escena_disenos.py
+msgid "&Aceptar"
+msgstr "&Accept"
 
 #: bellbird/ui/escena_disenos.py
 msgid "&Guardar como…"
@@ -7654,6 +7654,10 @@ msgid "Dispositivo"
 msgstr "Device"
 
 #: bellbird/ui/gui_microfono.py
+msgid "&Aplicar"
+msgstr "&Apply"
+
+#: bellbird/ui/gui_microfono.py
 msgid "Elige un dispositivo."
 msgstr "Choose a device."
 
@@ -8571,7 +8575,9 @@ msgid ""
 "Escena elige cuál se edita, dice qué tiene y cambia cuál se emite. Recorrer"
 " la lista no cambia nada en el directo.\n"
 "\n"
-"Audio silencia el micrófono de OBS y elige cuál se usa.\n"
+"Audio silencia el micrófono de OBS y elige cuál se usa. Probar micrófono "
+"dice cada cinco segundos cómo llega la voz y qué hacer, hasta que se "
+"detiene.\n"
 "\n"
 "Grabación inicia, pausa y detiene la grabación. La lista tiene lo grabado: "
 "Intro abre el archivo y Supr lo elimina de la lista. La tecla Aplicaciones "
@@ -8580,8 +8586,9 @@ msgid ""
 "Fuentes elige una fuente de la escena. La mueve, la cambia de tamaño, la "
 "oculta, la bloquea o cambia su capa. Mover con flechas la mueve en pasos "
 "pequeños: Ctrl da pasos grandes, Mayús pasos de un píxel, Intro confirma y "
-"Esc deshace. Deshacer cambios vuelve a como estaba todo al abrir esta "
-"ventana.\n"
+"Esc deshace. Aplicar diseño reparte la escena de una vez: la fuente "
+"principal, la cámara y el chat, con diseños de fábrica o guardados. "
+"Deshacer cambios vuelve a como estaba todo al abrir esta ventana.\n"
 "\n"
 "Agregar captura una ventana del equipo o agrega una cámara de Windows a la "
 "escena actual.\n"
@@ -8599,7 +8606,9 @@ msgstr ""
 "is broadcast. Browsing the list does not change anything in the live "
 "stream.\n"
 "\n"
-"Audio mutes the OBS microphone and chooses which one is used.\n"
+"Audio mutes the OBS microphone and chooses which one is used. Test "
+"microphone says every five seconds how the voice is coming in and what to "
+"do, until it stops.\n"
 "\n"
 "Recording starts, pauses and stops recording. The list has what was "
 "recorded: Enter opens the file and Delete removes it from the list. The "
@@ -8608,8 +8617,9 @@ msgstr ""
 "Sources chooses a source of the scene. It moves it, changes its size, hides"
 " it, locks it or changes its layer. Move with arrows moves it in small "
 "steps: Ctrl gives large steps, Shift one-pixel steps, Enter confirms and "
-"Esc undoes. Undo changes returns everything to how it was when this window "
-"was opened.\n"
+"Esc undoes. Apply layout distributes the scene at once: the main source, "
+"the camera and the chat, with factory or saved layouts. Undo changes "
+"returns everything to how it was when this window was opened.\n"
 "\n"
 "Add captures a window from the computer or adds a Windows camera to the "
 "current scene.\n"

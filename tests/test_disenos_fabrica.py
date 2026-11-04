@@ -19,11 +19,11 @@ class FabricaTest(unittest.TestCase):
         self.assertEqual(
             [fabrica.nombre for fabrica in disenos_fabrica.FABRICA],
             ["Fuente principal con cámara en una esquina",
-             "Fuente principal con cámara y chat al costado",
+             "Fuente principal con cámara y chat a la derecha",
              "Fuente principal a pantalla completa",
              "Cámara a pantalla completa",
              "Fuente principal y cámara lado a lado",
-             "Fuente principal grande y cámara al costado"])
+             "Fuente principal grande y cámara a la derecha"])
 
     def test_cada_diseno_se_calcula_con_juego_camara_y_chat(self):
         fuentes = _fuentes()
@@ -127,8 +127,9 @@ class MotivoTest(unittest.TestCase):
             clase="pantalla_completa", principal="Juego", chat="franja")
         self.assertEqual(
             disenos_fabrica.motivo_para_no_aplicar(diseno, fuentes),
-            ("chat", "La escena no tiene el panel de chat. Elige Sin chat o "
-                     "agrega el panel en la pestaña Agregar."))
+            ("chat", "La escena no tiene el chat en el vídeo. Elige Sin chat "
+                     "o activa Mostrar chat en el vídeo en la pestaña "
+                     "Transmisión."))
 
 
 class ResumenTest(unittest.TestCase):

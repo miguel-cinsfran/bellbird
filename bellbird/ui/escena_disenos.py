@@ -120,7 +120,7 @@ class DisenoEscenaDialog(wx.Dialog):
     def _crear_botones(self, caja):
         fila = wx.BoxSizer(wx.HORIZONTAL)
         self.btn_aplicar = boton(
-            self, _("&Aplicar"), nombre_de_etiqueta(_("&Aplicar")), wx.ID_OK)
+            self, _("&Aceptar"), nombre_de_etiqueta(_("&Aceptar")), wx.ID_OK)
         self.btn_aplicar.SetDefault()
         self.btn_guardar = boton(
             self, _("&Guardar como…"),

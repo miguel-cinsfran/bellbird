@@ -52,7 +52,7 @@ def frase_de_inicio(nombre_dispositivo) -> str:
         # Traductores: {nombre} es el nombre del dispositivo de audio.
         frase += " " + _(
             "{nombre} es un auricular en modo manos libres y suena con poca "
-            "calidad. Para el directo conviene otro micrófono."
+            "calidad. Para el directo, usa otro micrófono."
         ).format(nombre=nombre_dispositivo)
     return frase
 

@@ -126,7 +126,7 @@ class SinMuestrasTest(unittest.TestCase):
 class FraseDeTramoTest(unittest.TestCase):
     def test_cada_estado_tiene_su_frase(self):
         casos = {
-            BIEN: "Nivel bien.",
+            BIEN: "Nivel correcto.",
             BAJO: "Nivel bajo. Acércate al micrófono o sube su volumen "
                   "en Windows.",
             ALTO: "Nivel alto. Aléjate un poco del micrófono.",

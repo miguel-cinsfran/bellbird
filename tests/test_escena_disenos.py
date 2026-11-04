@@ -209,7 +209,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
         self.assertEqual(dialogo.cho_reparto.GetName(), "Reparto")
         self.assertEqual(dialogo.cho_chat.GetName(), "Chat")
         self.assertEqual(dialogo.cho_esquina_chat.GetName(), "Esquina del chat")
-        self.assertEqual(dialogo.btn_aplicar.GetName(), "Aplicar")
+        self.assertEqual(dialogo.btn_aplicar.GetName(), "Aceptar")
         self.assertEqual(dialogo.btn_guardar.GetName(), "Guardar como…")
         self.assertEqual(dialogo.btn_eliminar.GetName(), "Eliminar")
         self.assertEqual(dialogo.btn_cancelar.GetName(), "Cancelar")

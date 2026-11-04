@@ -76,7 +76,7 @@ SONIDO_REVISAR = "microfono_revisar"
 
 
 def _frase_bien() -> str:
-    return _("Nivel bien.")
+    return _("Nivel correcto.")
 
 
 def _frase_bajo() -> str:

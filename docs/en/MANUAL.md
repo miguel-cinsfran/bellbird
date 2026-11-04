@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 28ab845685aa3f64c96fb5fa8eab8cbfb5719928 -->
+<!-- original: es/MANUAL.md 50c222cd6bfd6e9db9cae1e20231bfc6e657b30b -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -517,9 +517,29 @@ confirms and `Esc` undoes. The *Source details* field, next to the list, says
 where it is, how big it is and what covers it. *Undo changes* returns
 everything to how it was when the window was opened.
 
+*Apply layout…* distributes the whole scene at once. It brings six factory
+layouts: the main source with the camera in a corner, the same with the chat
+in a strip on the right, the main source or the camera full screen, and the
+main source with the camera on the right, in halves or with the main source
+at two thirds. The main source is the game, screen or window capture, if the
+scene has one. In the dialog you change which source goes in each place, the
+corner and size of the camera, the split and where the chat goes. *Fit*
+decides what happens when the source's aspect ratio does not match its place:
+*Fit* shows it whole with bands, *Fill* covers the place and crops the edges,
+and *Automatic* fills with the camera and fits the rest. *Save as…* saves the
+layout with a name to use it again, and *Delete* removes a saved one. On
+accepting, the application says how each source ended up and which ones it did
+not move. *Undo changes* also undoes a layout.
+
 *Add* captures a window from the computer or adds a Windows camera to the
 current scene. *Audio* mutes the OBS microphone and chooses which one is used.
-When it finishes, the source lists and the description update by themselves.
+*Test microphone* listens while you speak and every five seconds says whether
+the level is correct, low, high or clipping, with what to do and a different
+sound for each case. It stops with the same button, which changes its name to
+*Stop test*, or on its own after two minutes. If the microphone is a Bluetooth
+headset in hands-free mode, it warns at the start, because in that mode it
+sounds low quality. When it finishes, the source lists and the description
+update by themselves.
 
 If OBS is closed, the panel opens it. If it does not respond, it says so in
 the description and does not freeze. The panel help explains each tab.

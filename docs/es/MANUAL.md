@@ -510,9 +510,30 @@ confirma y `Esc` deshace. El campo *Detalle de la fuente*, junto a la lista,
 dice dónde está, cuánto mide y qué la tapa. *Deshacer cambios* vuelve a como
 estaba todo al abrir la ventana.
 
+*Aplicar diseño…* reparte la escena entera de una vez. Trae seis diseños de
+fábrica: la fuente principal con la cámara en una esquina, lo mismo con el
+chat en una franja a la derecha, la fuente principal o la cámara a pantalla
+completa, y la fuente principal con la cámara a la derecha, a mitades o con
+la principal en dos tercios. La fuente principal es la captura de juego, de
+pantalla o de ventana, si la escena tiene una. En el cuadro cambias qué
+fuente va en cada lugar, la esquina y el tamaño de la cámara, el reparto y
+dónde va el chat. *Ajuste* decide qué pasa cuando la proporción de la fuente
+no coincide con su lugar: *Ajustar* la muestra entera con bandas, *Llenar*
+cubre el lugar y recorta los bordes, y *Automático* llena con la cámara y
+ajusta lo demás. *Guardar como…* guarda el diseño con un nombre para usarlo
+otra vez, y *Eliminar* borra uno guardado. Al aceptar, la aplicación dice
+cómo quedó cada fuente y cuáles no movió. *Deshacer cambios* también deshace
+un diseño.
+
 *Agregar* captura una ventana del equipo o agrega una cámara de Windows a la
-escena actual. *Audio* silencia el micrófono de OBS y elige cuál se usa. Al
-terminar, las listas de fuentes y la descripción se actualizan solas.
+escena actual. *Audio* silencia el micrófono de OBS y elige cuál se usa.
+*Probar micrófono* escucha mientras hablas y cada cinco segundos dice si el
+nivel es correcto, bajo, alto o si se satura, con qué hacer y un sonido
+distinto para cada caso. Se detiene con el mismo botón, que pasa a llamarse
+*Detener prueba*, o sola a los dos minutos. Si el micrófono es un auricular
+Bluetooth en modo manos libres, lo avisa al empezar, porque en ese modo suena
+con poca calidad. Al terminar, las listas de fuentes y la descripción se
+actualizan solas.
 
 Si OBS está cerrado, el panel lo abre. Si no responde, lo dice en la
 descripción y no se queda congelado. La ayuda del panel explica cada pestaña.

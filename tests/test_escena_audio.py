@@ -105,6 +105,31 @@ class TestPaginaAudioPrueba(unittest.TestCase):
         self.anunciar.assert_called_once_with(
             "No se pudo medir el micrófono en OBS. Prueba detenida.")
 
+    def test_al_destruir_detiene_y_un_tramo_posterior_no_toca_controles(self):
+        instancia = self._iniciar()
+        al_tramo = self.clase.call_args.args[1]
+        self.anunciar.reset_mock()
+        self.reproducir.reset_mock()
+        destruir(self.pagina)
+        instancia.detener.assert_called_once_with()
+        al_tramo(nivel_microfono.Nivel(nivel_microfono.BIEN, -3.0))
+        self.reproducir.assert_not_called()
+        self.anunciar.assert_not_called()
+
+    def test_terminar_deja_empezar_otra_prueba(self):
+        primera = mock.Mock()
+        segunda = mock.Mock()
+        self.clase.side_effect = [primera, segunda]
+        self._pulsar()
+        al_terminar = self.clase.call_args.args[2]
+        al_terminar("detenida")
+        self.assertEqual(self.pagina.btn_probar.GetLabel(), "&Probar micrófono")
+        self._pulsar()
+        primera.detener.assert_not_called()
+        self.assertEqual(self.clase.call_count, 2)
+        segunda.iniciar.assert_called_once_with()
+        self.assertEqual(self.pagina.btn_probar.GetLabel(), "&Detener prueba")
+
     def test_silenciado_no_inicia_y_dice_por_que(self):
         self.preparar.return_value = ("Mic/Aux", True, "Micrófono USB")
         self._pulsar()

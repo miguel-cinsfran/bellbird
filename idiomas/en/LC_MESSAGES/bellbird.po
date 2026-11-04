@@ -10313,12 +10313,6 @@ msgstr ""
 "No sound is coming in. Check that the microphone is connected and not muted"
 " in Windows."
 
-#: bellbird/obs/nivel_microfono.py
-msgid "OBS no mide este micrófono. Revisa que la fuente esté activa en OBS."
-msgstr ""
-"OBS is not measuring this microphone. Check that the source is active in "
-"OBS."
-
 #: bellbird/obs/prueba_microfono.py
 msgid "Prueba del micrófono iniciada. Habla como en un directo."
 msgstr "Microphone test started. Talk as you would on a live stream."
@@ -10354,4 +10348,12 @@ msgstr "Could not measure the microphone in OBS. Test stopped."
 #: bellbird/ui/escena_pagina_audio.py
 msgid "Prueba del micrófono detenida."
 msgstr "Microphone test stopped."
+
+#: bellbird/obs/nivel_microfono.py
+msgid ""
+"OBS no recibe nada de este micrófono. Revisa que esté conectado o elige "
+"otro en Elegir micrófono."
+msgstr ""
+"OBS is getting nothing from this microphone. Check that it is connected or "
+"choose another one in Choose a device."
 

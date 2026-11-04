@@ -134,8 +134,8 @@ class FraseDeTramoTest(unittest.TestCase):
                       "volumen en Windows.",
             SILENCIO: "No llega sonido. Revisa que el micrófono esté "
                       "conectado y no silenciado en Windows.",
-            SIN_MUESTRAS: "OBS no mide este micrófono. Revisa que la fuente "
-                          "esté activa en OBS.",
+            SIN_MUESTRAS: "OBS no recibe nada de este micrófono. Revisa que "
+                          "esté conectado o elige otro en Elegir micrófono.",
         }
         for estado, esperado in casos.items():
             with self.subTest(estado=estado):

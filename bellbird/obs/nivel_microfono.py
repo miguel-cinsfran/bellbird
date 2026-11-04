@@ -99,8 +99,8 @@ def _frase_silencio() -> str:
 
 
 def _frase_sin_muestras() -> str:
-    return _("OBS no mide este micrófono. Revisa que la fuente esté activa "
-             "en OBS.")
+    return _("OBS no recibe nada de este micrófono. Revisa que esté "
+             "conectado o elige otro en Elegir micrófono.")
 
 
 _FRASES = {

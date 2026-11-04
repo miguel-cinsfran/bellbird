@@ -216,7 +216,7 @@
   </style>
 </head>
 <body>
-<!-- original: es/MANUAL.md 0b2fd00d71072a6e13143996d123ce1b289ca172 -->
+<!-- original: es/MANUAL.md bebec23d1532fcf57b20b315b92770e3b059127a -->
 
 <h1 id="bellbird-user-manual">Bellbird, user manual</h1>
 <p>This is a translation of the Spanish original, made with artificial
@@ -587,6 +587,23 @@ the file with <code>Enter</code>, open its folder, copy the path or
 remove it from the list with <code>Delete</code>. Removing it from the
 list does not delete the file, and what is stopped from the OBS window
 does not appear in the list.</p>
+<h3 id="saving-a-clip">Saving a clip</h3>
+<p>In <em>Preferences</em>, on the <em>OBS</em> category, the
+<em>Clips</em> list chooses how much is saved: <em>Off</em>, <em>30
+seconds</em> or <em>60 seconds</em>, with <em>30 seconds</em> by
+default. With clips on, when the live stream starts from the application
+OBS prepares its replay buffer before broadcasting; if the profile has
+to be changed, the application says “Preparing the clips.”.</p>
+<p><code>Alt+Shift+R</code>, or <em>Save clip</em> in the <em>OBS</em>
+menu, saves the last seconds to a file and announces the file name. If
+the buffer was not running and OBS is not streaming or recording, the
+application prepares it and turns it on. If it is already streaming or
+recording and the profile has the buffer with that duration, it only
+turns it on. If the profile does not have it, it asks you to stop the
+live stream and the recording before preparing it. With <em>Off</em>,
+Save clip says that clips are turned off. If the profile records
+lossless or with FFmpeg output, OBS does not offer clips: Save clip says
+so and the live stream goes on.</p>
 <h3 id="the-broadcast-tab">The Broadcast tab</h3>
 <p>The <em>OBS panel</em> (<code>Ctrl+Shift+O</code>) brings together in
 tabs what is done with OBS. The first one, <em>Broadcast</em>, starts
@@ -990,6 +1007,10 @@ their action.</p>
 <tr>
 <td><code>Alt+Shift+P</code></td>
 <td>Pause or resume recording</td>
+</tr>
+<tr>
+<td><code>Alt+Shift+R</code></td>
+<td>Save a clip</td>
 </tr>
 <tr>
 <td><code>Alt+Shift+O</code></td>

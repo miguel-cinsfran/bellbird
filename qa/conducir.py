@@ -988,7 +988,6 @@ def bateria_reproductor(app: Aplicacion, res: Resultado, donde: str,
 
     # ── dos pulsaciones seguidas, que es lo que hace cualquiera cuando la
     #    primera no contestó ─────────────────────────────────────────────────
-    antes = len(app.anuncios)
     app.pedir("pulsar", nombre="Reproducir")
     medida = medir_accion(app, lambda: app.pedir("pulsar", nombre="Reproducir"))
     if not medida[2]:
@@ -996,7 +995,6 @@ def bateria_reproductor(app: Aplicacion, res: Resultado, donde: str,
                   f"segunda muda")
     else:
         res.nota(f"{donde}: la segunda pulsación de reproducir también habla")
-    del antes
 
     # ── los siete atajos ────────────────────────────────────────────────────
     # Antes de juzgar los atajos hay que saber si el menú que los sostiene está
@@ -5528,6 +5526,7 @@ SUPERFICIES = {
 SIN_ESCENARIO: dict[str, str] = {
     "operaciones_obs.py": "opera sobre OBS en un hilo para las ventanas; no abre una propia.",
     "comandos_grabacion.py": "comandos del menú OBS que actúan sobre OBS; no abren ventana.",
+    "comandos_clips.py": "comanda el búfer de clips del menú OBS; no abre ventana.",
     "restream_perfil.py": "El banco no tiene cuenta ni canales; el diálogo lo cubren las pruebas con wx.",
     "agregar_camara.py": "El banco no tiene cámara de Windows; el flujo lo cubren las pruebas con wx y la prueba contra OBS real.",
 }

@@ -352,6 +352,23 @@ abrir su carpeta, copiar la ruta o eliminarlo de la lista con `Supr`. Eliminar
 de la lista no borra el archivo, y lo que se detiene desde la ventana de OBS no
 aparece en la lista.
 
+### Guardar un clip
+
+En *Preferencias*, categoría *OBS*, la lista *Clips* elige cuánto se guarda:
+*Desactivados*, *30 segundos* o *60 segundos*, con *30 segundos* de fábrica.
+Con los clips activados, al iniciar el directo desde la aplicación OBS prepara
+su búfer de repetición antes de transmitir; si hay que cambiar el perfil, la
+aplicación dice «Preparando los clips.».
+
+`Alt+Mayús+R`, o *Guardar clip* en el menú *OBS*, guarda los últimos segundos
+en un archivo y lo anuncia con su nombre. Si el búfer no estaba en marcha y OBS
+no está transmitiendo ni grabando, la aplicación lo prepara y lo enciende. Si
+ya está transmitiendo o grabando y el perfil tiene el búfer con esa duración,
+solo lo enciende. Si el perfil no lo tiene, pide detener el directo y la
+grabación antes de prepararlo. Con *Desactivados*, Guardar clip avisa que los
+clips están apagados. Si el perfil graba sin pérdidas o con salida FFmpeg, OBS
+no ofrece clips: Guardar clip lo dice y el directo sigue.
+
 ### La pestaña Transmisión
 
 El *Panel de OBS* (`Ctrl+Mayús+O`) reúne en pestañas lo que se hace con OBS.
@@ -686,6 +703,7 @@ atajos. Todos figuran además en la barra de menú, junto a su acción.
 | `Alt+Mayús+M` | Silenciar el micrófono de OBS |
 | `Alt+Mayús+G` | Iniciar o detener la grabación |
 | `Alt+Mayús+P` | Pausar o reanudar la grabación |
+| `Alt+Mayús+R` | Guardar un clip |
 | `Alt+Mayús+A` | Activar o desactivar los avisos de sobrecarga |
 | `Alt+Mayús+O` | Mostrar OBS |
 

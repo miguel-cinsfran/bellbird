@@ -162,6 +162,7 @@ FALTAS_CONOCIDAS = [
     "«Shift» en la tecla de «Mostrar OBS»",
     "«Shift» en la tecla de «Iniciar o detener grabación»",
     "«Shift» en la tecla de «Pausar o reanudar grabación»",
+    "«Shift» en la tecla de «Guardar clip»",
     "«Shift» en la tecla de «Avisar si OBS se sobrecarga»",
     "«Shift» en la tecla de «Avisar si el rostro sale del encuadre»",
     "«Shift» en la tecla de «Elegir música…»",

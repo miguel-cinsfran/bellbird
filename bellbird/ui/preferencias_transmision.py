@@ -10,7 +10,7 @@ from __future__ import annotations
 import wx
 
 from bellbird.core import diagnostico
-from bellbird.core.idioma import _
+from bellbird.core.idioma import N_, _
 from bellbird.obs import obs_activacion
 from bellbird.obs import obs_cliente
 from bellbird.obs.obs_panel import GestorPanelObs
@@ -20,6 +20,12 @@ from bellbird.ui.preferencias_comun import (
 
 
 logger = diagnostico.obtener_logger(__name__)
+
+OPCIONES_CLIPS = (
+    (0, N_("Desactivados")),
+    (30, N_("30 segundos")),
+    (60, N_("60 segundos")),
+)
 
 
 class PaginaTransmision:
@@ -40,18 +46,38 @@ class PaginaTransmision:
         vs.Add(titulo, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         return avisar, titulo
 
-    def construir(self, parent):
-        p = crear_panel(parent, "PagTransmision")
-        vs = wx.BoxSizer(wx.VERTICAL)
+    def _agregar_clips(self, p, vs):
+        """Lista la duración del búfer que OBS prepara al iniciar el directo."""
+        vs.Add(fila_label(p, _("C&lips:")), 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
+        self.cho_clips = wx.Choice(
+            p, choices=[_(texto) for _segundos, texto in OPCIONES_CLIPS],
+            name=_("Clips"))
+        valores = [segundos for segundos, _texto in OPCIONES_CLIPS]
+        try:
+            guardado = int(self._config.get("clips", 30))
+        except (TypeError, ValueError):
+            guardado = 30
+        self.cho_clips.SetSelection(
+            valores.index(guardado) if guardado in valores else 1)
+        vs.Add(self.cho_clips, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
-        self.chk_avisar_sobrecarga, self.chk_titulo_estado_obs = self._casillas_de_aviso(p, vs)
-
+    def _agregar_puerto(self, p, vs):
         vs.Add(fila_label(p, _("&Puerto del chat en el vídeo:")),
                0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.sp_puerto_overlay = ContadorAccesible(
             p, min=1024, max=65535,
             name=_("Puerto del chat en el vídeo"))
         vs.Add(self.sp_puerto_overlay, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+
+    def construir(self, parent):
+        p = crear_panel(parent, "PagTransmision")
+        vs = wx.BoxSizer(wx.VERTICAL)
+
+        self.chk_avisar_sobrecarga, self.chk_titulo_estado_obs = self._casillas_de_aviso(p, vs)
+
+        self._agregar_clips(p, vs)
+
+        self._agregar_puerto(p, vs)
 
         vs.Add(fila_label(p, _("&Micrófono de OBS:")),
                0, wx.LEFT | wx.RIGHT, 10)
@@ -129,3 +155,6 @@ class PaginaTransmision:
                          else self.cho_microfono_obs.GetStringSelection())
         fijar("obs", "microfono", microfono_obs)
         en_memoria["obs_microfono"] = microfono_obs
+        segundos = OPCIONES_CLIPS[max(0, self.cho_clips.GetSelection())][0]
+        fijar("transmision", "clips", str(segundos))
+        en_memoria["clips"] = segundos

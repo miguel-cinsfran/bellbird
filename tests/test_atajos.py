@@ -366,6 +366,38 @@ class TestParsearAtajos(unittest.TestCase):
                 accion_grupo for _, acciones in ATAJOS_GRUPOS for accion_grupo in acciones
             })
 
+    def test_guardar_clip_es_atajo_editable_de_directo_y_obs(self):
+        self.assertEqual(ATAJOS_DEFAULTS["guardar_clip"], "alt+shift+r")
+        self.assertEqual(ATAJOS_AREA["guardar_clip"], "alt+shift")
+        self.assertIn("guardar_clip",
+                      dict(ATAJOS_GRUPOS)["Directo y OBS (Alt+Mayús)"])
+        self.assertEqual(etiqueta_de_accion("guardar_clip"), "Guardar clip")
+
+    def test_guardar_clip_aparece_en_el_menu_obs_con_su_atajo(self):
+        from bellbird.ui import menu_obs
+
+        etiquetas = []
+
+        def crear_menu():
+            menu = mock.MagicMock()
+            menu.Append.side_effect = lambda *args: (
+                etiquetas.append(args[-1]) or mock.Mock())
+            menu.AppendCheckItem.side_effect = (
+                lambda *args: etiquetas.append(args[-1]) or mock.Mock())
+            menu.AppendSeparator.side_effect = lambda: None
+            return menu
+
+        frame = mock.Mock()
+        frame._accel.side_effect = lambda accion: "	" + accion
+        frame._config = {"avisar_sobrecarga": True}
+        with mock.patch.object(menu_obs.wx, "Menu", side_effect=crear_menu):
+            menu_obs.construir(frame, mock.Mock())
+
+        self.assertTrue(any(
+            etiqueta.startswith("Guardar cl&ip")
+            and etiqueta.endswith("	guardar_clip")
+            for etiqueta in etiquetas))
+
     def test_las_acciones_de_ventanas_que_salieron_no_existen(self):
         from bellbird.ui.atajos_captura import ETIQUETAS
 
@@ -408,6 +440,7 @@ class TestParsearAtajos(unittest.TestCase):
         fuente += inspect.getsource(menu_transmision.construir)
         fuente += inspect.getsource(menu_transmision._agregar_encuadre)
         fuente += inspect.getsource(menu_obs.construir)
+        fuente += inspect.getsource(menu_obs._agregar_comandos)
         fuente += inspect.getsource(gui_menu._construir_menu_ver)
         fuente += inspect.getsource(gui_menu._construir_menu_musica)
         fuente += inspect.getsource(gui_menu._construir_menu_ayuda)
@@ -421,6 +454,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertIn('._accel("mostrar_obs")', fuente)
         self.assertIn('._accel("obs_grabar")', fuente)
         self.assertIn('._accel("obs_pausar_grabacion")', fuente)
+        self.assertIn('._accel("guardar_clip")', fuente)
         self.assertIn('._accel("copiar_enlace")', fuente)
         self.assertIn('._accel("anunciar_autor")', fuente)
         # Los diez recientes se arman en un bucle con su etiqueta y su _accel.

@@ -15,9 +15,11 @@ from unittest import mock
 
 from bellbird.capture.tiktok_vivo import ResultadoEspera
 from bellbird.obs import obs_cliente
+from bellbird.obs import obs_clips
 from bellbird.obs import obs_panel
 from bellbird.obs import obs_supervisor
-from bellbird.obs.obs_supervisor import SupervisorTransmision, duracion_legible
+from bellbird.obs.duraciones import duracion_legible
+from bellbird.obs.obs_supervisor import SupervisorTransmision
 from tests.pseudo_prueba import con_pseudo
 from bellbird.core.idioma import _
 from bellbird.youtube import emision
@@ -171,6 +173,63 @@ class CaminoFelizTest(BaseSupervisor):
         self.assertEqual(gestores[0].cerrado, 1)
 
 
+class ClipsAlIniciarTest(BaseSupervisor):
+    def test_prepara_los_clips_antes_de_iniciar_y_avisa(self):
+        supervisor, anuncios, _, _, _, _, _ = self.armar(
+            estados=[muestra(False)])
+        orden = []
+
+        def preparar(cliente, segundos, al_preparar=None, al_fallar=None,
+                     parada=None):
+            orden.append("clips")
+            if al_preparar is not None:
+                al_preparar()
+
+        with (
+            mock.patch.object(obs_supervisor.obs_clips, "leer_segundos",
+                              return_value=30),
+            mock.patch.object(obs_supervisor.obs_clips,
+                              "preparar_para_directo",
+                              side_effect=preparar),
+            mock.patch.object(GestorFalso, "iniciar_transmision",
+                              lambda self, parada=None:
+                              orden.append("iniciar")),
+        ):
+            self.iniciar_y_esperar_fin(supervisor)
+
+        self.assertEqual(orden[:2], ["clips", "iniciar"])
+        self.assertIn(("Preparando los clips.", None), anuncios)
+
+    def test_un_fallo_de_clips_no_detiene_el_directo(self):
+        armado = self.armar(estados=[muestra(False)])
+        supervisor, anuncios = armado[0], armado[1]
+        orden = []
+
+        def preparar(cliente, segundos, al_preparar=None, al_fallar=None,
+                     parada=None):
+            orden.append("clips")
+            if al_fallar is not None:
+                al_fallar(obs_cliente.ObsError(
+                    _(obs_clips.MENSAJE_NO_DISPONIBLE)))
+
+        with (
+            mock.patch.object(obs_supervisor.obs_clips, "leer_segundos",
+                              return_value=30),
+            mock.patch.object(obs_supervisor.obs_clips,
+                              "preparar_para_directo",
+                              side_effect=preparar),
+            mock.patch.object(GestorFalso, "iniciar_transmision",
+                              lambda self, parada=None:
+                              orden.append("iniciar")),
+        ):
+            self.iniciar_y_esperar_fin(supervisor)
+
+        self.assertEqual(orden[:2], ["clips", "iniciar"])
+        self.assertIn((
+            "OBS no ofrece clips con la calidad de grabación de este perfil.",
+            "error"), anuncios)
+
+
 class SalidaFallidaTest(BaseSupervisor):
     def test_salida_que_falla_no_espera_a_tiktok(self):
         armado = self.armar(veredicto="sin_salida")
@@ -320,7 +379,9 @@ class ReconexionPorEstadoRealTest(unittest.TestCase):
     def test_la_vigilancia_lee_la_reconexion_de_estado_transmision(self):
         # El estado sale del GestorPanelObs de verdad: si estado_transmision
         # deja de exponer outputReconnecting, este cableado deja de avisar.
+        # La primera la consume la revisión previa de los clips.
         estados = [muestra(True, duracion=10),
+                   muestra(True, duracion=10),
                    muestra(True, duracion=11, reconectando=True),
                    muestra(False, duracion=30)]
         cliente = ClienteStreamFalso(estados)

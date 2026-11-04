@@ -27,8 +27,8 @@ def abrir_obs(frame) -> None:
         frame, frame, pestana=obs_ventana.PESTANA_TRANSMISION)
 
 
-def construir(frame, mb):
-    m = wx.Menu()
+def _agregar_comandos(m, frame):
+    """Arma los comandos del menú OBS en su orden."""
     frame.mi_obs_panel = m.Append(
         wx.ID_ANY, _("Panel de &OBS…") + frame._accel("abrir_obs"))
     frame._bind_menu(frame.mi_obs_panel, abrir_obs, frame)
@@ -43,18 +43,26 @@ def construir(frame, mb):
     frame.mi_obs_pausar_grabacion = m.Append(
         wx.ID_ANY,
         _("Pa&usar o reanudar grabación") + frame._accel("obs_pausar_grabacion"))
+    frame.mi_obs_guardar_clip = m.Append(
+        wx.ID_ANY, _("Guardar cl&ip") + frame._accel("guardar_clip"))
     m.AppendSeparator()
     frame.mi_avisos_sobrecarga = m.AppendCheckItem(
         wx.ID_ANY,
         _("&Avisar si OBS se sobrecarga") + frame._accel("avisos_sobrecarga"))
     frame.mi_avisos_sobrecarga.Check(
         bool(frame._config.get("avisar_sobrecarga", True)))
+
+
+def construir(frame, mb):
+    m = wx.Menu()
+    _agregar_comandos(m, frame)
     mb.Append(m, _("&OBS"))
     _enlazar(frame, m)
 
 
 def _enlazar(frame, m):
     """Conecta el menú OBS ya armado con sus manejadores."""
+    from bellbird.ui import comandos_clips
     from bellbird.ui import comandos_grabacion
     from bellbird.ui import gui_microfono
     frame.Bind(wx.EVT_MENU, frame._on_obs_micro, frame.mi_obs_micro)
@@ -65,6 +73,8 @@ def _enlazar(frame, m):
                      comandos_grabacion.alternar_grabacion, frame)
     frame._bind_menu(frame.mi_obs_pausar_grabacion,
                      comandos_grabacion.alternar_pausa_grabacion, frame)
+    frame._bind_menu(frame.mi_obs_guardar_clip,
+                     comandos_clips.guardar_clip, frame)
     frame._bind_menu(frame.mi_avisos_sobrecarga,
                      frame._alternar_aviso_sobrecarga)
 

@@ -9,7 +9,7 @@ función para no cerrar un import circular.
 
 from __future__ import annotations
 
-from bellbird.core.ini_tipado import leer_texto, leer_booleano
+from bellbird.core.ini_tipado import leer_booleano, leer_entero, leer_texto
 
 
 def opciones_transmision(p) -> dict:
@@ -24,12 +24,19 @@ def opciones_transmision(p) -> dict:
         "avisar_sobrecarga": leer_booleano(p, "transmision", "avisar_sobrecarga"),
         "titulo_estado_obs": leer_booleano(p, "transmision", "titulo_estado_obs"),
         "grabar_al_transmitir": leer_booleano(p, "transmision", "grabar_al_transmitir"),
+        "clips": _clips(p),
         "avisar_encuadre": leer_booleano(p, "transmision", "avisar_encuadre"),
         "camara_fuente": leer_texto(p, "transmision", "camara_fuente"),
         "camara_invertir": leer_booleano(p, "transmision", "camara_invertir"),
         "guia_timbre": _timbre(p),
         **_opciones_youtube(p),
     }
+
+
+def _clips(p) -> int:
+    """La duración del búfer elegida; lo que no sea 0, 30 o 60 cae a 30."""
+    segundos = leer_entero(p, "transmision", "clips", lo=0, hi=60)
+    return segundos if segundos in (0, 30, 60) else 30
 
 
 def _timbre(p) -> str:

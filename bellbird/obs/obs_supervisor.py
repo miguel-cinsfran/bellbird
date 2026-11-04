@@ -17,6 +17,7 @@ from bellbird.core import diagnostico
 from bellbird.core.idioma import _
 from bellbird.obs import obs_activacion
 from bellbird.obs import obs_cliente
+from bellbird.obs import obs_clips
 from bellbird.obs import obs_estado
 from bellbird.obs import obs_lanzador
 from bellbird.obs import obs_salida
@@ -291,6 +292,16 @@ class SupervisorTransmision:
         frase = _("El chat en el vídeo estaba detrás de «{nombre}». Ahora está delante.")
         self._anunciar(frase.format(nombre=nombre), "aviso")
 
+    def _iniciar_transmision(self, gestor, cliente) -> None:
+        """Prepara los clips antes de que arranque el directo, sin impedirlo."""
+        obs_clips.preparar_para_directo(
+            cliente, obs_clips.leer_segundos(),
+            al_preparar=lambda: self._anunciar(_("Preparando los clips."), None),
+            al_fallar=lambda error: self._anunciar(
+                obs_cliente.mensaje_de_fallo_obs(error), "error"),
+            parada=self._parada)
+        gestor.iniciar_transmision(self._parada)
+
     def _probar_obs(self) -> None:
         gestor = self._crear_gestor()
         try:
@@ -329,7 +340,7 @@ class SupervisorTransmision:
             nombre = self._panel_tapado(gestor)
             if nombre:
                 self._anunciar_panel_tapado(nombre)
-            gestor.iniciar_transmision(self._parada)
+            self._iniciar_transmision(gestor, cliente)
             if self._parada.is_set():
                 return
             veredicto = self._esperar_salida(cliente, self._parada)

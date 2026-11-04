@@ -21,6 +21,7 @@ ATAJOS_PREDETERMINADOS = [
     ("obs_micro", "alt+shift+m"),
     ("obs_grabar", "alt+shift+g"),
     ("obs_pausar_grabacion", "alt+shift+p"),
+    ("guardar_clip", "alt+shift+r"),
     ("avisos_sobrecarga", "alt+shift+a"),
     ("conectar", "alt+shift+c"),
     ("desconectar", "alt+shift+d"),

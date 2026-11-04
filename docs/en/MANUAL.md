@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 0b2fd00d71072a6e13143996d123ce1b289ca172 -->
+<!-- original: es/MANUAL.md bebec23d1532fcf57b20b315b92770e3b059127a -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -354,6 +354,24 @@ its folder, copy the path or remove it from the list with `Delete`. Removing it
 from the list does not delete the file, and what is stopped from the OBS window
 does not appear in the list.
 
+### Saving a clip
+
+In *Preferences*, on the *OBS* category, the *Clips* list chooses how much is
+saved: *Off*, *30 seconds* or *60 seconds*, with *30 seconds* by default. With
+clips on, when the live stream starts from the application OBS prepares its
+replay buffer before broadcasting; if the profile has to be changed, the
+application says “Preparing the clips.”.
+
+`Alt+Shift+R`, or *Save clip* in the *OBS* menu, saves the last seconds to a
+file and announces the file name. If the buffer was not running and OBS is
+not streaming or recording, the application prepares it and turns it on. If it
+is already streaming or recording and the profile has the buffer with that
+duration, it only turns it on. If the profile does not have it, it asks you to
+stop the live stream and the recording before preparing it. With *Off*, Save
+clip says that clips are turned off. If the profile records lossless or with
+FFmpeg output, OBS does not offer clips: Save clip says so and the live stream
+goes on.
+
 ### The Broadcast tab
 
 The *OBS panel* (`Ctrl+Shift+O`) brings together in tabs what is done with OBS.
@@ -693,6 +711,7 @@ shortcuts. They all also appear in the menu bar, next to their action.
 | `Alt+Shift+M` | Mute the OBS microphone |
 | `Alt+Shift+G` | Start or stop recording |
 | `Alt+Shift+P` | Pause or resume recording |
+| `Alt+Shift+R` | Save a clip |
 | `Alt+Shift+O` | Show OBS |
 | `Alt+Shift+A` | Turn overload warnings on or off |
 

@@ -380,6 +380,14 @@ def gen_grabacion_reanudada():
     return _normalizar(_perc(_glide(E4, B4, 0.28, 0.28), 0.005, 0.22), 0.67)
 
 
+def gen_clip():
+    # Dos toques breves C6→E6, gesto de captura; distinto de los de grabación
+    # (G4-D5, D5-G4, A4-A4 y E4-B4).
+    n1 = _perc(_seno(C6, 0.05, 0.34), 0.001, 0.035)
+    n2 = _perc(_seno(E6, 0.09, 0.34), 0.001, 0.06)
+    return _normalizar(_concat(n1, n2), 0.7)
+
+
 def gen_directo_finalizado():
     # Confirmación de cierre corta y resuelta: subida E5→C6 que asienta.
     # Distinta del descenso de transmision_detenida y del arpegio de al_aire.
@@ -834,6 +842,12 @@ def s_grabacion_reanudada():
     return _normalizar(_perc(_glide(F4, C5, 0.28, 0.26), 0.006, 0.20), 0.65)
 
 
+def s_clip():
+    # Los mismos dos toques de captura en madera cálida.
+    return _normalizar(_concat(_madera(C6, 0.05, 0.34, 0.035),
+                               _madera(E6, 0.09, 0.34, 0.06)), 0.65)
+
+
 def s_directo_finalizado():
     return _seq(_madera(E5, 0.11, 0.34, 0.09),
                 _madera(C6, 0.20, 0.36, 0.16))
@@ -1198,6 +1212,7 @@ TEMAS = {
         "grabacion_detenida.wav":      gen_grabacion_detenida,
         "grabacion_en_pausa.wav":      gen_grabacion_en_pausa,
         "grabacion_reanudada.wav":     gen_grabacion_reanudada,
+        "clip.wav":                    gen_clip,
         "transmision_recuperada.wav":  gen_transmision_recuperada,
         "directo_finalizado.wav":      gen_directo_finalizado,
         "aviso.wav":                   gen_aviso,
@@ -1290,6 +1305,7 @@ TEMAS = {
         "grabacion_detenida.wav":      s_grabacion_detenida,
         "grabacion_en_pausa.wav":      s_grabacion_en_pausa,
         "grabacion_reanudada.wav":     s_grabacion_reanudada,
+        "clip.wav":                    s_clip,
         "transmision_recuperada.wav":  s_transmision_recuperada,
         "directo_finalizado.wav":      s_directo_finalizado,
         "aviso.wav":                   s_aviso,

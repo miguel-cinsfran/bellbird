@@ -87,6 +87,63 @@ class TestDialogoSinTextosSinEnvolver(unittest.TestCase):
                          sorted(map(_normalizar, esperados)))
 
 
+class TestPaginaObsClips(unittest.TestCase):
+    def setUp(self):
+        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.ruta = Path(self.tmp.name)
+        (self.ruta / "config.ini").write_text(config._CONFIG_FALLBACK,
+                                              encoding="utf-8")
+        parche = redirigir_rutas(self.ruta)
+        parche.__enter__()
+        self.addCleanup(parche.__exit__, None, None, None)
+        sin_clave = mock.patch.object(
+            preferencias_ia_clave.claves, "leer", return_value="")
+        sin_clave.start()
+        self.addCleanup(sin_clave.stop)
+        catalogo_vacio = mock.patch.object(
+            preferencias_ia.catalogo, "cargar",
+            return_value={"version": catalogo.VERSION, "fecha": None,
+                          "proveedores": {}})
+        catalogo_vacio.start()
+        self.addCleanup(catalogo_vacio.stop)
+
+    def _dialogo(self):
+        with mock.patch.object(motores, "listar_voces", return_value=[]):
+            dialogo = gui_preferencias.PreferenciasDialog(None, {})
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
+    def test_lista_de_clips_con_treinta_segundos_de_fabrica(self):
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_transmision
+        self.assertEqual(
+            [pagina.cho_clips.GetString(i) for i in range(3)],
+            ["Desactivados", "30 segundos", "60 segundos"])
+        self.assertEqual(pagina.cho_clips.GetStringSelection(), "30 segundos")
+        self.assertEqual(pagina.cho_clips.GetName(), "Clips")
+
+    def test_la_pagina_obs_no_repite_letras_de_acceso(self):
+        from tests.letras_acceso import letras_repetidas
+
+        dialogo = self._dialogo()
+        pagina = next(dialogo.nb.GetPage(i)
+                      for i in range(dialogo.nb.GetPageCount())
+                      if dialogo.nb.GetPageText(i) == "OBS")
+        self.assertEqual(letras_repetidas(pagina), {})
+
+    def test_guardar_clips_escribe_los_segundos_elegidos(self):
+        dialogo = self._dialogo()
+        pagina = dialogo.pagina_transmision
+        pagina.cho_clips.SetSelection(2)
+        guardados = {}
+        pagina.guardar(
+            lambda seccion, clave, valor: guardados.__setitem__(
+                (seccion, clave), valor), {})
+        self.assertEqual(guardados[("transmision", "clips")], "60")
+
+
 class TestPaginaDescargas(unittest.TestCase):
     def setUp(self):
         self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()

@@ -37,6 +37,16 @@ class PruebasSoundGen(unittest.TestCase):
             self.assertTrue(callable(generador_suave), nombre)
             self.assertIsNot(generador_suave, generador_default, nombre)
 
+    def test_el_clip_suena_distinto_de_los_sonidos_de_grabacion(self):
+        grabacion = ("grabacion_iniciada.wav", "grabacion_detenida.wav",
+                     "grabacion_en_pausa.wav", "grabacion_reanudada.wav",
+                     "grabacion_problema.wav")
+        for tema, sonidos in sound_gen.TEMAS.items():
+            with self.subTest(tema=tema):
+                clip = sonidos["clip.wav"]()
+                for nombre in grabacion:
+                    self.assertNotEqual(clip, sonidos[nombre](), nombre)
+
     def test_el_paneo_solo_refiere_eventos_validos_y_esta_en_rango(self):
         eventos = set(sound_gen.TEMAS["default"])
         self.assertTrue(set(sound_gen.PANEO).issubset(eventos))

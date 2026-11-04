@@ -72,6 +72,7 @@ ETIQUETAS = {
     "obs_micro": N_("Silenciar el micrófono de OBS"),
     "obs_grabar": N_("Iniciar o detener la grabación"),
     "obs_pausar_grabacion": N_("Pausar o reanudar la grabación"),
+    "guardar_clip": N_("Guardar clip"),
     "avisos_sobrecarga": N_("Activar o desactivar los avisos de sobrecarga"),
     # Conexión y chat
     # Traductores: acción del atajo que conecta el chat.

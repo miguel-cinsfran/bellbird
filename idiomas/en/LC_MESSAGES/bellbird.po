@@ -2652,6 +2652,34 @@ msgstr ""
 "Arrows move, Ctrl for big steps, Shift for one-pixel steps. Enter confirms,"
 " Esc undoes, Tab exits."
 
+#. Traductores: {n} es la cantidad de horas de la posición.
+#: bellbird/obs/duraciones.py bellbird/player/reproductor.py
+#, python-brace-format
+msgid "{n} hora"
+msgid_plural "{n} horas"
+msgstr[0] "{n} hour"
+msgstr[1] "{n} hours"
+
+#. Traductores: {n} es la cantidad de minutos por detrás del directo.
+#. Traductores: {n} es la cantidad de minutos de la posición.
+#: bellbird/obs/duraciones.py bellbird/player/busqueda_video.py
+#: bellbird/player/reproductor.py
+#, python-brace-format
+msgid "{n} minuto"
+msgid_plural "{n} minutos"
+msgstr[0] "{n} minute"
+msgstr[1] "{n} minutes"
+
+#. Traductores: {n} es la cantidad de segundos por detrás del directo.
+#. Traductores: {n} es la cantidad de segundos de la posición.
+#: bellbird/obs/duraciones.py bellbird/player/busqueda_video.py
+#: bellbird/player/reproductor.py
+#, python-brace-format
+msgid "{n} segundo"
+msgid_plural "{n} segundos"
+msgstr[0] "{n} second"
+msgstr[1] "{n} seconds"
+
 #: bellbird/obs/estado_grabacion.py
 msgid "Sin grabar"
 msgstr "Not recording"
@@ -2950,6 +2978,36 @@ msgstr "OBS could not complete the operation. Try again."
 #: bellbird/obs/obs_cliente.py bellbird/obs/obs_destinos.py
 msgid "Operación cancelada."
 msgstr "Operation canceled."
+
+#: bellbird/obs/obs_clips.py
+msgid "Los clips están desactivados en Preferencias."
+msgstr "Clips are off in Preferences."
+
+#: bellbird/obs/obs_clips.py
+msgid "OBS no ofrece clips con la calidad de grabación de este perfil."
+msgstr "OBS does not offer clips with this profile's recording quality."
+
+#: bellbird/obs/obs_clips.py
+msgid ""
+"Los clips se preparan antes de transmitir o grabar. Detén el directo y la "
+"grabación y vuelve a intentarlo."
+msgstr ""
+"Clips are prepared before broadcasting or recording. Stop the live stream "
+"and the recording and try again."
+
+#: bellbird/obs/obs_clips.py
+#, python-brace-format
+msgid "Clip guardado: {archivo}."
+msgstr "Clip saved: {archivo}."
+
+#: bellbird/obs/obs_clips.py
+#, python-brace-format
+msgid "Clips listos: desde ahora se guardan los últimos {segundos} segundos."
+msgstr "Clips ready: from now on the last {segundos} seconds are saved."
+
+#: bellbird/obs/obs_clips.py
+msgid "OBS no devolvió el archivo del clip."
+msgstr "OBS did not return the clip file."
 
 #. Traductores: {destino} es TikTok o YouTube.
 #: bellbird/obs/obs_destinos.py
@@ -3652,34 +3710,6 @@ msgid ""
 "fotogramas."
 msgstr "OBS is overloaded: {porcentaje} percent of the frames are dropped."
 
-#. Traductores: {n} es la cantidad de horas de la posición.
-#: bellbird/obs/obs_supervisor.py bellbird/player/reproductor.py
-#, python-brace-format
-msgid "{n} hora"
-msgid_plural "{n} horas"
-msgstr[0] "{n} hour"
-msgstr[1] "{n} hours"
-
-#. Traductores: {n} es la cantidad de minutos por detrás del directo.
-#. Traductores: {n} es la cantidad de minutos de la posición.
-#: bellbird/obs/obs_supervisor.py bellbird/player/busqueda_video.py
-#: bellbird/player/reproductor.py
-#, python-brace-format
-msgid "{n} minuto"
-msgid_plural "{n} minutos"
-msgstr[0] "{n} minute"
-msgstr[1] "{n} minutes"
-
-#. Traductores: {n} es la cantidad de segundos por detrás del directo.
-#. Traductores: {n} es la cantidad de segundos de la posición.
-#: bellbird/obs/obs_supervisor.py bellbird/player/busqueda_video.py
-#: bellbird/player/reproductor.py
-#, python-brace-format
-msgid "{n} segundo"
-msgid_plural "{n} segundos"
-msgstr[0] "{n} second"
-msgstr[1] "{n} seconds"
-
 #: bellbird/obs/obs_supervisor.py
 #, python-brace-format
 msgid "{frase}, ya se ve en {destino}"
@@ -3717,6 +3747,10 @@ msgstr "Could not connect to OBS to stop the broadcast."
 #, python-brace-format
 msgid "El chat en el vídeo estaba detrás de «{nombre}». Ahora está delante."
 msgstr "The chat on video was behind “{nombre}”. Now it is in front."
+
+#: bellbird/obs/obs_supervisor.py
+msgid "Preparando los clips."
+msgstr "Preparing the clips."
 
 #: bellbird/obs/obs_supervisor.py
 msgid "Iniciando la transmisión."
@@ -4421,6 +4455,10 @@ msgstr "Start or stop recording"
 #: bellbird/ui/atajos_captura.py
 msgid "Pausar o reanudar la grabación"
 msgstr "Pause or resume recording"
+
+#: bellbird/ui/atajos_captura.py
+msgid "Guardar clip"
+msgstr "Save clip"
 
 #: bellbird/ui/atajos_captura.py
 msgid "Activar o desactivar los avisos de sobrecarga"
@@ -7841,6 +7879,10 @@ msgid "Pa&usar o reanudar grabación"
 msgstr "Pause or resume recor&ding"
 
 #: bellbird/ui/menu_obs.py
+msgid "Guardar cl&ip"
+msgstr "Save cl&ip"
+
+#: bellbird/ui/menu_obs.py
 msgid "&Avisar si OBS se sobrecarga"
 msgstr "&Warn if OBS is overloaded"
 
@@ -9069,12 +9111,32 @@ msgid "Sonido"
 msgstr "Sound"
 
 #: bellbird/ui/preferencias_transmision.py
+msgid "Desactivados"
+msgstr "Off"
+
+#: bellbird/ui/preferencias_transmision.py
+msgid "30 segundos"
+msgstr "30 seconds"
+
+#: bellbird/ui/preferencias_transmision.py
+msgid "60 segundos"
+msgstr "60 seconds"
+
+#: bellbird/ui/preferencias_transmision.py
 msgid "A&visar si OBS se sobrecarga"
 msgstr "W&arn if OBS is overloaded"
 
 #: bellbird/ui/preferencias_transmision.py
 msgid "Mostrar en el &título de la ventana si se transmite o se graba"
 msgstr "Show streaming or recording in the &title of the window"
+
+#: bellbird/ui/preferencias_transmision.py
+msgid "C&lips:"
+msgstr "C&lips:"
+
+#: bellbird/ui/preferencias_transmision.py
+msgid "Clips"
+msgstr "Clips"
 
 #: bellbird/ui/preferencias_transmision.py
 msgid "&Puerto del chat en el vídeo:"

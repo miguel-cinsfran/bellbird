@@ -64,7 +64,7 @@ class PaginaTransmision:
 
         self.chk_clips_chat = wx.CheckBox(
             p,
-            label=_("Permitir {comando} en el &chat").format(
+            label=_("Permitir {comando} en el c&hat").format(
                 comando=COMANDO_CLIP),
             name=_("Permitir {comando} en el chat").format(
                 comando=COMANDO_CLIP))

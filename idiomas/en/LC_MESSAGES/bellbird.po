@@ -9219,8 +9219,8 @@ msgstr "Clips"
 
 #: bellbird/ui/preferencias_transmision.py
 #, python-brace-format
-msgid "Permitir {comando} en el &chat"
-msgstr "Allow {comando} in &chat"
+msgid "Permitir {comando} en el c&hat"
+msgstr "Allow {comando} in c&hat"
 
 #: bellbird/ui/preferencias_transmision.py
 #, python-brace-format

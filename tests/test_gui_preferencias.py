@@ -147,7 +147,7 @@ class TestPaginaObsClips(unittest.TestCase):
         pagina = self._dialogo().pagina_transmision
         self.assertTrue(pagina.chk_clips_chat.GetValue())
         self.assertEqual(pagina.chk_clips_chat.GetLabel(),
-                         "Permitir !clip en el &chat")
+                         "Permitir !clip en el c&hat")
         self.assertEqual(pagina.chk_clips_chat.GetName(),
                          "Permitir !clip en el chat")
         self.assertEqual(pagina.sp_clips_chat_espera.GetValue(), 1)

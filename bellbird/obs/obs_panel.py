@@ -45,7 +45,7 @@ class GestorPanelObs:
         actual = escena is None
         if actual:
             escena = self.escena_al_aire(parada)
-        elementos = self._elementos(escena, parada)
+        elementos = self.elementos(escena, parada)
         lienzo = self._pedir("GetVideoSettings", parada=parada)
         entradas = self._pedir("GetInputList", parada=parada).get("inputs", ())
         return obs_escena.describir_escena(
@@ -145,12 +145,12 @@ class GestorPanelObs:
     def usar_ventana(self, escena, item_value, parada=None):
         return obs_captura.usar_ventana(self._cliente, escena, item_value, parada)
 
-    def _elementos(self, escena, parada=None):
+    def elementos(self, escena, parada=None):
         datos = self._pedir("GetSceneItemList", {"sceneName": escena}, parada)
         return list(datos.get("sceneItems", ()))
 
     def _elemento(self, escena, fuente, parada=None):
-        return next((elemento for elemento in self._elementos(escena, parada)
+        return next((elemento for elemento in self.elementos(escena, parada)
                      if elemento.get("sourceName") == fuente), None)
 
     def _elemento_obligatorio(self, escena, fuente, parada=None):
@@ -164,7 +164,7 @@ class GestorPanelObs:
     def _elemento_en_grupo(self, escena, fuente, parada=None):
         # GetSceneItemList no baja a los grupos: si el usuario agrupó el panel,
         # sin esta búsqueda se creaba un segundo elemento en la escena.
-        for elemento in self._elementos(escena, parada):
+        for elemento in self.elementos(escena, parada):
             if not elemento.get("isGroup"):
                 continue
             datos = self._pedir("GetGroupSceneItemList",
@@ -230,27 +230,29 @@ class GestorPanelObs:
         transformacion = elemento["sceneItemTransform"]
         return {clave: transformacion[clave] for clave in ("positionX", "positionY", "alignment")}
 
+    def transformar(self, escena, transformacion, parada=None, *, fuente=NOMBRE_FUENTE) -> None:
+        elemento = self._elemento_obligatorio(escena, fuente, parada)
+        self._transformar_elemento(escena, elemento, transformacion, parada)
+
+    def _transformar_elemento(self, escena, elemento, transformacion, parada):
+        self._pedir("SetSceneItemTransform",
+                    {"sceneName": escena, "sceneItemId": elemento["sceneItemId"],
+                     "sceneItemTransform": transformacion}, parada)
+
     def posicionar(self, escena, x, y, alineacion, parada=None, *, fuente=NOMBRE_FUENTE) -> None:
         elemento = self._elemento_obligatorio(escena, fuente, parada)
         # OBS rechaza boundsWidth y boundsHeight en cero al recibir una transformación.
         transformacion = {"positionX": x, "positionY": y,
                           "alignment": alineacion}
-        self._pedir("SetSceneItemTransform", {
-            "sceneName": escena, "sceneItemId": elemento["sceneItemId"],
-            "sceneItemTransform": transformacion,
-        }, parada)
+        self._transformar_elemento(escena, elemento, transformacion, parada)
 
     def mover(self, escena, dx, dy, parada=None, *, fuente=NOMBRE_FUENTE) -> None:
         elemento = self._elemento_obligatorio(escena, fuente, parada)
-        transformacion_actual = elemento["sceneItemTransform"]
         transformacion = {
-            "positionX": transformacion_actual["positionX"] + dx,
-            "positionY": transformacion_actual["positionY"] + dy,
+            "positionX": elemento["sceneItemTransform"]["positionX"] + dx,
+            "positionY": elemento["sceneItemTransform"]["positionY"] + dy,
         }
-        self._pedir("SetSceneItemTransform", {
-            "sceneName": escena, "sceneItemId": elemento["sceneItemId"],
-            "sceneItemTransform": transformacion,
-        }, parada)
+        self._transformar_elemento(escena, elemento, transformacion, parada)
 
     def redimensionar(self, escena, ancho, alto, parada=None) -> None:
         # El tamaño vive en la entrada, no en el elemento de la escena; si la
@@ -266,16 +268,13 @@ class GestorPanelObs:
 
     def escalar(self, escena, ancho, alto, parada=None, *, fuente=NOMBRE_FUENTE) -> bool:
         elemento = self._elemento_obligatorio(escena, fuente, parada)
-        transformacion_actual = elemento["sceneItemTransform"]
         escala = obs_disposicion.escala_para(
-            ancho, alto, transformacion_actual.get("sourceWidth", 0),
-            transformacion_actual.get("sourceHeight", 0))
+            ancho, alto, elemento["sceneItemTransform"].get("sourceWidth", 0),
+            elemento["sceneItemTransform"].get("sourceHeight", 0))
         if escala is None:
             return False
-        self._pedir("SetSceneItemTransform", {
-            "sceneName": escena, "sceneItemId": elemento["sceneItemId"],
-            "sceneItemTransform": {"scaleX": escala[0], "scaleY": escala[1]},
-        }, parada)
+        self._transformar_elemento(escena, elemento,
+                                   {"scaleX": escala[0], "scaleY": escala[1]}, parada)
         return True
 
     def mostrar(self, escena, visible, parada=None, *, fuente=NOMBRE_FUENTE) -> None:
@@ -293,7 +292,7 @@ class GestorPanelObs:
         }, parada)
 
     def al_frente(self, escena, parada=None, *, fuente=NOMBRE_FUENTE) -> None:
-        elementos = self._elementos(escena, parada)
+        elementos = self.elementos(escena, parada)
         elemento = next((elemento for elemento in elementos
                          if elemento.get("sourceName") == fuente), None)
         if elemento is None:
@@ -308,7 +307,7 @@ class GestorPanelObs:
         }, parada)
 
     def mover_capa(self, escena, movimiento, parada=None, *, fuente=NOMBRE_FUENTE):
-        elementos = self._elementos(escena, parada)
+        elementos = self.elementos(escena, parada)
         movio = obs_capas.mover(self._pedir, elementos, escena, fuente,
                                 movimiento, parada)
         return movio, obs_capas.frase_de_movimiento(
@@ -322,7 +321,7 @@ class GestorPanelObs:
         cuando no hay nada encima.
         """
         escena = self.escena_al_aire(parada)
-        elementos = self._elementos(escena, parada)
+        elementos = self.elementos(escena, parada)
         nombre = fuente_encima_del_panel(elementos)
         if nombre is None:
             return None
@@ -332,12 +331,12 @@ class GestorPanelObs:
     def fuentes(self, escena, parada=None) -> tuple:
         if escena not in self.escenas(parada):
             return ()
-        elementos = self._elementos(escena, parada)
+        elementos = self.elementos(escena, parada)
         return tuple(elemento.get("sourceName", "") for elemento in sorted(
             elementos, key=lambda elemento: elemento.get("sceneItemIndex", 0), reverse=True))
 
     def instantanea(self, escena, parada=None, *, fuente=NOMBRE_FUENTE) -> obs_disposicion.SnapshotPanel:
-        elementos = self._elementos(escena, parada)
+        elementos = self.elementos(escena, parada)
         panel = next((elemento for elemento in elementos
                       if elemento.get("sourceName") == fuente), None)
         al_aire = self.escena_al_aire(parada) == escena

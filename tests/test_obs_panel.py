@@ -470,6 +470,16 @@ class GestorPanelObsTest(unittest.TestCase):
         doble = DobleObs([])
         self.assertEqual(self.gestor(doble).transformacion("Escena"), {})
 
+    def test_transformar_manda_una_peticion_con_el_elemento_y_la_transformacion(self):
+        doble = DobleObs([elemento(1, obs_panel.NOMBRE_FUENTE, 0)])
+        transformacion = {"positionX": 10, "positionY": 20, "alignment": 5}
+        self.gestor(doble).transformar("Escena", transformacion)
+        llamadas = [llamada for llamada in doble.llamadas
+                    if llamada[0] == "SetSceneItemTransform"]
+        self.assertEqual(len(llamadas), 1)
+        self.assertEqual(llamadas[0][1]["sceneItemId"], 1)
+        self.assertEqual(llamadas[0][1]["sceneItemTransform"], transformacion)
+
     def test_posicionar_manda_la_posicion_y_alineacion_recibidas(self):
         doble = DobleObs([elemento(1, obs_panel.NOMBRE_FUENTE, 0)])
         self.gestor(doble).posicionar("Escena", 123.5, 456.25, 7)

@@ -44,6 +44,7 @@ from bellbird.player.pantalla_completa import AccionesPantalla, PantallaCompleta
 from bellbird.player import reproductor_ciclo
 from bellbird.player import recuperacion
 from bellbird.player import relevo_ffmpeg
+from bellbird.player.vigilancia_relevo import aviso_de_corte
 from bellbird.player.formatos import mejor_audio as _mejor_audio
 from bellbird.player.formatos_youtube import (
     _altura_auto_vod, _alturas_disponibles, _es_hls, _preferir_hls,
@@ -91,15 +92,6 @@ def opciones_medio(es_directo: bool, solo_audio: bool = False) -> tuple[str, ...
     if solo_audio:
         opciones.append(":no-video")
     return tuple(opciones)
-
-
-def aviso_de_corte(pct, pct_anterior) -> str:
-    """Devuelve avisos solo al empezar y recuperarse un corte de búfer."""
-    if pct < 100 and (pct_anterior is None or pct_anterior >= 100):
-        return f"VLC_CORTE empezó porcentaje={pct:.0f}"
-    if pct >= 100 and pct_anterior is not None and pct_anterior < 100:
-        return "VLC_CORTE recuperado"
-    return ""
 
 
 def _registro_detallado_activo() -> bool:

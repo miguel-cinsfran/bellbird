@@ -24,7 +24,9 @@ from tests.ventanas_prueba import destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.downloads import descargas, formatos_reales
+from bellbird.obs import disenos_escena
 from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_grabaciones, gui_historial, gui_microfono, gui_transmision, gui_preferencias, control_grabacion, mover_con_flechas
+from bellbird.ui import escena_disenos
 from bellbird.ui import escena_pagina_agregar
 from bellbird.ui import escena_pagina_audio
 from bellbird.ui import escena_pagina_escena
@@ -346,6 +348,21 @@ class TestLetrasAccesoTamano(unittest.TestCase):
         self.assertEqual(letras_repetidas(dialogo), {})
 
 
+class TestLetrasAccesoDisenos(unittest.TestCase):
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+
+    def test_cuadro_sin_letras_repetidas(self):
+        fuentes = [
+            disenos_escena.Fuente("Juego", "otra", 1600, 900),
+            disenos_escena.Fuente("Cámara", "camara", 1280, 720),
+            disenos_escena.Fuente("Chat en el vídeo", "chat", 460, 620),
+        ]
+        dialogo = escena_disenos.DisenoEscenaDialog(None, fuentes, [])
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(letras_repetidas(dialogo), {})
+
+
 class TestLetrasAccesoRestream(unittest.TestCase):
     class _CuentaFalsa:
         def conectada(self):
@@ -537,6 +554,20 @@ class TestLetrasAccesoPanelObsEnIngles(TestLetrasAccesoPanelObs):
 
 
 class TestLetrasAccesoTamanoEnIngles(TestLetrasAccesoTamano):
+    # Gemela en inglés: repite la prueba sin copiarla.
+
+    @classmethod
+    def setUpClass(cls):
+        cls._ingles = ingles()
+        cls._ingles.__enter__()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._ingles.__exit__(None, None, None)
+        del cls._ingles
+
+
+class TestLetrasAccesoDisenosEnIngles(TestLetrasAccesoDisenos):
     # Gemela en inglés: repite la prueba sin copiarla.
 
     @classmethod

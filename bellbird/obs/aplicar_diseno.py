@@ -27,6 +27,17 @@ def _tipo(elemento):
     return "otra"
 
 
+def aplicar_diseno(gestor, registro, escena, diseno):
+    """Calcula el diseño con el lienzo de la escena y lo aplica."""
+    fuentes = fuentes_de_escena(gestor, escena)
+    if not fuentes:
+        raise ValueError("La escena no tiene fuentes")
+    lienzo = gestor.instantanea(escena, fuente=fuentes[0].nombre)
+    colocaciones = disenos_escena.calcular(
+        lienzo.lienzo_ancho, lienzo.lienzo_alto, fuentes, diseno)
+    return aplicar(gestor, registro, escena, colocaciones)
+
+
 def aplicar(gestor, registro, escena, colocaciones):
     """Aplica el diseño a la escena y devuelve el estado de cada fuente."""
     for colocacion in colocaciones:

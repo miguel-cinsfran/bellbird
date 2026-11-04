@@ -6,7 +6,9 @@ from unittest import mock
 
 import wx
 
-from bellbird.obs import obs_capas, obs_disposicion
+from bellbird.obs import (
+    disenos_escena, disenos_guardados, obs_capas, obs_disposicion)
+from bellbird.ui import escena_disenos
 from bellbird.ui import escena_pagina_agregar
 from bellbird.ui import escena_pagina_audio
 from bellbird.ui import escena_pagina_escena
@@ -374,6 +376,71 @@ class TestVentanaObs(unittest.TestCase):
         self.assertNotIn("redimensionar",
                          [llamada[0] for llamada in self.gestor.llamadas])
 
+    def test_el_boton_de_diseno_abre_con_las_fuentes_de_la_escena(self):
+        pagina = self.dialogo._pagina_fuentes
+        with mock.patch.object(escena_disenos, "pedir_diseno",
+                               return_value=None) as pedir, \
+                mock.patch.object(disenos_guardados, "cargar",
+                                  return_value=[]) as cargar, \
+                mock.patch.object(pagina.btn_diseno, "SetFocus") as foco:
+            self._pulsar(pagina.btn_diseno)
+        cargar.assert_called_once_with()
+        foco.assert_called_once_with()
+        args = pedir.call_args.args
+        self.assertIs(args[0], pagina)
+        self.assertEqual([fuente.nombre for fuente in args[1]],
+                         ["Cámara", "Chat en el vídeo", "Juego"])
+        self.assertEqual([fuente.tipo for fuente in args[1]],
+                         ["otra", "chat", "otra"])
+        self.assertEqual(args[2], [])
+
+    def test_cancelar_el_diseno_no_aplica_nada(self):
+        pagina = self.dialogo._pagina_fuentes
+        with mock.patch.object(escena_disenos, "pedir_diseno",
+                               return_value=None), \
+                mock.patch.object(disenos_guardados, "cargar",
+                                  return_value=[]), \
+                mock.patch.object(escena_pagina_fuentes.aplicar_diseno,
+                                  "aplicar_diseno") as aplicar, \
+                mock.patch.object(pagina.btn_diseno, "SetFocus"):
+            self._pulsar(pagina.btn_diseno)
+        aplicar.assert_not_called()
+        self.assertNotIn(("transformar", "Juego"),
+                         self.gestor.fuentes_enviadas)
+
+    def test_aceptar_el_diseno_lo_aplica_y_anuncia_el_resumen(self):
+        pagina = self.dialogo._pagina_fuentes
+        diseno = disenos_escena.Diseno(
+            clase="pantalla_completa", principal="Juego")
+        with mock.patch.object(escena_disenos, "pedir_diseno",
+                               return_value=("Diseño", diseno)), \
+                mock.patch.object(disenos_guardados, "cargar",
+                                  return_value=[]), \
+                mock.patch.object(pagina.btn_diseno, "SetFocus") as foco:
+            self._pulsar(pagina.btn_diseno)
+        self.assertIn(("transformar", "Juego"), self.gestor.fuentes_enviadas)
+        self.assertIn("Diseño aplicado: Diseño. Juego se ajusta a su lugar.",
+                      self.anuncios)
+        foco.assert_called_once_with()
+
+    def test_sin_fuentes_para_un_diseno_anuncia_y_no_abre_el_cuadro(self):
+        pagina = self.dialogo._pagina_fuentes
+        with mock.patch.object(
+                escena_pagina_fuentes.aplicar_diseno, "fuentes_de_escena",
+                return_value=[disenos_escena.Fuente(
+                    "Chat en el vídeo", "chat", 460, 620)]), \
+                mock.patch.object(escena_disenos, "pedir_diseno") as pedir:
+            self._pulsar(pagina.btn_diseno)
+        pedir.assert_not_called()
+        self.assertIn("La escena no tiene fuentes para un diseño.",
+                      self.anuncios)
+
+    def test_sin_escena_el_boton_de_diseno_anuncia_sin_seleccion(self):
+        pagina = self.dialogo._pagina_fuentes
+        with mock.patch.object(pagina, "_escena", return_value=""):
+            self._pulsar(pagina.btn_diseno)
+        self.assertIn("Sin selección", self.anuncios)
+
     def test_mover_anuncia_el_lugar_y_despues_la_descripcion(self):
         pagina = self.dialogo._pagina_fuentes
         pagina.cho_fuente.SetStringSelection("Chat en el vídeo")
@@ -495,6 +562,7 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(fuentes.chk_fijar.GetName(), "Bloquear posición")
         self.assertEqual(fuentes.btn_capa.GetName(), "Ordenar")
         self.assertEqual(fuentes.btn_ajuste.GetName(), "Mover con flechas")
+        self.assertEqual(fuentes.btn_diseno.GetName(), "Aplicar diseño…")
         self.assertEqual(fuentes.btn_restaurar.GetName(), "Deshacer cambios")
         self.assertEqual(fuentes.txt_detalle.GetName(), "Detalle de la fuente")
         agregar = self.dialogo._pagina_agregar
@@ -514,7 +582,7 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(self._nombres(self.dialogo._pagina_fuentes), [
             "Fuente", "Detalle de la fuente", "Posición", "Mover fuente",
             "Mostrar en la escena", "Bloquear posición", "Ordenar", "Tamaño…",
-            "Mover con flechas", "Deshacer cambios"])
+            "Mover con flechas", "Aplicar diseño…", "Deshacer cambios"])
         self.assertEqual(self._nombres(self.dialogo._pagina_agregar), [
             "Ventana", "Capturar ventana", "Agregar cámara…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_audio), [

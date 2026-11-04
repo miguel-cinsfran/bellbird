@@ -132,6 +132,23 @@ class AplicarDisenoTest(unittest.TestCase):
             ("Cámara", disenos_escena.ESTADO_LLENA),
             ("Juego", disenos_escena.ESTADO_AJUSTA)])
 
+    def test_aplicar_diseno_lee_el_lienzo_y_aplica_lo_calculado(self):
+        eventos = []
+        doble = DobleObs(_escena())
+        gestor = GestorQueAnota(doble, eventos)
+        diseno = disenos_escena.Diseno(
+            clase="pantalla_completa", principal="Juego")
+        resultado = aplicar_diseno.aplicar_diseno(
+            gestor, RegistroFalso(eventos), "Escena", diseno)
+        self.assertEqual(resultado,
+                         [("Juego", disenos_escena.ESTADO_AJUSTA)])
+        escritura = next(
+            llamada[1]["sceneItemTransform"] for llamada in doble.llamadas
+            if llamada[0] == "SetSceneItemTransform"
+            and llamada[1]["sceneItemId"] == 1)
+        self.assertEqual(
+            (escritura["boundsWidth"], escritura["boundsHeight"]), (1600, 900))
+
     def test_chat_superpuesto_solo_se_coloca(self):
         doble, eventos, colocaciones, _resultado = self._aplicar("superpuesto")
         por_nombre = {colocacion["nombre"]: colocacion

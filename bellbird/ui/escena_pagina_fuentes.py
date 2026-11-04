@@ -5,9 +5,10 @@ from __future__ import annotations
 import wx
 
 from bellbird.core.idioma import _, pgettext
-from bellbird.obs import consultas_transmision
-from bellbird.obs import obs_disposicion
-from bellbird.ui import escena_tamano
+from bellbird.obs import (
+    aplicar_diseno, consultas_transmision, disenos_fabrica, disenos_guardados,
+    obs_disposicion)
+from bellbird.ui import escena_disenos, escena_tamano
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui.mover_con_flechas import MoverConFlechas
@@ -32,8 +33,8 @@ class PaginaFuentes(wx.Panel):
         self.acciones = (
             self.cho_fuente, self.cho_posicion, self.btn_colocar,
             self.chk_mostrar, self.chk_fijar, self.btn_capa,
-            self.btn_tamano, self.btn_ajuste, self.btn_restaurar,
-            self.txt_detalle)
+            self.btn_tamano, self.btn_ajuste, self.btn_diseno,
+            self.btn_restaurar, self.txt_detalle)
         self._enlazar_eventos()
 
     @property
@@ -46,6 +47,10 @@ class PaginaFuentes(wx.Panel):
         sizer, padre = caja_de_grupo(self, _("Colocar fuente"))
         self._crear_grupo_colocar(padre, sizer)
         caja.Add(sizer, 0, wx.EXPAND | wx.ALL, 8)
+        self.btn_diseno = boton(
+            self, _("&Aplicar diseño…"),
+            nombre_de_etiqueta(_("&Aplicar diseño…")))
+        caja.Add(self.btn_diseno, 0, wx.ALL, 8)
         self.btn_restaurar = boton(
             self, _("Deshacer cambi&os"),
             nombre_de_etiqueta(_("Deshacer cambi&os")))
@@ -119,6 +124,7 @@ class PaginaFuentes(wx.Panel):
         self.btn_capa.Bind(wx.EVT_BUTTON, self._capa)
         self.chk_mostrar.Bind(wx.EVT_CHECKBOX, self._mostrar)
         self.chk_fijar.Bind(wx.EVT_CHECKBOX, self._fijar)
+        self.btn_diseno.Bind(wx.EVT_BUTTON, self._aplicar_diseno)
         self.btn_restaurar.Bind(wx.EVT_BUTTON, self._restaurar)
 
     def _capa(self, _event):
@@ -302,6 +308,33 @@ class PaginaFuentes(wx.Panel):
         if datos["movio"]:
             texto = f"{texto} {self._descripcion_corta(snap)}"
         anunciar(texto)
+
+    def _aplicar_diseno(self, event):
+        escena = self._escena()
+        if not escena:
+            anunciar(_("Sin selección"))
+            return
+        if self._operaciones.en_vuelo:
+            return
+        self._operaciones.en_hilo(
+            lambda: aplicar_diseno.fuentes_de_escena(self._gestor, escena),
+            lambda fuentes: self._abrir_disenos(escena, fuentes))
+
+    def _abrir_disenos(self, escena, fuentes):
+        if not any(fuente.tipo != "chat" for fuente in fuentes):
+            anunciar(_("La escena no tiene fuentes para un diseño."))
+            return
+        guardados = disenos_guardados.cargar()
+        elegido = escena_disenos.pedir_diseno(self, fuentes, guardados)
+        self.btn_diseno.SetFocus()
+        if elegido is None:
+            return
+        nombre, diseno = elegido
+        self._operaciones.en_hilo(
+            lambda: aplicar_diseno.aplicar_diseno(
+                self._gestor, self._registro, escena, diseno),
+            lambda estados: anunciar(
+                disenos_fabrica.resumen(nombre, estados)))
 
     def _restaurar(self, event):
         escena, fuente = self._destino()

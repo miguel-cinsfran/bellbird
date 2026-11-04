@@ -5596,6 +5596,7 @@ SUPERFICIES = {
     "escena_pagina_agregar.py": "escena",
     "escena_pagina_audio.py": "escena",
     "escena_tamano.py": "escena",
+    "escena_disenos.py": "escena",
     "control_grabacion.py": "transmision",
     "directo_panel.py": "transmision",
     "mover_con_flechas.py": "escena",

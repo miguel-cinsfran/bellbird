@@ -2653,6 +2653,84 @@ msgstr ""
 "Arrows move, Ctrl for big steps, Shift for one-pixel steps. Enter confirms,"
 " Esc undoes, Tab exits."
 
+#: bellbird/obs/disenos_fabrica.py
+msgid "la fuente principal"
+msgstr "the main source"
+
+#: bellbird/obs/disenos_fabrica.py
+msgid "la fuente en la esquina"
+msgstr "the source in the corner"
+
+#: bellbird/obs/disenos_fabrica.py
+msgid "la fuente a la izquierda"
+msgstr "the source on the left"
+
+#: bellbird/obs/disenos_fabrica.py
+msgid "la fuente a la derecha"
+msgstr "the source on the right"
+
+#: bellbird/obs/disenos_fabrica.py
+msgid "Juego con cámara en una esquina"
+msgstr "Game with camera in a corner"
+
+#: bellbird/obs/disenos_fabrica.py
+msgid "Juego con cámara y chat al costado"
+msgstr "Game with camera and chat on the side"
+
+#: bellbird/obs/disenos_fabrica.py
+msgid "Juego a pantalla completa"
+msgstr "Game full screen"
+
+#: bellbird/obs/disenos_fabrica.py
+msgid "Cámara a pantalla completa"
+msgstr "Camera full screen"
+
+#: bellbird/obs/disenos_fabrica.py
+msgid "Juego y cámara lado a lado"
+msgstr "Game and camera side by side"
+
+#: bellbird/obs/disenos_fabrica.py
+msgid "Juego grande y cámara al costado"
+msgstr "Large game and camera on the side"
+
+#: bellbird/obs/disenos_fabrica.py
+#, python-brace-format
+msgid "Elige una fuente para {lugar}."
+msgstr "Select a source for {lugar}."
+
+#: bellbird/obs/disenos_fabrica.py
+#, python-brace-format
+msgid "{fuente} está en dos lugares. Elige otra."
+msgstr "{fuente} is in two places. Select another."
+
+#: bellbird/obs/disenos_fabrica.py
+msgid ""
+"La escena no tiene el panel de chat. Elige Sin chat o agrega el panel en la"
+" pestaña Agregar."
+msgstr ""
+"The scene does not have the chat panel. Select No chat or add the panel on "
+"the Add tab."
+
+#: bellbird/obs/disenos_fabrica.py
+#, python-brace-format
+msgid "Diseño aplicado: {nombre}."
+msgstr "Layout applied: {nombre}."
+
+#: bellbird/obs/disenos_fabrica.py
+#, python-brace-format
+msgid "{fuente} llena su lugar, con los bordes recortados."
+msgstr "{fuente} fills its place, with the edges cropped."
+
+#: bellbird/obs/disenos_fabrica.py
+#, python-brace-format
+msgid "{fuente} se ajusta a su lugar."
+msgstr "{fuente} fits its place."
+
+#: bellbird/obs/disenos_fabrica.py
+#, python-brace-format
+msgid "{fuente} todavía no informa su tamaño y se ajusta a su lugar."
+msgstr "{fuente} does not report its size yet and fits its place."
+
 #. Traductores: {n} es la cantidad de horas de la posición.
 #: bellbird/obs/duraciones.py bellbird/player/reproductor.py
 #, python-brace-format
@@ -5585,6 +5663,156 @@ msgstr "Framing warnings on"
 msgid "Avisos de encuadre desactivados"
 msgstr "Framing warnings off"
 
+#: bellbird/ui/escena_disenos.py
+msgid "Automático"
+msgstr "Automatic"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Ajustar"
+msgstr "Fit"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Llenar"
+msgstr "Fill"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Pequeño, un quinto del ancho"
+msgstr "Small, one fifth of the width"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Mediano, un cuarto del ancho"
+msgstr "Medium, one quarter of the width"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Grande, un tercio del ancho"
+msgstr "Large, one third of the width"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Mitad y mitad"
+msgstr "Half and half"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Dos tercios y un tercio"
+msgstr "Two thirds and one third"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Sin chat"
+msgstr "No chat"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Encima de la imagen"
+msgstr "Over the image"
+
+#: bellbird/ui/escena_disenos.py
+msgid "En una franja a la derecha"
+msgstr "In a strip on the right"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Aplicar diseño"
+msgstr "Apply layout"
+
+#: bellbird/ui/escena_disenos.py
+msgid "&Diseño:"
+msgstr "&Layout:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "&Fuente principal:"
+msgstr "&Main source:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Ajuste de la fuente principal"
+msgstr "Fit for the main source"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Fuente en la &esquina:"
+msgstr "Source in the c&orner:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Ajuste de la fuente en la esquina"
+msgstr "Fit for the source in the corner"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Fuente a la &izquierda:"
+msgstr "Source on the le&ft:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Ajuste de la fuente a la izquierda"
+msgstr "Fit for the source on the left"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Fuente a la de&recha:"
+msgstr "Source on the ri&ght:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Ajuste de la fuente a la derecha"
+msgstr "Fit for the source on the right"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Ajuste:"
+msgstr "Fit:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Es&quina:"
+msgstr "Cor&ner:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "&Tamaño:"
+msgstr "&Size:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Re&parto:"
+msgstr "S&plit:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "&Chat:"
+msgstr "C&hat:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Esquina del c&hat:"
+msgstr "Chat co&rner:"
+
+#: bellbird/ui/escena_disenos.py bellbird/ui/gui_microfono.py
+msgid "&Aplicar"
+msgstr "&Apply"
+
+#: bellbird/ui/escena_disenos.py
+msgid "&Guardar como…"
+msgstr "Sa&ve as…"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Eli&minar"
+msgstr "&Delete"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Cance&lar"
+msgstr "&Cancel"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Ese nombre es de un diseño de fábrica. Elige otro."
+msgstr "That name belongs to a factory layout. Select another."
+
+#: bellbird/ui/escena_disenos.py
+#, python-brace-format
+msgid "Diseño guardado: {nombre}"
+msgstr "Layout saved: {nombre}"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Los diseños de fábrica no se eliminan."
+msgstr "Factory layouts cannot be deleted."
+
+#: bellbird/ui/escena_disenos.py
+#, python-brace-format
+msgid "Diseño eliminado: {nombre}"
+msgstr "Layout deleted: {nombre}"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Nombre del diseño:"
+msgstr "Layout name:"
+
+#: bellbird/ui/escena_disenos.py
+msgid "Guardar diseño"
+msgstr "Save layout"
+
 #: bellbird/ui/escena_pagina_agregar.py
 msgid "Ventana capturada"
 msgstr "Captured window"
@@ -5645,6 +5873,10 @@ msgstr "Image saved"
 #: bellbird/ui/escena_pagina_fuentes.py
 msgid "Colocar fuente"
 msgstr "Place source"
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "&Aplicar diseño…"
+msgstr "Appl&y layout…"
 
 #: bellbird/ui/escena_pagina_fuentes.py
 msgid "Deshacer cambi&os"
@@ -5718,6 +5950,10 @@ msgstr "The scene has no sources."
 #, python-brace-format
 msgid "{fuente} todavía no informa su tamaño."
 msgstr "{fuente} does not report its size yet."
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "La escena no tiene fuentes para un diseño."
+msgstr "The scene does not have sources for a layout."
 
 #: bellbird/ui/escena_pagina_fuentes.py
 msgid "Cambios deshechos"
@@ -7341,10 +7577,6 @@ msgstr "&Device:"
 #: bellbird/ui/gui_microfono.py
 msgid "Dispositivo"
 msgstr "Device"
-
-#: bellbird/ui/gui_microfono.py
-msgid "&Aplicar"
-msgstr "&Apply"
 
 #: bellbird/ui/gui_microfono.py
 msgid "Elige un dispositivo."

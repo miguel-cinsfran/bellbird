@@ -216,7 +216,7 @@
   </style>
 </head>
 <body>
-<!-- original: es/MANUAL.md 21671b057832bccbc7f32ab00a82da08179291a9 -->
+<!-- original: es/MANUAL.md 28ab845685aa3f64c96fb5fa8eab8cbfb5719928 -->
 
 <h1 id="bellbird-user-manual">Bellbird, user manual</h1>
 <p>This is a translation of the Spanish original, made with artificial
@@ -373,10 +373,12 @@ reads with the Windows voice and warns you once. The key is saved in
 <code>credenciales.json</code>.</p>
 <h3 id="alias">Alias</h3>
 <p>The alias is for names that are a combination of letters and numbers.
-Open the context menu of a message, choose <em>Set alias</em> for
-<author>… and type how you want to hear it. The alias also applies to
-messages that were already there, and moderation still acts on the real
-account. To remove it, leave the field empty.</p>
+Open the context menu of a message, choose <em>Assign alias to
+<author>…</em> and type how you want to hear it. The alias also applies
+to messages that were already there, and moderation still acts on the
+real account. If the author already has an alias, the menu says
+<em>Change alias of <author>…</em>. To remove it, leave the field
+empty.</p>
 <h3 id="writing-in-the-chat">Writing in the chat</h3>
 <p>The writing box comes after the list in the Tab order, and
 <code>Alt+Enter</code> moves the focus to it from anywhere.
@@ -410,6 +412,13 @@ example “40 seconds behind the live stream”. With YouTube's separate
 tracks you can go back up to an hour, and <code>Ctrl+End</code> returns
 to the live stream. In a video, the position slider arrows move ten
 seconds.</p>
+<p>If a YouTube live stream with separate tracks loses its connection
+and starts cutting out, the application reconnects it at the same point
+and says “Reconnecting the live stream”, with its sound. It does this up
+to three times in ten minutes. If it keeps cutting out, it warns once
+“The live stream keeps cutting out. Reload it if it doesn't improve.”,
+with another sound, and does not warn again until you load another
+video.</p>
 <p>The <em>Play sound only, without the picture</em> check box, in
 <em>Preferences</em>, on the <em>Player</em> category, is checked. With
 it, a recorded video opens a single link and jumps in less than a
@@ -580,13 +589,14 @@ window buttons. If no recording is in progress, pausing says so and
 changes nothing in OBS. If OBS does not pause the recording, the
 application says so: some profiles may not allow it.</p>
 <p>When you stop the recording, from the application or because the
-broadcast ended, you hear “Recording saved” with the file name.
-<em>Saved recordings…</em>, in the <em>Recording</em> tab, lists what
-was recorded that way, from newest to oldest. From there you can open
-the file with <code>Enter</code>, open its folder, copy the path or
-remove it from the list with <code>Delete</code>. Removing it from the
-list does not delete the file, and what is stopped from the OBS window
-does not appear in the list.</p>
+broadcast ended, you hear “Recording saved” with the file name. The
+<em>Recordings and clips</em> list, in the <em>Recording</em> tab, has
+what was recorded that way and the saved clips, from newest to oldest,
+and it is read again when you return to the tab. Each clip starts with
+“Clip”. From there you can open the file with <code>Enter</code>, open
+its folder, copy the path or remove it from the list with
+<code>Delete</code>. Removing it from the list does not delete the file,
+and what is stopped from the OBS window does not appear in the list.</p>
 <h3 id="saving-a-clip">Saving a clip</h3>
 <p>In <em>Preferences</em>, on the <em>OBS</em> category, the
 <em>Clips</em> list chooses how much is saved: <em>Off</em>, <em>30
@@ -656,8 +666,10 @@ and <em>Statistics</em> adds the average and peak viewers, the views and
 the time watched to the detail. <em>Update</em> reads the list again.
 Everything is read-only: events are not created or edited here.</p>
 <p><em>Account</em> says which account is connected, with its email or
-its user name, and the destinations it has. From there you connect the
-account, reauthorize it or disconnect it.</p>
+its user name, and the destinations it has. If the account streams to
+YouTube and a YouTube session is started in Bellbird, it also says
+whether that channel is the one of the session or a different one. From
+there you connect the account, reauthorize it or disconnect it.</p>
 <h2 id="camera-framing">Camera framing</h2>
 <p>If there is a camera in the live OBS scene, the application says how
 you look in it. It reports how many faces there are, whether you are
@@ -718,15 +730,16 @@ what it has. Browsing the list does not change what is broadcast.
 image…</em> saves an image of it.</p>
 <p><em>Sources</em> chooses a source of the scene and moves it to one of
 the nine positions, changes its size, hides it or locks it.
-<em>Layer</em> opens a menu to bring it to the front, bring it forward,
-send it backward or send it to the back, and the Applications key in the
-list opens the same menu. <em>Size…</em> opens a dialog to type the
-width and height in pixels. <em>Move with arrows</em> moves it in small
-steps: <code>Ctrl</code> gives large steps, <code>Shift</code> one-pixel
-steps, <code>Enter</code> confirms and <code>Esc</code> undoes. The
-<em>Source details</em> field, next to the list, says where it is, how
-big it is and what covers it. <em>Undo changes</em> returns everything
-to how it was when the window was opened.</p>
+<em>Order</em> opens a menu with <em>Move to Top</em>, <em>Move Up</em>,
+<em>Move Down</em> and <em>Move to Bottom</em>, which decide which
+source covers which, and the Applications key in the list opens the same
+menu. <em>Size…</em> opens a dialog to type the width and height in
+pixels. <em>Move with arrows</em> moves it in small steps:
+<code>Ctrl</code> gives large steps, <code>Shift</code> one-pixel steps,
+<code>Enter</code> confirms and <code>Esc</code> undoes. The <em>Source
+details</em> field, next to the list, says where it is, how big it is
+and what covers it. <em>Undo changes</em> returns everything to how it
+was when the window was opened.</p>
 <p><em>Add</em> captures a window from the computer or adds a Windows
 camera to the current scene. <em>Audio</em> mutes the OBS microphone and
 chooses which one is used. When it finishes, the source lists and the
@@ -743,10 +756,11 @@ broadcasting.</p>
 <p><em>Start recording</em> and <em>Stop recording</em> do the same as
 the panel buttons, with their sounds and announcements. <em>Pause
 recording</em> appears while recording and becomes <em>Resume
-recording</em> when the recording is paused. <em>Saved recordings…</em>
-lists what the application stopped. <em>Record while broadcasting</em>
-is the same preference as in the <em>Broadcast</em> menu: changing one
-changes the other. <em>Update status</em> reads it again.</p>
+recording</em> when the recording is paused. The <em>Recordings and
+clips</em> list has what the application stopped and the saved clips.
+<em>Record while broadcasting</em> is the same preference as in the
+<em>Broadcast</em> menu: changing one changes the other. <em>Update
+status</em> reads it again.</p>
 <p>If OBS is closed, the panel opens it. If it does not respond, it says
 so in <em>Status</em> and does not freeze.</p>
 <h2 id="chat-panel-for-streaming">Chat panel for streaming</h2>
@@ -817,7 +831,8 @@ chat panel and scheduled messages. What goes into the summary is chosen
 in <em>Preferences</em>, on the <em>Status (F2)</em> category, including
 the OBS data and the song that is playing. While you stream from the
 application, <code>F2</code> starts with how the live stream is going.
-With the YouTube session started, it also says how many units of the
+If you check <em>YouTube quota used today</em>, which comes unchecked,
+and the YouTube session is started, it also says how many units of the
 daily quota were used today from this computer. The number is
 approximate and resets at midnight, Pacific time, when Google restores
 the quota. Because the quota is shared among those who use the

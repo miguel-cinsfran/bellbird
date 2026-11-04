@@ -132,10 +132,11 @@ avisa una vez. La clave se guarda en `credenciales.json`.
 ### Alias
 
 El alias sirve para los nombres que son una combinación de letras y números.
-Abre el menú contextual de un mensaje, elige *Poner alias a <autor>…* y escribe
-cómo quieres oírlo. El alias vale también para los mensajes que ya estaban, y
-la moderación sigue actuando sobre la cuenta real. Para eliminarlo, deja el
-campo vacío.
+Abre el menú contextual de un mensaje, elige *Asignar alias a <autor>…* y
+escribe cómo quieres oírlo. El alias vale también para los mensajes que ya
+estaban, y la moderación sigue actuando sobre la cuenta real. Si el autor ya
+tiene alias, el menú dice *Cambiar alias de <autor>…*. Para eliminarlo, deja
+el campo vacío.
 
 ### Escribir en el chat
 
@@ -173,6 +174,13 @@ En un directo, los saltos de un minuto se acumulan y dicen dónde quedas, por
 ejemplo «40 segundos por detrás del directo». Con las pistas separadas de
 YouTube se puede retroceder hasta una hora, y `Ctrl+Fin` vuelve al directo. En
 un vídeo, las flechas del deslizador de posición mueven diez segundos.
+
+Si un directo de YouTube con las pistas separadas pierde la conexión y empieza
+a cortarse, la aplicación lo reconecta en el mismo punto y dice «Reconectando
+el directo», con su sonido. Lo hace hasta tres veces en diez minutos. Si sigue
+cortándose, avisa una sola vez «El directo sigue con cortes. Vuelve a cargarlo
+si no mejora.», con otro sonido, y no vuelve a avisar hasta que cargues otro
+vídeo.
 
 La casilla *Reproducir solo el audio, sin imagen*, en *Preferencias*, categoría
 *Reproductor*, viene marcada. Con ella, un vídeo grabado abre un solo enlace y
@@ -345,11 +353,12 @@ OBS. Si OBS no pausa la grabación, la aplicación lo dice: algunos perfiles
 pueden no permitirlo.
 
 Al detener la grabación, desde la aplicación o porque terminó la transmisión,
-se oye «Grabación guardada» con el nombre del archivo. *Grabaciones guardadas…*,
-en la pestaña *Grabación*, lista lo grabado así, de
-lo más nuevo a lo más antiguo. Desde ahí puedes abrir el archivo con `Intro`,
-abrir su carpeta, copiar la ruta o eliminarlo de la lista con `Supr`. Eliminar
-de la lista no borra el archivo, y lo que se detiene desde la ventana de OBS no
+se oye «Grabación guardada» con el nombre del archivo. La lista *Grabaciones y
+clips*, en la pestaña *Grabación*, tiene lo grabado así y los clips guardados,
+de lo más nuevo a lo más antiguo, y se relee al volver a la pestaña. Cada clip
+empieza por «Clip». Desde ahí puedes abrir el archivo con `Intro`, abrir su
+carpeta, copiar la ruta o eliminarlo de la lista con `Supr`. Eliminar de la
+lista no borra el archivo, y lo que se detiene desde la ventana de OBS no
 aparece en la lista.
 
 ### Guardar un clip
@@ -424,7 +433,9 @@ espectadores, las vistas y el tiempo visto. *Actualizar* vuelve a leer la
 lista. Todo es de solo lectura: desde acá no se crean ni se editan eventos.
 
 *Cuenta* dice qué cuenta está conectada, con su correo o su nombre de usuario,
-y los destinos que tiene. Desde ahí conectas la cuenta, vuelves a autorizarla o
+y los destinos que tiene. Si la cuenta transmite a YouTube y hay sesión de
+YouTube iniciada en Bellbird, dice también si ese canal es el de la sesión o
+es otro. Desde ahí conectas la cuenta, vuelves a autorizarla o
 la desconectas.
 
 ## Encuadre de cámara
@@ -490,9 +501,9 @@ escena* cambia la escena que se emite y *Guardar imagen…* guarda una imagen de
 ella.
 
 *Fuentes* elige una fuente de la escena y la mueve a una de las nueve
-posiciones, la cambia de tamaño, la oculta o la bloquea. *Capa* abre un menú
-para traerla al frente, traerla adelante, enviarla atrás o enviarla al fondo, y
-la tecla Aplicaciones en la lista abre el mismo menú. *Tamaño…* abre un cuadro
+posiciones, la cambia de tamaño, la oculta o la bloquea. *Ordenar* abre un menú
+con *Mover a la cima*, *Subir*, *Bajar* y *Mover al fondo*, que deciden qué
+fuente tapa a cuál, y la tecla Aplicaciones en la lista abre el mismo menú. *Tamaño…* abre un cuadro
 para escribir el ancho y el alto en píxeles. *Mover con flechas* la mueve en
 pasos pequeños: `Ctrl` da pasos grandes, `Mayús` pasos de un píxel, `Intro`
 confirma y `Esc` deshace. El campo *Detalle de la fuente*, junto a la lista,
@@ -516,7 +527,8 @@ y si además se está transmitiendo.
 *Iniciar grabación* y *Detener grabación* hacen lo mismo que los botones del
 panel, con sus sonidos y sus anuncios. *Pausar grabación* aparece mientras se
 graba y pasa a *Reanudar grabación* cuando la grabación está en pausa.
-*Grabaciones guardadas…* lista lo que la aplicación detuvo. *Grabar también al
+La lista *Grabaciones y clips* tiene lo que la aplicación detuvo y los clips
+guardados. *Grabar también al
 transmitir* es la misma preferencia del menú *Transmisión*: cambiar una cambia
 la otra. *Actualizar estado* lo vuelve a leer.
 
@@ -597,9 +609,9 @@ para YouTube y otra para TikTok, y los directos terminados salen marcados.
 curso, mensajes leídos, donaciones, el panel de chat y los mensajes automáticos.
 Qué entra en el resumen se elige en *Preferencias*, categoría *Estado (F2)*,
 incluidos los datos de OBS y la canción que suena. Mientras transmites desde la
-aplicación, `F2` empieza por cómo va el directo. Con la sesión de YouTube
-iniciada, también dice cuántas unidades de la cuota diaria se usaron hoy desde
-este equipo. El número es aproximado y se reinicia a medianoche, hora del
+aplicación, `F2` empieza por cómo va el directo. Si marcas *Cuota de YouTube
+usada hoy*, que viene desmarcada, y la sesión de YouTube está iniciada, también
+dice cuántas unidades de la cuota diaria se usaron hoy desde este equipo. El número es aproximado y se reinicia a medianoche, hora del
 Pacífico, cuando Google repone la cuota. Como la cuota se comparte entre
 quienes usan la aplicación, sirve para saber si un error de cuota viene de tu
 uso o del de otros.

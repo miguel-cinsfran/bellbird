@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 21671b057832bccbc7f32ab00a82da08179291a9 -->
+<!-- original: es/MANUAL.md 28ab845685aa3f64c96fb5fa8eab8cbfb5719928 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -134,10 +134,11 @@ you once. The key is saved in `credenciales.json`.
 ### Alias
 
 The alias is for names that are a combination of letters and numbers. Open the
-context menu of a message, choose *Set alias* for <author>… and type how you
-want to hear it. The alias also applies to messages that were already there,
-and moderation still acts on the real account. To remove it, leave the field
-empty.
+context menu of a message, choose *Assign alias to <author>…* and type how
+you want to hear it. The alias also applies to messages that were already
+there, and moderation still acts on the real account. If the author already
+has an alias, the menu says *Change alias of <author>…*. To remove it, leave
+the field empty.
 
 ### Writing in the chat
 
@@ -175,6 +176,13 @@ In a live stream, one-minute jumps add up and say where you land, for example
 “40 seconds behind the live stream”. With YouTube's separate tracks you can go
 back up to an hour, and `Ctrl+End` returns to the live stream. In a video, the
 position slider arrows move ten seconds.
+
+If a YouTube live stream with separate tracks loses its connection and starts
+cutting out, the application reconnects it at the same point and says
+“Reconnecting the live stream”, with its sound. It does this up to three times
+in ten minutes. If it keeps cutting out, it warns once “The live stream keeps
+cutting out. Reload it if it doesn't improve.”, with another sound, and does
+not warn again until you load another video.
 
 The *Play sound only, without the picture* check box, in *Preferences*, on the
 *Player* category, is checked. With it, a recorded video opens a single link
@@ -347,10 +355,12 @@ does not pause the recording, the application says so: some profiles may not
 allow it.
 
 When you stop the recording, from the application or because the broadcast
-ended, you hear “Recording saved” with the file name. *Saved recordings…*, in
-the *Recording* tab, lists what was recorded that
-way, from newest to oldest. From there you can open the file with `Enter`, open
-its folder, copy the path or remove it from the list with `Delete`. Removing it
+ended, you hear “Recording saved” with the file name. The *Recordings and
+clips* list, in the *Recording* tab, has what was recorded that way and the
+saved clips, from newest to oldest, and it is read again when you return to
+the tab. Each clip starts with “Clip”. From there you can open the file with
+`Enter`, open its folder, copy the path or remove it from the list with
+`Delete`. Removing it
 from the list does not delete the file, and what is stopped from the OBS window
 does not appear in the list.
 
@@ -427,7 +437,9 @@ time watched to the detail. *Update* reads the list again. Everything is
 read-only: events are not created or edited here.
 
 *Account* says which account is connected, with its email or its user name, and
-the destinations it has. From there you connect the account, reauthorize it or
+the destinations it has. If the account streams to YouTube and a YouTube
+session is started in Bellbird, it also says whether that channel is the one
+of the session or a different one. From there you connect the account, reauthorize it or
 disconnect it.
 
 ## Camera framing
@@ -495,9 +507,10 @@ is broadcast.
 image of it.
 
 *Sources* chooses a source of the scene and moves it to one of the nine
-positions, changes its size, hides it or locks it. *Layer* opens a menu to
-bring it to the front, bring it forward, send it backward or send it to the
-back, and the Applications key in the list opens the same menu. *Size…* opens a
+positions, changes its size, hides it or locks it. *Order* opens a menu with
+*Move to Top*, *Move Up*, *Move Down* and *Move to Bottom*, which decide which
+source covers which, and the Applications key in the list opens the same
+menu. *Size…* opens a
 dialog to type the width and height in pixels. *Move with arrows* moves it in
 small steps: `Ctrl` gives large steps, `Shift` one-pixel steps, `Enter`
 confirms and `Esc` undoes. The *Source details* field, next to the list, says
@@ -520,8 +533,8 @@ the microphone and whether it is also broadcasting.
 
 *Start recording* and *Stop recording* do the same as the panel buttons, with
 their sounds and announcements. *Pause recording* appears while recording and
-becomes *Resume recording* when the recording is paused. *Saved recordings…*
-lists what the application stopped. *Record while broadcasting* is the same
+becomes *Resume recording* when the recording is paused. The *Recordings and
+clips* list has what the application stopped and the saved clips. *Record while broadcasting* is the same
 preference as in the *Broadcast* menu: changing one changes the other.
 *Update status* reads it again.
 
@@ -604,8 +617,8 @@ has been in progress, messages read, donations, the chat panel and scheduled
 messages. What goes into the summary is chosen in *Preferences*, on the
 *Status (F2)* category, including the OBS data and the song that is playing.
 While you stream from the application, `F2` starts with how the live stream is
-going. With
-the YouTube session started, it also says how many units of the daily quota were
+going. If you check *YouTube quota used today*, which comes unchecked, and the
+YouTube session is started, it also says how many units of the daily quota were
 used today from this computer. The number is approximate and resets at midnight,
 Pacific time, when Google restores the quota. Because the quota is shared among
 those who use the application, it helps to know whether a quota error comes from

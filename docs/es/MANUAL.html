@@ -365,10 +365,11 @@ lee con la voz de Windows y lo avisa una vez. La clave se guarda en
 <code>credenciales.json</code>.</p>
 <h3 id="alias">Alias</h3>
 <p>El alias sirve para los nombres que son una combinación de letras y
-números. Abre el menú contextual de un mensaje, elige <em>Poner alias a
-<autor>…</em> y escribe cómo quieres oírlo. El alias vale también para
+números. Abre el menú contextual de un mensaje, elige <em>Asignar alias
+a <autor>…</em> y escribe cómo quieres oírlo. El alias vale también para
 los mensajes que ya estaban, y la moderación sigue actuando sobre la
-cuenta real. Para eliminarlo, deja el campo vacío.</p>
+cuenta real. Si el autor ya tiene alias, el menú dice <em>Cambiar alias
+de <autor>…</em>. Para eliminarlo, deja el campo vacío.</p>
 <h3 id="escribir-en-el-chat">Escribir en el chat</h3>
 <p>El cuadro de escritura está después de la lista en el orden de
 tabulación, y <code>Alt+Intro</code> lleva el foco hasta él desde
@@ -404,6 +405,12 @@ quedas, por ejemplo «40 segundos por detrás del directo». Con las pistas
 separadas de YouTube se puede retroceder hasta una hora, y
 <code>Ctrl+Fin</code> vuelve al directo. En un vídeo, las flechas del
 deslizador de posición mueven diez segundos.</p>
+<p>Si un directo de YouTube con las pistas separadas pierde la conexión
+y empieza a cortarse, la aplicación lo reconecta en el mismo punto y
+dice «Reconectando el directo», con su sonido. Lo hace hasta tres veces
+en diez minutos. Si sigue cortándose, avisa una sola vez «El directo
+sigue con cortes. Vuelve a cargarlo si no mejora.», con otro sonido, y
+no vuelve a avisar hasta que cargues otro vídeo.</p>
 <p>La casilla <em>Reproducir solo el audio, sin imagen</em>, en
 <em>Preferencias</em>, categoría <em>Reproductor</em>, viene marcada.
 Con ella, un vídeo grabado abre un solo enlace y salta en menos de un
@@ -572,13 +579,14 @@ que los botones de la ventana. Si no hay una grabación en curso, pausar
 lo dice y no cambia nada en OBS. Si OBS no pausa la grabación, la
 aplicación lo dice: algunos perfiles pueden no permitirlo.</p>
 <p>Al detener la grabación, desde la aplicación o porque terminó la
-transmisión, se oye «Grabación guardada» con el nombre del archivo.
-<em>Grabaciones guardadas…</em>, en la pestaña <em>Grabación</em>, lista
-lo grabado así, de lo más nuevo a lo más antiguo. Desde ahí puedes abrir
-el archivo con <code>Intro</code>, abrir su carpeta, copiar la ruta o
-eliminarlo de la lista con <code>Supr</code>. Eliminar de la lista no
-borra el archivo, y lo que se detiene desde la ventana de OBS no aparece
-en la lista.</p>
+transmisión, se oye «Grabación guardada» con el nombre del archivo. La
+lista <em>Grabaciones y clips</em>, en la pestaña <em>Grabación</em>,
+tiene lo grabado así y los clips guardados, de lo más nuevo a lo más
+antiguo, y se relee al volver a la pestaña. Cada clip empieza por
+«Clip». Desde ahí puedes abrir el archivo con <code>Intro</code>, abrir
+su carpeta, copiar la ruta o eliminarlo de la lista con
+<code>Supr</code>. Eliminar de la lista no borra el archivo, y lo que se
+detiene desde la ventana de OBS no aparece en la lista.</p>
 <h3 id="guardar-un-clip">Guardar un clip</h3>
 <p>En <em>Preferencias</em>, categoría <em>OBS</em>, la lista
 <em>Clips</em> elige cuánto se guarda: <em>Desactivados</em>, <em>30
@@ -650,8 +658,10 @@ promedio y el máximo de espectadores, las vistas y el tiempo visto.
 <em>Actualizar</em> vuelve a leer la lista. Todo es de solo lectura:
 desde acá no se crean ni se editan eventos.</p>
 <p><em>Cuenta</em> dice qué cuenta está conectada, con su correo o su
-nombre de usuario, y los destinos que tiene. Desde ahí conectas la
-cuenta, vuelves a autorizarla o la desconectas.</p>
+nombre de usuario, y los destinos que tiene. Si la cuenta transmite a
+YouTube y hay sesión de YouTube iniciada en Bellbird, dice también si
+ese canal es el de la sesión o es otro. Desde ahí conectas la cuenta,
+vuelves a autorizarla o la desconectas.</p>
 <h2 id="encuadre-de-cámara">Encuadre de cámara</h2>
 <p>Si en la escena actual de OBS hay una cámara, la aplicación dice cómo
 se te ve en ella. Informa cuántos rostros hay, si estás centrado, lejos,
@@ -713,15 +723,16 @@ escena</em> cambia la escena que se emite y <em>Guardar imagen…</em>
 guarda una imagen de ella.</p>
 <p><em>Fuentes</em> elige una fuente de la escena y la mueve a una de
 las nueve posiciones, la cambia de tamaño, la oculta o la bloquea.
-<em>Capa</em> abre un menú para traerla al frente, traerla adelante,
-enviarla atrás o enviarla al fondo, y la tecla Aplicaciones en la lista
-abre el mismo menú. <em>Tamaño…</em> abre un cuadro para escribir el
-ancho y el alto en píxeles. <em>Mover con flechas</em> la mueve en pasos
-pequeños: <code>Ctrl</code> da pasos grandes, <code>Mayús</code> pasos
-de un píxel, <code>Intro</code> confirma y <code>Esc</code> deshace. El
-campo <em>Detalle de la fuente</em>, junto a la lista, dice dónde está,
-cuánto mide y qué la tapa. <em>Deshacer cambios</em> vuelve a como
-estaba todo al abrir la ventana.</p>
+<em>Ordenar</em> abre un menú con <em>Mover a la cima</em>,
+<em>Subir</em>, <em>Bajar</em> y <em>Mover al fondo</em>, que deciden
+qué fuente tapa a cuál, y la tecla Aplicaciones en la lista abre el
+mismo menú. <em>Tamaño…</em> abre un cuadro para escribir el ancho y el
+alto en píxeles. <em>Mover con flechas</em> la mueve en pasos pequeños:
+<code>Ctrl</code> da pasos grandes, <code>Mayús</code> pasos de un
+píxel, <code>Intro</code> confirma y <code>Esc</code> deshace. El campo
+<em>Detalle de la fuente</em>, junto a la lista, dice dónde está, cuánto
+mide y qué la tapa. <em>Deshacer cambios</em> vuelve a como estaba todo
+al abrir la ventana.</p>
 <p><em>Agregar</em> captura una ventana del equipo o agrega una cámara
 de Windows a la escena actual. <em>Audio</em> silencia el micrófono de
 OBS y elige cuál se usa. Al terminar, las listas de fuentes y la
@@ -738,11 +749,11 @@ transmitiendo.</p>
 <p><em>Iniciar grabación</em> y <em>Detener grabación</em> hacen lo
 mismo que los botones del panel, con sus sonidos y sus anuncios.
 <em>Pausar grabación</em> aparece mientras se graba y pasa a
-<em>Reanudar grabación</em> cuando la grabación está en pausa.
-<em>Grabaciones guardadas…</em> lista lo que la aplicación detuvo.
-<em>Grabar también al transmitir</em> es la misma preferencia del menú
-<em>Transmisión</em>: cambiar una cambia la otra. <em>Actualizar
-estado</em> lo vuelve a leer.</p>
+<em>Reanudar grabación</em> cuando la grabación está en pausa. La lista
+<em>Grabaciones y clips</em> tiene lo que la aplicación detuvo y los
+clips guardados. <em>Grabar también al transmitir</em> es la misma
+preferencia del menú <em>Transmisión</em>: cambiar una cambia la otra.
+<em>Actualizar estado</em> lo vuelve a leer.</p>
 <p>Si OBS está cerrado, el panel lo abre. Si no responde, lo dice en
 <em>Estado</em> y no se queda congelado.</p>
 <h2 id="panel-de-chat-para-transmitir">Panel de chat para
@@ -812,12 +823,13 @@ espectadores, cuánto lleva en curso, mensajes leídos, donaciones, el
 panel de chat y los mensajes automáticos. Qué entra en el resumen se
 elige en <em>Preferencias</em>, categoría <em>Estado (F2)</em>,
 incluidos los datos de OBS y la canción que suena. Mientras transmites
-desde la aplicación, <code>F2</code> empieza por cómo va el directo. Con
-la sesión de YouTube iniciada, también dice cuántas unidades de la cuota
-diaria se usaron hoy desde este equipo. El número es aproximado y se
-reinicia a medianoche, hora del Pacífico, cuando Google repone la cuota.
-Como la cuota se comparte entre quienes usan la aplicación, sirve para
-saber si un error de cuota viene de tu uso o del de otros.</p>
+desde la aplicación, <code>F2</code> empieza por cómo va el directo. Si
+marcas <em>Cuota de YouTube usada hoy</em>, que viene desmarcada, y la
+sesión de YouTube está iniciada, también dice cuántas unidades de la
+cuota diaria se usaron hoy desde este equipo. El número es aproximado y
+se reinicia a medianoche, hora del Pacífico, cuando Google repone la
+cuota. Como la cuota se comparte entre quienes usan la aplicación, sirve
+para saber si un error de cuota viene de tu uso o del de otros.</p>
 <p>Si pulsas <code>F2</code> dos veces seguidas, antes de medio segundo,
 se abre la ventana <em>Estado de la sesión</em> con una lista: cada
 parte del estado en una línea, incluidas las que no entran en el resumen

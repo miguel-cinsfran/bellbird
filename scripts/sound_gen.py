@@ -405,6 +405,22 @@ def gen_transmision_recuperada():
     return _normalizar(_concat(n1, n2), 0.7)
 
 
+def gen_reconectando_directo():
+    # Dos notas que suben B4→E5: reintento en curso. Distinto de la vuelta
+    # de la conexión (G4→C5) y del cierre confirmado (E5→C6).
+    n1 = _perc(_seno(B4, 0.09, 0.32), 0.003, 0.07)
+    n2 = _perc(_seno(E5, 0.17, 0.34), 0.004, 0.13)
+    return _normalizar(_concat(n1, n2), 0.68)
+
+
+def gen_directo_con_cortes():
+    # Tres pulsos cortos F4 con hueco: el directo se corta una y otra vez,
+    # distinto del doble pulso grave de transmision_problema (A3).
+    pulso = _perc(_seno(F4, 0.08, 0.34), 0.003, 0.06)
+    return _normalizar(
+        _concat(pulso, _silencio(0.05), pulso, _silencio(0.05), pulso), 0.7)
+
+
 def gen_aviso():
     # Campanita neutra de dos notas E6→B5: avisa sin calificar.
     n1 = _perc(_seno(E6, 0.12, 0.30), 0.002, 0.10)
@@ -860,6 +876,16 @@ def s_transmision_recuperada():
                 _madera(C5, 0.16, 0.36, 0.13))
 
 
+def s_reconectando_directo():
+    return _seq(_madera(B4, 0.09, 0.32, 0.07),
+                _madera(E5, 0.17, 0.35, 0.13))
+
+
+def s_directo_con_cortes():
+    pulso = _madera(F4, 0.08, 0.34, 0.06)
+    return _seq(pulso, _silencio(0.05), pulso, _silencio(0.05), pulso)
+
+
 def s_aviso():
     return _seq(_madera(E6, 0.10, 0.32, 0.08),
                 _madera(B5, 0.20, 0.34, 0.15))
@@ -1213,6 +1239,8 @@ TEMAS = {
         "grabacion_en_pausa.wav":      gen_grabacion_en_pausa,
         "grabacion_reanudada.wav":     gen_grabacion_reanudada,
         "clip.wav":                    gen_clip,
+        "reconectando_directo.wav":    gen_reconectando_directo,
+        "directo_con_cortes.wav":      gen_directo_con_cortes,
         "transmision_recuperada.wav":  gen_transmision_recuperada,
         "directo_finalizado.wav":      gen_directo_finalizado,
         "aviso.wav":                   gen_aviso,
@@ -1306,6 +1334,8 @@ TEMAS = {
         "grabacion_en_pausa.wav":      s_grabacion_en_pausa,
         "grabacion_reanudada.wav":     s_grabacion_reanudada,
         "clip.wav":                    s_clip,
+        "reconectando_directo.wav":    s_reconectando_directo,
+        "directo_con_cortes.wav":      s_directo_con_cortes,
         "transmision_recuperada.wav":  s_transmision_recuperada,
         "directo_finalizado.wav":      s_directo_finalizado,
         "aviso.wav":                   s_aviso,

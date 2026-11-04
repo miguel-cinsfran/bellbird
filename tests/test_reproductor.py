@@ -268,6 +268,7 @@ class TestReproducirDirecto(unittest.TestCase):
 
     def _panel(self, info):
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._vigilancia = reproductor.vigilancia_relevo.NADA_OBJETO
         panel._info = info
         panel._inst = mock.Mock()
         player = mock.Mock()
@@ -319,7 +320,8 @@ class TestReproducirDirecto(unittest.TestCase):
                 mock.patch.object(reproductor.time, "sleep"):
             panel._reproducir_calidad(None, reproducir=False)
 
-        clase_relevo.assert_called_once_with("video-solicitado", "audio-solicitado", 0)
+        clase_relevo.assert_called_once_with(
+            "video-solicitado", "audio-solicitado", 0, aviso=mock.ANY)
         panel._inst.media_new.assert_called_once_with("tcp://127.0.0.1:5555")
         opciones = [c.args[0] for c in medio.add_option.call_args_list]
         self.assertFalse(any(o.startswith(":input-slave=") for o in opciones))
@@ -631,6 +633,7 @@ class TestBufferingVlc(unittest.TestCase):
         panel._player = mock.Mock()
         panel._player.event_manager.return_value = gestor
         panel._gestor_eventos_vlc = None
+        panel._vigilancia = reproductor.vigilancia_relevo.NADA_OBJETO
         nombres = ("MediaPlayerPlaying", "MediaPlayerPaused",
                    "MediaPlayerStopped", "MediaPlayerEndReached",
                    "MediaPlayerEncounteredError", "MediaPlayerBuffering")
@@ -658,6 +661,184 @@ class TestBufferingVlc(unittest.TestCase):
                       registro.call_args_list)
         self.assertFalse(any("no se pudo avisar el corte" in str(llamada)
                              for llamada in registro.call_args_list))
+
+
+class TestVigilanciaRelevo(unittest.TestCase):
+
+    def _panel(self, directo=True, vod=False):
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._relevo_fuentes = ("video", "audio")
+        panel._relevo_desfase = 2
+        panel._relevo_ffmpeg = mock.Mock()
+        panel._cargando = False
+        panel._vod_por_relevo = vod
+        panel._url_flujo = ""
+        panel._es_directo_actual = mock.Mock(return_value=directo)
+        panel._cancelar_busqueda = mock.Mock()
+        panel._cancelar_transporte = mock.Mock()
+        panel._detener_relevo_ffmpeg = mock.Mock()
+        panel._arrancar_relevo = mock.Mock()
+        with mock.patch("bellbird.voice.sound_player.reproducir"):
+            panel._vigilancia = reproductor.vigilancia_relevo.conectar(
+                panel, lambda texto: None, lambda fn, *args: fn(*args))
+        return panel
+
+    def test_error_de_stderr_en_directo_reinicia_con_el_mismo_desfase(self):
+        panel = self._panel()
+        with mock.patch("bellbird.voice.sound_player.reproducir"):
+            panel._vigilancia.aviso(
+                "[in#1/hls @ 1] Error during demuxing: I/O error", 0.0)
+        args, kwargs = panel._arrancar_relevo.call_args
+        self.assertEqual(args, ("video", "audio", True))
+        self.assertEqual(kwargs["desfase"], 2)
+        self.assertEqual(kwargs["anuncio"], "Reconectando el directo")
+
+    def test_error_en_grabado_no_reinicia(self):
+        panel = self._panel(directo=False, vod=True)
+        with mock.patch("bellbird.voice.sound_player.reproducir"):
+            panel._vigilancia.aviso("Error during demuxing: I/O error", 0.0)
+        panel._arrancar_relevo.assert_not_called()
+
+
+class TestCableadoVigilancia(unittest.TestCase):
+
+    INFO = {"is_live": True, "formats": [], "requested_formats": [
+        {"vcodec": "avc1", "acodec": "none", "url": "video"},
+        {"vcodec": "none", "acodec": "mp4a", "url": "audio"},
+    ]}
+
+    def _panel(self):
+        panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._info = dict(self.INFO)
+        panel._inst = mock.Mock()
+        panel._player = mock.Mock()
+        panel._vol = 75
+        panel._muted = False
+        panel._timer = mock.Mock()
+        panel._timer_progreso = mock.Mock()
+        panel.lbl_estado = mock.Mock()
+        panel._video_id = "vid"
+        panel._gen = 0
+        panel._relevo_gen = 0
+        panel._relevo_ffmpeg = None
+        panel._relevo_ventana = None
+        panel._asegurar_player = mock.Mock(return_value=True)
+        panel._error_carga = mock.Mock()
+        panel._mostrar_pausa = mock.Mock()
+        panel._fijar_estado = mock.Mock()
+        panel._cancelar_busqueda = mock.Mock()
+        panel._cancelar_transporte = mock.Mock()
+        panel._detener_relevo_ffmpeg = mock.Mock()
+        panel._cargando = False
+        panel._vod_por_relevo = False
+        panel._listo = True
+        return panel
+
+    def _conectar(self, panel, anuncios):
+        with mock.patch("bellbird.voice.sound_player.reproducir"):
+            panel._vigilancia = reproductor.vigilancia_relevo.conectar(
+                panel, anuncios.append, lambda fn, *args: fn(*args))
+
+    def _sincrono(self):
+        hilo = mock.Mock()
+
+        def crear(target, _nombre):
+            hilo.target = target
+            return hilo
+
+        hilo.start.side_effect = lambda: hilo.target()
+        return (
+            mock.patch.object(reproductor.diagnostico, "crear_hilo",
+                              side_effect=crear),
+            mock.patch.object(reproductor.wx, "CallAfter",
+                              side_effect=lambda fn, *a: fn(*a)),
+            mock.patch.object(reproductor.relevo_ffmpeg, "leer_ventana_hls",
+                              return_value=None),
+        )
+
+    def test_el_aviso_del_relevo_es_el_de_la_vigilancia(self):
+        panel = self._panel()
+        anuncios = []
+        self._conectar(panel, anuncios)
+        relevo = mock.Mock()
+        relevo.iniciar.return_value = "tcp://127.0.0.1:5555"
+        hilo, callafter, ventana = self._sincrono()
+        with hilo, callafter, ventana, \
+                mock.patch.object(reproductor.relevo_ffmpeg, "RelevoFfmpeg",
+                                  return_value=relevo) as clase:
+            panel._reproducir_calidad(None, reproducir=False)
+
+        aviso = clase.call_args.kwargs["aviso"]
+        panel._arrancar_relevo = mock.Mock()
+        with mock.patch("bellbird.voice.sound_player.reproducir"):
+            aviso("[in#1/hls @ 1] Error during demuxing: I/O error", 0.0)
+
+        args, kwargs = panel._arrancar_relevo.call_args
+        self.assertEqual(args, ("video", "audio", True))
+        self.assertEqual(kwargs["desfase"], 0)
+        self.assertEqual(kwargs["anuncio"], "Reconectando el directo")
+
+    def test_tres_eventos_de_buffer_del_directo_reinician(self):
+        panel = self._panel()
+        anuncios = []
+        panel._relevo_fuentes = ("video", "audio")
+        panel._relevo_desfase = 3
+        panel._relevo_ffmpeg = object()
+        panel._arrancar_relevo = mock.Mock()
+        self._conectar(panel, anuncios)
+        nombres = ("MediaPlayerPlaying", "MediaPlayerPaused",
+                   "MediaPlayerBuffering")
+        tipos = types.SimpleNamespace(**{nombre: object()
+                                         for nombre in nombres})
+        with mock.patch.object(
+                motor_vlc, "modulo",
+                return_value=types.SimpleNamespace(EventType=tipos)), \
+                mock.patch.object(reproductor, "_registro_detallado_activo",
+                                  return_value=False):
+            panel._enganchar_eventos_vlc()
+
+        al_buffer = None
+        for tipo, callback in panel._callbacks_vlc:
+            if tipo is tipos.MediaPlayerBuffering:
+                al_buffer = callback
+                break
+        self.assertIsNotNone(al_buffer, "no se enganchó el búfer")
+        for pct in (50.0, 100.0, 50.0, 100.0, 50.0):
+            al_buffer(types.SimpleNamespace(
+                u=types.SimpleNamespace(new_cache=pct)))
+
+        args, kwargs = panel._arrancar_relevo.call_args
+        self.assertEqual(args, ("video", "audio", True))
+        self.assertEqual(kwargs["desfase"], 3)
+
+    def test_cargar_otro_video_permite_avisar_otra_vez(self):
+        panel = self._panel()
+        anuncios = []
+        panel._relevo_fuentes = ("video", "audio")
+        panel._relevo_desfase = 0
+        panel._relevo_ffmpeg = object()
+        panel._arrancar_relevo = mock.Mock()
+        self._conectar(panel, anuncios)
+        aviso = reproductor.vigilancia_relevo._FRASE_CORTES
+
+        def avisar(instante):
+            panel._vigilancia.aviso(
+                "Error during demuxing: I/O error", instante)
+
+        with mock.patch("bellbird.voice.sound_player.reproducir"):
+            for instante in (0.0, 30.0, 60.0, 90.0):
+                avisar(instante)
+        self.assertEqual(anuncios.count(aviso), 1)
+
+        with mock.patch.object(reproductor, "anunciar"), \
+                mock.patch.object(reproductor.diagnostico, "crear_hilo"):
+            panel.cargar(reproducir=False)
+        panel._cargando = False
+
+        with mock.patch("bellbird.voice.sound_player.reproducir"):
+            for instante in (200.0, 230.0, 260.0, 290.0):
+                avisar(instante)
+        self.assertEqual(anuncios.count(aviso), 2)
 
 
 class TestRelojMonotonic(unittest.TestCase):
@@ -1073,6 +1254,7 @@ class TestRelevoRobustez(unittest.TestCase):
 
     def _panel(self):
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
+        panel._vigilancia = reproductor.vigilancia_relevo.NADA_OBJETO
         panel._info = dict(self.INFO)
         panel._inst = mock.Mock()
         panel._inst.media_new.return_value = mock.Mock()
@@ -1261,7 +1443,8 @@ class TestSaltoEnRelevo(unittest.TestCase):
                                   return_value=nuevo) as clase, \
                 mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._buscar_rel(-60_000)
-        clase.assert_called_once_with("video-hls", "audio-hls", 12)
+        clase.assert_called_once_with(
+            "video-hls", "audio-hls", 12, aviso=mock.ANY)
         viejo.detener.assert_called_once()
         self.assertIs(panel._relevo_ffmpeg, nuevo)
         self.assertEqual(panel._relevo_desfase, 12)
@@ -1285,7 +1468,8 @@ class TestSaltoEnRelevo(unittest.TestCase):
                                   return_value=nuevo) as clase, \
                 mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._buscar_rel(-10_000)
-        clase.assert_called_once_with("video-hls", "audio-hls", 14)
+        clase.assert_called_once_with(
+            "video-hls", "audio-hls", 14, aviso=mock.ANY)
         self.assertEqual(anunciar.call_args.args[0],
                          "1 minuto y 10 segundos por detrás del directo")
 
@@ -1298,7 +1482,8 @@ class TestSaltoEnRelevo(unittest.TestCase):
                                   return_value=nuevo) as clase, \
                 mock.patch.object(reproductor, "anunciar") as anunciar:
             panel._buscar_rel(+60_000)
-        clase.assert_called_once_with("video-hls", "audio-hls", 0)
+        clase.assert_called_once_with(
+            "video-hls", "audio-hls", 0, aviso=mock.ANY)
         self.assertEqual(anunciar.call_args.args[0], "En el directo")
         panel.lbl_tiempo.SetLabel.assert_called_with("En directo")
 
@@ -1329,7 +1514,8 @@ class TestSaltoEnRelevo(unittest.TestCase):
                                   return_value=nuevo) as clase, \
                 mock.patch.object(reproductor, "anunciar"):
             panel._buscar_rel(-60_000)
-        clase.assert_called_once_with("video-hls", "audio-hls", 12)
+        clase.assert_called_once_with(
+            "video-hls", "audio-hls", 12, aviso=mock.ANY)
 
     def test_sin_fuentes_en_carga_inicial_anuncia_cargando(self):
         # Sin fuentes todavía no hay con qué reiniciar: es la carga

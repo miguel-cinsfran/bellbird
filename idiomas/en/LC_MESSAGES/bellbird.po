@@ -10047,3 +10047,11 @@ msgstr "No saved recordings or clips."
 msgid "Grabaciones y clips"
 msgstr "Recordings and clips"
 
+#: bellbird/player/vigilancia_relevo.py
+msgid "Reconectando el directo"
+msgstr "Reconnecting the live stream"
+
+#: bellbird/player/vigilancia_relevo.py
+msgid "El directo sigue con cortes. Vuelve a cargarlo si no mejora."
+msgstr "The live stream keeps cutting out. Reload it if it doesn't improve."
+

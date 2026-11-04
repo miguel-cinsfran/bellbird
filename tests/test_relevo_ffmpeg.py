@@ -255,6 +255,32 @@ class PruebasStderr(unittest.TestCase):
         self.assertTrue(proceso.stderr.closed)
         relevo.detener()
 
+    def test_volcar_stderr_avisa_cada_linea(self):
+        avisos = []
+        flujo = io.BytesIO(b"una linea\notra linea\n")
+        with self.assertLogs(relevo_ffmpeg.logger, level="DEBUG"):
+            relevo_ffmpeg.volcar_stderr(flujo, 1, avisos.append)
+        self.assertEqual(avisos, ["una linea", "otra linea"])
+
+    def test_iniciar_pasa_el_aviso_al_lector(self):
+        avisos = []
+        relevo = relevo_ffmpeg.RelevoFfmpeg(
+            "video", "audio", aviso=avisos.append)
+        proceso = mock.Mock()
+        proceso.poll.return_value = None
+        proceso.pid = 4242
+        proceso.stderr = io.BytesIO(
+            b"Error during demuxing: I/O error\n")
+        with mock.patch("bellbird.downloads.ffmpeg_bin.ruta_ffmpeg", return_value="ffmpeg.exe"), \
+                mock.patch("subprocess.Popen", return_value=proceso), \
+                mock.patch("bellbird.core.subprocesos.vincular_a_la_app"), \
+                mock.patch.object(relevo_ffmpeg, "puerto_libre", return_value=9999), \
+                self._sincrono(), \
+                self.assertLogs(relevo_ffmpeg.logger, level="WARNING"):
+            relevo.iniciar()
+        self.assertEqual(avisos, ["Error during demuxing: I/O error"])
+        relevo.detener()
+
     def test_stderr_que_no_es_un_flujo_se_ignora_sin_colgarse(self):
         # Las pruebas del ciclo de vida dan un Mock como proceso: leer de su
         # stderr (otro Mock) no terminaría nunca.

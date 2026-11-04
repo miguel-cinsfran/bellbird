@@ -44,7 +44,7 @@ from bellbird.player.pantalla_completa import AccionesPantalla, PantallaCompleta
 from bellbird.player import reproductor_ciclo
 from bellbird.player import recuperacion
 from bellbird.player import relevo_ffmpeg
-from bellbird.player.vigilancia_relevo import aviso_de_corte
+from bellbird.player import vigilancia_relevo
 from bellbird.player.formatos import mejor_audio as _mejor_audio
 from bellbird.player.formatos_youtube import (
     _altura_auto_vod, _alturas_disponibles, _es_hls, _preferir_hls,
@@ -296,6 +296,7 @@ class ReproductorPanel(wx.Panel):
         # _recargar_apertura_vod). Se reinicia al cambiar de vídeo, no en
         # cargar, porque la recarga misma pasa por cargar.
         self._recargas_apertura = 0
+        self._vigilancia = vigilancia_relevo.conectar(self, anunciar, wx.CallAfter)
 
         self.SetBackgroundColour(_T.bg)
         self.SetForegroundColour(_T.text)
@@ -390,9 +391,9 @@ class ReproductorPanel(wx.Panel):
             nonlocal pct_anterior
             try:
                 pct = event.u.new_cache
-                aviso = aviso_de_corte(pct, pct_anterior)
+                aviso = self._vigilancia.buffer(pct, pct_anterior)
                 pct_anterior = pct
-                if aviso:
+                if aviso and detallado:
                     logger.debug("%s", aviso)
             except Exception as error:
                 logger.debug("no se pudo avisar el corte de reproducción: %s", error)
@@ -426,12 +427,12 @@ class ReproductorPanel(wx.Panel):
         callbacks = []
         callbacks.append((binding.EventType.MediaPlayerPlaying, al_transporte("playing", "reproduciendo")))
         callbacks.append((binding.EventType.MediaPlayerPaused, al_transporte("paused", "pausado")))
+        callbacks.append((binding.EventType.MediaPlayerBuffering, al_buffer))
         if detallado:
             callbacks.extend([
                 (binding.EventType.MediaPlayerStopped, al_estado_traza("detenido")),
                 (binding.EventType.MediaPlayerEndReached, al_estado_traza("fin")),
                 (binding.EventType.MediaPlayerEncounteredError, al_estado_traza("error")),
-                (binding.EventType.MediaPlayerBuffering, al_buffer),
             ])
         self._callbacks_vlc = tuple(callbacks)
         try:
@@ -933,6 +934,7 @@ class ReproductorPanel(wx.Panel):
             return
         logger.debug("CARGA video=%s reproducir=%s", self._video_id,
                      "si" if reproducir else "no")
+        getattr(self, "_vigilancia", vigilancia_relevo.NADA_OBJETO).olvidar()
         self._cancelar_busqueda()
         if hasattr(self, "_estado_inicio"):
             self._estado_inicio.cancelar()
@@ -1189,7 +1191,9 @@ class ReproductorPanel(wx.Panel):
 
         def _preparar_relevo(video_url=url, audio_url=slave):
             if inicio_ms is None:
-                relevo = relevo_ffmpeg.RelevoFfmpeg(video_url, audio_url, desfase)
+                relevo = relevo_ffmpeg.RelevoFfmpeg(
+                    video_url, audio_url, desfase,
+                    aviso=self._vigilancia.aviso)
             else:
                 relevo = relevo_ffmpeg.RelevoFfmpeg(
                     video_url, audio_url, inicio_ms=inicio_ms)
@@ -2033,6 +2037,10 @@ class ReproductorPanel(wx.Panel):
             logger.debug("%s", traza_inicio_muestra(
                 topologia, es_directo, estado_inicio, primera, muestra_inicio))
             if inicio.observar(estado_inicio, muestra_inicio):
+                mensaje = getattr(self, "_vigilancia", vigilancia_relevo.NADA_OBJETO).registrar_vuelta(
+                    time.monotonic())
+                if mensaje:
+                    logger.warning("%s", mensaje)
                 if self._marca_url is not None:
                     diagnostico.logger.info(
                         "REPRODUCCIÓN tramos_ms=%.0f,%.0f,%.0f",

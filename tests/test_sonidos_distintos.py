@@ -39,6 +39,7 @@ EVENTOS_NUEVOS = [
     "encuadre_fuera", "encuadre_dentro",
     "grabacion_iniciada", "grabacion_detenida",
     "grabacion_en_pausa", "grabacion_reanudada",
+    "reconectando_directo", "directo_con_cortes",
     "descarga_avance", "descarga_quieta",
 ]
 

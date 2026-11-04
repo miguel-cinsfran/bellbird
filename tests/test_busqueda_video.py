@@ -821,7 +821,9 @@ class TestTransporteContratos(unittest.TestCase):
         ident = panel._player
         pausa_tipo = object()
         play_tipo = object()
-        tipos = types.SimpleNamespace(MediaPlayerPaused=pausa_tipo, MediaPlayerPlaying=play_tipo)
+        tipos = types.SimpleNamespace(
+            MediaPlayerPaused=pausa_tipo, MediaPlayerPlaying=play_tipo,
+            MediaPlayerBuffering=object())
         gestor_falso = mock.Mock()
         panel._player.event_manager = mock.Mock(return_value=gestor_falso)
         vlc_falso = types.SimpleNamespace(EventType=tipos)
@@ -857,7 +859,9 @@ class TestTransporteContratos(unittest.TestCase):
         ident_viejo = panel2._player
         pausa_tipo2 = object()
         play_tipo2 = object()
-        tipos2 = types.SimpleNamespace(MediaPlayerPaused=pausa_tipo2, MediaPlayerPlaying=play_tipo2)
+        tipos2 = types.SimpleNamespace(
+            MediaPlayerPaused=pausa_tipo2, MediaPlayerPlaying=play_tipo2,
+            MediaPlayerBuffering=object())
         gestor2 = mock.Mock()
         panel2._player.event_manager = mock.Mock(return_value=gestor2)
         vlc_falso2 = types.SimpleNamespace(EventType=tipos2)

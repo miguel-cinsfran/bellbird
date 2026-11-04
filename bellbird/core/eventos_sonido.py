@@ -56,6 +56,8 @@ EVENTOS = [
     "grabacion_en_pausa", "grabacion_reanudada",
     # Clip de los últimos segundos guardado con el búfer de repetición.
     "clip",
+    # Reconexión del relevo de un directo de YouTube: intento y aviso final.
+    "reconectando_directo", "directo_con_cortes",
     # Avance de una descarga en curso y descarga que sigue en cero.
     "descarga_avance", "descarga_quieta",
 ]
@@ -141,6 +143,8 @@ NOMBRES = {
     "grabacion_en_pausa": "Grabación en pausa",
     "grabacion_reanudada": "Grabación reanudada",
     "clip": "Clip guardado",
+    "reconectando_directo": "Reconexión del directo",
+    "directo_con_cortes": "Directo con cortes seguidos",
     "descarga_avance": "Avance de descarga",
     "descarga_quieta": "Descarga quieta",
 }

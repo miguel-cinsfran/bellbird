@@ -104,7 +104,7 @@ def nivel_de_linea(texto: str) -> int:
     return logging.WARNING
 
 
-def volcar_stderr(flujo, pid) -> None:
+def volcar_stderr(flujo, pid, aviso=None) -> None:
     """Pasa al registro cada línea que ffmpeg escriba por stderr.
 
     Con stderr a DEVNULL, un 403 de googlevideo o un «Invalid data found»
@@ -120,6 +120,11 @@ def volcar_stderr(flujo, pid) -> None:
             if texto:
                 logger.log(nivel_de_linea(texto),
                            "RELEVO_FFMPEG pid=%s: %s", pid, texto)
+                if aviso is not None:
+                    try:
+                        aviso(texto)
+                    except Exception as error:
+                        logger.debug("no se pudo avisar la línea del relevo: %s", error)
     except Exception as exc:
         logger.debug("lector de stderr del relevo: %s", exc)
     finally:
@@ -251,9 +256,10 @@ class RelevoFfmpeg:
     """
 
     def __init__(self, video_url: str, audio_url: str, desfase_segmentos: int = 0,
-                 inicio_ms: int | None = None):
+                 inicio_ms: int | None = None, aviso=None):
         self._video_url = video_url
         self._audio_url = audio_url
+        self._aviso = aviso
         self._inicio_ms = None if inicio_ms is None else max(0, int(inicio_ms))
         if self._inicio_ms is not None:
             self._desfase_segmentos = 0
@@ -309,7 +315,8 @@ class RelevoFfmpeg:
         # muere o detener() lo mata, así detener() no tiene que esperarlo.
         diagnostico.crear_hilo(
             volcar_stderr, "RelevoFfmpegStderr",
-            args=(getattr(self._proceso, "stderr", None), self._proceso.pid),
+            args=(getattr(self._proceso, "stderr", None), self._proceso.pid,
+                  self._aviso),
         ).start()
         return self.direccion
 

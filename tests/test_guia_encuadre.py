@@ -365,6 +365,79 @@ class TestBucle(_Testigo):
         self.assertEqual(llamadas[0][1], ("No hay ninguna cámara en OBS.",))
 
 
+class TestDetenerEnCuadro(_Testigo):
+
+    def _guiada(self, rostros, durante_captura):
+        marco = MarcoFalso(pausado=True)
+        self.obs_abierto()
+        self.parchear("DetectorRostros").return_value.analizar.return_value = \
+            _cuadro_con(rostros)
+        self.parchear("tono_guia")
+        self.parchear("sonido_memoria")
+        self.parchear("reproducir_archivo")
+        self.parchear_wx()
+        guiada = Guia()
+        guiada._marco = lambda: marco
+        guiada._parada = threading.Event()
+        guiada._timbre = "normal"
+
+        def capturar(cliente, camara):
+            durante_captura(guiada)
+            return b"cuadro"
+
+        self.parchear("obs_camara").capturar_cuadro.side_effect = capturar
+        return guiada
+
+    def test_tras_detener_no_suena_el_tono_del_centro_del_cuadro(self):
+        guiada = self._guiada([_rostro(0.5, 0.35)],
+                              lambda g: g.detener(None))
+        guiada._bucle("", False)
+        guia_encuadre.sonido_memoria.reproducir.assert_not_called()
+
+    def test_tras_detener_no_suena_el_pitido_del_cuadro(self):
+        guiada = self._guiada([_rostro(0.2, 0.35)],
+                              lambda g: g.detener(None))
+        guiada._bucle("", False)
+        guia_encuadre.sonido_memoria.reproducir.assert_not_called()
+
+    def test_tras_detener_no_suena_el_aviso_sin_rostro(self):
+        guiada = self._guiada([], lambda g: g.detener(None))
+        guiada._bucle("", False)
+        guia_encuadre.reproducir_archivo.assert_not_called()
+
+    def test_detener_e_iniciar_deja_salir_al_hilo_viejo(self):
+        guiada = self._guiada([_rostro(0.2, 0.35)], lambda g: None)
+        nueva = threading.Event()
+        capturas = []
+
+        def capturar(cliente, camara):
+            capturas.append(1)
+            if len(capturas) == 1:
+                guiada.detener(None)
+                guiada._parada = nueva
+            else:
+                nueva.set()
+            return b"cuadro"
+
+        guia_encuadre.obs_camara.capturar_cuadro.side_effect = capturar
+        paso = mock.Mock(wraps=guiada._paso)
+        guiada._paso = paso
+        guiada._bucle("", False)
+        self.assertEqual(paso.call_count, 1)
+
+    def test_al_salir_corta_el_tono_que_quedo_sonando(self):
+        guiada = self._guiada([_rostro(0.5, 0.35)], lambda g: None)
+        memoria = guia_encuadre.sonido_memoria
+
+        def arrancar_tono(*args, **kwargs):
+            guiada._parada.set()
+            return True
+
+        memoria.reproducir.side_effect = arrancar_tono
+        guiada._bucle("", False)
+        memoria.detener.assert_called_once_with()
+
+
 class TestTextoFallo(_Testigo):
 
     def test_de_camara_y_captura_es_su_texto(self):

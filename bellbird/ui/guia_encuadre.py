@@ -54,6 +54,7 @@ class Guia:
         self._marco = lambda: None
         self._timbre = "normal"
         self._centro_sonando = False
+        self._dueno_centro = None
 
     def en_marcha(self) -> bool:
         """¿La guía está sonando en su hilo?"""
@@ -82,9 +83,11 @@ class Guia:
         self._al_terminar = al_terminar
         self._timbre = tono_guia.normalizar_timbre(timbre)
         self._centro_sonando = False
-        self._parada = threading.Event()
+        self._dueno_centro = None
+        parada = threading.Event()
+        self._parada = parada
         self._hilo = diagnostico.crear_hilo(
-            lambda: self._bucle(fuente, invertir), "GuiaEncuadre")
+            lambda: self._bucle(fuente, invertir, parada), "GuiaEncuadre")
         self._hilo.start()
         return True
 
@@ -103,6 +106,7 @@ class Guia:
         """Cierra la guía: corta el tono, devuelve la pausa, avisa y dice el final."""
         sonido_memoria.detener()
         self._centro_sonando = False
+        self._dueno_centro = None
         parada, self._parada = self._parada, None
         self._hilo = None
         if parada is not None:
@@ -123,8 +127,10 @@ class Guia:
         if mensaje is not None and marco is not None:
             anunciar(mensaje)
 
-    def _bucle(self, fuente: str, invertir: bool) -> None:
+    def _bucle(self, fuente: str, invertir: bool, parada=None) -> None:
         """Pitidos hacia el centro hasta 1,5 s seguidos, 60 s o un fallo."""
+        if parada is None:
+            parada = self._parada
         if self._marco() is None:
             wx.CallAfter(self.detener, None)
             return
@@ -136,25 +142,35 @@ class Guia:
             wx.CallAfter(self.detener, _texto_fallo(fallo))
             return
         self._centro_sonando = False
-        self._marcha = guia.Marcha(
+        self._dueno_centro = None
+        marcha = guia.Marcha(
             inicio=time.monotonic(), cliente=cliente, camara=camara,
             detector=DetectorRostros(),
             espejo=camara.espejo != invertir)
+        self._marcha = marcha
         try:
-            while self._parada is not None and not self._parada.is_set():
-                if not self._paso(time.monotonic()):
+            while parada is not None and not parada.is_set():
+                if not self._paso(time.monotonic(), parada):
                     return
-                self._parada.wait(INTERVALO_GUIA)
+                parada.wait(INTERVALO_GUIA)
         finally:
-            marcha, self._marcha = self._marcha, None
-            if marcha is not None:
-                try:
-                    marcha.cliente.cerrar()
-                except Exception as fallo:
-                    logger.warning("GuiaEncuadre: no se pudo cerrar OBS: %s",
-                                   fallo)
+            self._soltar(marcha, parada)
 
-    def _paso(self, ahora: float) -> bool:
+    def _soltar(self, marcha, parada) -> None:
+        """Al salir del bucle: corta el tono propio y cierra OBS."""
+        if parada is not None and parada.is_set() and \
+                self._dueno_centro is threading.current_thread():
+            sonido_memoria.detener()
+            self._centro_sonando = False
+            self._dueno_centro = None
+        if self._marcha is marcha:
+            self._marcha = None
+        try:
+            marcha.cliente.cerrar()
+        except Exception as fallo:
+            logger.warning("GuiaEncuadre: no se pudo cerrar OBS: %s", fallo)
+
+    def _paso(self, ahora: float, parada=None) -> bool:
         """Un cuadro de la guía: pitido o final. False si ya terminó."""
         marcha = self._marcha
         if ahora - marcha.inicio >= DURACION_MAXIMA_GUIA:
@@ -172,19 +188,24 @@ class Guia:
         if accion == "lista":
             self._terminar_lista(frase_final)
             return False
-        self._sonar(accion, tono)
+        self._sonar(accion, tono, parada)
         return True
 
-    def _sonar(self, accion, tono) -> None:
+    def _sonar(self, accion, tono, parada=None) -> None:
         """El tono del centro, un pitido o el aviso sin rostro."""
+        if parada is not None and parada.is_set():
+            return
         if accion == "centro":
             if not self._centro_sonando:
                 self._centro_sonando = sonido_memoria.reproducir(
                     tono_guia.tono_centro(self._timbre), bucle=True)
+                if self._centro_sonando:
+                    self._dueno_centro = threading.current_thread()
             return
         if self._centro_sonando:
             sonido_memoria.detener()
             self._centro_sonando = False
+            self._dueno_centro = None
         if accion == "pitido":
             sonido_memoria.reproducir(
                 tono_guia.pitido(tono.paneo, tono.frecuencia, self._timbre))
@@ -195,6 +216,7 @@ class Guia:
         """Confirma el encuadre y cierra la guía."""
         sonido_memoria.detener()
         self._centro_sonando = False
+        self._dueno_centro = None
         reproducir_archivo(paths.carpeta_guia() / "listo.wav")
         wx.CallAfter(self.detener, frase_final)
 

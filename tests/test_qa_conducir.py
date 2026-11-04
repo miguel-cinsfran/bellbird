@@ -287,6 +287,19 @@ class TestTiemposDeLasOrdenes(unittest.TestCase):
         self.assertGreaterEqual(anotacion["segundos"], 0.05)
 
 
+class TestInformeDelBanco(unittest.TestCase):
+
+    def test_el_informe_termina_con_la_seccion_tiempos(self):
+        with tempfile.TemporaryDirectory() as base:
+            res = conducir.Resultado()
+            seccion = ["TIEMPOS", "  Pasos más lentos:",
+                       "    1. prueba, ping: 1.000 s"]
+            ruta = conducir.escribir_informe(Path(base), res, seccion)
+            texto = ruta.read_text(encoding="utf-8")
+
+        self.assertTrue(texto.rstrip("\n").endswith("\n".join(seccion)))
+
+
 class _ProcesoVivo:
 
     def poll(self):

@@ -5940,6 +5940,41 @@ def ordenar_pedidos(pedidos):
     return en_todos + resto
 
 
+def escribir_informe(carpeta: Path, res: Resultado,
+                     seccion_tiempos: list[str],
+                     escenarios: list[str] = ()) -> Path:
+    """Escribe el informe de la corrida y devuelve su ruta.
+
+    Los fallos van aparte y en un archivo. Una corrida completa son veinte
+    minutos y mas de cien lineas: buscar los fallos volviendo atras en la
+    terminal es incomodo con lector de pantalla, y con el buffer lleno
+    directamente se pierden.
+    """
+    informe = carpeta / "qa-informe.txt"
+    lineas = [f"Banco de QA de {APP_NAME}",
+              "escenarios: " + ", ".join(escenarios),
+              "%d comprobaciones, %d fallos, %d sin probar"
+              % (len(res.notas), len(res.fallos), len(res.sin_probar)), ""]
+    if res.fallos:
+        lineas.append("FALLOS")
+        lineas += ["%2d. %s" % (i, x)
+                   for i, x in enumerate(res.fallos, 1)]
+    if res.sin_probar:
+        lineas.append("SIN PROBAR")
+        lineas += ["%2d. %s" % (i, x)
+                   for i, x in enumerate(res.sin_probar, 1)]
+    if not res.fallos and not res.sin_probar:
+        lineas.append("Sin fallos.")
+    elif not res.fallos:
+        lineas.append("Sin fallos, pero %d comprobaciones quedaron "
+                      "sin probar." % len(res.sin_probar))
+    lineas += ["", "NOTAS"]
+    lineas += ["    " + x for x in res.notas]
+    lineas += [""] + seccion_tiempos
+    informe.write_text("\n".join(lineas) + "\n", encoding="utf-8")
+    return informe
+
+
 def main() -> int:
     args = _argumentos()
     p = _argumentos.p
@@ -6065,34 +6100,9 @@ def main() -> int:
           f"en {app.anuncios_ruta.name}")
     print("  Esto no prueba que NVDA lo lea, ni cómo suena, ni la braille.")
 
-    # Los fallos, aparte y en un archivo. Una corrida completa son veinte
-    # minutos y mas de cien lineas: buscar los fallos volviendo atras en la
-    # terminal es incomodo con lector de pantalla, y con el buffer lleno
-    # directamente se pierden.
     seccion_tiempos = tiempos_banco.lineas_tiempos(_TIEMPOS, duraciones)
-    informe = carpeta / "qa-informe.txt"
     try:
-        lineas = [f"Banco de QA de {APP_NAME}",
-                  "escenarios: " + ", ".join(pedidos),
-                  "%d comprobaciones, %d fallos, %d sin probar"
-                  % (len(res.notas), len(res.fallos), len(res.sin_probar)), ""]
-        if res.fallos:
-            lineas.append("FALLOS")
-            lineas += ["%2d. %s" % (i, x)
-                       for i, x in enumerate(res.fallos, 1)]
-        if res.sin_probar:
-            lineas.append("SIN PROBAR")
-            lineas += ["%2d. %s" % (i, x)
-                       for i, x in enumerate(res.sin_probar, 1)]
-        if not res.fallos and not res.sin_probar:
-            lineas.append("Sin fallos.")
-        elif not res.fallos:
-            lineas.append("Sin fallos, pero %d comprobaciones quedaron "
-                          "sin probar." % len(res.sin_probar))
-        lineas += ["", "NOTAS"]
-        lineas += ["    " + x for x in res.notas]
-        lineas += [""] + seccion_tiempos
-        informe.write_text("\n".join(lineas) + "\n", encoding="utf-8")
+        informe = escribir_informe(carpeta, res, seccion_tiempos, pedidos)
         print(f"  Informe con los fallos en {informe}")
     except Exception as exc:
         print(f"  AVISO: no se pudo escribir el informe: {exc}")

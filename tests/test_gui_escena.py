@@ -411,7 +411,7 @@ class TestVentanaObs(unittest.TestCase):
         self._pulsar(pagina.btn_restaurar)
         self.assertEqual(
             len([llamada for llamada in self.gestor.llamadas
-                 if llamada[0] == "posicionar"]), 3)
+                 if llamada[0] == "transformar"]), 3)
 
     def test_capturar_ventana_recarga_la_escena(self):
         pagina = self.dialogo._pagina_agregar

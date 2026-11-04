@@ -134,11 +134,24 @@ class GestorFalso:
         return self.silenciado
     def dispositivo(self, fuente, predeterminado):
         return "", False
+    def elementos(self, escena, parada=None):
+        return [{"sceneItemId": indice + 1, "sourceName": nombre,
+                 "sceneItemIndex": indice,
+                 "sceneItemTransform": {
+                     "positionX": 32, "positionY": 18, "alignment": 5,
+                     "rotation": 0, "scaleX": 1, "scaleY": 1,
+                     "boundsType": "OBS_BOUNDS_NONE",
+                     "boundsAlignment": 0, "boundsWidth": 0, "boundsHeight": 0,
+                     "cropLeft": 0, "cropRight": 0, "cropTop": 0,
+                     "cropBottom": 0}}
+                for indice, nombre in enumerate(self.fuentes(escena))]
     def _llamar(self, nombre, args, kwargs):
         self.llamadas.append((nombre,) + args)
         self.fuentes_enviadas.append((nombre, kwargs.get("fuente")))
         self.snap = self.snap_nuevo
     def colocar(self, *args, **kwargs): self._llamar("colocar", args, kwargs)
+    def transformar(self, escena, transformacion, parada=None, *, fuente=""):
+        self._llamar("transformar", (escena, transformacion), {"fuente": fuente})
     def posicionar(self, *args, **kwargs): self._llamar("posicionar", args, kwargs)
     def transformacion(self, *args, **kwargs): return self.transformacion_inicial
     def mover(self, *args, **kwargs): self._llamar("mover", args, kwargs)

@@ -6,6 +6,7 @@ mano. El tiempo entra por argumento en `_paso`, sin parches globales.
 """
 
 import threading
+import time
 import unittest
 from unittest import mock
 
@@ -436,6 +437,38 @@ class TestDetenerEnCuadro(_Testigo):
         memoria.reproducir.side_effect = arrancar_tono
         guiada._bucle("", False)
         memoria.detener.assert_called_once_with()
+
+
+class TestCierreDeVentana(_Testigo):
+
+    def test_al_cerrar_la_ventana_la_guia_termina_y_corta_el_tono(self):
+        marco = MarcoFalso(pausado=True)
+        marco._parada = threading.Event()
+        self.obs_abierto()
+        self.parchear("DetectorRostros").return_value.analizar.return_value = \
+            _cuadro_con([_rostro(0.5, 0.35)])
+        self.parchear("tono_guia").tono_centro.return_value = b"centro"
+        memoria = self.parchear("sonido_memoria")
+        memoria.reproducir.return_value = True
+        self.parchear_wx()
+        guiada = Guia()
+        guiada._marco = lambda: marco
+        guiada._parada = threading.Event()
+        guiada._timbre = "normal"
+        hilo = threading.Thread(target=guiada._bucle,
+                                args=("", False), daemon=True)
+        hilo.start()
+        fin = time.monotonic() + 2.0
+        while guiada._dueno_centro is None and time.monotonic() < fin:
+            time.sleep(0.01)
+        self.assertIsNotNone(guiada._dueno_centro)
+        memoria.detener.reset_mock()
+        memoria.reproducir.reset_mock()
+        marco._parada.set()
+        hilo.join(1.0)
+        self.assertFalse(hilo.is_alive())
+        memoria.detener.assert_called_once_with()
+        memoria.reproducir.assert_not_called()
 
 
 class TestTextoFallo(_Testigo):

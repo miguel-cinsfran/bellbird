@@ -6,6 +6,8 @@ vueltas a mano. Solo la prueba real usa el detector de verdad, sobre
 `tests/datos/rostro.jpg`.
 """
 
+import threading
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -609,6 +611,31 @@ class TestRecuperacion(_Testigo):
         self.assertEqual(len(creados), 2)
         self.assertIs(inst._cliente, creados[1])
         self.assertEqual(inst._ultima_frase, "Rostro centrado.")
+
+
+class TestCierre(_Testigo):
+
+    def test_al_cerrar_la_ventana_la_vigilancia_termina_pronto(self):
+        marco = _nuevo_marco(avisar_encuadre=True)
+        marco._parada = threading.Event()
+        inst = self.inst(marco)
+        inst._parada = threading.Event()
+        self.parchear_modulo("DetectorRostros")
+        entro = threading.Event()
+
+        def _paso(_inst, _ahora):
+            entro.set()
+            return encuadre_camara.ESPERA_TRAS_FALLO
+
+        self.parchear_modulo("_paso", side_effect=_paso)
+        hilo = threading.Thread(target=encuadre_camara._bucle,
+                                args=(inst,), daemon=True)
+        hilo.start()
+        self.assertTrue(entro.wait(1.0))
+        time.sleep(0.05)
+        marco._parada.set()
+        hilo.join(1.0)
+        self.assertFalse(hilo.is_alive())
 
 
 @unittest.skipUnless(detector_rostros.disponible(),

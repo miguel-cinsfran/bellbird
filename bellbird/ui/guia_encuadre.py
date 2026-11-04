@@ -149,16 +149,26 @@ class Guia:
             espejo=camara.espejo != invertir)
         self._marcha = marcha
         try:
-            while parada is not None and not parada.is_set():
+            while parada is not None and not self._debe_salir(parada):
                 if not self._paso(time.monotonic(), parada):
                     return
                 parada.wait(INTERVALO_GUIA)
         finally:
             self._soltar(marcha, parada)
 
+    def _debe_salir(self, parada) -> bool:
+        """¿La guía tiene que terminar? Su evento o el cierre de la ventana."""
+        if parada is not None and parada.is_set():
+            return True
+        marco = self._marco()
+        if marco is None:
+            return True
+        cierre = getattr(marco, "_parada", None)
+        return cierre is not None and cierre.is_set()
+
     def _soltar(self, marcha, parada) -> None:
         """Al salir del bucle: corta el tono propio y cierra OBS."""
-        if parada is not None and parada.is_set() and \
+        if self._debe_salir(parada) and \
                 self._dueno_centro is threading.current_thread():
             sonido_memoria.detener()
             self._centro_sonando = False

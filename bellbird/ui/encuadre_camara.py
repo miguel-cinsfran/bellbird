@@ -42,6 +42,9 @@ INTERVALO_VUELTA = 0.5
 ESPERA_TRAS_FALLO = 5.0
 INTERVALO_REBUSCAR = 10.0
 
+# Tramos de espera para atender el cierre de la ventana sin demorarlo.
+TRAMO_ESPERA = 0.2
+
 # Doble pulsación del atajo que inicia la guía de encuadre con pitidos.
 VENTANA_DOBLE_PULSACION = 0.6
 
@@ -268,6 +271,32 @@ def texto_estado(frame) -> str:
     return inst._ultima_frase
 
 
+def _parada_pedida(inst) -> bool:
+    """¿Hay que dejar de vigilar? También cuenta el cierre de la ventana."""
+    if inst._parada is not None and inst._parada.is_set():
+        return True
+    marco = inst._frame
+    if marco is None:
+        return True
+    parada = getattr(marco, "_parada", None)
+    return parada is not None and parada.is_set()
+
+
+def _esperar(inst, espera) -> None:
+    """Espera en tramos cortos para atender el cierre de la ventana."""
+    evento = inst._parada
+    fin = time.monotonic() + espera
+    while not _parada_pedida(inst):
+        restante = fin - time.monotonic()
+        if restante <= 0:
+            return
+        tramo = min(restante, TRAMO_ESPERA)
+        if evento is None:
+            time.sleep(tramo)
+        else:
+            evento.wait(tramo)
+
+
 def _bucle(inst) -> None:
     inst._vigia.reiniciar()
     inst._contador = encuadre.ContadorCongelada()
@@ -277,12 +306,12 @@ def _bucle(inst) -> None:
     inst._ultima_busqueda = 0.0
     inst._ultima_frase = ""
     try:
-        while not inst._parada.is_set():
+        while not _parada_pedida(inst):
             try:
                 espera = _paso(inst, time.monotonic())
             except _Terminar:
                 return
-            inst._parada.wait(espera)
+            _esperar(inst, espera)
     finally:
         _soltar_cliente(inst)
 

@@ -2832,6 +2832,74 @@ msgstr "Recording: in progress, {tiempo}"
 msgid "Grabación: detenida"
 msgstr "Recording: stopped"
 
+#: bellbird/obs/filtros_microfono.py
+msgid "Sin cambio"
+msgstr "No change"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Subir 3 dB"
+msgstr "Increase 3 dB"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Subir 6 dB"
+msgstr "Increase 6 dB"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Subir 10 dB"
+msgstr "Increase 10 dB"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Subir 15 dB"
+msgstr "Increase 15 dB"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Subir 20 dB"
+msgstr "Increase 20 dB"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Bajar 3 dB"
+msgstr "Decrease 3 dB"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Bajar 6 dB"
+msgstr "Decrease 6 dB"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Eliminación de ruido"
+msgstr "Noise Suppression"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Puerta anti-ruidos"
+msgstr "Noise Gate"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Ganancia"
+msgstr "Gain"
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Eliminación de ruido activada."
+msgstr "Noise Suppression enabled."
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Puerta anti-ruidos activada."
+msgstr "Noise Gate enabled."
+
+#. Traductores: {nombre} es la opción de ganancia elegida.
+#: bellbird/obs/filtros_microfono.py
+#, python-brace-format
+msgid "Ganancia: {nombre}."
+msgstr "Gain: {nombre}."
+
+#: bellbird/obs/filtros_microfono.py
+msgid "Filtros del micrófono desactivados."
+msgstr "Microphone filters disabled."
+
+#. Traductores: {detalle} es lo que quedó activo.
+#: bellbird/obs/filtros_microfono.py
+#, python-brace-format
+msgid "Filtros del micrófono aplicados. {detalle}"
+msgstr "Microphone filters applied. {detalle}"
+
 #. Traductores: nombre fijo de la fuente en OBS; no se traduce al usarlo.
 #: bellbird/obs/fuente_chat.py
 msgid "Chat en el vídeo"
@@ -5359,8 +5427,9 @@ msgid "Antes de transmitir"
 msgstr "Before broadcasting"
 
 #. Traductores: botón para cerrar sin publicar.
-#: bellbird/ui/confirmar_transmision.py bellbird/ui/escena_tamano.py
-#: bellbird/ui/gui_preferencias.py bellbird/ui/gui_redactar.py
+#: bellbird/ui/confirmar_transmision.py bellbird/ui/escena_filtros.py
+#: bellbird/ui/escena_tamano.py bellbird/ui/gui_preferencias.py
+#: bellbird/ui/gui_redactar.py
 msgid "&Cancelar"
 msgstr "&Cancel"
 
@@ -5851,7 +5920,8 @@ msgstr "C&hat:"
 msgid "Esquina del c&hat:"
 msgstr "Chat co&rner:"
 
-#: bellbird/ui/escena_disenos.py bellbird/ui/escena_tamano.py
+#: bellbird/ui/escena_disenos.py bellbird/ui/escena_filtros.py
+#: bellbird/ui/escena_tamano.py
 msgid "&Aceptar"
 msgstr "&Accept"
 
@@ -5893,6 +5963,23 @@ msgstr "Layout name:"
 msgid "Guardar diseño"
 msgstr "Save layout"
 
+#: bellbird/ui/escena_filtros.py
+#, python-brace-format
+msgid "Filtros del micrófono: {fuente}"
+msgstr "Microphone filters: {fuente}"
+
+#: bellbird/ui/escena_filtros.py
+msgid "&Eliminación de ruido"
+msgstr "Noise &Suppression"
+
+#: bellbird/ui/escena_filtros.py
+msgid "&Puerta anti-ruidos"
+msgstr "&Noise Gate"
+
+#: bellbird/ui/escena_filtros.py
+msgid "&Ganancia:"
+msgstr "&Gain:"
+
 #: bellbird/ui/escena_pagina_agregar.py
 msgid "Ventana capturada"
 msgstr "Captured window"
@@ -5920,6 +6007,10 @@ msgstr "Choose a &device…"
 #: bellbird/ui/escena_pagina_audio.py
 msgid "&Probar micrófono"
 msgstr "&Test microphone"
+
+#: bellbird/ui/escena_pagina_audio.py
+msgid "&Filtros del micrófono…"
+msgstr "Microphone &filters…"
 
 #: bellbird/ui/escena_pagina_audio.py
 msgid "Si&lenciar micrófono"

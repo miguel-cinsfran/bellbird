@@ -5,8 +5,9 @@ from __future__ import annotations
 import wx
 
 from bellbird.core.idioma import _
-from bellbird.obs import nivel_microfono, obs_entradas_audio, prueba_microfono
-from bellbird.ui import gui_microfono
+from bellbird.obs import (
+    filtros_microfono, nivel_microfono, obs_entradas_audio, prueba_microfono)
+from bellbird.ui import escena_filtros, gui_microfono
 from bellbird.ui.accesibilidad import anunciar
 from bellbird.ui.preferencias_comun import boton, nombre_de_etiqueta
 from bellbird.voice import sound_player
@@ -31,16 +32,19 @@ class PaginaAudio(wx.Panel):
     def _crear_controles(self):
         caja = wx.BoxSizer(wx.VERTICAL)
         self.chk_silenciar = self._crear_casilla()
-        self.btn_microfono = boton(
-            self, _("Elegir &micrófono…"),
-            nombre_de_etiqueta(_("Elegir &micrófono…")))
-        self.btn_probar = boton(
-            self, _("&Probar micrófono"),
-            nombre_de_etiqueta(_("&Probar micrófono")))
+        self._crear_botones()
         caja.Add(self._crear_fila(), 0, wx.ALL, 8)
         self.SetSizer(caja)
         self.acciones = (
-            self.chk_silenciar, self.btn_microfono, self.btn_probar)
+            self.chk_silenciar, self.btn_microfono, self.btn_probar,
+            self.btn_filtros)
+
+    def _crear_botones(self):
+        etiquetas = (_("Elegir &micrófono…"), _("&Probar micrófono"),
+                     _("&Filtros del micrófono…"))
+        self.btn_microfono, self.btn_probar, self.btn_filtros = (
+            boton(self, etiqueta, nombre_de_etiqueta(etiqueta))
+            for etiqueta in etiquetas)
 
     def _crear_casilla(self):
         etiqueta = _("Si&lenciar micrófono")
@@ -52,6 +56,7 @@ class PaginaAudio(wx.Panel):
         fila.Add(self.chk_silenciar, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 6)
         fila.Add(self.btn_microfono, 0, wx.ALL, 6)
         fila.Add(self.btn_probar, 0, wx.ALL, 6)
+        fila.Add(self.btn_filtros, 0, wx.ALL, 6)
         return fila
 
     def _enlazar_eventos(self):
@@ -60,6 +65,7 @@ class PaginaAudio(wx.Panel):
             lambda evento: gui_microfono.abrir_microfono_obs(
                 self._principal, al_cerrar=self.btn_microfono.SetFocus))
         self.btn_probar.Bind(wx.EVT_BUTTON, self._al_probar)
+        self.btn_filtros.Bind(wx.EVT_BUTTON, self._al_filtros)
         self.Bind(wx.EVT_WINDOW_DESTROY, self._al_destruir)
 
     def fijar(self, silenciado):
@@ -73,6 +79,26 @@ class PaginaAudio(wx.Panel):
         self._operaciones.en_hilo(
             lambda: prueba_microfono.preparar(self._gestor, preferido),
             self._preparada)
+
+    def _al_filtros(self, evento=None):
+        preferido = gui_microfono.microfono_preferido(self._principal)
+        def preparar():
+            fuente, _s, _n = prueba_microfono.preparar(self._gestor, preferido)
+            return fuente, filtros_microfono.leer(fuente) if fuente else None
+        self._operaciones.en_hilo(preparar, self._filtros_listos)
+
+    def _filtros_listos(self, resultado):
+        fuente, estado = resultado
+        if not fuente:
+            anunciar(_(obs_entradas_audio.AVISO_SIN_MICROFONO))
+            return
+        elegido = escena_filtros.pedir_filtros(self, fuente, estado)
+        self.btn_filtros.SetFocus()
+        if elegido is not None:
+            self._operaciones.en_hilo(
+                lambda: filtros_microfono.aplicar(fuente, elegido),
+                lambda _resultado: anunciar(
+                    filtros_microfono.resumen(elegido)))
 
     def _preparada(self, resultado):
         fuente, silenciado, nombre = resultado

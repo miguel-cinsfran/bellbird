@@ -599,7 +599,8 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(self._nombres(self.dialogo._pagina_agregar), [
             "Ventana", "Capturar ventana", "Agregar cámara…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_audio), [
-            "Silenciar micrófono", "Elegir micrófono…", "Probar micrófono"])
+            "Silenciar micrófono", "Elegir micrófono…", "Probar micrófono",
+            "Filtros del micrófono…"])
         self.assertEqual(self._nombres(self.dialogo)[-2:], ["Ayuda", "Cerrar"])
 
     def test_cuadro_tamano_abre_con_el_comun_actual(self):

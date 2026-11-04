@@ -10,6 +10,7 @@ from unittest import mock
 import wx
 
 from bellbird.obs import nivel_microfono
+from bellbird.obs.filtros_microfono import Estado
 from bellbird.ui import escena_pagina_audio
 from tests.ventanas_prueba import destruir
 
@@ -144,6 +145,72 @@ class TestPaginaAudioPrueba(unittest.TestCase):
         self.anunciar.assert_called_once_with(
             "OBS no tiene ningún micrófono. Elige uno en Preferencias, "
             "categoría Transmisión, Micrófono de OBS.")
+
+
+class TestPaginaAudioFiltros(unittest.TestCase):
+    def setUp(self):
+        self.app = wx.App.Get() or wx.App(False)
+        self.marco = wx.Frame(None)
+        self.addCleanup(destruir, self.marco)
+        self.principal = SimpleNamespace(_config={"obs_microfono": "Mic/Aux"})
+        self.gestor = object()
+        self.estado = Estado(True, False, 6)
+        self.parches = [
+            mock.patch.object(
+                escena_pagina_audio.prueba_microfono, "preparar",
+                return_value=("Mic/Aux", False, "Micrófono USB")),
+            mock.patch.object(
+                escena_pagina_audio.filtros_microfono, "leer",
+                return_value=self.estado),
+            mock.patch.object(
+                escena_pagina_audio.filtros_microfono, "aplicar"),
+            mock.patch.object(
+                escena_pagina_audio.escena_filtros, "pedir_filtros",
+                return_value=None),
+            mock.patch.object(escena_pagina_audio, "anunciar"),
+            mock.patch.object(
+                escena_pagina_audio.wx, "CallAfter",
+                side_effect=lambda funcion, *args, **kwargs:
+                funcion(*args, **kwargs)),
+        ]
+        for parche in self.parches:
+            parche.start()
+            self.addCleanup(parche.stop)
+        self.pagina = escena_pagina_audio.PaginaAudio(
+            self.marco, self.principal, self.gestor, OperacionesFalsas())
+
+    def _pulsar(self):
+        evento = wx.CommandEvent(
+            wx.EVT_BUTTON.typeId, self.pagina.btn_filtros.GetId())
+        self.pagina.btn_filtros.GetEventHandler().ProcessEvent(evento)
+
+    def test_abre_el_cuadro_con_el_estado_leido(self):
+        self._pulsar()
+        escena_pagina_audio.escena_filtros.pedir_filtros.assert_called_once_with(
+            self.pagina, "Mic/Aux", self.estado)
+
+    def test_aceptar_aplica_y_anuncia_lo_que_quedo(self):
+        elegido = Estado(False, True, 3)
+        escena_pagina_audio.escena_filtros.pedir_filtros.return_value = elegido
+        self._pulsar()
+        escena_pagina_audio.filtros_microfono.aplicar.assert_called_once_with(
+            "Mic/Aux", elegido)
+        escena_pagina_audio.anunciar.assert_called_once_with(
+            escena_pagina_audio.filtros_microfono.resumen(elegido))
+
+    def test_sin_microfono_anuncia_y_no_abre_el_cuadro(self):
+        escena_pagina_audio.prueba_microfono.preparar.return_value = (
+            "", False, "")
+        self._pulsar()
+        escena_pagina_audio.escena_filtros.pedir_filtros.assert_not_called()
+        escena_pagina_audio.anunciar.assert_called_once_with(
+            "OBS no tiene ningún micrófono. Elige uno en Preferencias, "
+            "categoría Transmisión, Micrófono de OBS.")
+
+    def test_el_foco_vuelve_al_boton(self):
+        with mock.patch.object(self.pagina.btn_filtros, "SetFocus") as foco:
+            self._pulsar()
+        foco.assert_called_once_with()
 
 
 if __name__ == "__main__":

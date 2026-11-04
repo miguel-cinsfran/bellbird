@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 374123199419610c2379a61aaa6cc70241108224 -->
+<!-- original: es/MANUAL.md 22c8ab1cc48171a9da79e56238139cbf1b8337ff -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -551,6 +551,13 @@ in OBS right now and, on accepting, the application says what is active. If
 you already set up one of those filters in OBS, that one is used: the
 application does not create another one or delete any. While you test the
 microphone, the announced level already includes the filters.
+
+*Listen to microphone* enables OBS audio monitoring for the microphone, so
+you hear yourself while you speak, with the filters already applied. It
+plays through the monitoring device set in OBS. Use headphones: with
+speakers the microphone picks up its own sound and there is feedback. What
+goes out in the stream does not change. When you clear it, or close the
+*OBS panel*, monitoring goes back to how it was.
 
 If OBS is closed, the panel opens it. If it does not respond, it says so in
 the description and does not freeze. The panel help explains each tab.

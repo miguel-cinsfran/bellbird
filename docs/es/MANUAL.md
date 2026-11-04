@@ -546,6 +546,13 @@ ya tenías uno de esos filtros configurado en OBS, se usa ese: la aplicación
 no crea otro igual ni elimina ninguno. Mientras pruebas el micrófono, el
 nivel que se anuncia ya incluye los filtros.
 
+*Escuchar micrófono* activa la monitorización de audio de OBS en el
+micrófono, para que te oigas mientras hablas, ya con los filtros. Suena por
+el dispositivo de monitorización que tenga configurado OBS. Usa
+auriculares: con altavoces el micrófono capta su propio sonido y hay
+acople. Lo que sale en la transmisión no cambia. Al desmarcarla, o al
+cerrar el *Panel de OBS*, la monitorización vuelve a como estaba.
+
 Si OBS está cerrado, el panel lo abre. Si no responde, lo dice en la
 descripción y no se queda congelado. La ayuda del panel explica cada pestaña.
 

@@ -163,7 +163,11 @@ class PruebasSaltoVodRelevo(unittest.TestCase):
             def Stop(self):
                 self.detendida = True
 
-        def call_later(_ms, fn, *args):
+        def call_later(ms, fn, *args):
+            # Solo la reapertura que agenda _ir_a; la caducidad de la
+            # búsqueda no debe entrar en la lista que se vence a mano.
+            if ms != 400:
+                return _Aplazada(lambda: None)
             aplazada = _Aplazada(lambda: fn(*args))
             llamadas.append((fn, args))
             pendientes.append(aplazada)
@@ -367,7 +371,10 @@ class PruebasVentanaReaperturaVodRelevo(unittest.TestCase):
             def Stop(self):
                 pass
 
-        def call_later(_ms, fn, *args):
+        def call_later(ms, fn, *args):
+            # Solo cuenta la reapertura que agenda _ir_a.
+            if ms != 400:
+                return _Aplazada()
             llamadas.append((fn, args))
             return _Aplazada()
 

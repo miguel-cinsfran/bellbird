@@ -220,18 +220,21 @@ class PruebaVentanaRestream(unittest.TestCase):
         self.assertEqual([True], llamadas)
         sonar.assert_called_once_with("conectado")
         anunciar.assert_any_call("Cuenta de Restream conectada.")
-        self.assertEqual(
-            "Cuenta de Restream conectada.",
-            dialogo._pagina_cuenta.txt_estado.GetValue())
+        self.assertTrue(_esperar(lambda: lecturas))
+        self.assertFalse(lecturas[0])
+        self.assertTrue(_esperar(
+            lambda: "Destinos:" in
+            dialogo._pagina_cuenta.txt_estado.GetValue()))
+        texto_estado = dialogo._pagina_cuenta.txt_estado.GetValue()
+        self.assertTrue(texto_estado.startswith(
+            "Cuenta de Restream conectada."))
+        self.assertIn("Destinos: TikTok: uno, YouTube: dos.", texto_estado)
         self.assertFalse(dialogo._pagina_cuenta.btn_conectar.IsShown())
         self.assertTrue(dialogo._pagina_cuenta.btn_reautorizar.IsShown())
         self.assertTrue(dialogo._pagina_cuenta.btn_desconectar.IsShown())
         for boton in (dialogo._pagina_cuenta.btn_reautorizar,
                       dialogo._pagina_cuenta.btn_desconectar):
             self.assertTrue(boton.IsEnabled())
-
-        self.assertTrue(_esperar(lambda: lecturas))
-        self.assertFalse(lecturas[0])
 
     def test_p3_conectar_que_falla_suena_error_y_muestra_el_mensaje(self):
         cuenta = CuentaFalsa(False)

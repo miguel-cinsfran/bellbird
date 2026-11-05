@@ -1,8 +1,8 @@
 import unittest
 from unittest import mock
 
-from bellbird.player import recuperacion
-from bellbird.player import reproductor
+from guyrapu.player import recuperacion
+from guyrapu.player import reproductor
 
 
 def _funciones(**valores):

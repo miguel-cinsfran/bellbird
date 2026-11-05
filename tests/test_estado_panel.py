@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.obs import estado_panel
+from guyrapu.obs import estado_panel
 
 
 def _resumir(**cambios):

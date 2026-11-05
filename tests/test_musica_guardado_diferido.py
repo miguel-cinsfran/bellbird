@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.music.guardado_diferido import GuardadoDiferido
+from guyrapu.music.guardado_diferido import GuardadoDiferido
 
 
 class _Temporizador:

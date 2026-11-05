@@ -6,8 +6,8 @@ from unittest import mock
 import wx
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.ui import musica_ventana_acciones as acciones
+from guyrapu.core.idioma import _
+from guyrapu.ui import musica_ventana_acciones as acciones
 
 
 class DobleEntradaTexto:

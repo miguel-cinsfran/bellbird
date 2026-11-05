@@ -1,6 +1,6 @@
 import unittest
 
-from bellbird.capture import descartes
+from guyrapu.capture import descartes
 
 
 class TestAviso(unittest.TestCase):

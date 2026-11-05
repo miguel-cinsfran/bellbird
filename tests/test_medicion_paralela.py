@@ -9,7 +9,7 @@ import time
 import unittest
 from unittest import mock
 
-from bellbird.music import medicion_paralela
+from guyrapu.music import medicion_paralela
 
 
 class TestTrabajosDeMedicion(unittest.TestCase):

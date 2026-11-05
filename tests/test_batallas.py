@@ -8,7 +8,7 @@ batalla.
 import random
 import unittest
 
-from bellbird.capture import batallas
+from guyrapu.capture import batallas
 
 
 def _anfitriones(*nombres):

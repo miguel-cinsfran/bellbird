@@ -10,8 +10,8 @@ import time
 import unittest
 from unittest import mock
 
-from bellbird.player import reproductor
-from bellbird.player.busqueda_video import EstadoBusqueda, EstadoInicioReproduccion
+from guyrapu.player import reproductor
+from guyrapu.player.busqueda_video import EstadoBusqueda, EstadoInicioReproduccion
 
 
 class _Aplazada:

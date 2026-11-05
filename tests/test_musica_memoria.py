@@ -9,8 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from bellbird.music import memoria
-from bellbird.music.modelo import EstadoMusica, Tema
+from guyrapu.music import memoria
+from guyrapu.music.modelo import EstadoMusica, Tema
 
 
 def _estado(temas, posicion):

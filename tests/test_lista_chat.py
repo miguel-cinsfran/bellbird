@@ -7,15 +7,15 @@ menú contextual (copiar, silenciar, banear) caía sobre el mensaje equivocado.
 
 import unittest
 
-from bellbird.core.config import (
+from guyrapu.core.config import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
-from bellbird.core.tipos_mensaje import (
+from guyrapu.core.tipos_mensaje import (
     TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,
     TIPO_BATALLA_FIN,
 )
-from bellbird.ui.lista_chat import ListaChat, MensajeChat, texto_fila, texto_reciente
+from guyrapu.ui.lista_chat import ListaChat, MensajeChat, texto_fila, texto_reciente
 from tests.pseudo_prueba import con_pseudo
 
 

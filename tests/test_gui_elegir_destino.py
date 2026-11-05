@@ -14,7 +14,7 @@ try:
 except Exception:
     _HAY_WX = False
 
-from bellbird.ui import gui_elegir_destino as elegir
+from guyrapu.ui import gui_elegir_destino as elegir
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import app_de_prueba, destruir
 

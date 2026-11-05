@@ -5,7 +5,7 @@ Construye el menú con el mismo doble de frame que usan las pruebas de
 la lista completa de (menú, etiqueta, id, tipo) en orden, con los submenús
 atribuidos a su título. La lista se fijó contra el código anterior a mover
 `_build_menubar` a `gui_menu.construir_menu`: entra por
-`YTChatFrame._build_menubar`, que ahora delega, así que pasa igual antes y
+`VentanaPrincipal._build_menubar`, que ahora delega, así que pasa igual antes y
 después sin tocarla.
 """
 
@@ -19,7 +19,7 @@ import wx
 from tests.letras_acceso import ingles
 from tests.pseudo_prueba import con_pseudo
 from tests.ventanas_prueba import app_de_prueba, destruir
-from bellbird.ui import gui
+from guyrapu.ui import gui
 
 
 def _construir_lista(accel=None):
@@ -69,7 +69,7 @@ def _construir_lista(accel=None):
     frame._config = {"mostrar_botones_reproductor": True}
     with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
             mock.patch.object(gui.wx, "MenuBar", side_effect=crear_barra):
-        gui.YTChatFrame._build_menubar(frame)
+        gui.VentanaPrincipal._build_menubar(frame)
     lista = []
     for titulo, menu in barra:
         for tipo, etiqueta, dato in menu._entradas:
@@ -228,7 +228,7 @@ class TestMenuAyudaDocumentos(unittest.TestCase):
     """Manual y Novedades abren el HTML del idioma en uso."""
 
     def _ayuda(self):
-        from bellbird.ui import gui_menu
+        from guyrapu.ui import gui_menu
 
         items = {}
 
@@ -259,7 +259,7 @@ class TestMenuAyudaDocumentos(unittest.TestCase):
         raise AssertionError(f"no se enlazó {etiqueta}")
 
     def test_cada_comando_abre_su_documento_en_el_idioma_en_uso(self):
-        from bellbird.ui import gui_menu
+        from guyrapu.ui import gui_menu
 
         def documento(nombre, idioma):
             return Path(f"C:/app/docs/{idioma}/{nombre}.html")
@@ -279,7 +279,7 @@ class TestMenuAyudaDocumentos(unittest.TestCase):
                           str(Path("C:/app/docs/en/CHANGELOG.html"))])
 
     def test_si_no_se_puede_abrir_muestra_el_error_en_un_cuadro(self):
-        from bellbird.ui import gui_menu
+        from guyrapu.ui import gui_menu
 
         with mock.patch.object(gui_menu, "idioma_actual", return_value="es"), \
                 mock.patch.object(gui_menu.paths, "documento",
@@ -299,7 +299,7 @@ class TestMenuMusica(unittest.TestCase):
     """El menú Música con sus elementos y sus atajos a la vista."""
 
     def _entradas(self):
-        from bellbird.core import config as cfg
+        from guyrapu.core import config as cfg
 
         def accel(accion):
             valor = cfg.ATAJOS_DEFAULTS.get(accion, "")
@@ -335,7 +335,7 @@ class TestMenuRecientes(unittest.TestCase):
     """El submenú de mensajes recientes: diez ítems que leen 1 a 10."""
 
     def _ver(self):
-        from bellbird.ui import gui_menu
+        from guyrapu.ui import gui_menu
         creados = []
 
         def crear_menu(*args, **kwargs):
@@ -353,7 +353,7 @@ class TestMenuRecientes(unittest.TestCase):
         return frame, creados
 
     def test_items_en_orden_con_sus_etiquetas(self):
-        from bellbird.ui.atajos_captura import ETIQUETAS
+        from guyrapu.ui.atajos_captura import ETIQUETAS
         _frame, creados = self._ver()
         sub = creados[1]
         self.assertEqual(
@@ -370,7 +370,7 @@ class TestMenuRecientes(unittest.TestCase):
 
     def test_leer_reciente_delega_en_recientes(self):
         frame = mock.Mock()
-        gui.YTChatFrame._leer_reciente(frame, 4)
+        gui.VentanaPrincipal._leer_reciente(frame, 4)
         frame._recientes.leer.assert_called_once_with(4)
 
 
@@ -386,7 +386,7 @@ class TestRegistroDeComandos(unittest.TestCase):
         del cls.app
 
     def test_anota_la_etiqueta_y_no_impide_que_corra_el_manejador_propio(self):
-        from bellbird.ui import gui_menu
+        from guyrapu.ui import gui_menu
 
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
@@ -408,7 +408,7 @@ class TestRegistroDeComandos(unittest.TestCase):
         self.assertIn("etiqueta=Conectar", registro.output[0])
 
     def test_un_id_que_no_esta_en_la_barra_dice_interrogante(self):
-        from bellbird.ui import gui_menu
+        from guyrapu.ui import gui_menu
 
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
@@ -432,7 +432,7 @@ class TestAbrirObs(unittest.TestCase):
         return frame
 
     def _abrir(self, frame, menu, estado=None):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
         evento = mock.Mock()
         evento.GetMenu.return_value = menu
         hilos = []
@@ -452,7 +452,7 @@ class TestAbrirObs(unittest.TestCase):
         return frame
 
     def test_otro_menu_no_consulta(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
         frame = self._frame(object())
         evento = mock.Mock()
         evento.GetMenu.return_value = object()
@@ -476,7 +476,7 @@ class TestAbrirObs(unittest.TestCase):
         frame.mi_obs_micro.Check.assert_not_called()
 
     def test_con_otra_consulta_en_curso_no_lanza_otra(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
         menu = object()
         frame = self._frame(menu)
         frame._consultando_micro = True
@@ -487,7 +487,7 @@ class TestAbrirObs(unittest.TestCase):
         crear.assert_not_called()
 
     def test_deja_correr_el_evento_en_los_dos_menus(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
         menu = object()
         for abierto in (menu, object()):
             with self.subTest(abierto=abierto):
@@ -503,7 +503,7 @@ class TestCableadoAvisoMicrofono(unittest.TestCase):
     """El aviso del micrófono queda enlazado al menú OBS, no a Transmisión."""
 
     def test_al_abrir_el_menu_obs_consulta_con_ese_menu(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
 
         menu = mock.Mock()
         frame = mock.Mock()
@@ -525,7 +525,7 @@ class TestMenuRestream(unittest.TestCase):
     """La ventana de Restream entra al menú Transmisión con su atajo."""
 
     def _transmision(self):
-        from bellbird.core import config as cfg
+        from guyrapu.core import config as cfg
 
         def accel(accion):
             valor = cfg.ATAJOS_DEFAULTS.get(accion, "")
@@ -549,18 +549,18 @@ class TestMenuRestream(unittest.TestCase):
         self.assertEqual(len(letras), len(set(letras)))
 
     def test_abrir_restream_pasa_cuenta_canales_ruta_y_acciones(self):
-        from bellbird.ui import menu_transmision
+        from guyrapu.ui import menu_transmision
 
         canal = mock.Mock(id=7, texto="YouTube: uno")
-        with mock.patch("bellbird.restream.cuenta.sesion",
+        with mock.patch("guyrapu.restream.cuenta.sesion",
                         return_value="sesion"), \
-                mock.patch("bellbird.restream.cuenta.canales",
+                mock.patch("guyrapu.restream.cuenta.canales",
                            return_value=[canal]), \
-                mock.patch("bellbird.restream.cuenta.conectar") as conectar, \
-                mock.patch("bellbird.restream.cuenta.desconectar") as desconectar, \
-                mock.patch("bellbird.core.paths.perfiles_restream",
+                mock.patch("guyrapu.restream.cuenta.conectar") as conectar, \
+                mock.patch("guyrapu.restream.cuenta.desconectar") as desconectar, \
+                mock.patch("guyrapu.core.paths.perfiles_restream",
                            return_value=Path("perfiles.json")), \
-                mock.patch("bellbird.ui.restream_ventana.abrir_restream") as abrir:
+                mock.patch("guyrapu.ui.restream_ventana.abrir_restream") as abrir:
             menu_transmision.abrir_restream("frame")
             llamada = abrir.call_args
             canales = llamada.args[2]()
@@ -586,12 +586,12 @@ class TestCableadoRestream(unittest.TestCase):
         del cls.app
 
     def _frame_con_menu(self):
-        from bellbird.ui import menu_transmision
+        from guyrapu.ui import menu_transmision
 
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
         frame._accel = lambda _accion: ""
-        frame._bind_menu = gui.YTChatFrame._bind_menu.__get__(frame)
+        frame._bind_menu = gui.VentanaPrincipal._bind_menu.__get__(frame)
         frame._config = {"avisar_sobrecarga": True}
         frame._on_obs_micro = mock.Mock()
         frame._alternar_aviso_sobrecarga = mock.Mock()
@@ -601,14 +601,14 @@ class TestCableadoRestream(unittest.TestCase):
         return frame
 
     def test_elegir_restream_abre_la_ventana_con_el_frame(self):
-        from bellbird.restream import cuenta
-        from bellbird.ui import menu_transmision
-        from bellbird.ui import restream_ventana
+        from guyrapu.restream import cuenta
+        from guyrapu.ui import menu_transmision
+        from guyrapu.ui import restream_ventana
 
         frame = self._frame_con_menu()
         with mock.patch.object(restream_ventana, "abrir_restream") as abrir, \
                 mock.patch.object(cuenta, "sesion", return_value=mock.Mock()), \
-                mock.patch("bellbird.core.paths.perfiles_restream",
+                mock.patch("guyrapu.core.paths.perfiles_restream",
                            return_value=Path("perfiles.json")), \
                 mock.patch.object(menu_transmision.wx, "CallAfter",
                                   side_effect=lambda fn, *a: fn(*a)):
@@ -621,7 +621,7 @@ class TestCableadoRestream(unittest.TestCase):
 
 
 def _entradas_de(menu):
-    from bellbird.core import config as cfg
+    from guyrapu.core import config as cfg
 
     def accel(accion):
         valor = cfg.ATAJOS_DEFAULTS.get(accion, "")
@@ -698,12 +698,12 @@ class TestCableadoPanelObs(unittest.TestCase):
         del cls.app
 
     def _frame_con_menu(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
 
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
         frame._accel = lambda _accion: ""
-        frame._bind_menu = gui.YTChatFrame._bind_menu.__get__(frame)
+        frame._bind_menu = gui.VentanaPrincipal._bind_menu.__get__(frame)
         frame._config = {"avisar_sobrecarga": True}
         frame._on_obs_micro = mock.Mock()
         frame._alternar_aviso_sobrecarga = mock.Mock()
@@ -713,8 +713,8 @@ class TestCableadoPanelObs(unittest.TestCase):
         return frame
 
     def test_el_comando_abre_el_panel_en_general(self):
-        from bellbird.ui import menu_obs
-        from bellbird.ui import obs_ventana
+        from guyrapu.ui import menu_obs
+        from guyrapu.ui import obs_ventana
 
         frame = self._frame_con_menu()
         with mock.patch.object(obs_ventana, "abrir_obs") as abrir, \
@@ -740,12 +740,12 @@ class TestCableadoMostrarObs(unittest.TestCase):
         del cls.app
 
     def _frame_con_menu(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
 
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
         frame._accel = lambda _accion: ""
-        frame._bind_menu = gui.YTChatFrame._bind_menu.__get__(frame)
+        frame._bind_menu = gui.VentanaPrincipal._bind_menu.__get__(frame)
         frame._config = {"avisar_sobrecarga": True}
         frame._on_obs_micro = mock.Mock()
         frame._alternar_aviso_sobrecarga = mock.Mock()
@@ -755,7 +755,7 @@ class TestCableadoMostrarObs(unittest.TestCase):
         return frame
 
     def test_elegir_mostrar_obs_anuncia_lo_que_devuelve_mostrar(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
 
         frame = self._frame_con_menu()
         with mock.patch.object(menu_obs.obs_ventana, "mostrar",
@@ -787,9 +787,9 @@ class TestCableadoMostrarObs(unittest.TestCase):
                     frame.mi_micro_obs.GetId())
 
     def test_elegir_microfono_abre_el_cuadro(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
 
-        with mock.patch("bellbird.ui.gui_microfono.abrir_microfono_obs") \
+        with mock.patch("guyrapu.ui.gui_microfono.abrir_microfono_obs") \
                 as abrir, \
                 mock.patch.object(menu_obs.wx, "CallAfter",
                                   side_effect=lambda fn, *a: fn(*a)):
@@ -812,12 +812,12 @@ class TestCableadoComandosGrabacion(unittest.TestCase):
         del cls.app
 
     def _frame_con_menu(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
 
         frame = wx.Frame(None)
         self.addCleanup(destruir, frame)
         frame._accel = lambda _accion: ""
-        frame._bind_menu = gui.YTChatFrame._bind_menu.__get__(frame)
+        frame._bind_menu = gui.VentanaPrincipal._bind_menu.__get__(frame)
         frame._config = {"avisar_sobrecarga": True}
         frame._on_obs_micro = mock.Mock()
         frame._alternar_aviso_sobrecarga = mock.Mock()
@@ -827,7 +827,7 @@ class TestCableadoComandosGrabacion(unittest.TestCase):
         return frame
 
     def _elegir(self, frame, item):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
 
         with mock.patch.object(menu_obs.wx, "CallAfter",
                                side_effect=lambda fn, *a: fn(*a)):
@@ -835,7 +835,7 @@ class TestCableadoComandosGrabacion(unittest.TestCase):
             frame.GetEventHandler().ProcessEvent(evento)
 
     def test_iniciar_o_detener_llega_al_comando(self):
-        from bellbird.ui import comandos_grabacion
+        from guyrapu.ui import comandos_grabacion
 
         with mock.patch.object(comandos_grabacion,
                                "alternar_grabacion") as comando:
@@ -844,7 +844,7 @@ class TestCableadoComandosGrabacion(unittest.TestCase):
         comando.assert_called_once_with(frame)
 
     def test_pausar_o_reanudar_llega_al_comando(self):
-        from bellbird.ui import comandos_grabacion
+        from guyrapu.ui import comandos_grabacion
 
         with mock.patch.object(comandos_grabacion,
                                "alternar_pausa_grabacion") as comando:
@@ -854,8 +854,8 @@ class TestCableadoComandosGrabacion(unittest.TestCase):
 
 
 # Textos que arma otro módulo y la barra solo muestra. Las etiquetas de
-# `bellbird/ui/atajos_captura.py` (ETIQUETAS) y los nombres de filtro de
-# `bellbird/ui/gui_menu.py` (FILTROS) ya salen marcados porque el menú los
+# `guyrapu/ui/atajos_captura.py` (ETIQUETAS) y los nombres de filtro de
+# `guyrapu/ui/gui_menu.py` (FILTROS) ya salen marcados porque el menú los
 # traduce. La comparación es exacta en los dos sentidos: falla si aparece
 # un texto nuevo sin envolver y si un pendiente ya no está en el recorrido.
 PENDIENTES_OTROS_MODULOS = ()

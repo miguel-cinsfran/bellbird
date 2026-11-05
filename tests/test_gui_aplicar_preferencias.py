@@ -4,8 +4,8 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.ui import gui_aplicar_preferencias
-from bellbird.voice import motores
+from guyrapu.ui import gui_aplicar_preferencias
+from guyrapu.voice import motores
 
 
 def _frame(configuracion):
@@ -22,14 +22,14 @@ class TestAplicarEnCaliente(unittest.TestCase):
         frame = _frame({"motor": "sapi", "voz": "Voz A",
                         "atajos_raw": {}})
         frame._worker.motor_activo.return_value = "sapi"
-        with mock.patch("bellbird.ui.gui.anunciar") as anunciar:
+        with mock.patch("guyrapu.ui.gui.anunciar") as anunciar:
             gui_aplicar_preferencias.aplicar_en_caliente(frame)
         anunciar.assert_called_once_with("Preferencias aplicadas")
 
     def test_aplicar_llama_a_preferencia_de_encuadre(self):
         frame = _frame({"avisar_encuadre": True})
-        with mock.patch("bellbird.ui.gui.anunciar"), \
-                mock.patch("bellbird.ui.encuadre_camara.aplicar_preferencia") as preferencia:
+        with mock.patch("guyrapu.ui.gui.anunciar"), \
+                mock.patch("guyrapu.ui.encuadre_camara.aplicar_preferencia") as preferencia:
             gui_aplicar_preferencias.aplicar_en_caliente(frame)
         preferencia.assert_called_once_with(frame)
 
@@ -40,7 +40,7 @@ class TestAplicarEnCaliente(unittest.TestCase):
         frame.voz_submenu.GetMenuItems.return_value = []
         with mock.patch.object(motores, "listar_voces",
                                return_value=["Voz A", "Voz B"]), \
-                mock.patch("bellbird.ui.gui.anunciar") as anunciar:
+                mock.patch("guyrapu.ui.gui.anunciar") as anunciar:
             gui_aplicar_preferencias.aplicar_en_caliente(frame)
         frame._worker.cambiar_motor.assert_called_once_with(
             "onecore", "Voz B")
@@ -58,7 +58,7 @@ class TestPseudoTextos(unittest.TestCase):
         with con_pseudo():
             with mock.patch.object(motores, "listar_voces",
                                    return_value=["Voz A", "Voz B"]), \
-                    mock.patch("bellbird.ui.gui.anunciar") as anunciar:
+                    mock.patch("guyrapu.ui.gui.anunciar") as anunciar:
                 gui_aplicar_preferencias.aplicar_en_caliente(frame)
         self.assertTrue(anunciar.called)
         for llamada in anunciar.call_args_list:

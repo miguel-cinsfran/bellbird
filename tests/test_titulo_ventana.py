@@ -8,10 +8,10 @@ from types import SimpleNamespace
 import unittest
 from unittest import mock
 
-from bellbird.core.config import APP_NAME, APP_VERSION
-from bellbird.obs.obs_vigilante import EstadoObs
-from bellbird.ui import gui
-from bellbird.ui import titulo_ventana
+from guyrapu.core.config import APP_NAME, APP_VERSION
+from guyrapu.obs.obs_vigilante import EstadoObs
+from guyrapu.ui import gui
+from guyrapu.ui import titulo_ventana
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 try:
@@ -133,15 +133,15 @@ class CableadoTest(unittest.TestCase):
         marco._procesar_programado = lambda: None
         marco._avisar_descartes = lambda: None
         with mock.patch.object(titulo_ventana, "aplicar") as aplicar:
-            gui.YTChatFrame._on_timer(marco, None)
+            gui.VentanaPrincipal._on_timer(marco, None)
         aplicar.assert_called_once_with(marco)
 
     def test_la_casilla_arranca_el_vigilante_sin_componentes_de_estado(self):
-        marco = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        marco = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         marco._config = {"estado_toggles": set(), "titulo_estado_obs": True}
         marco._obs_vigilante = None
         with mock.patch.object(gui.obs_vigilante, "VigilanteObs") as clase:
-            gui.YTChatFrame._actualizar_vigilante_obs(marco)
+            gui.VentanaPrincipal._actualizar_vigilante_obs(marco)
         clase.return_value.iniciar.assert_called_once_with()
 
 

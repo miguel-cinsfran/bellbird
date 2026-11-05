@@ -10,8 +10,8 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.player import reproductor
-from bellbird.ui import gui
+from guyrapu.player import reproductor
+from guyrapu.ui import gui
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 
@@ -33,7 +33,7 @@ class TestVentanaConectadaFabrica(unittest.TestCase):
         with mock.patch.object(gui.diagnostico, "crear_hilo"), \
                 mock.patch.object(reproductor, "disponible",
                                   return_value=True):
-            frame = gui.YTChatFrame(None, configuracion, queue.Queue(),
+            frame = gui.VentanaPrincipal(None, configuracion, queue.Queue(),
                                     stats, worker,
                                     __import__("threading").Event())
         self.addCleanup(destruir, frame)

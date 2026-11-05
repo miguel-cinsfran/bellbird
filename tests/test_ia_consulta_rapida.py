@@ -16,9 +16,9 @@ try:
 except Exception:
     _HAY_WX = False
 
-from bellbird.ai import consulta
-from bellbird.ai import protocolos
-from bellbird.ui import ia_consulta_rapida as rapida
+from guyrapu.ai import consulta
+from guyrapu.ai import protocolos
+from guyrapu.ui import ia_consulta_rapida as rapida
 from tests.pseudo_prueba import con_pseudo
 from tests.ventanas_prueba import app_de_prueba, destruir
 
@@ -315,7 +315,7 @@ class TestPseudoEnCurso(unittest.TestCase):
 class TestAbrirVentanaTomaConversacion(unittest.TestCase):
 
     def test_conversacion_tomada_arranca_con_ella(self):
-        from bellbird.ui import ia_ventana as ventana
+        from guyrapu.ui import ia_ventana as ventana
         padre = mock.Mock()
         charla = mock.Mock()
         with mock.patch.object(rapida, "tomar_conversacion",
@@ -326,7 +326,7 @@ class TestAbrirVentanaTomaConversacion(unittest.TestCase):
         clase.assert_called_once_with(padre, charla, "Una escena.")
 
     def test_sin_conversacion_arranca_vacia_como_hoy(self):
-        from bellbird.ui import ia_ventana as ventana
+        from guyrapu.ui import ia_ventana as ventana
         padre = mock.Mock()
         with mock.patch.object(rapida, "tomar_conversacion",
                                return_value=None) as tomar, \

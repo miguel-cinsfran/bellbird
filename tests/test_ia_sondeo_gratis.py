@@ -9,10 +9,10 @@ import time
 import unittest
 from pathlib import Path
 
-from bellbird.ai import catalogo
-from bellbird.ai import protocolos
-from bellbird.ai import proveedores
-from bellbird.ai import sondeo_gratis
+from guyrapu.ai import catalogo
+from guyrapu.ai import protocolos
+from guyrapu.ai import proveedores
+from guyrapu.ai import sondeo_gratis
 
 
 def _muestra_de(cantidad):
@@ -127,7 +127,7 @@ class TestSondear(unittest.TestCase):
         })
 
     def test_el_pedido_es_el_minimo_de_opciones_ia(self):
-        from bellbird.ai import opciones_ia
+        from guyrapu.ai import opciones_ia
         pedidos = []
 
         def enviar(pedido, clave, tiempo_espera):

@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from bellbird.downloads import busquedas_recientes as recientes
+from guyrapu.downloads import busquedas_recientes as recientes
 
 
 class TestAgregar(unittest.TestCase):

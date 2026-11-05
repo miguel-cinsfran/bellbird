@@ -18,7 +18,7 @@ except Exception:
 class TestComboWx(unittest.TestCase):
 
     def setUp(self):
-        from bellbird.ui import teclas_wx
+        from guyrapu.ui import teclas_wx
         self.combo = teclas_wx.combo_wx
 
     def test_ctrl_letra(self):
@@ -50,9 +50,9 @@ class TestComboWx(unittest.TestCase):
 class TestCableadoAnuncioAjuste(unittest.TestCase):
 
     def test_flecha_registra_y_ajustar_anuncia_solo_el_valor(self):
-        from bellbird.core import anuncio_ajuste
-        from bellbird.core.anuncio_ajuste import AnuncioAjuste
-        from bellbird.player import reproductor
+        from guyrapu.core import anuncio_ajuste
+        from guyrapu.core.anuncio_ajuste import AnuncioAjuste
+        from guyrapu.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(reproductor.ReproductorPanel)
         panel._vol = 40
         panel._player = None

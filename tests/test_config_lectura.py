@@ -2,8 +2,8 @@
 
 import unittest
 
-from bellbird.core import config
-from bellbird.core import config_lectura
+from guyrapu.core import config
+from guyrapu.core import config_lectura
 
 
 class TestOpcionesLectura(unittest.TestCase):

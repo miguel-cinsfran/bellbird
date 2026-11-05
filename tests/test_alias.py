@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.capture import alias
+from guyrapu.capture import alias
 
 
 class PruebasAlias(unittest.TestCase):

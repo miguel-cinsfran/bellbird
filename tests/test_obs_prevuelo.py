@@ -4,12 +4,12 @@ import base64
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core import idioma
-from bellbird.core.idioma import _
-from bellbird.obs import obs_prevuelo
-from bellbird.obs.obs_prevuelo import (
+from guyrapu.core import idioma
+from guyrapu.core.idioma import _
+from guyrapu.obs import obs_prevuelo
+from guyrapu.obs.obs_prevuelo import (
     EntradaAudio, Fuente, Revision, frase_revision, revisar)
-from bellbird.obs.obs_grabacion import AVISO_CODIFICADOR
+from guyrapu.obs.obs_grabacion import AVISO_CODIFICADOR
 from tests.png_prueba import armar_png, png_plano
 
 

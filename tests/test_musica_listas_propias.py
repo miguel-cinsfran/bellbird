@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from bellbird.ui import musica_listas_propias
+from guyrapu.ui import musica_listas_propias
 
 
 class _ControlFalso(musica_listas_propias.ListasPropiasMusica):

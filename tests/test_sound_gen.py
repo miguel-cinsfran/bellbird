@@ -10,7 +10,7 @@ import unittest
 import wave
 from pathlib import Path
 
-from bellbird.core import config
+from guyrapu.core import config
 from scripts import sound_gen
 
 

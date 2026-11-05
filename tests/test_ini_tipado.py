@@ -2,8 +2,8 @@
 
 import unittest
 
-from bellbird.core import config
-from bellbird.core import ini_tipado
+from guyrapu.core import config
+from guyrapu.core import ini_tipado
 
 
 def _parser(texto: str = ""):

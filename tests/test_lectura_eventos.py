@@ -2,11 +2,11 @@
 
 import unittest
 
-from bellbird.core import config
-from bellbird.core import tipos_mensaje
-from bellbird.core.config import TIPO_TEXTO as TIPO_TEXTO_DESDE_CONFIG
-from bellbird.core.lectura_eventos import texto_evento
-from bellbird.core.tipos_mensaje import (
+from guyrapu.core import config
+from guyrapu.core import tipos_mensaje
+from guyrapu.core.config import TIPO_TEXTO as TIPO_TEXTO_DESDE_CONFIG
+from guyrapu.core.lectura_eventos import texto_evento
+from guyrapu.core.tipos_mensaje import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
     TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,

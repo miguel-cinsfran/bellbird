@@ -2,10 +2,10 @@
 
 import unittest
 
-from bellbird.ai import catalogo
-from bellbird.ai import protocolos
-from bellbird.ai import proveedores
-from bellbird.core.config import APP_VERSION
+from guyrapu.ai import catalogo
+from guyrapu.ai import protocolos
+from guyrapu.ai import proveedores
+from guyrapu.core.config import APP_VERSION
 
 
 def _muestra():

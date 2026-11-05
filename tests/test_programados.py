@@ -2,8 +2,8 @@ import unittest
 from pathlib import Path
 import tempfile
 
-from bellbird.capture import programados
-from bellbird.capture import redaccion
+from guyrapu.capture import programados
+from guyrapu.capture import redaccion
 from tests.pseudo_prueba import con_pseudo
 
 

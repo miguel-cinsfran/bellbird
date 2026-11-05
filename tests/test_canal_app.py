@@ -13,7 +13,7 @@ from pathlib import Path
 from unittest import mock
 from urllib.error import URLError
 
-from bellbird.core import canal_app
+from guyrapu.core import canal_app
 from tests.rutas_temporales import redirigir_rutas
 
 

@@ -13,10 +13,10 @@ import wave
 from pathlib import Path
 
 from banco_app import Aplicacion, contestar_salir_si_aparece
-from bellbird.core import paths
-from bellbird.core.config import (
+from guyrapu.core import paths
+from guyrapu.core.config import (
     codificar_texto_ini, decodificar_texto_ini, guardar_opciones)
-from bellbird.music.biblioteca import EXTENSIONES
+from guyrapu.music.biblioteca import EXTENSIONES
 
 from musica_real import _TOPE_RECORRIDO, medidor_sonido
 

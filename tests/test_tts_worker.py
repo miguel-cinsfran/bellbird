@@ -7,12 +7,12 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.voice import caida_elevenlabs
-from bellbird.voice import elevenlabs
-from bellbird.voice import motores
-from bellbird.voice import tts_worker
-from bellbird.voice.tts_worker import sanitizar, construir_tts
+from guyrapu.core.idioma import _
+from guyrapu.voice import caida_elevenlabs
+from guyrapu.voice import elevenlabs
+from guyrapu.voice import motores
+from guyrapu.voice import tts_worker
+from guyrapu.voice.tts_worker import sanitizar, construir_tts
 
 
 class MotorFalso:

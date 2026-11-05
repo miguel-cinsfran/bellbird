@@ -3,9 +3,9 @@
 import unittest
 from unittest import mock
 
-from bellbird.capture import descartes
-from bellbird.capture import estado_sesion
-from bellbird.capture.estado_sesion import (SnapshotSesion, formatear_estado, COMPONENTES,
+from guyrapu.capture import descartes
+from guyrapu.capture import estado_sesion
+from guyrapu.capture.estado_sesion import (SnapshotSesion, formatear_estado, COMPONENTES,
                            ACTIVOS_DEFECTO, ETIQUETAS, _duracion, _render)
 from tests.pseudo_prueba import con_pseudo
 
@@ -376,13 +376,13 @@ class TestCuotaYoutube(unittest.TestCase):
         self.assertNotIn("cuota_youtube", ACTIVOS_DEFECTO)
 
     def test_solo_se_consulta_con_sesion_iniciada(self):
-        from bellbird.ui import gui_estado
-        with mock.patch("bellbird.youtube.credenciales.hay_sesion",
+        from guyrapu.ui import gui_estado
+        with mock.patch("guyrapu.youtube.credenciales.hay_sesion",
                         return_value=False):
             self.assertIsNone(gui_estado._cuota_youtube())
-        with mock.patch("bellbird.youtube.credenciales.hay_sesion",
+        with mock.patch("guyrapu.youtube.credenciales.hay_sesion",
                         return_value=True), \
-             mock.patch("bellbird.youtube.cuota.usadas_hoy",
+             mock.patch("guyrapu.youtube.cuota.usadas_hoy",
                         return_value=7):
             self.assertEqual(gui_estado._cuota_youtube(), 7)
 
@@ -560,7 +560,7 @@ class TestPseudoF2(unittest.TestCase):
                 self.assertIn("[¡", texto, f"etiqueta {comp} sin marcar")
 
     def test_etiqueta_directa_del_catalogo(self):
-        from bellbird.capture.componentes_estado import etiqueta as directa
+        from guyrapu.capture.componentes_estado import etiqueta as directa
         with con_pseudo():
             texto = directa("estado")
         self.assertIn("[¡", texto)

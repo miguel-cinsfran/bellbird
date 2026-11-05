@@ -227,7 +227,7 @@ def _sonido_inicio_guardado_en_disco() -> str:
     """El valor de `[ui] sonido_inicio` en el `config.ini` real, en minúsculas."""
     import configparser
     try:
-        from bellbird.core import paths
+        from guyrapu.core import paths
         parser = configparser.ConfigParser(interpolation=None)
         parser.read(paths.config_ini(), encoding="utf-8")
         return parser.get("ui", "sonido_inicio", fallback="").strip().lower()
@@ -348,8 +348,8 @@ def escenario_preferencias_persisten(app: Aplicacion, args, res: Resultado):
         app.pedir("cerrar_ventana", ventana="Preferencias")
     finally:
         try:
-            from bellbird.core import paths
-            from bellbird.core.config import guardar_opcion
+            from guyrapu.core import paths
+            from guyrapu.core.config import guardar_opcion
             guardar_opcion(paths.config_ini(), "ui", "sonido_inicio",
                            "true" if previo else "false")
         except Exception as exc:

@@ -21,9 +21,9 @@ from TikTokLiveProto.v3.webcast.model.message.battle import (
     BattleUserInfoWrapper,
 )
 
-from bellbird.capture import batallas
-from bellbird.capture import tiktok_batallas
-from bellbird.core.tipos_mensaje import TIPO_BATALLA, TIPO_BATALLA_FIN
+from guyrapu.capture import batallas
+from guyrapu.capture import tiktok_batallas
+from guyrapu.core.tipos_mensaje import TIPO_BATALLA, TIPO_BATALLA_FIN
 
 
 def _anfitrion(ident, nombre):

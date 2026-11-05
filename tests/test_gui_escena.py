@@ -6,21 +6,21 @@ from unittest import mock
 
 import wx
 
-from bellbird.obs import (
+from guyrapu.obs import (
     disenos_escena, disenos_guardados, obs_capas, obs_disposicion)
-from bellbird.obs.obs_escena import FilaFuente
-from bellbird.ui import escena_disenos
-from bellbird.ui import escena_menu_fuente
-from bellbird.ui import escena_captura_ventana
-from bellbird.ui import escena_pagina_audio
-from bellbird.ui import escena_pagina_escena
-from bellbird.ui import escena_pagina_fuentes
-from bellbird.ui import escena_tamano
-from bellbird.ui import gui_grabaciones
-from bellbird.ui import obs_ventana
-from bellbird.ui import gui_microfono
-from bellbird.ui import mover_con_flechas
-from bellbird.ui import operaciones_obs
+from guyrapu.obs.obs_escena import FilaFuente
+from guyrapu.ui import escena_disenos
+from guyrapu.ui import escena_menu_fuente
+from guyrapu.ui import escena_captura_ventana
+from guyrapu.ui import escena_pagina_audio
+from guyrapu.ui import escena_pagina_escena
+from guyrapu.ui import escena_pagina_fuentes
+from guyrapu.ui import escena_tamano
+from guyrapu.ui import gui_grabaciones
+from guyrapu.ui import obs_ventana
+from guyrapu.ui import gui_microfono
+from guyrapu.ui import mover_con_flechas
+from guyrapu.ui import operaciones_obs
 from tests.test_gui_transmision import (
     Evento, EventoTecla, GestorFalso, HiloInmediato)
 from tests.ventanas_prueba import app_de_prueba, destruir

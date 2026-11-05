@@ -1,7 +1,7 @@
 import unittest
 import logging
 
-from bellbird.core import apagado
+from guyrapu.core import apagado
 
 
 class PruebasApagado(unittest.TestCase):

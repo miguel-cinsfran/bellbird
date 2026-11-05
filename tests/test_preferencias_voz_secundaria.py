@@ -10,10 +10,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import config
-from bellbird.ui import gui, gui_aplicar_preferencias, gui_preferencias
-from bellbird.ui import preferencias_transmision
-from bellbird.voice import motores
+from guyrapu.core import config
+from guyrapu.ui import gui, gui_aplicar_preferencias, gui_preferencias
+from guyrapu.ui import preferencias_transmision
+from guyrapu.voice import motores
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import app_de_prueba, destruir
 
@@ -197,7 +197,7 @@ class TestBloqueVozSecundaria(unittest.TestCase):
         dialogo = self._dialogo({"motor": "elevenlabs",
                                  "voz_secundaria": "Voz B"})
         bloque = self._bloque(dialogo)
-        with mock.patch("bellbird.ui.preferencias_voz.anunciar"):
+        with mock.patch("guyrapu.ui.preferencias_voz.anunciar"):
             dialogo.pagina_voz._clave_fallo("no sirve")
         self.assertEqual(
             [bloque.cho_voz.GetString(i)
@@ -236,7 +236,7 @@ class TestBloqueVozSecundaria(unittest.TestCase):
     def test_probar_secundaria_con_eleven_sin_clave_avisa_lo_mismo(self):
         dialogo = self._dialogo({"motor": "elevenlabs"})
         pagina = dialogo.pagina_voz
-        with mock.patch("bellbird.ui.preferencias_voz.anunciar") as anunciar:
+        with mock.patch("guyrapu.ui.preferencias_voz.anunciar") as anunciar:
             pagina._probar_voz_secundaria()
         anunciar.assert_called_once_with("Primero comprueba la clave.")
 
@@ -269,7 +269,7 @@ class TestAplicarVozSecundariaEnCaliente(unittest.TestCase):
         frame._worker.motor_activo.return_value = "sapi"
         frame._conectado = False
         frame._voz_idx = 0
-        with mock.patch("bellbird.ui.gui.anunciar"):
+        with mock.patch("guyrapu.ui.gui.anunciar"):
             gui_aplicar_preferencias.aplicar_en_caliente(frame)
         frame._worker.configurar_voz_secundaria.assert_called_once_with(
             "Voz B", 25, 0.4, "Respaldo B")

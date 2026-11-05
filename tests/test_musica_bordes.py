@@ -9,7 +9,7 @@ from pathlib import Path
 
 import imageio_ffmpeg
 
-from bellbird.music.bordes import (
+from guyrapu.music.bordes import (
     VENTANA_MS,
     TASA,
     medir_bordes,

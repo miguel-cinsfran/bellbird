@@ -1,6 +1,6 @@
 """Modos por aviso de TikTok: lo que se lee, se muestra o se oculta.
 
-Cubre `bellbird/core/avisos_tiktok.py` sin ventanas: los modos guardados, los
+Cubre `guyrapu/core/avisos_tiktok.py` sin ventanas: los modos guardados, los
 de fábrica y los extraños, el filtro del chat y la migración de las dos
 casillas viejas a las cinco claves nuevas.
 """
@@ -8,9 +8,9 @@ casillas viejas a las cinco claves nuevas.
 import configparser
 import unittest
 
-from bellbird.core import avisos_tiktok
-from bellbird.core import config as cfg
-from bellbird.core.tipos_mensaje import (
+from guyrapu.core import avisos_tiktok
+from guyrapu.core import config as cfg
+from guyrapu.core.tipos_mensaje import (
     TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,
     TIPO_BATALLA_FIN,
 )

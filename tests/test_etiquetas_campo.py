@@ -12,12 +12,12 @@ import wx
 
 from tests.etiquetas_campo import etiquetas_sin_dos_puntos
 from tests.ventanas_prueba import app_de_prueba, destruir
-from bellbird.ai import catalogo
-from bellbird.core import config
-from bellbird.ui import gui_preferencias
-from bellbird.ui import preferencias_ia
-from bellbird.ui import preferencias_ia_clave
-from bellbird.voice import motores
+from guyrapu.ai import catalogo
+from guyrapu.core import config
+from guyrapu.ui import gui_preferencias
+from guyrapu.ui import preferencias_ia
+from guyrapu.ui import preferencias_ia_clave
+from guyrapu.voice import motores
 from tests.rutas_temporales import redirigir_rutas
 
 

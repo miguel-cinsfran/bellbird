@@ -12,9 +12,9 @@ from TikTokLiveProto.v3.webcast.model.gift.model import (
     LiveStreamSubGoal,
 )
 
-from bellbird.capture import metas
-from bellbird.capture import tiktok_metas
-from bellbird.core.tipos_mensaje import TIPO_META
+from guyrapu.capture import metas
+from guyrapu.capture import tiktok_metas
+from guyrapu.core.tipos_mensaje import TIPO_META
 
 
 def _meta(descripcion="100 rosas para el viaje", submetas=((340, 500),),

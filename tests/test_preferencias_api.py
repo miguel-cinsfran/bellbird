@@ -10,9 +10,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import config
-from bellbird.ui import gui_preferencias
-from bellbird.voice import motores
+from guyrapu.core import config
+from guyrapu.ui import gui_preferencias
+from guyrapu.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import app_de_prueba, destruir

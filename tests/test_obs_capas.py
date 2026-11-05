@@ -3,7 +3,7 @@
 import unittest
 from unittest import mock
 
-from bellbird.obs import obs_capas
+from guyrapu.obs import obs_capas
 
 
 def elementos():

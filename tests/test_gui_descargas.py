@@ -6,17 +6,17 @@ import threading
 from pathlib import Path
 from unittest import mock
 
-from bellbird.downloads import descargas
-from bellbird.downloads import busqueda_youtube
-from bellbird.downloads import filas_descargas
-from bellbird.music.modelo import Tema
-from bellbird.ui import barra_progreso, descargas_acciones, descargas_buscador, descargas_listas, gui_descargas
-from bellbird.ui import accesibilidad
-from bellbird.ui import tema as _tema
-from bellbird.ui import buscador_acciones, buscador_escucha
-from bellbird.ui.buscador_acciones import AccionesResultado, opciones_de
-from bellbird.ui import buscador_contenido
-from bellbird.ui import buscador_tandas
+from guyrapu.downloads import descargas
+from guyrapu.downloads import busqueda_youtube
+from guyrapu.downloads import filas_descargas
+from guyrapu.music.modelo import Tema
+from guyrapu.ui import barra_progreso, descargas_acciones, descargas_buscador, descargas_listas, gui_descargas
+from guyrapu.ui import accesibilidad
+from guyrapu.ui import tema as _tema
+from guyrapu.ui import buscador_acciones, buscador_escucha
+from guyrapu.ui.buscador_acciones import AccionesResultado, opciones_de
+from guyrapu.ui import buscador_contenido
+from guyrapu.ui import buscador_tandas
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import app_de_prueba, destruir
 
@@ -41,13 +41,13 @@ class TestOpcionesDeResultado(unittest.TestCase):
         video = self._res()
         casos = [
             ((video, True, True),
-              ("agregar", "escuchar", "audio", "video", "formato", "bellbird",
+              ("agregar", "escuchar", "audio", "video", "formato", "app",
                "musica", "copiar", "navegador", "sitios")),
             ((video, False, False),
               ("agregar", "escuchar", "audio", "video", "formato", "copiar",
                "navegador", "sitios")),
             ((self._res(directo=True), True, True),
-             ("bellbird", "musica", "copiar", "navegador", "sitios")),
+             ("app", "musica", "copiar", "navegador", "sitios")),
             ((self._res(directo=True), False, False),
              ("copiar", "navegador", "sitios")),
             ((self._res(programado=True), True, True),
@@ -68,10 +68,10 @@ class TestOpcionesDeResultado(unittest.TestCase):
             (([video, self._res(directo=True)], True, True),
              ("sitios",)),
         ]
-        for (entrada, hay_bellbird, hay_musica), esperado in casos:
+        for (entrada, hay_app, hay_musica), esperado in casos:
             with self.subTest(entrada=entrada, hay_musica=hay_musica):
                 self.assertEqual(
-                    opciones_de(entrada, hay_bellbird, hay_musica), esperado)
+                    opciones_de(entrada, hay_app, hay_musica), esperado)
 
 
 class TestTablaEstadosSinVentana(unittest.TestCase):
@@ -386,9 +386,9 @@ class TestPaginaUnica(unittest.TestCase):
                    "estado": "error", "url": "https://youtu.be/mala",
                    "carpeta": "C:/D", "ruta": ""}
         disco = [dict(entrada)]
-        with mock.patch("bellbird.downloads.historial_descargas.cargar",
+        with mock.patch("guyrapu.downloads.historial_descargas.cargar",
                         side_effect=lambda _ruta: list(disco)), \
-                mock.patch("bellbird.downloads.historial_descargas.guardar",
+                mock.patch("guyrapu.downloads.historial_descargas.guardar",
                            side_effect=lambda _ruta, entradas: disco.__setitem__(
                                slice(None), list(entradas))):
             dialogo = gui_descargas.GestorDescargasDialog(None)
@@ -599,7 +599,7 @@ class TestPaginaUnica(unittest.TestCase):
         anunciar.assert_called_once_with("Descargando")
 
     def test_agregar_urls_sin_turno_anuncia_en_cola(self):
-        from bellbird.downloads.opciones_formato import SIMULTANEAS_DEFECTO
+        from guyrapu.downloads.opciones_formato import SIMULTANEAS_DEFECTO
         dialogo = self._dialogo()
         dialogo._gestor._corriendo = dialogo._gestor._opciones.get(
             "simultaneas", SIMULTANEAS_DEFECTO)
@@ -722,14 +722,14 @@ class TestBuscador(unittest.TestCase):
         gui_descargas._registrados.clear()
         gui_descargas._dialogo_activo = None
 
-    def _dialogo(self, entradas=None, url_inicial=None, abrir_en_bellbird=None,
+    def _dialogo(self, entradas=None, url_inicial=None, abrir_en_app=None,
                  musica=None):
         parches = list(TestPaginaUnica._sin_disco(self, entradas))
         for parche in parches:
             parche.start()
             self.addCleanup(parche.stop)
         dialogo = gui_descargas.GestorDescargasDialog(
-            None, url_inicial=url_inicial, abrir_en_bellbird=abrir_en_bellbird,
+            None, url_inicial=url_inicial, abrir_en_app=abrir_en_app,
             musica=musica)
         self.addCleanup(destruir, dialogo)
         self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
@@ -1302,13 +1302,13 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         gui_descargas._registrados.clear()
         gui_descargas._dialogo_activo = None
 
-    def _dialogo(self, entradas=None, abrir_en_bellbird=None, musica=None):
+    def _dialogo(self, entradas=None, abrir_en_app=None, musica=None):
         parches = list(TestPaginaUnica._sin_disco(self, entradas))
         for parche in parches:
             parche.start()
             self.addCleanup(parche.stop)
         dialogo = gui_descargas.GestorDescargasDialog(
-            None, abrir_en_bellbird=abrir_en_bellbird, musica=musica)
+            None, abrir_en_app=abrir_en_app, musica=musica)
         self.addCleanup(destruir, dialogo)
         self.addCleanup(setattr, gui_descargas, "_dialogo_activo", None)
         self.addCleanup(descargas.reiniciar_gestor)
@@ -1372,12 +1372,12 @@ class TestMenuYVistaBuscador(unittest.TestCase):
     def test_menu_dispara_cada_comando(self):
         items = [_resultado_busqueda("v"), _resultado_lista()]
         self._buscar(items)
-        dialogo = self._dialogo(abrir_en_bellbird=mock.Mock(),
+        dialogo = self._dialogo(abrir_en_app=mock.Mock(),
                                 musica=mock.Mock())
         dialogo.Show()
         pagina = self._pagina_buscada(dialogo, items)
         espias = {n: mock.Mock() for n in (
-            "como_audio", "como_video", "elegir_formato", "en_bellbird",
+            "como_audio", "como_video", "elegir_formato", "en_app",
             "a_musica", "copiar", "abrir_en_navegador", "ver_sitios")}
         with mock.patch.multiple(pagina._acciones, **espias), \
                 mock.patch.object(pagina, "_agregar_urls",
@@ -1402,7 +1402,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         espias["como_audio"].assert_called_once_with([resultado])
         espias["como_video"].assert_called_once_with([resultado])
         espias["elegir_formato"].assert_called_once_with(resultado)
-        espias["en_bellbird"].assert_called_once_with(resultado)
+        espias["en_app"].assert_called_once_with(resultado)
         espias["a_musica"].assert_called_once_with(resultado)
         espias["copiar"].assert_called_once_with(resultado)
         espias["abrir_en_navegador"].assert_called_once_with(resultado)
@@ -1412,7 +1412,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
     def test_menu_de_lista_entra_a_la_vista(self):
         items = [_resultado_busqueda("v"), _resultado_lista()]
         self._buscar(items)
-        dialogo = self._dialogo(abrir_en_bellbird=mock.Mock(),
+        dialogo = self._dialogo(abrir_en_app=mock.Mock(),
                                 musica=mock.Mock())
         dialogo.Show()
         pagina = self._pagina_buscada(dialogo, items)
@@ -1769,11 +1769,11 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         self.assertEqual(dialogo.cho_formato.GetSelection(), formato_visto)
         self.assertEqual(dialogo.cho_calidad.GetSelection(), calidad_vista)
 
-    def test_abrir_en_bellbird_cierra_antes_de_llamar(self):
+    def test_abrir_en_app_cierra_antes_de_llamar(self):
         callback = mock.Mock()
-        dialogo = self._dialogo(abrir_en_bellbird=callback)
+        dialogo = self._dialogo(abrir_en_app=callback)
         with mock.patch.object(gui_descargas.wx, "CallAfter") as call_after:
-            dialogo._al_abrir_en_bellbird("https://youtu.be/x")
+            dialogo._al_abrir_en_app("https://youtu.be/x")
         self.assertFalse(dialogo._alive)
         callback.assert_not_called()
         call_after.assert_called_once_with(callback, "https://youtu.be/x")
@@ -1979,9 +1979,9 @@ class TestLetrasMenuBuscador(unittest.TestCase):
     def test_letras_del_menu_no_se_repiten(self):
         from tests.letras_acceso import _letra_de_acceso
         acciones = mock.Mock()
-        for resultados, hay_bellbird, hay_musica in self._casos():
+        for resultados, hay_app, hay_musica in self._casos():
             opciones = opciones_de(resultados[0] if len(resultados) == 1
-                                   else resultados, hay_bellbird, hay_musica)
+                                   else resultados, hay_app, hay_musica)
             with self.subTest(opciones=opciones):
                 menu = buscador_acciones.construir_menu(
                     opciones, resultados, acciones, mock.Mock(), mock.Mock())
@@ -2299,7 +2299,7 @@ class TestOfrecerCarpetaAlTerminar(unittest.TestCase):
             mock.patch.object(gui_descargas, "anunciar"),
             mock.patch.object(gui_descargas._snd, "reproducir"),
             mock.patch.object(gui_descargas, "gestor"),
-            mock.patch("bellbird.core.config.obtener_opciones_descarga",
+            mock.patch("guyrapu.core.config.obtener_opciones_descarga",
                        side_effect=self._opciones),
             mock.patch.object(descargas_acciones.wx, "CallLater"),
             mock.patch.object(descargas_acciones.wx, "MessageBox",

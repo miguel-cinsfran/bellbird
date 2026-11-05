@@ -1,11 +1,11 @@
 import unittest
 from unittest import mock
 
-from bellbird.capture import deteccion
-from bellbird.ui import gui
-from bellbird.ui import gui_redactar
-from bellbird.capture import redaccion
-from bellbird.ui.sesion_conectada import SesionConectada
+from guyrapu.capture import deteccion
+from guyrapu.ui import gui
+from guyrapu.ui import gui_redactar
+from guyrapu.capture import redaccion
+from guyrapu.ui.sesion_conectada import SesionConectada
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 
@@ -75,7 +75,7 @@ class TestRedaccion(unittest.TestCase):
         ventana = gui.wx.Frame(None)
         self.addCleanup(destruir, ventana)
         panel = gui_redactar.PanelRedactar(ventana, "Mensaje", 200, lambda texto: None)
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._conectado = True
         frame.sesion = SesionConectada(
             es_tiktok=False, tipo_video=deteccion.LIVE,

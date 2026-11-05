@@ -10,12 +10,12 @@ from pathlib import Path
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.downloads import descargas
-from bellbird.downloads.argumentos_ytdlp import (
+from guyrapu.downloads import descargas
+from guyrapu.downloads.argumentos_ytdlp import (
     argumentos_descarga, construir_outtmpl, recortar_url_registro)
-from bellbird.downloads.progreso_ytdlp import (
+from guyrapu.downloads.progreso_ytdlp import (
     INTERVALO_PROGRESO_S, debe_emitir_progreso)
-from bellbird.downloads.descargas import (
+from guyrapu.downloads.descargas import (
     GestorDescargas,
     analizar_url,
     descargar,
@@ -23,11 +23,11 @@ from bellbird.downloads.descargas import (
     reiniciar_gestor,
     tiene_ffmpeg,
 )
-from bellbird.downloads.motivo_error import frase_aviso_descarga
-from bellbird.downloads import proceso_ytdlp
-from bellbird.downloads.proceso_ytdlp import (
+from guyrapu.downloads.motivo_error import frase_aviso_descarga
+from guyrapu.downloads import proceso_ytdlp
+from guyrapu.downloads.proceso_ytdlp import (
     _matar_arbol, _vigilar_cancelacion)
-from bellbird.downloads.restos_descarga import (
+from guyrapu.downloads.restos_descarga import (
     limpiar_restos_descarga, nombre_base_descarga)
 
 
@@ -1007,8 +1007,8 @@ class TestHayTurno(unittest.TestCase):
 
 class TestOlvidar(unittest.TestCase):
     def test_terminado_se_va_y_no_bloquea_al_siguiente(self):
-        from bellbird.downloads import fila_descargas as regla
-        from bellbird.downloads.descargas import ItemDescarga
+        from guyrapu.downloads import fila_descargas as regla
+        from guyrapu.downloads.descargas import ItemDescarga
         gestor = GestorDescargas({"formato": "mp4", "bitrate": 192, "carpeta": "/tmp"})
         terminado = ItemDescarga("t", "http://x", "video", estado="completado")
         siguiente = ItemDescarga("s", "http://x", "video", estado="en_cola")
@@ -1024,7 +1024,7 @@ class TestOlvidar(unittest.TestCase):
             "s", gestor._orden, gestor._empezados, gestor._items, gestor._eventos))
 
     def test_activo_se_queda(self):
-        from bellbird.downloads.descargas import ItemDescarga
+        from guyrapu.downloads.descargas import ItemDescarga
         gestor = GestorDescargas({"formato": "mp4", "bitrate": 192, "carpeta": "/tmp"})
         activo = ItemDescarga("a", "http://x", "video", estado="descargando")
         gestor._items[activo.id] = activo

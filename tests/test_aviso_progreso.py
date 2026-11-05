@@ -8,7 +8,7 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.ui import aviso_progreso
+from guyrapu.ui import aviso_progreso
 from tests.ventanas_prueba import app_de_prueba
 
 

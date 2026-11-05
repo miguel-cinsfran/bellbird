@@ -1,4 +1,4 @@
-"""Pruebas de `bellbird.player.flujo_tiktok`, sin wx ni red externa."""
+"""Pruebas de `guyrapu.player.flujo_tiktok`, sin wx ni red externa."""
 
 import http.server
 import io
@@ -8,7 +8,7 @@ import unittest
 import urllib.error
 from unittest import mock
 
-from bellbird.player import flujo_tiktok
+from guyrapu.player import flujo_tiktok
 
 
 class _Respuesta:

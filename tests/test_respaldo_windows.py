@@ -1,13 +1,13 @@
 """La voz de Windows de respaldo: su motor, su voz y sus ajustes.
 
-Cubre `bellbird/voice/respaldo_windows.py` con motores dobles. Sin ventanas ni
+Cubre `guyrapu/voice/respaldo_windows.py` con motores dobles. Sin ventanas ni
 motores reales.
 """
 
 import unittest
 
-from bellbird.voice import motores
-from bellbird.voice.respaldo_windows import Respaldo
+from guyrapu.voice import motores
+from guyrapu.voice.respaldo_windows import Respaldo
 
 
 class MotorFalso:

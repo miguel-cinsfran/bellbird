@@ -2,8 +2,8 @@
 
 import unittest
 
-from bellbird.capture import deteccion
-from bellbird.ui.sesion_conectada import SesionConectada
+from guyrapu.capture import deteccion
+from guyrapu.ui.sesion_conectada import SesionConectada
 
 
 class TestSesionConectada(unittest.TestCase):

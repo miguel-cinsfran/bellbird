@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.obs import tamano_relativo as tamano
+from guyrapu.obs import tamano_relativo as tamano
 
 
 class ComunesTest(unittest.TestCase):

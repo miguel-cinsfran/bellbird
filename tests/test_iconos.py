@@ -1,6 +1,6 @@
 import unittest
 
-from bellbird.ui import iconos
+from guyrapu.ui import iconos
 from tests.ventanas_prueba import app_de_prueba
 
 

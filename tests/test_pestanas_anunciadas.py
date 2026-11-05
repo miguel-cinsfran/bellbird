@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.ui import accesibilidad
+from guyrapu.ui import accesibilidad
 
 RAIZ_UI = Path(accesibilidad.__file__).resolve().parent
 

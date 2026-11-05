@@ -12,7 +12,7 @@ from urllib.parse import parse_qs, urlsplit
 
 import httpx
 
-from bellbird.restream import oauth, sesion
+from guyrapu.restream import oauth, sesion
 
 
 CODIGO = "codigo-de-prueba"

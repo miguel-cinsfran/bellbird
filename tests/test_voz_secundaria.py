@@ -1,6 +1,6 @@
 """Voz secundaria por evento: voz, velocidad y volumen de cada mensaje.
 
-Cubre la elección de voz por mensaje en `bellbird/voice/tts_worker.py` con
+Cubre la elección de voz por mensaje en `guyrapu/voice/tts_worker.py` con
 motores dobles que registran la voz, la velocidad, el volumen y el tono de
 cada frase en el orden en que suenan. Sin ventanas ni motores reales.
 """
@@ -9,9 +9,9 @@ import queue
 import time
 import unittest
 
-from bellbird.voice import elevenlabs
-from bellbird.voice import tts_worker
-from bellbird.voice.voz_secundaria import VozSecundaria
+from guyrapu.voice import elevenlabs
+from guyrapu.voice import tts_worker
+from guyrapu.voice.voz_secundaria import VozSecundaria
 
 
 class Motor:

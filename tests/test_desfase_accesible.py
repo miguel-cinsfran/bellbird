@@ -7,9 +7,9 @@ from unittest import mock
 
 import wx
 
-from bellbird.capture import estado_sesion
-from bellbird.capture.estado_sesion import SnapshotSesion, formatear_estado
-from bellbird.player import reproductor
+from guyrapu.capture import estado_sesion
+from guyrapu.capture.estado_sesion import SnapshotSesion, formatear_estado
+from guyrapu.player import reproductor
 
 
 def _panel_relevo(desfase=0, ventana=(5.0, 720), url_flujo="", en_directo=True):
@@ -110,7 +110,7 @@ class TestDesfasePorDefecto(unittest.TestCase):
 
     def test_config_sin_clave_la_deja_activa(self):
         from tests.rutas_temporales import redirigir_rutas
-        from bellbird.core import config
+        from guyrapu.core import config
         with tempfile.TemporaryDirectory() as tmp:
             (Path(tmp) / "config.ini").write_text("[voz]\nvoz = 0\n", encoding="utf-8")
             with redirigir_rutas(tmp):
@@ -119,9 +119,9 @@ class TestDesfasePorDefecto(unittest.TestCase):
 
 
 def _frame_con_panel(frase, desfase_seg):
-    from bellbird.ui import gui
-    from bellbird.ui.sesion_conectada import SesionConectada
-    frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+    from guyrapu.ui import gui
+    from guyrapu.ui.sesion_conectada import SesionConectada
+    frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
     frame._conectado = True
     frame.sesion = SesionConectada(es_tiktok=False, tipo_video="live")
     frame._titulo_stream = "T"
@@ -144,24 +144,24 @@ def _frame_con_panel(frase, desfase_seg):
 class TestSnapshotDesfase(unittest.TestCase):
 
     def test_panel_por_detras_lleva_la_frase(self):
-        from bellbird.ui import gui
+        from guyrapu.ui import gui
         frame = _frame_con_panel("30 segundos por detrás del directo", 30)
-        snap = gui.YTChatFrame._snapshot_sesion(frame)
+        snap = gui.VentanaPrincipal._snapshot_sesion(frame)
         self.assertEqual(snap.desfase_directo, "30 segundos por detrás del directo")
 
     def test_desfase_cero_da_cadena_vacia(self):
-        from bellbird.ui import gui
+        from guyrapu.ui import gui
         frame = _frame_con_panel("En el directo", 0)
-        snap = gui.YTChatFrame._snapshot_sesion(frame)
+        snap = gui.VentanaPrincipal._snapshot_sesion(frame)
         self.assertEqual(snap.desfase_directo, "")
 
     def test_con_desfase_y_atajo_el_texto_de_f2_dice_como_volver(self):
-        from bellbird.core.config import Atajo
-        from bellbird.ui import gui
+        from guyrapu.core.config import Atajo
+        from guyrapu.ui import gui
         frame = _frame_con_panel("10 segundos por detrás del directo", 10)
         frame._atajos = {"rep_directo": Atajo(
             accion="rep_directo", texto="ctrl+end", tecla="end")}
-        snap = gui.YTChatFrame._snapshot_sesion(frame)
+        snap = gui.VentanaPrincipal._snapshot_sesion(frame)
         self.assertEqual(snap.atajo_directo, "Ctrl+Fin")
         self.assertIn("Pulsa Ctrl+Fin para ir al directo",
                       formatear_estado(snap, {"desfase_directo"}))

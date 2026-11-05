@@ -11,8 +11,8 @@ from unittest import mock
 
 import wx
 
-from bellbird.ui import preferencias_ia_clave
-from bellbird.ui.preferencias_ia_clave import SeccionClaveIA
+from guyrapu.ui import preferencias_ia_clave
+from guyrapu.ui.preferencias_ia_clave import SeccionClaveIA
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import app_de_prueba, destruir
 

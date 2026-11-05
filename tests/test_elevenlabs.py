@@ -5,7 +5,7 @@ import json
 import unittest
 import urllib.error
 
-from bellbird.voice import elevenlabs
+from guyrapu.voice import elevenlabs
 from tests.pseudo_prueba import con_pseudo
 
 

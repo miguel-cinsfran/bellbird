@@ -6,12 +6,12 @@ Abre una ventana.
 import unittest
 from unittest import mock
 
-from bellbird.music.modelo import Tema
+from guyrapu.music.modelo import Tema
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 try:
     import wx
-    from bellbird.ui import musica_editor_lista
+    from guyrapu.ui import musica_editor_lista
     _HAY_WX = True
 except Exception:
     wx = None

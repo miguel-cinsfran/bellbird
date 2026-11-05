@@ -10,8 +10,8 @@ import unittest
 from pathlib import Path
 
 from tests.rutas_temporales import redirigir_rutas
-from bellbird.core import atajos
-from bellbird.core import config
+from guyrapu.core import atajos
+from guyrapu.core import config
 
 
 VIEJOS = {accion: viejo for accion, (viejo, _nuevo) in atajos._MIGRACION_ATAJOS.items()}

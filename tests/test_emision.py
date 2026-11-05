@@ -6,11 +6,11 @@ from datetime import datetime
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.obs import obs_cliente
-from bellbird.obs.obs_destinos import Destino
-from bellbird.youtube import emision
-from bellbird.youtube.emision import (
+from guyrapu.core.idioma import _
+from guyrapu.obs import obs_cliente
+from guyrapu.obs.obs_destinos import Destino
+from guyrapu.youtube import emision
+from guyrapu.youtube.emision import (
     EmisionError, chat_legible, cuerpo_emision, error_de_miniatura,
     esperar_en_vivo, etiquetas_de_texto, preparar_en_youtube,
     titulo_por_defecto, url_video,

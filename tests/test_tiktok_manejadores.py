@@ -5,15 +5,15 @@ import types
 import unittest
 from unittest import mock
 
-from bellbird.capture import encuestas
-from bellbird.capture import batallas
-from bellbird.capture import metas
-from bellbird.capture import tiktok_manejadores
-from bellbird.capture.tiktok_manejadores import registrar_manejadores
-from bellbird.core.config import (
+from guyrapu.capture import encuestas
+from guyrapu.capture import batallas
+from guyrapu.capture import metas
+from guyrapu.capture import tiktok_manejadores
+from guyrapu.capture.tiktok_manejadores import registrar_manejadores
+from guyrapu.core.config import (
     TIPO_COFRE, TIPO_ENTRADA, TIPO_ME_GUSTA, TIPO_TEXTO,
 )
-from bellbird.core.tipos_mensaje import TIPO_BATALLA, TIPO_META
+from guyrapu.core.tipos_mensaje import TIPO_BATALLA, TIPO_META
 
 _TODAS = ("CommentEvent", "GiftEvent", "JoinEvent", "RoomUserSeqEvent",
           "SubscribeEvent", "FollowEvent", "ShareEvent", "EnvelopeEvent",

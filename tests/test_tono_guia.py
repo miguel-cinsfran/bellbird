@@ -10,7 +10,7 @@ import wave
 
 import numpy as np
 
-from bellbird.camera import tono_guia
+from guyrapu.camera import tono_guia
 
 
 def _muestras(datos):

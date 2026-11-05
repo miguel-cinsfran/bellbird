@@ -6,10 +6,10 @@ import unittest
 from pathlib import Path
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.music import listas
-from bellbird.music.listas import ErrorListas
-from bellbird.music.modelo import Tema
+from guyrapu.core.idioma import _
+from guyrapu.music import listas
+from guyrapu.music.listas import ErrorListas
+from guyrapu.music.modelo import Tema
 
 
 class TestNombres(unittest.TestCase):

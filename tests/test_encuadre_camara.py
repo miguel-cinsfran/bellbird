@@ -12,13 +12,13 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.camera import detector_rostros, encuadre
-from bellbird.camera.detector_rostros import Cuadro
-from bellbird.capture import estado_sesion
-from bellbird.core import atajos
-from bellbird.obs.obs_camara import CamaraNoEncontrada, CamaraObs
-from bellbird.obs.obs_captura_ia import CapturaFallida
-from bellbird.ui import encuadre_camara, guia_encuadre
+from guyrapu.camera import detector_rostros, encuadre
+from guyrapu.camera.detector_rostros import Cuadro
+from guyrapu.capture import estado_sesion
+from guyrapu.core import atajos
+from guyrapu.obs.obs_camara import CamaraNoEncontrada, CamaraObs
+from guyrapu.obs.obs_captura_ia import CapturaFallida
+from guyrapu.ui import encuadre_camara, guia_encuadre
 
 
 def _rostro_centrado():
@@ -412,7 +412,7 @@ class TestAlternarAvisos(_Testigo):
         marco = _nuevo_marco(avisar_encuadre=False)
         anunciar = self.parchear_modulo("anunciar")
         sincronizar = self.parchear_modulo("sincronizar")
-        import bellbird.ui.gui as _gui
+        import guyrapu.ui.gui as _gui
         with mock.patch.object(_gui, "guardar_opcion") as guardar, \
                 mock.patch.object(_gui, "RUTA_CONFIG",
                                   Path("config.ini")):
@@ -428,7 +428,7 @@ class TestAlternarAvisos(_Testigo):
         marco = _nuevo_marco(avisar_encuadre=True)
         anunciar = self.parchear_modulo("anunciar")
         sincronizar = self.parchear_modulo("sincronizar")
-        import bellbird.ui.gui as _gui
+        import guyrapu.ui.gui as _gui
         with mock.patch.object(_gui, "guardar_opcion") as guardar, \
                 mock.patch.object(_gui, "RUTA_CONFIG",
                                   Path("config.ini")):
@@ -533,7 +533,7 @@ class TestF2(_Testigo):
                          "")
 
     def test_snapshot_trae_el_texto_de_la_vigilancia(self):
-        from bellbird.ui import gui_estado
+        from guyrapu.ui import gui_estado
         marco = mock.Mock()
         marco._config = {}
         marco._conectado = False
@@ -646,7 +646,7 @@ class TestDetectorReal(_Testigo):
     def test_gris_fuera_y_rostro_dentro(self):
         import cv2
         import numpy
-        from bellbird.camera.detector_rostros import DetectorRostros
+        from guyrapu.camera.detector_rostros import DetectorRostros
         raiz = Path(__file__).resolve().parent
         foto = (raiz / "datos" / "rostro.jpg").read_bytes()
         gris = numpy.full((240, 320, 3), 128, numpy.uint8)

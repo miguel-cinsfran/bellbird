@@ -3,9 +3,9 @@
 import math
 import unittest
 
-from bellbird.music import cruce
-from bellbird.music.bordes import Bordes
-from bellbird.music.modelo import Tema
+from guyrapu.music import cruce
+from guyrapu.music.bordes import Bordes
+from guyrapu.music.modelo import Tema
 
 
 def _amplitud(db):

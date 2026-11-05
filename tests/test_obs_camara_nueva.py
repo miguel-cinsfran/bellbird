@@ -5,8 +5,8 @@ Sin ventanas: todo pasa por un cliente falso que guarda los pedidos.
 
 import unittest
 
-from bellbird.obs import obs_camara_nueva
-from bellbird.obs import obs_disposicion
+from guyrapu.obs import obs_camara_nueva
+from guyrapu.obs import obs_disposicion
 
 
 def item(nombre, valor, habilitado=True):

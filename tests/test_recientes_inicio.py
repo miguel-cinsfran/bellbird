@@ -13,9 +13,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.core import config  # primero: abre la cadena sin circular
-from bellbird.core import historial
-from bellbird.ui import recientes_inicio
+from guyrapu.core import config  # primero: abre la cadena sin circular
+from guyrapu.core import historial
+from guyrapu.ui import recientes_inicio
 from tests.ventanas_prueba import app_de_prueba
 
 
@@ -283,15 +283,15 @@ class TestRecientesVentana(unittest.TestCase):
     def test_abrir_historial_usa_la_misma_ruta_y_funcion(self):
         _m, _p, _s, _z, recientes, al_conectar = self._marco(self._entradas(1))
         with mock.patch(
-                "bellbird.ui.gui_historial.abrir_historial") as abrir:
+                "guyrapu.ui.gui_historial.abrir_historial") as abrir:
             recientes.abrir_historial()
         self.assertEqual(1, abrir.call_count)
         _args, _kwargs = abrir.call_args
         self.assertEqual((self.ruta, al_conectar), (_args[1], _args[2]))
 
     def test_on_historial_delega_en_la_lista(self):
-        from bellbird.ui import gui
-        marco = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        from guyrapu.ui import gui
+        marco = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         marco._inicio = mock.Mock()
         marco._on_historial()
         marco._inicio.abrir_historial.assert_called_once_with()
@@ -306,7 +306,7 @@ class TestOrdenTabDesconectada(unittest.TestCase):
         self.app = app_de_prueba()
 
     def _ventana(self):
-        from bellbird.ui import gui
+        from guyrapu.ui import gui
         from tests.ventanas_prueba import destruir
         configuracion = {
             "atajos_raw": {}, "filtro_activo": "todos",
@@ -317,7 +317,7 @@ class TestOrdenTabDesconectada(unittest.TestCase):
         stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
         worker = SimpleNamespace(get_rate=lambda: 0, get_volume=lambda: 100)
         with mock.patch.object(gui.diagnostico, "crear_hilo"):
-            marco = gui.YTChatFrame(None, configuracion, queue.Queue(),
+            marco = gui.VentanaPrincipal(None, configuracion, queue.Queue(),
                                     stats, worker,
                                     __import__("threading").Event())
         self.addCleanup(destruir, marco)
@@ -352,8 +352,8 @@ class TestOrdenTabDesconectada(unittest.TestCase):
         # conexión, Intro sobre la lista deja la URL en el campo y programa
         # la conexión. Si gui.py pasa otra función a armar, txt_url queda
         # vacío y CallAfter no recibe _on_conectar.
-        from bellbird.ui import gui
-        from bellbird.ui import recientes_inicio
+        from guyrapu.ui import gui
+        from guyrapu.ui import recientes_inicio
         entrada = {
             "plataforma": "youtube", "clave": "abcdefghijk",
             "url": "https://www.youtube.com/watch?v=abcdefghijk",
@@ -377,7 +377,7 @@ class TestOrdenTabDesconectada(unittest.TestCase):
     def test_supr_en_recientes_deja_el_foco_en_la_direccion(self):
         # Cableado ventana real: al quedar la lista vacía, la caja se oculta
         # y el foco va al campo de la dirección, buscado por su nombre.
-        from bellbird.ui import recientes_inicio
+        from guyrapu.ui import recientes_inicio
         entrada = {
             "plataforma": "youtube", "clave": "abcdefghijk",
             "url": "https://www.youtube.com/watch?v=abcdefghijk",

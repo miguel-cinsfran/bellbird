@@ -6,11 +6,11 @@ Abren ventanas.
 import unittest
 from unittest import mock
 
-from bellbird.obs import obs_disposicion
-from bellbird.ui import agregar_camara
-from bellbird.ui import gui_preferencias
-from bellbird.ui import preferencias_camara
-from bellbird.voice import motores
+from guyrapu.obs import obs_disposicion
+from guyrapu.ui import agregar_camara
+from guyrapu.ui import gui_preferencias
+from guyrapu.ui import preferencias_camara
+from guyrapu.voice import motores
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import app_de_prueba, destruir
 from pathlib import Path

@@ -14,9 +14,9 @@ try:
 except Exception:
     _HAY_WX = False
 
-from bellbird.ui import paleta
-from bellbird.ui import tema
-from bellbird.ui.tema import _T
+from guyrapu.ui import paleta
+from guyrapu.ui import tema
+from guyrapu.ui.tema import _T
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 
@@ -139,7 +139,7 @@ class TestFondoActualizacion(unittest.TestCase):
         self.app = app_de_prueba()
 
     def test_fondo_es_el_de_la_principal(self):
-        from bellbird.ui import gui_actualizacion as actualizacion
+        from guyrapu.ui import gui_actualizacion as actualizacion
         dialogo = actualizacion.DialogoActualizacion(None, "Algo")
         self.addCleanup(destruir, dialogo)
         dialogo.Show()
@@ -152,7 +152,7 @@ class TestFondoElegirDestino(unittest.TestCase):
         self.app = app_de_prueba()
 
     def test_fondo_es_el_de_la_principal(self):
-        from bellbird.ui import gui_elegir_destino as elegir
+        from guyrapu.ui import gui_elegir_destino as elegir
         dialogo = elegir.DialogoElegirDestino(None, destino="YouTube",
                                              usuario="")
         self.addCleanup(destruir, dialogo)
@@ -165,7 +165,7 @@ class TestFondoDirectoYoutube(unittest.TestCase):
         self.app = app_de_prueba()
 
     def test_fondo_es_el_de_la_principal(self):
-        from bellbird.ui import gui_directo_youtube as directo
+        from guyrapu.ui import gui_directo_youtube as directo
         dialogo = directo.DialogoDirectoYoutube(None)
         self.addCleanup(destruir, dialogo)
         self.assertEqual(dialogo.GetBackgroundColour(), _T.bg)
@@ -175,7 +175,7 @@ class TestFondoDirectoYoutube(unittest.TestCase):
 class TestFondoAgregarCaptura(unittest.TestCase):
     def setUp(self):
         self.app = app_de_prueba()
-        from bellbird.ui import ia_agregar_captura as agregar
+        from guyrapu.ui import ia_agregar_captura as agregar
         parche_hilo = mock.patch.object(
             agregar.diagnostico, "crear_hilo", side_effect=_hilo_directo)
         parche_hilo.start()
@@ -188,7 +188,7 @@ class TestFondoAgregarCaptura(unittest.TestCase):
         self.addCleanup(parche_llamada.stop)
 
     def test_fondo_es_el_de_la_principal(self):
-        from bellbird.ui import ia_agregar_captura as agregar
+        from guyrapu.ui import ia_agregar_captura as agregar
         with mock.patch.object(agregar.obs_captura_ia, "opciones",
                                return_value=[]):
             dialogo = agregar.DialogoAgregarCaptura(None, mock.Mock())
@@ -202,13 +202,13 @@ class TestFondoVentanaIA(unittest.TestCase):
         self.app = app_de_prueba()
 
     def test_mensaje_fondo_es_el_de_la_principal(self):
-        from bellbird.ui import ia_ventana as ventana
+        from guyrapu.ui import ia_ventana as ventana
         dialogo = ventana.DialogoMensaje(None, "hola")
         self.addCleanup(destruir, dialogo)
         self.assertEqual(dialogo.GetBackgroundColour(), _T.bg)
 
     def test_ventana_fondo_es_el_de_la_principal(self):
-        from bellbird.ui import ia_ventana as ventana
+        from guyrapu.ui import ia_ventana as ventana
         dialogo = ventana.VentanaIA(None)
         self.addCleanup(destruir, dialogo)
         self.assertEqual(dialogo.GetBackgroundColour(), _T.bg)
@@ -220,8 +220,8 @@ class TestFondoPreferencias(unittest.TestCase):
         self.app = app_de_prueba()
 
     def _dialogo(self):
-        from bellbird.ui import gui_preferencias as preferencias
-        from bellbird.voice import motores
+        from guyrapu.ui import gui_preferencias as preferencias
+        from guyrapu.voice import motores
         with mock.patch.object(motores, "listar_voces",
                                return_value=["Voz de prueba"]):
             dialogo = preferencias.PreferenciasDialog(None, {})
@@ -248,7 +248,7 @@ class TestPintarVentanaPapeles(unittest.TestCase):
         self.app = app_de_prueba()
 
     def _dialogo(self):
-        from bellbird.ui.tema import _pintar
+        from guyrapu.ui.tema import _pintar
         dialogo = wx.Dialog(None, title="Prueba", name="DialogoPapeles")
         self.panel = wx.Panel(dialogo, name="Panel")
         self.campo = wx.TextCtrl(self.panel, value="x", name="Campo")
@@ -296,7 +296,7 @@ class TestPintarVentanaPapeles(unittest.TestCase):
                          self.panel.GetBackgroundColour())
 
     def test_grupo_en_panel_pintado_sale_en_acento(self):
-        from bellbird.ui.tema import _pintar
+        from guyrapu.ui.tema import _pintar
         dialogo = wx.Dialog(None, title="Prueba", name="DialogoGrupo")
         self.addCleanup(destruir, dialogo)
         panel = wx.Panel(dialogo, name="Panel")
@@ -314,16 +314,16 @@ class TestVentanasPintadas(unittest.TestCase):
     """Cada ventana sale pintada por el único camino: `pintar_ventana`."""
 
     _VENTANAS = (
-        "bellbird/ui/gui.py",
-        "bellbird/ui/gui_preferencias.py",
-        "bellbird/ui/gui_descargas.py",
-        "bellbird/ui/gui_microfono.py",
-        "bellbird/ui/musica_editor_lista.py",
-        "bellbird/ui/musica_ventana.py",
-        "bellbird/ui/gui_historial.py",
-        "bellbird/ui/elegir_formato.py",
-        "bellbird/ui/gui_redactar.py",
-        "bellbird/ui/musica_dialogo_enlace.py",
+        "guyrapu/ui/gui.py",
+        "guyrapu/ui/gui_preferencias.py",
+        "guyrapu/ui/gui_descargas.py",
+        "guyrapu/ui/gui_microfono.py",
+        "guyrapu/ui/musica_editor_lista.py",
+        "guyrapu/ui/musica_ventana.py",
+        "guyrapu/ui/gui_historial.py",
+        "guyrapu/ui/elegir_formato.py",
+        "guyrapu/ui/gui_redactar.py",
+        "guyrapu/ui/musica_dialogo_enlace.py",
     )
 
     def _texto(self, relativo):
@@ -339,12 +339,12 @@ class TestVentanasPintadas(unittest.TestCase):
                     re.search(r"pintar_ventana\s*\(\s*self\s*\)", texto))
 
     def test_transmitir_en_directo_es_secundario(self):
-        texto = self._texto("bellbird/ui/boton_directo.py")
+        texto = self._texto("guyrapu/ui/boton_directo.py")
         self.assertIn("_T.btn", texto)
         self.assertNotIn("_T.primary", texto)
 
     def test_buscar_de_descargas_es_principal(self):
-        texto = self._texto("bellbird/ui/descargas_buscador.py")
+        texto = self._texto("guyrapu/ui/descargas_buscador.py")
         self.assertIn("boton_principal", texto)
 
 

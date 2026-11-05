@@ -4,7 +4,7 @@ import types
 import unittest
 from datetime import datetime, timedelta, timezone
 
-from bellbird.capture.reconexion import FiltroNuevos, espera_reconexion
+from guyrapu.capture.reconexion import FiltroNuevos, espera_reconexion
 
 
 def _ms(momento):

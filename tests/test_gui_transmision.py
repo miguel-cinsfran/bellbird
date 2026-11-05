@@ -6,25 +6,25 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.obs import consultas_transmision
-from bellbird.obs import obs_cliente
-from bellbird.obs import obs_disposicion
-from bellbird.obs import obs_prevuelo
-from bellbird.obs.obs_escena import FilaFuente
-from bellbird.ui import confirmar_transmision as modulo_confirmar
-from bellbird.ui import control_grabacion
-from bellbird.ui import directo_panel
-from bellbird.ui import escena_captura_ventana
-from bellbird.ui import escena_pagina_escena
-from bellbird.ui import escena_pagina_fuentes
-from bellbird.ui import gui_grabaciones
-from bellbird.ui import gui_microfono
-from bellbird.ui import gui_transmision
-from bellbird.ui import menu_transmision
-from bellbird.ui import mover_con_flechas
-from bellbird.ui import obs_ventana
-from bellbird.ui import operaciones_obs
-from bellbird.ui import tema
+from guyrapu.obs import consultas_transmision
+from guyrapu.obs import obs_cliente
+from guyrapu.obs import obs_disposicion
+from guyrapu.obs import obs_prevuelo
+from guyrapu.obs.obs_escena import FilaFuente
+from guyrapu.ui import confirmar_transmision as modulo_confirmar
+from guyrapu.ui import control_grabacion
+from guyrapu.ui import directo_panel
+from guyrapu.ui import escena_captura_ventana
+from guyrapu.ui import escena_pagina_escena
+from guyrapu.ui import escena_pagina_fuentes
+from guyrapu.ui import gui_grabaciones
+from guyrapu.ui import gui_microfono
+from guyrapu.ui import gui_transmision
+from guyrapu.ui import menu_transmision
+from guyrapu.ui import mover_con_flechas
+from guyrapu.ui import obs_ventana
+from guyrapu.ui import operaciones_obs
+from guyrapu.ui import tema
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import app_de_prueba, destruir
 
@@ -372,10 +372,10 @@ class TestPanelTransmision(unittest.TestCase):
 
     def test_no_queda_texto_con_preparar_destino_ni_panel(self):
         raiz = pathlib.Path(__file__).resolve().parents[1]
-        for relativo in ("bellbird/ui/gui_transmision.py",
-                         "bellbird/obs/obs_prevuelo.py",
-                         "bellbird/obs/obs_destinos.py",
-                         "bellbird/obs/obs_disposicion.py"):
+        for relativo in ("guyrapu/ui/gui_transmision.py",
+                         "guyrapu/obs/obs_prevuelo.py",
+                         "guyrapu/obs/obs_destinos.py",
+                         "guyrapu/obs/obs_disposicion.py"):
             with self.subTest(archivo=relativo):
                 texto = (raiz / relativo).read_text(encoding="utf-8")
                 self.assertNotIn("Preparar destino", texto)
@@ -404,7 +404,7 @@ class TestPanelTransmision(unittest.TestCase):
                       self.ventana._pagina_general.texto())
 
     def test_f1_abre_el_manual_de_uso(self):
-        from bellbird.ui import gui_menu
+        from guyrapu.ui import gui_menu
 
         with mock.patch.object(gui_menu, "abrir_documento_paquete") as abrir:
             self.ventana._al_tecla(EventoTecla(wx.WXK_F1))

@@ -8,7 +8,7 @@ import unittest
 
 import wx
 
-from bellbird.ui.preferencias_comun import (
+from guyrapu.ui.preferencias_comun import (
     fijar_zona, fila_botones, opciones_con_elegida)
 from tests.ventanas_prueba import app_de_prueba, destruir
 

@@ -10,9 +10,9 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.ui import gui
-from bellbird.player import motor_vlc
-from bellbird.player import reproductor
+from guyrapu.ui import gui
+from guyrapu.player import motor_vlc
+from guyrapu.player import reproductor
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 
@@ -54,7 +54,7 @@ class TestAvisosStaticBox(unittest.TestCase):
         worker = SimpleNamespace(get_rate=lambda: 0, get_volume=lambda: 100)
 
         with mock.patch.object(gui.diagnostico, "crear_hilo"):
-            frame = gui.YTChatFrame(
+            frame = gui.VentanaPrincipal(
                 None, configuracion, queue.Queue(), stats, worker, threading.Event())
         self.addCleanup(destruir, frame)
 

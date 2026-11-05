@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.downloads import ffmpeg_bin
-from bellbird.core import paths
+from guyrapu.downloads import ffmpeg_bin
+from guyrapu.core import paths
 from tests.rutas_temporales import redirigir_rutas
 
 

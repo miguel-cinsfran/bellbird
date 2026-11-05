@@ -10,11 +10,11 @@ import time
 import unittest
 from unittest import mock
 
-from bellbird.camera import encuadre, guia
-from bellbird.camera.detector_rostros import Cuadro
-from bellbird.obs.obs_camara import CamaraNoEncontrada, CamaraObs
-from bellbird.ui import guia_encuadre
-from bellbird.ui.guia_encuadre import Guia
+from guyrapu.camera import encuadre, guia
+from guyrapu.camera.detector_rostros import Cuadro
+from guyrapu.obs.obs_camara import CamaraNoEncontrada, CamaraObs
+from guyrapu.ui import guia_encuadre
+from guyrapu.ui.guia_encuadre import Guia
 
 
 ANCHO = 320

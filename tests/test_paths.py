@@ -7,9 +7,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import config
-from bellbird.core import carpetas_windows
-from bellbird.core import paths
+from guyrapu.core import config
+from guyrapu.core import carpetas_windows
+from guyrapu.core import paths
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -83,7 +83,7 @@ class TestRaices(unittest.TestCase):
 
     def test_empaquetada_es_la_carpeta_del_ejecutable(self):
         with tempfile.TemporaryDirectory() as tmp:
-            exe = str(Path(tmp) / "YTChatTTS.exe")
+            exe = str(Path(tmp) / "App.exe")
             with mock.patch.object(sys, "frozen", True, create=True), \
                  mock.patch.object(sys, "executable", exe):
                 self.assertEqual(paths.carpeta_instalacion(), Path(tmp))
@@ -111,9 +111,9 @@ class TestEjecutableActual(unittest.TestCase):
 
     def test_no_incluye_la_carpeta(self):
         with tempfile.TemporaryDirectory() as tmp:
-            exe = str(Path(tmp) / "YTChatTTS.exe")
+            exe = str(Path(tmp) / "App.exe")
             with mock.patch.object(sys, "executable", exe):
-                self.assertEqual(paths.ejecutable_actual(), "YTChatTTS.exe")
+                self.assertEqual(paths.ejecutable_actual(), "App.exe")
 
 
 class TestFunciones(unittest.TestCase):
@@ -281,7 +281,7 @@ class TestOrdenDeLaApp(unittest.TestCase):
 
     def test_empaquetada_es_solo_el_ejecutable(self):
         with tempfile.TemporaryDirectory() as tmp:
-            exe = str(Path(tmp) / "Bellbird.exe")
+            exe = str(Path(tmp) / "App.exe")
             with mock.patch.object(sys, "frozen", True, create=True), \
                  mock.patch.object(sys, "executable", exe):
                 self.assertEqual(paths.orden_de_la_app(), [exe])
@@ -538,7 +538,7 @@ class TestGuardaRutas(unittest.TestCase):
         raiz = Path(__file__).resolve().parent.parent
         violaciones = []
         descubiertos = 0
-        for modulo in sorted((raiz / "bellbird").rglob("*.py")):
+        for modulo in sorted((raiz / "guyrapu").rglob("*.py")):
             if modulo.name == "__init__.py":
                 continue
             descubiertos += 1
@@ -558,7 +558,7 @@ class TestGuardaRutas(unittest.TestCase):
                             f"{modulo.name}:{nro}: nombra {nombre} entre comillas")
         self.assertGreaterEqual(
             descubiertos, 50,
-            f"la guarda recorrió solo {descubiertos} módulos en bellbird/: "
+            f"la guarda recorrió solo {descubiertos} módulos en guyrapu/: "
             "si se movieron las carpetas, hay que actualizarla en vez de "
             "dejarla en verde sin mirar nada")
         self.assertEqual([], violaciones,

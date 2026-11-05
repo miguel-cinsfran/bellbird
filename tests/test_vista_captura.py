@@ -9,9 +9,9 @@ from unittest import mock
 import wx
 
 import main
-from bellbird.ui import accesibilidad
-from bellbird.ui.sesion_conectada import SesionConectada
-from bellbird.ui.vista_captura import VistaGui
+from guyrapu.ui import accesibilidad
+from guyrapu.ui.sesion_conectada import SesionConectada
+from guyrapu.ui.vista_captura import VistaGui
 
 
 class BaseVista(unittest.TestCase):
@@ -19,11 +19,11 @@ class BaseVista(unittest.TestCase):
         self.marco = mock.Mock()
         self.marco._alive = True
         self.gui_falsa = types.SimpleNamespace(_gui_frame=self.marco)
-        self.modulo_anterior = sys.modules.get("bellbird.ui.gui")
-        sys.modules["bellbird.ui.gui"] = self.gui_falsa
-        # `from bellbird.ui import gui` mira primero el atributo del paquete:
+        self.modulo_anterior = sys.modules.get("guyrapu.ui.gui")
+        sys.modules["guyrapu.ui.gui"] = self.gui_falsa
+        # `from guyrapu.ui import gui` mira primero el atributo del paquete:
         # sin esto usaría el módulo real si otra prueba ya lo importó.
-        from bellbird import ui as _paquete_ui
+        from guyrapu import ui as _paquete_ui
         self._parche_paquete = mock.patch.object(
             _paquete_ui, "gui", self.gui_falsa, create=True)
         self._parche_paquete.start()
@@ -43,9 +43,9 @@ class BaseVista(unittest.TestCase):
         self._parche_call.stop()
         self._parche_paquete.stop()
         if self.modulo_anterior is None:
-            sys.modules.pop("bellbird.ui.gui", None)
+            sys.modules.pop("guyrapu.ui.gui", None)
         else:
-            sys.modules["bellbird.ui.gui"] = self.modulo_anterior
+            sys.modules["guyrapu.ui.gui"] = self.modulo_anterior
 
 
 class TestUrlInvalida(BaseVista):
@@ -265,10 +265,10 @@ class TestConexionPropia(BaseVista):
 class TestEstructuraConexion(unittest.TestCase):
     def test_conexion_no_conoce_la_interfaz(self):
         raiz = Path(__file__).resolve().parent.parent
-        texto = (raiz / "bellbird" / "capture" / "conexion.py").read_text(
+        texto = (raiz / "guyrapu" / "capture" / "conexion.py").read_text(
             encoding="utf-8")
         self.assertNotIn("import wx", texto)
-        self.assertNotIn("bellbird.ui", texto)
+        self.assertNotIn("guyrapu.ui", texto)
         self.assertNotIn("_gui_frame", texto)
 
 

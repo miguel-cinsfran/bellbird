@@ -9,12 +9,12 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.atajos import ATAJOS_FIJOS_DEFAULTS
-from bellbird.core.config import APP_NAME
-from bellbird.core.idioma import _
-from bellbird.ui import atajos_globales, chat_recientes, gui
-from bellbird.ui.atajos_globales import AtajosGlobales, combinacion_ctrl_mayus
-from bellbird.voice.cola_tts import ColaTTS
+from guyrapu.core.atajos import ATAJOS_FIJOS_DEFAULTS
+from guyrapu.core.config import APP_NAME
+from guyrapu.core.idioma import _
+from guyrapu.ui import atajos_globales, chat_recientes, gui
+from guyrapu.ui.atajos_globales import AtajosGlobales, combinacion_ctrl_mayus
+from guyrapu.voice.cola_tts import ColaTTS
 from tests.ventanas_prueba import app_de_prueba
 
 

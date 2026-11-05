@@ -10,9 +10,9 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from unittest import mock
 
-from bellbird.obs.overlay_datos import evento_de_mensaje
-from bellbird.obs.overlay_servidor import OverlayPuertoOcupadoError, OverlayServidor
-from bellbird.obs import overlay_servidor
+from guyrapu.obs.overlay_datos import evento_de_mensaje
+from guyrapu.obs.overlay_servidor import OverlayPuertoOcupadoError, OverlayServidor
+from guyrapu.obs import overlay_servidor
 from tests.rutas_temporales import redirigir_rutas
 
 

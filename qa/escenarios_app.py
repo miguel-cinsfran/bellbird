@@ -143,13 +143,13 @@ def _atajo_descargas() -> tuple[tuple, str]:
     """
     texto = "ctrl+shift+d"
     try:
-        from bellbird.core import config_predeterminada
+        from guyrapu.core import config_predeterminada
         texto = (config_predeterminada.obtener(
             "atajos", "descargas_abrir", texto) or texto)
     except Exception:
         pass
     try:
-        from bellbird.ui.atajos_captura import atajo_legible
+        from guyrapu.ui.atajos_captura import atajo_legible
         legible = atajo_legible(texto) or texto
     except Exception:
         legible = texto

@@ -14,8 +14,8 @@ from unittest import mock
 
 try:
     import wx
-    from bellbird.ui import gui_preferencias
-    from bellbird.voice import motores
+    from guyrapu.ui import gui_preferencias
+    from guyrapu.voice import motores
     _HAY_WX = True
 except Exception:
     _HAY_WX = False
@@ -25,7 +25,7 @@ from tests.ventanas_prueba import app_de_prueba, destruir
 
 _SOLO_WINDOWS = _HAY_WX and sys.platform == "win32"
 
-_TITULO_GENERICO = "Ventana genérica sin fugas YTChat TTS"
+_TITULO_GENERICO = "Ventana genérica sin fugas"
 
 
 def _objetos_usuario():

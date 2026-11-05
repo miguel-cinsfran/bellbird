@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.capture.deteccion import (
+from guyrapu.capture.deteccion import (
     LIVE, UPCOMING, VOD, DESCONOCIDO,
     clasificar_desde_html, clasificar_desde_api, tiene_chat_en_vivo,
 )

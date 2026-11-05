@@ -8,9 +8,9 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.capture import tiktok_errores as errores
-from bellbird.capture import tiktok_vivo
-from bellbird.capture.tiktok_vivo import (
+from guyrapu.capture import tiktok_errores as errores
+from guyrapu.capture import tiktok_vivo
+from guyrapu.capture.tiktok_vivo import (
     ResultadoEspera, esperar_en_vivo, esta_en_vivo, url_directo,
     usuario_tiktok)
 

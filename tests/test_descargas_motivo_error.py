@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.downloads.motivo_error import motivo_de_error
+from guyrapu.downloads.motivo_error import motivo_de_error
 from tests.pseudo_prueba import con_pseudo
 
 

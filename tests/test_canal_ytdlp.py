@@ -11,8 +11,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import config
-from bellbird.downloads import ytdlp_actualizar
+from guyrapu.core import config
+from guyrapu.downloads import ytdlp_actualizar
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -172,7 +172,7 @@ class TestCanalYtdlp(unittest.TestCase):
     def test_cambiar_de_canal_instala_aunque_sea_mas_vieja(self):
         ruta = self._carpeta()
         red = _RedFalsa()
-        from bellbird.downloads import ytdlp_bin
+        from guyrapu.downloads import ytdlp_bin
         with redirigir_rutas(ruta), \
                 mock.patch.object(ytdlp_actualizar, "urlopen", red), \
                 mock.patch.object(ytdlp_bin, "ruta_ytdlp",

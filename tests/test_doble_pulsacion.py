@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.core.doble_pulsacion import DoblePulsacion
+from guyrapu.core.doble_pulsacion import DoblePulsacion
 
 
 class TestDoblePulsacion(unittest.TestCase):

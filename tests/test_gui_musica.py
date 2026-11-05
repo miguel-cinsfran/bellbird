@@ -15,21 +15,21 @@ from types import SimpleNamespace
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.music import anuncios
-from bellbird.music import listas
-from bellbird.music import memoria
-from bellbird.music.modelo import (AVANZO, FIN_LISTA, REINICIADO, TEMA_FALLIDO,
+from guyrapu.music import anuncios
+from guyrapu.music import listas
+from guyrapu.music import memoria
+from guyrapu.music.modelo import (AVANZO, FIN_LISTA, REINICIADO, TEMA_FALLIDO,
                                  EstadoMusica, Resultado, Tema)
-from bellbird.ui import atajos_globales
-from bellbird.ui import gui_descargas
-from bellbird.ui import gui_musica
-from bellbird.ui import musica_enlaces
-from bellbird.ui import musica_indice
-from bellbird.ui import musica_listas_propias
-from bellbird.ui import musica_memoria
-from bellbird.ui import musica_teclas
-from bellbird.ui import musica_ventana
-from bellbird.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
+from guyrapu.ui import atajos_globales
+from guyrapu.ui import gui_descargas
+from guyrapu.ui import gui_musica
+from guyrapu.ui import musica_enlaces
+from guyrapu.ui import musica_indice
+from guyrapu.ui import musica_listas_propias
+from guyrapu.ui import musica_memoria
+from guyrapu.ui import musica_teclas
+from guyrapu.ui import musica_ventana
+from guyrapu.ui.gui_musica import ControlMusica, nuevo_volumen, toca_pausar
 
 
 class _AdaptadorFalso:
@@ -173,7 +173,7 @@ def _entorno(fabrica=None):
                                    return_value=ruta_cache), \
                 mock.patch.object(musica_indice.paths, "cache_sonoridad_musica",
                                    return_value=ruta_sonoridad), \
-                mock.patch("bellbird.downloads.ffmpeg_bin.ruta_ffmpeg",
+                mock.patch("guyrapu.downloads.ffmpeg_bin.ruta_ffmpeg",
                            return_value=None), \
                 mock.patch.object(gui_musica, "_snd", snd):
             yield SimpleNamespace(anunciar=anunciar, snd=snd, creados=creados,
@@ -203,7 +203,7 @@ class TestFuncionesPuras(unittest.TestCase):
 
 
 def _estado(actual=False, terminado=False):
-    from bellbird.music.modelo import EstadoMusica, Tema
+    from guyrapu.music.modelo import EstadoMusica, Tema
 
     if actual:
         cola = (Tema("C:/m.mp3", "Tema"),)
@@ -214,7 +214,7 @@ def _estado(actual=False, terminado=False):
 
 
 def _aviso(codigo=AVANZO, tema=None, cola=None, posicion=None, terminado=False):
-    from bellbird.music.modelo import EstadoMusica, Tema
+    from guyrapu.music.modelo import EstadoMusica, Tema
 
     if cola is None:
         cola = (Tema("C:/tema.mp3", "Tema 2", artista="Ana"),)
@@ -464,7 +464,7 @@ class TestAvisoAutomatico(unittest.TestCase):
         self.assertEqual(env.snd.sonidos, ["musica_fin"])
 
     def test_aviso_automatico_tema_fallido(self):
-        from bellbird.music.modelo import Tema
+        from guyrapu.music.modelo import Tema
         with _entorno() as env:
             control = ControlMusica(_frame())
             control._aviso_automatico(Resultado(
@@ -765,7 +765,7 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
         return tmp
 
     def test_lee_guarda_y_aplica_al_coordinador_y_la_ventana(self):
-        from bellbird.music.etiquetas import CacheEtiquetas
+        from guyrapu.music.etiquetas import CacheEtiquetas
 
         with tempfile.TemporaryDirectory() as tmp:
             self._carpeta_con(tmp)
@@ -806,7 +806,7 @@ class TestEtiquetasSegundoPlano(unittest.TestCase):
                 env.anunciar.assert_not_called()
 
     def test_con_cache_en_disco_no_lee_ni_arranca_hilo(self):
-        from bellbird.music.etiquetas import CacheEtiquetas
+        from guyrapu.music.etiquetas import CacheEtiquetas
 
         hilos = []
 
@@ -1058,7 +1058,7 @@ class TestVentanaYAtajos(unittest.TestCase):
         env.anunciar.assert_called_once_with("Tema 2")
 
     def test_combos_atajo_traduce_los_guardados(self):
-        from bellbird.ui import teclas_wx
+        from guyrapu.ui import teclas_wx
         with _entorno():
             control = ControlMusica(_frame())
             combos = control.combos_atajo()
@@ -1082,7 +1082,7 @@ class TestVentanaYAtajos(unittest.TestCase):
                 control.ejecutar_atajo("musica_que_suena")
         self.assertEqual(
             registro.output,
-            ["DEBUG:bellbird.gui_musica:ATAJO origen=musica accion=musica_que_suena"])
+            ["DEBUG:guyrapu.gui_musica:ATAJO origen=musica accion=musica_que_suena"])
 
     def test_ejecutar_atajo_desconocido_no_hace_nada(self):
         with _entorno():
@@ -1096,7 +1096,7 @@ class TestVentanaYAtajos(unittest.TestCase):
                 control.ejecutar_atajo("no_existe")
         self.assertEqual(
             registro.output,
-            ["DEBUG:bellbird.gui_musica:ATAJO origen=musica accion=no_existe "
+            ["DEBUG:guyrapu.gui_musica:ATAJO origen=musica accion=no_existe "
              "desconocida=si"])
 
 
@@ -1186,7 +1186,7 @@ class TestEnlace(unittest.TestCase):
                          "2 canciones agregadas a la cola. Sonando: Uno")
 
     def test_error_del_enlace_avisa_con_sonido(self):
-        from bellbird.music.enlaces import ErrorEnlace
+        from guyrapu.music.enlaces import ErrorEnlace
         with _entorno() as env, \
                 mock.patch.object(musica_enlaces.enlaces, "expandir",
                                   side_effect=ErrorEnlace("El enlace no tiene vídeos")):
@@ -1528,7 +1528,7 @@ class _GestorQueAbre:
 
     def __init__(self, musica, al_cerrar=None):
         self._musica = musica
-        self._abrir_en_bellbird = None
+        self._abrir_en_app = None
         self.al_cerrar = al_cerrar
         self.cerrado = 0
 
@@ -1538,7 +1538,7 @@ class _GestorQueAbre:
             self.al_cerrar()
 
     def abrir(self, url):
-        gui_descargas.GestorDescargasDialog._al_abrir_en_bellbird(self, url)
+        gui_descargas.GestorDescargasDialog._al_abrir_en_app(self, url)
 
 
 class TestCederAlReproductor(unittest.TestCase):
@@ -1756,19 +1756,19 @@ class TestSnapshotMusica(unittest.TestCase):
         return _frame_con_panel("En el directo", 0)
 
     def test_la_musica_llega_a_la_instantanea(self):
-        from bellbird.ui import gui
+        from guyrapu.ui import gui
         frame = self._frame()
         frame._musica = mock.Mock()
         frame._musica.texto_estado.return_value = "Música: A, canción 1 de 2"
-        snap = gui.YTChatFrame._snapshot_sesion(frame)
+        snap = gui.VentanaPrincipal._snapshot_sesion(frame)
         self.assertEqual(snap.musica, "Música: A, canción 1 de 2")
 
     def test_sin_motor_o_con_fallo_da_vacio(self):
-        from bellbird.ui import gui
+        from guyrapu.ui import gui
         frame = self._frame()
         frame._musica = mock.Mock()
         frame._musica.texto_estado.side_effect = RuntimeError("boom")
-        snap = gui.YTChatFrame._snapshot_sesion(frame)
+        snap = gui.VentanaPrincipal._snapshot_sesion(frame)
         self.assertEqual(snap.musica, "")
 
 
@@ -2197,16 +2197,16 @@ class TestSonoridadCableada(unittest.TestCase):
     """El cableado de la normalización: indexar mide y el motor envuelve."""
 
     def test_indexar_no_mide_y_con_iniciar_igualacion_si_guarda(self):
-        from bellbird.music import sonoridad
-        from bellbird.music.sonoridad import CacheSonoridad
+        from guyrapu.music import sonoridad
+        from guyrapu.music.sonoridad import CacheSonoridad
 
         with tempfile.TemporaryDirectory() as tmp:
             for nombre in ("a.mp3", "b.mp3"):
                 (Path(tmp) / nombre).write_bytes(b"audio-" + nombre.encode())
             with _entorno() as env, \
-                    mock.patch("bellbird.downloads.ffmpeg_bin.ruta_ffmpeg",
+                    mock.patch("guyrapu.downloads.ffmpeg_bin.ruta_ffmpeg",
                                return_value="ffmpeg"), \
-                    mock.patch("bellbird.music.sonoridad.medir",
+                    mock.patch("guyrapu.music.sonoridad.medir",
                                return_value=3.0):
                 control = ControlMusica(_frame(musica_carpeta=tmp))
                 recibidas = []
@@ -2229,8 +2229,8 @@ class TestSonoridadCableada(unittest.TestCase):
                         3.0)
 
     def test_motor_envuelve_con_la_ganancia_guardada(self):
-        from bellbird.music import sonoridad
-        from bellbird.music.sonoridad import CacheSonoridad
+        from guyrapu.music import sonoridad
+        from guyrapu.music.sonoridad import CacheSonoridad
 
         for normalizar, esperado in (
                 (True, sonoridad.volumen_efectivo(50, 6.0)), (False, 50)):
@@ -2244,7 +2244,7 @@ class TestSonoridadCableada(unittest.TestCase):
                                  info.st_size, 6.0)
                     previa.guardar()
                     with mock.patch(
-                            "bellbird.downloads.ffmpeg_bin.ruta_ffmpeg",
+                            "guyrapu.downloads.ffmpeg_bin.ruta_ffmpeg",
                             return_value="ffmpeg"):
                         control = ControlMusica(_frame(
                             musica_carpeta=tmp, musica_normalizar=normalizar,

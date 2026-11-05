@@ -242,8 +242,8 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
     gris, generadas en un temporal y alternadas para que la imagen no se
     congele. Deja OBS y config.ini como los encontró.
     """
-    from bellbird.core import paths as _rutas
-    from bellbird.core.config import guardar_opcion
+    from guyrapu.core import paths as _rutas
+    from guyrapu.core.config import guardar_opcion
     if not obs_abierto():
         res.nota("Encuadre: OBS está cerrado, no hay cámara que mirar")
         return
@@ -256,7 +256,7 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
     alternador = None
     propia = None
     try:
-        from bellbird.obs.obs_panel import GestorPanelObs
+        from guyrapu.obs.obs_panel import GestorPanelObs
         gestor = GestorPanelObs()
         try:
             gestor.conectar()
@@ -383,7 +383,7 @@ def _destino_guardado_en_disco() -> str:
     """El destino de transmisión que guarda el `config.ini`, o cadena vacía."""
     import configparser
     try:
-        from bellbird.core import paths
+        from guyrapu.core import paths
         parser = configparser.ConfigParser(interpolation=None)
         parser.read(paths.config_ini(), encoding="utf-8")
         return parser.get("transmision", "destino", fallback="").strip()
@@ -580,8 +580,8 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
             res.fallo("transmitir_destino: «Directo de YouTube» no cerró")
     finally:
         try:
-            from bellbird.core import paths
-            from bellbird.core.config import guardar_opcion
+            from guyrapu.core import paths
+            from guyrapu.core.config import guardar_opcion
             guardar_opcion(paths.config_ini(), "transmision", "destino",
                            previo)
         except Exception as exc:

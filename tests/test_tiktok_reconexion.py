@@ -3,8 +3,8 @@
 import json
 import unittest
 
-from bellbird.capture import tiktok_errores as errores
-from bellbird.capture import tiktok_reconexion as rec
+from guyrapu.capture import tiktok_errores as errores
+from guyrapu.capture import tiktok_reconexion as rec
 
 
 def _exc(nombre, texto=""):

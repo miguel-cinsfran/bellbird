@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.obs import disenos_escena, disenos_fabrica
+from guyrapu.obs import disenos_escena, disenos_fabrica
 
 
 def _fuentes():

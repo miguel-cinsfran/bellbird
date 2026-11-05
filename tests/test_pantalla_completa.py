@@ -19,7 +19,7 @@ except Exception:
 class TestAccionDeTecla(unittest.TestCase):
 
     def setUp(self):
-        from bellbird.player.pantalla_completa import (
+        from guyrapu.player.pantalla_completa import (
             AccionesPantalla, accion_de_tecla)
         self.acciones = AccionesPantalla(
             salir=mock.Mock(), pausa=mock.Mock(),
@@ -98,7 +98,7 @@ class TestCableadoPantallaCompleta(unittest.TestCase):
     """
 
     def test_alternar_pasa_atajos_y_acciones_del_panel(self):
-        from bellbird.player import reproductor
+        from guyrapu.player import reproductor
         panel = reproductor.ReproductorPanel.__new__(
             reproductor.ReproductorPanel)
         panel._fs = None
@@ -130,7 +130,7 @@ class TestPseudoNombreAccesibleVentana(unittest.TestCase):
     def test_nombre_del_video_sale_marcado(self):
         from tests.pseudo_prueba import con_pseudo
         from tests.ventanas_prueba import destruir
-        from bellbird.player.pantalla_completa import (
+        from guyrapu.player.pantalla_completa import (
             AccionesPantalla, PantallaCompleta)
         app_de_prueba()
         acciones = AccionesPantalla(

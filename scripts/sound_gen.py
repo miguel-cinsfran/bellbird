@@ -1481,7 +1481,7 @@ PANEO = {
 # ── Guía de encuadre: confirmación y aviso sin rostro ────────────────────────
 # Carpeta fija `sounds/guia/`, igual para los dos temas: no son eventos y
 # por eso no entran en TEMAS. Los pitidos y el tono del centro se generan
-# en memoria con `bellbird/camera/tono_guia.py`; acá quedan solo `listo`
+# en memoria con `guyrapu/camera/tono_guia.py`; acá quedan solo `listo`
 # (confirmación que sube) y `sin_rostro` (zumbido grave y corto).
 GUIA_DIR = RAIZ / "sounds" / "guia"
 

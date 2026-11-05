@@ -7,8 +7,8 @@ from unittest import mock
 
 import wx
 
-from bellbird.obs import grabaciones
-from bellbird.ui import gui_grabaciones
+from guyrapu.obs import grabaciones
+from guyrapu.ui import gui_grabaciones
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 

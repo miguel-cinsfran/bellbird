@@ -3,7 +3,7 @@
 import math
 import unittest
 
-from bellbird.camera.encuadre import (
+from guyrapu.camera.encuadre import (
     ContadorCongelada,
     Encuadre,
     Rostro,

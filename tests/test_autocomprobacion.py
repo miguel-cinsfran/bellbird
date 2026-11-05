@@ -10,8 +10,8 @@ from unittest import mock
 from babel.messages import catalog, pofile
 
 from scripts import traducciones
-from bellbird.core import autocomprobacion
-from bellbird.core import paths
+from guyrapu.core import autocomprobacion
+from guyrapu.core import paths
 
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -108,9 +108,9 @@ class TestPiezaIdiomas(unittest.TestCase):
             idiomas = Path(tmp)
             destino = idiomas / "en" / "LC_MESSAGES"
             destino.mkdir(parents=True)
-            catalogo = catalog.Catalog(locale="en", domain="bellbird")
+            catalogo = catalog.Catalog(locale="en", domain="guyrapu")
             catalogo.add("Guardado", string="Saved")
-            with (destino / "bellbird.po").open("wb") as salida:
+            with (destino / "guyrapu.po").open("wb") as salida:
                 pofile.write_po(salida, catalogo)
             compilados = traducciones.compilar(idiomas)
             self.assertEqual(len(compilados), 1)
@@ -125,7 +125,7 @@ class TestPiezaIdiomas(unittest.TestCase):
             idiomas = Path(tmp)
             destino = idiomas / "en" / "LC_MESSAGES"
             destino.mkdir(parents=True)
-            (destino / "bellbird.mo").write_bytes(
+            (destino / "guyrapu.mo").write_bytes(
                 b"esto no es un catalogo gettext")
             with mock.patch.object(paths, "carpeta_idiomas",
                                    return_value=idiomas):

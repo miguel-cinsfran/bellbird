@@ -7,10 +7,10 @@ from unittest import mock
 
 import wx
 
-from bellbird.core import idioma
-from bellbird.obs import disenos_escena, disenos_fabrica, disenos_guardados
-from bellbird.obs.fuente_chat import NOMBRE_FUENTE
-from bellbird.ui import escena_disenos
+from guyrapu.core import idioma
+from guyrapu.obs import disenos_escena, disenos_fabrica, disenos_guardados
+from guyrapu.obs.fuente_chat import NOMBRE_FUENTE
+from guyrapu.ui import escena_disenos
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import app_de_prueba, destruir
 

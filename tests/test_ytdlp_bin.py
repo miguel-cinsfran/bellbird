@@ -12,10 +12,10 @@ import time
 import unittest
 from unittest.mock import MagicMock, patch
 
-from bellbird.downloads import ytdlp_actualizar
-from bellbird.downloads import ytdlp_bin
-from bellbird.core import paths
-from bellbird.core import subprocesos
+from guyrapu.downloads import ytdlp_actualizar
+from guyrapu.downloads import ytdlp_bin
+from guyrapu.core import paths
+from guyrapu.core import subprocesos
 from tests.pseudo_prueba import con_pseudo
 
 
@@ -166,7 +166,7 @@ class PruebasYtdlpBin(unittest.TestCase):
     def test_empaquetado_usa_ejecutable_junto_al_interprete(self):
         with tempfile.TemporaryDirectory() as carpeta:
             carpeta = Path(carpeta)
-            ejecutable = carpeta / "YTChatTTS.exe"
+            ejecutable = carpeta / "App.exe"
             paquete = carpeta / "yt-dlp.exe"
             ejecutable.touch()
             paquete.write_bytes(b"programa")
@@ -889,13 +889,13 @@ class PruebasDescargarVideoCache(unittest.TestCase):
 class TestUserAgentConVersionDeLaApp(unittest.TestCase):
     """El User-Agent de las dos fuentes lleva la versión de la app."""
 
-    def test_actualizacion_usa_bellbird_y_version(self):
-        from bellbird.core import actualizacion
-        from bellbird.core.config import APP_VERSION
+    def test_actualizacion_usa_la_app_y_version(self):
+        from guyrapu.core import actualizacion
+        from guyrapu.core.config import APP_VERSION
         self.assertEqual(actualizacion.USER_AGENT, f"Bellbird/{APP_VERSION}")
 
-    def test_ytdlp_envia_bellbird_y_version(self):
-        from bellbird.core.config import APP_VERSION
+    def test_ytdlp_envia_la_app_y_version(self):
+        from guyrapu.core.config import APP_VERSION
         esperado = f"Bellbird/{APP_VERSION}"
         pedidos = []
 
@@ -940,7 +940,7 @@ class TestArgumentosComunes(unittest.TestCase):
             self.assertEqual(Path(ruta), instalacion / "deno.exe")
 
     def test_solo_ytdlp_bin_escribe_ignore_config(self):
-        raiz = Path(__file__).resolve().parent.parent / "bellbird" / "downloads"
+        raiz = Path(__file__).resolve().parent.parent / "guyrapu" / "downloads"
         culpables = []
         for modulo in sorted(raiz.glob("*.py")):
             if modulo.name == "ytdlp_bin.py":
@@ -987,7 +987,7 @@ class TestCableadoComunes(unittest.TestCase):
         self.assertEqual(args[1:1 + len(comunes)], comunes)
 
     def test_analizar_url_los_intercala(self):
-        from bellbird.downloads import analisis_enlace
+        from guyrapu.downloads import analisis_enlace
         respuesta = MagicMock(returncode=0, stdout='{"id": "abc"}')
         with patch.object(analisis_enlace.ytdlp_bin, "ruta_ytdlp",
                           return_value="yt-dlp.exe"), \
@@ -1000,7 +1000,7 @@ class TestCableadoComunes(unittest.TestCase):
         self.assertEqual(args[1:1 + len(comunes)], comunes)
 
     def test_buscar_los_intercala(self):
-        from bellbird.downloads import busqueda_youtube
+        from guyrapu.downloads import busqueda_youtube
         terminado = MagicMock(returncode=0, stdout='{"entries": []}',
                               stderr="")
         with patch.object(busqueda_youtube.ytdlp_bin, "ruta_ytdlp",
@@ -1014,7 +1014,7 @@ class TestCableadoComunes(unittest.TestCase):
         self.assertEqual(args[1:1 + len(comunes)], comunes)
 
     def test_contenido_los_intercala(self):
-        from bellbird.downloads import busqueda_youtube
+        from guyrapu.downloads import busqueda_youtube
         terminado = MagicMock(returncode=0, stdout='{"entries": []}',
                               stderr="")
         with patch.object(busqueda_youtube.ytdlp_bin, "ruta_ytdlp",
@@ -1029,7 +1029,7 @@ class TestCableadoComunes(unittest.TestCase):
         self.assertEqual(args[1:1 + len(comunes)], comunes)
 
     def test_extraer_plano_los_intercala(self):
-        from bellbird.music import enlaces
+        from guyrapu.music import enlaces
         respuesta = MagicMock(returncode=0, stdout='{"id": "abc"}')
         with patch.object(enlaces.ytdlp_bin, "ruta_ytdlp",
                           return_value="yt-dlp.exe"), \
@@ -1043,7 +1043,7 @@ class TestCableadoComunes(unittest.TestCase):
         self.assertEqual(args[1:1 + len(comunes)], comunes)
 
     def test_argumentos_descarga_empiezan_con_los_comunes(self):
-        from bellbird.downloads.argumentos_ytdlp import argumentos_descarga
+        from guyrapu.downloads.argumentos_ytdlp import argumentos_descarga
         args = argumentos_descarga("https://example.com/v",
                                    {"formato": "mp4", "carpeta": "/tmp"},
                                    False)

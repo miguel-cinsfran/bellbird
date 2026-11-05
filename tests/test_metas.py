@@ -7,7 +7,7 @@ informa F2.
 
 import unittest
 
-from bellbird.capture import metas
+from guyrapu.capture import metas
 
 
 class TestFrases(unittest.TestCase):

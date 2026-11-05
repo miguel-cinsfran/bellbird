@@ -6,9 +6,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import archivos
-from bellbird.obs import disenos_escena
-from bellbird.obs import disenos_guardados
+from guyrapu.core import archivos
+from guyrapu.obs import disenos_escena
+from guyrapu.obs import disenos_guardados
 
 
 def _diseno(**cambios):

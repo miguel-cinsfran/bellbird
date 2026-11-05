@@ -6,7 +6,7 @@ La lógica pura recibe la lista de descargas y el instante en cada vuelta.
 import unittest
 from types import SimpleNamespace
 
-from bellbird.downloads.progreso_anuncio import AnunciadorProgreso
+from guyrapu.downloads.progreso_anuncio import AnunciadorProgreso
 
 
 def _item(ident, progreso=0.0, estado="descargando", procesando=False,

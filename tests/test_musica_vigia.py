@@ -10,7 +10,7 @@ import threading
 import unittest
 from pathlib import Path
 
-from bellbird.music.vigia_carpeta import VigiaCarpeta
+from guyrapu.music.vigia_carpeta import VigiaCarpeta
 
 
 def _norm(rutas):

@@ -3,8 +3,8 @@
 import unittest
 from unittest import mock
 
-from bellbird.core import anuncio_ajuste
-from bellbird.core.anuncio_ajuste import AnuncioAjuste, con_limite
+from guyrapu.core import anuncio_ajuste
+from guyrapu.core.anuncio_ajuste import AnuncioAjuste, con_limite
 
 
 class RelojFalso:

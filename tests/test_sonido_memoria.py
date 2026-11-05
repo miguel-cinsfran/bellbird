@@ -11,7 +11,7 @@ import unittest
 import wave
 from unittest import mock
 
-from bellbird.voice import sonido_memoria, sound_player
+from guyrapu.voice import sonido_memoria, sound_player
 
 
 def _wav_silencio(duracion=0.05):

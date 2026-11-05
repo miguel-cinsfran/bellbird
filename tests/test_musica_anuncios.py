@@ -4,10 +4,10 @@ import unittest
 
 from scripts import sound_gen
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core import config
-from bellbird.core.idioma import _
-from bellbird.music import anuncios
-from bellbird.music.modelo import (
+from guyrapu.core import config
+from guyrapu.core.idioma import _
+from guyrapu.music import anuncios
+from guyrapu.music.modelo import (
     AVANZO,
     COLA_VACIA,
     ERROR_MOTOR,

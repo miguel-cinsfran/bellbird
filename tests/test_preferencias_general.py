@@ -11,11 +11,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import config
-from bellbird.core import idioma
-from bellbird.ui import gui, gui_preferencias, preferencias_general
-from bellbird.ui import preferencias_transmision
-from bellbird.voice import motores
+from guyrapu.core import config
+from guyrapu.core import idioma
+from guyrapu.ui import gui, gui_preferencias, preferencias_general
+from guyrapu.ui import preferencias_transmision
+from guyrapu.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import app_de_prueba, destruir
@@ -196,7 +196,7 @@ class TestReinicioPorIdioma(unittest.TestCase):
         padre = mock.Mock()
         padre.Close.return_value = True
         proceso = mock.Mock()
-        orden = ["Bellbird.exe", "--esperar-pid", "9"]
+        orden = ["App.exe", "--esperar-pid", "9"]
         with mock.patch.object(preferencias_general.instancia, "orden_reabrir",
                                return_value=orden) as armar, \
                 mock.patch.object(preferencias_general.subprocess, "Popen",
@@ -216,7 +216,7 @@ class TestReinicioPorIdioma(unittest.TestCase):
         padre.Close.return_value = False
         proceso = mock.Mock()
         with mock.patch.object(preferencias_general.instancia, "orden_reabrir",
-                               return_value=["Bellbird.exe"]), \
+                               return_value=["App.exe"]), \
                 mock.patch.object(preferencias_general.subprocess, "Popen",
                                   return_value=proceso):
             preferencias_general._reiniciar(padre)

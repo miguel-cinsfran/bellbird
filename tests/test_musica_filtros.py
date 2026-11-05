@@ -6,13 +6,13 @@ La última clase abre ventanas.
 import unittest
 from unittest import mock
 
-from bellbird.music import filtros
-from bellbird.music.modelo import Tema
+from guyrapu.music import filtros
+from guyrapu.music.modelo import Tema
 from tests.ventanas_prueba import app_de_prueba
 
 try:
     import wx
-    from bellbird.ui import musica_filtros
+    from guyrapu.ui import musica_filtros
     from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
     from tests.ventanas_prueba import destruir
     _HAY_WX = True
@@ -241,7 +241,7 @@ class TestFiltrosPseudo(unittest.TestCase):
     """Ningún texto visible de los filtros sin pasar por gettext."""
 
     # Los cuadros traducen las opciones de «Ordenar por» que arma
-    # `bellbird/music/filtros.py`, así que no queda ninguna pendiente.
+    # `guyrapu/music/filtros.py`, así que no queda ninguna pendiente.
     PENDIENTES = ()
 
     def setUp(self):

@@ -4,13 +4,13 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.core.config import (
+from guyrapu.core.config import (
     TIPO_ENTRADA, TIPO_ME_GUSTA, TIPO_SUPERCHAT, TIPO_TEXTO,
 )
-from bellbird.core.avisos_tiktok import TIPOS_AVISO
-from bellbird.ui import chat_vivo
-from bellbird.ui.chat_vivo import ControladorChat
-from bellbird.ui.lista_chat import MensajeChat
+from guyrapu.core.avisos_tiktok import TIPOS_AVISO
+from guyrapu.ui import chat_vivo
+from guyrapu.ui.chat_vivo import ControladorChat
+from guyrapu.ui.lista_chat import MensajeChat
 
 
 def _registro(tipo=TIPO_TEXTO, autor="Ana", texto="hola", monto=""):

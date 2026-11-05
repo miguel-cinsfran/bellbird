@@ -2,9 +2,9 @@
 
 import unittest
 
-from bellbird.obs import (
+from guyrapu.obs import (
     aplicar_diseno, disenos_escena, disenos_fabrica, obs_panel)
-from bellbird.obs.fuente_chat import NOMBRE_FUENTE, TIPO_FUENTE
+from guyrapu.obs.fuente_chat import NOMBRE_FUENTE, TIPO_FUENTE
 from tests.test_obs_panel import DobleObs, elemento
 
 

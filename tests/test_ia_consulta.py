@@ -6,12 +6,12 @@ import threading
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.ai import catalogo
-from bellbird.ai import consulta
-from bellbird.ai import conversacion
-from bellbird.ai import protocolos
-from bellbird.ai.ajustes_ia import AjustesIA
-from bellbird.ai.conversacion import Conversacion
+from guyrapu.ai import catalogo
+from guyrapu.ai import consulta
+from guyrapu.ai import conversacion
+from guyrapu.ai import protocolos
+from guyrapu.ai.ajustes_ia import AjustesIA
+from guyrapu.ai.conversacion import Conversacion
 
 IMAGEN = b"\xff\xd8\xfffoto\xff\xd9"
 

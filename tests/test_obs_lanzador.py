@@ -8,13 +8,13 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.obs import obs_cliente
-from bellbird.obs import obs_lanzador
-from bellbird.obs.obs_lanzador import ObsNoInstalado, abrir_obs, asegurar_obs, ruta_obs
+from guyrapu.core.idioma import _
+from guyrapu.obs import obs_cliente
+from guyrapu.obs import obs_lanzador
+from guyrapu.obs.obs_lanzador import ObsNoInstalado, abrir_obs, asegurar_obs, ruta_obs
 
 try:
-    from bellbird.ui import obs_ventana
+    from guyrapu.ui import obs_ventana
     _HAY_GUI = True
 except Exception:
     _HAY_GUI = False

@@ -13,17 +13,17 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.capture.tiktok_vivo import ResultadoEspera
-from bellbird.obs import obs_cliente
-from bellbird.obs import obs_clips
-from bellbird.obs import obs_panel
-from bellbird.obs import obs_supervisor
-from bellbird.obs.duraciones import duracion_legible
-from bellbird.obs.obs_supervisor import SupervisorTransmision
+from guyrapu.capture.tiktok_vivo import ResultadoEspera
+from guyrapu.obs import obs_cliente
+from guyrapu.obs import obs_clips
+from guyrapu.obs import obs_panel
+from guyrapu.obs import obs_supervisor
+from guyrapu.obs.duraciones import duracion_legible
+from guyrapu.obs.obs_supervisor import SupervisorTransmision
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.youtube import emision
-from bellbird.youtube import fin_pendiente
+from guyrapu.core.idioma import _
+from guyrapu.youtube import emision
+from guyrapu.youtube import fin_pendiente
 
 
 class RelojFalso:
@@ -772,7 +772,7 @@ class AsegurarObsTest(BaseSupervisor):
         self.assertTrue(all(gestor.cerrado == 1 for gestor in gestores))
 
     def test_sin_obs_anuncia_el_texto_exactoy_no_transmite(self):
-        from bellbird.obs.obs_lanzador import ObsNoInstalado
+        from guyrapu.obs.obs_lanzador import ObsNoInstalado
         armado = self.armar(destino="YouTube", estados=[muestra(False)])
         supervisor, anuncios, _, gestores, _, _, _ = armado
 
@@ -1584,7 +1584,7 @@ class FinPendienteTest(unittest.TestCase):
 
 
 # Textos que arma otro módulo y aparecen en los anuncios: las frases de
-# `bellbird/obs/obs_salida.py` (frase_salida), que el supervisor anuncia tal
+# `guyrapu/obs/obs_salida.py` (frase_salida), que el supervisor anuncia tal
 # cual. La comparación es exacta en los dos sentidos: falla si aparece un
 # anuncio propio sin marcar y si un texto ajeno ya no llega, para vaciar la
 # lista cuando ese módulo pase por gettext.

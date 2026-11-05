@@ -11,7 +11,7 @@ import time
 import unittest
 from pathlib import Path
 
-from bellbird.obs import obs_cliente, obs_clips, obs_lanzador
+from guyrapu.obs import obs_cliente, obs_clips, obs_lanzador
 
 
 class ObsFalso:
@@ -366,7 +366,7 @@ def _cargar_conducir():
     return modulo
 
 
-@unittest.skipUnless(os.environ.get("BELLBIRD_PRUEBAS_CON_RED") == "1",
+@unittest.skipUnless(os.environ.get("GUYRAPU_PRUEBAS_CON_RED") == "1",
                      "habla con el OBS real")
 class ObsRealTest(unittest.TestCase):
     """Prepara el búfer, guarda un clip y deja el perfil como estaba."""

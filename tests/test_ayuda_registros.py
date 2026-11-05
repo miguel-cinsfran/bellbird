@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.ui import gui_menu
+from guyrapu.ui import gui_menu
 
 
 class TestAbrirCarpetaRegistros(unittest.TestCase):

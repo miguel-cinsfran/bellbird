@@ -4,8 +4,8 @@ import types
 import unittest
 from unittest import mock
 
-from bellbird.obs.obs_panel import NOMBRE_FUENTE
-from bellbird.obs.restablecimiento import RegistroRestablecimiento
+from guyrapu.obs.obs_panel import NOMBRE_FUENTE
+from guyrapu.obs.restablecimiento import RegistroRestablecimiento
 
 
 TRANSFORMACION = {

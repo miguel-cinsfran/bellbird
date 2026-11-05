@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 
-from bellbird.ui import gui
+from guyrapu.ui import gui
 
 TEXTO_SIN_SENAL = ("El micrófono no recibe sonido. Revisa cuál está elegido "
                    "en Windows o en OBS.")
@@ -17,7 +17,7 @@ class HiloInmediato:
 
 class AccionMicrofonoObsTest(unittest.TestCase):
     def _ejecutar(self, marcada_antes=False):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {"obs_microfono": "Audio USB"}
         frame.mi_obs_micro = mock.Mock()
         frame.mi_obs_micro.IsChecked.return_value = marcada_antes

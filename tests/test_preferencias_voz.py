@@ -10,15 +10,15 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.ui import gui_preferencias
-from bellbird.voice import motores
+from guyrapu.ui import gui_preferencias
+from guyrapu.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 # Textos que arma otro módulo y aparecen en la parte recorrida: no se
-# tocan acá. Los nombres de los motores (`bellbird/voice/motores.py`,
+# tocan acá. Los nombres de los motores (`guyrapu/voice/motores.py`,
 # NOMBRES) ya salen marcados porque la página los traduce. La lista de
 # voces se finge vacía, así los combinados muestran el aviso propio, ya
 # envuelto.

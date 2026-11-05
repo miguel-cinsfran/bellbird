@@ -8,9 +8,9 @@ from unittest import mock
 
 import main
 from main import Stats, procesar_entrante
-from bellbird.capture import alias
-from bellbird.ui import gui
-from bellbird.ui import gui_comentarios
+from guyrapu.capture import alias
+from guyrapu.ui import gui
+from guyrapu.ui import gui_comentarios
 
 
 class TestItemLlevaAutorVisible(unittest.TestCase):
@@ -48,7 +48,7 @@ class TestItemLlevaAutorVisible(unittest.TestCase):
 class TestRelecturasLlevanAutor(unittest.TestCase):
 
     def _frame_chat(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._cola = queue.Queue()
         frame._config = {"limpiar_emojis": True,
                          "formato_prefijo": "nombre_mensaje"}

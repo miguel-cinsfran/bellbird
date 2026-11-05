@@ -8,11 +8,11 @@ import types
 import unittest
 from unittest import mock
 
-from bellbird.capture import tiktok_captura
-from bellbird.capture import tiktok_errores as errores
-from bellbird.capture.tiktok_captura import (usuario_de_url,
+from guyrapu.capture import tiktok_captura
+from guyrapu.capture import tiktok_errores as errores
+from guyrapu.capture.tiktok_captura import (usuario_de_url,
                             _mejor_flujo, autor_de_evento, es_previo_a_conexion)
-from bellbird.capture.tiktok_errores import (mensaje_error as _mensaje_error,
+from guyrapu.capture.tiktok_errores import (mensaje_error as _mensaje_error,
     es_error_permanente as _es_error_permanente)
 
 

@@ -3,7 +3,7 @@
 import math
 import unittest
 
-from bellbird.ui import barra_progreso
+from guyrapu.ui import barra_progreso
 
 
 class TestTramoBordes(unittest.TestCase):

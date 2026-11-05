@@ -13,11 +13,11 @@ try:
 except Exception:
     _HAY_WX = False
 
-from bellbird.ai import consulta
-from bellbird.ai import conversacion
-from bellbird.ai import protocolos
-from bellbird.ai import ventana_ia
-from bellbird.ui import ia_ventana as ventana
+from guyrapu.ai import consulta
+from guyrapu.ai import conversacion
+from guyrapu.ai import protocolos
+from guyrapu.ai import ventana_ia
+from guyrapu.ui import ia_ventana as ventana
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import app_de_prueba, destruir
 

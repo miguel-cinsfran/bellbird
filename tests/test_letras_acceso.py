@@ -21,24 +21,24 @@ from tests.test_gui_microfono import FUENTES, PARES
 from tests.test_gui_transmision import (
     GestorFalso, HiloInmediato, OperacionesFalsas, PrincipalFalsa)
 from tests.ventanas_prueba import app_de_prueba, destruir
-from bellbird.ai import catalogo
-from bellbird.core import config
-from bellbird.downloads import descargas, formatos_reales
-from bellbird.obs import disenos_escena
-from bellbird.obs.filtros_microfono import Estado
-from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_grabaciones, gui_historial, gui_microfono, gui_transmision, gui_preferencias, control_grabacion, mover_con_flechas
-from bellbird.ui import escena_disenos
-from bellbird.ui import escena_filtros
-from bellbird.ui import escena_captura_ventana
-from bellbird.ui import escena_pagina_audio
-from bellbird.ui import escena_pagina_escena
-from bellbird.ui import escena_pagina_fuentes
-from bellbird.ui import escena_tamano
-from bellbird.ui import obs_ventana
-from bellbird.ui import preferencias_ia
-from bellbird.ui import preferencias_ia_clave
-from bellbird.ui import restream_ventana
-from bellbird.voice import motores
+from guyrapu.ai import catalogo
+from guyrapu.core import config
+from guyrapu.downloads import descargas, formatos_reales
+from guyrapu.obs import disenos_escena
+from guyrapu.obs.filtros_microfono import Estado
+from guyrapu.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_grabaciones, gui_historial, gui_microfono, gui_transmision, gui_preferencias, control_grabacion, mover_con_flechas
+from guyrapu.ui import escena_disenos
+from guyrapu.ui import escena_filtros
+from guyrapu.ui import escena_captura_ventana
+from guyrapu.ui import escena_pagina_audio
+from guyrapu.ui import escena_pagina_escena
+from guyrapu.ui import escena_pagina_fuentes
+from guyrapu.ui import escena_tamano
+from guyrapu.ui import obs_ventana
+from guyrapu.ui import preferencias_ia
+from guyrapu.ui import preferencias_ia_clave
+from guyrapu.ui import restream_ventana
+from guyrapu.voice import motores
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -411,7 +411,7 @@ class TestLetrasAccesoPrincipal(unittest.TestCase):
         stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
         worker = SimpleNamespace(get_rate=lambda: 0, get_volume=lambda: 100)
         with mock.patch.object(gui.diagnostico, "crear_hilo"):
-            frame = gui.YTChatFrame(None, configuracion, queue.Queue(),
+            frame = gui.VentanaPrincipal(None, configuracion, queue.Queue(),
                                     stats, worker, threading.Event())
         self.addCleanup(destruir, frame)
         frame.ShowWithoutActivating()

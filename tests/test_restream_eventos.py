@@ -3,7 +3,7 @@
 import unittest
 from datetime import datetime, timezone
 
-from bellbird.restream import eventos
+from guyrapu.restream import eventos
 
 ID_EVENTO = "fa2f5c54-4de5-4118-a4b0-925c648c49d6"
 ID_DESTINO = "51ef373f-d7d2-4993-9af2-faa14f245962"

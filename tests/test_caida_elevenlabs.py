@@ -1,14 +1,14 @@
 """Cuándo un mensaje de ElevenLabs cae a Windows y cuándo se avisa.
 
-Cubre `bellbird/voice/caida_elevenlabs.py` sin motor. La clase solo recibe
+Cubre `guyrapu/voice/caida_elevenlabs.py` sin motor. La clase solo recibe
 valores y caracteres usados.
 """
 
 import unittest
 from unittest import mock
 
-from bellbird.voice import caida_elevenlabs
-from bellbird.voice.caida_elevenlabs import CaidaElevenLabs
+from guyrapu.voice import caida_elevenlabs
+from guyrapu.voice.caida_elevenlabs import CaidaElevenLabs
 
 
 class TestDecision(unittest.TestCase):

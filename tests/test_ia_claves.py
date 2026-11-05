@@ -3,7 +3,7 @@
 import os
 import unittest
 
-from bellbird.ai import claves
+from guyrapu.ai import claves
 
 PREFIJO_PRUEBA = "Bellbird/ia-prueba/"
 

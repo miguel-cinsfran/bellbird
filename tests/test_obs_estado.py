@@ -1,8 +1,8 @@
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.obs import obs_estado
+from guyrapu.core.idioma import _
+from guyrapu.obs import obs_estado
 
 
 class FrasesObsTest(unittest.TestCase):

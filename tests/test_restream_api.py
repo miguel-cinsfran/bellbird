@@ -6,7 +6,7 @@ from unittest import mock
 
 import httpx
 
-from bellbird.restream import api
+from guyrapu.restream import api
 
 
 TOKEN = "token-secreto-de-prueba"
@@ -285,7 +285,7 @@ class TestEventos(unittest.TestCase):
         return cliente
 
     def test_pide_la_ruta_de_cada_tipo_y_su_token(self):
-        from bellbird.restream.eventos import TIPO_EN_DIRECTO, TIPO_HISTORIAL, TIPO_PROXIMOS
+        from guyrapu.restream.eventos import TIPO_EN_DIRECTO, TIPO_HISTORIAL, TIPO_PROXIMOS
 
         rutas = {
             TIPO_PROXIMOS:
@@ -360,12 +360,12 @@ class TestEventos(unittest.TestCase):
         self.assertNotIn(TOKEN, str(contexto.exception))
 
 
-@unittest.skipUnless(os.environ.get("BELLBIRD_PRUEBAS_CON_RED") == "1",
+@unittest.skipUnless(os.environ.get("GUYRAPU_PRUEBAS_CON_RED") == "1",
                      "necesita la cuenta real de Restream")
 class TestContraRestreamReal(unittest.TestCase):
 
     def test_perfil_y_canales_de_verdad(self):
-        from bellbird.restream import cuenta
+        from guyrapu.restream import cuenta
 
         token = cuenta.sesion().token()
         if not token:
@@ -384,8 +384,8 @@ class TestContraRestreamReal(unittest.TestCase):
                             f"{canal.nombre} no trae un identificador de canal")
 
     def test_los_tres_tipos_de_eventos_y_sus_estadisticas(self):
-        from bellbird.restream import cuenta
-        from bellbird.restream.eventos import (
+        from guyrapu.restream import cuenta
+        from guyrapu.restream.eventos import (
             TIPO_EN_DIRECTO, TIPO_HISTORIAL, TIPO_PROXIMOS)
 
         token = cuenta.sesion().token()

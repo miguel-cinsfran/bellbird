@@ -6,7 +6,7 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.core import instancia
+from guyrapu.core import instancia
 from scripts.smoke_test import (_MINIMO_CONTROLES, _MUTEX_INSTANCIA,
                                 _configurar_salida, _recorrer, arbol_sigue_vivo,
                                 es_descendiente, hay_otra_instancia_abierta,
@@ -48,7 +48,7 @@ class MutexInstanciaTest(unittest.TestCase):
         import ctypes
         import uuid
 
-        nombre = f"YTChatTTS_Prueba_{os.getpid()}_{uuid.uuid4().hex}"
+        nombre = f"Prueba_{os.getpid()}_{uuid.uuid4().hex}"
         self.assertFalse(hay_otra_instancia_abierta(nombre))
 
         kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)

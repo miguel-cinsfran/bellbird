@@ -2,11 +2,11 @@
 
 import unittest
 
-from bellbird.core import config
+from guyrapu.core import config
 
 
 class TestNombreApp(unittest.TestCase):
-    def test_app_name_es_bellbird(self):
+    def test_nombre_de_la_aplicacion(self):
         self.assertEqual(config.APP_NAME, "Bellbird")
 
 

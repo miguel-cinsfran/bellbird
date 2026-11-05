@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.ui.barra_estado import anchos_barra_estado
+from guyrapu.ui.barra_estado import anchos_barra_estado
 
 
 def medir(texto):

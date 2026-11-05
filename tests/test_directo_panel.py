@@ -10,8 +10,8 @@ try:
 except Exception:
     _HAY_WX = False
 
-from bellbird.obs import transmision_directa
-from bellbird.ui import directo_panel
+from guyrapu.obs import transmision_directa
+from guyrapu.ui import directo_panel
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 

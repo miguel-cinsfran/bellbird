@@ -11,10 +11,10 @@ from pathlib import Path
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.downloads.ffmpeg_bin import ruta_ffmpeg
-from bellbird.music import sonoridad
-from bellbird.music.sonoridad import (
+from guyrapu.core.idioma import _
+from guyrapu.downloads.ffmpeg_bin import ruta_ffmpeg
+from guyrapu.music import sonoridad
+from guyrapu.music.sonoridad import (
     CacheSonoridad,
     ganancia_db,
     leer_medicion,

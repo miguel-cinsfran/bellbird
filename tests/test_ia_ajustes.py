@@ -5,10 +5,10 @@ import unittest
 from pathlib import Path
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.ai import ajustes_ia
-from bellbird.ai.ajustes_ia import AjustesIA
-from bellbird.ai import conversacion
-from bellbird.core import config
+from guyrapu.ai import ajustes_ia
+from guyrapu.ai.ajustes_ia import AjustesIA
+from guyrapu.ai import conversacion
+from guyrapu.core import config
 
 
 def _escribir(ruta, texto):

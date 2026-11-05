@@ -3,8 +3,8 @@
 import unittest
 from unittest import mock
 
-from bellbird.obs import consultas_transmision
-from bellbird.obs import obs_disposicion
+from guyrapu.obs import consultas_transmision
+from guyrapu.obs import obs_disposicion
 
 
 def _gestor():

@@ -8,9 +8,9 @@ ventanas: el cuadro nuevo y la consulta que lo llena.
 import unittest
 from unittest import mock
 
-from bellbird.downloads import formatos_reales, opciones_formato
-from bellbird.downloads.busqueda_youtube import Resultado
-from bellbird.ui import buscador_acciones
+from guyrapu.downloads import formatos_reales, opciones_formato
+from guyrapu.downloads.busqueda_youtube import Resultado
+from guyrapu.ui import buscador_acciones
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 try:
@@ -20,7 +20,7 @@ except Exception:
     _HAY_WX = False
 
 try:
-    from bellbird.ui import elegir_formato
+    from guyrapu.ui import elegir_formato
     _HAY_ELEGIR = True
 except ImportError:
     elegir_formato = None  # type: ignore
@@ -41,7 +41,7 @@ class TestOpcionesDeFormato(unittest.TestCase):
     def test_video_unico_con_todo_ofrece_formato_tras_video(self):
         self.assertEqual(
             buscador_acciones.opciones_de(_res(), True, True),
-            ("agregar", "escuchar", "audio", "video", "formato", "bellbird",
+            ("agregar", "escuchar", "audio", "video", "formato", "app",
              "musica", "copiar", "navegador", "sitios"))
 
     def test_video_unico_sin_nada_ofrece_formato_tras_video(self):

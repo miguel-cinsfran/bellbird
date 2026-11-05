@@ -81,8 +81,8 @@ class TestSuperficiesQa(unittest.TestCase):
         raiz = Path(__file__).resolve().parent.parent
         faltan = [
             nombre for nombre in conducir.SUPERFICIES
-            if not (raiz / "bellbird" / "ui" / nombre).is_file()
-            and not (raiz / "bellbird" / "player" / nombre).is_file()
+            if not (raiz / "guyrapu" / "ui" / nombre).is_file()
+            and not (raiz / "guyrapu" / "player" / nombre).is_file()
         ]
         self.assertEqual(faltan, [])
 
@@ -90,8 +90,8 @@ class TestSuperficiesQa(unittest.TestCase):
         raiz = Path(__file__).resolve().parent.parent
         faltan = [
             nombre for nombre in conducir.SIN_ESCENARIO
-            if not (raiz / "bellbird" / "ui" / nombre).is_file()
-            and not (raiz / "bellbird" / "player" / nombre).is_file()
+            if not (raiz / "guyrapu" / "ui" / nombre).is_file()
+            and not (raiz / "guyrapu" / "player" / nombre).is_file()
         ]
         self.assertEqual(faltan, [])
 
@@ -131,8 +131,8 @@ class TestEsVentanaDeLaApp(unittest.TestCase):
         self.assertTrue(conducir.es_ventana_de_la_app(
             "Un vídeo — Bellbird"))
 
-    def test_rechaza_lo_que_solo_menciona_bellbird(self):
-        for nombre in ("bellbird",
+    def test_rechaza_lo_que_solo_menciona_la_app(self):
+        for nombre in ("guyrapu",
                        "miguel-cinsfran/bellbird - Google Chrome",
                        "YTChat TTS v2.5.1", ""):
             self.assertFalse(conducir.es_ventana_de_la_app(nombre))
@@ -203,7 +203,7 @@ class TestAgujasDeBusqueda(unittest.TestCase):
 
     @staticmethod
     def _coincide(aguja, nombre):
-        from bellbird.music.biblioteca import coincide_por_palabras
+        from guyrapu.music.biblioteca import coincide_por_palabras
         return coincide_por_palabras(aguja, [Path(nombre).stem])
 
     def test_la_aguja_unica_sale_del_nombre_sin_extension(self):
@@ -457,7 +457,7 @@ class TestAvisosWx(unittest.TestCase):
         lineas = [
             "12:59:18  Fallo de OBS: ConnectionRefusedError: [WinError 10061]",
             "Traceback (most recent call last):",
-            '  File "bellbird\\obs\\obs_lanzador.py", line 42, in asegurar_obs',
+            '  File "guyrapu\\obs\\obs_lanzador.py", line 42, in asegurar_obs',
             "    conexion = conectar()",
             "ConnectionRefusedError: [WinError 10061] No se pudo conectar",
             "..\\src\\msw\\window.cpp(123): RegisterHotKey failed with error 0x00000581",

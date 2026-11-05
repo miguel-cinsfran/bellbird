@@ -32,9 +32,9 @@ import threading
 import time
 from pathlib import Path
 
-VAR_DESTINO = "YTCHAT_QA_ANUNCIOS"
-VAR_ORDENES = "YTCHAT_QA_ORDENES"
-VAR_RESULTADOS = "YTCHAT_QA_RESULTADOS"
+VAR_DESTINO = "GUYRAPU_QA_ANUNCIOS"
+VAR_ORDENES = "GUYRAPU_QA_ORDENES"
+VAR_RESULTADOS = "GUYRAPU_QA_RESULTADOS"
 
 
 class GrabadorAnuncios:
@@ -507,7 +507,7 @@ class Sonda:
     # Todo lo que toca la interfaz corre acá, en el hilo de la interfaz.
     def ejecutar(self, orden):
         import wx
-        from bellbird.ui import gui
+        from guyrapu.ui import gui
 
         op = orden.get("op")
         id_orden = orden.get("id")
@@ -1021,7 +1021,7 @@ class Sonda:
                 # respuesta se puede perder, igual que en `menu_click`.
                 if frame is None:
                     raise RuntimeError("todavía no hay ventana principal")
-                from bellbird.ui import gui_directo_huerfano
+                from guyrapu.ui import gui_directo_huerfano
                 self.responder(id_orden, True)
                 wx.CallAfter(gui_directo_huerfano._preguntar, frame,
                              [("qa-sin-id", "Prueba del banco")])
@@ -1188,8 +1188,8 @@ def instalar() -> str:
         raise RuntimeError(
             f"Falta la variable {VAR_DESTINO} con la ruta de la grabación")
 
-    from bellbird.ui import gui
-    from bellbird.ui import accesibilidad
+    from guyrapu.ui import gui
+    from guyrapu.ui import accesibilidad
     grabador = GrabadorAnuncios(ruta)
 
     # No alcanza con asignar `accesibilidad._lector` acá: `iniciar_gui` llama a

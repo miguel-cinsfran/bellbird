@@ -1,4 +1,4 @@
-"""Pruebas sin ventana de `bellbird/ui/comandos_clips.py`."""
+"""Pruebas sin ventana de `guyrapu/ui/comandos_clips.py`."""
 
 import tempfile
 import unittest
@@ -6,9 +6,9 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.core.idioma import _
-from bellbird.obs import grabaciones, obs_cliente, obs_clips
-from bellbird.ui import comandos_clips
+from guyrapu.core.idioma import _
+from guyrapu.obs import grabaciones, obs_cliente, obs_clips
+from guyrapu.ui import comandos_clips
 
 
 def _llamada_inmediata(funcion, *args, **kwargs):

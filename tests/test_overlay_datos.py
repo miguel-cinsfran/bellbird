@@ -1,6 +1,6 @@
 import unittest
 
-from bellbird.obs.overlay_datos import (
+from guyrapu.obs.overlay_datos import (
     COLOR_CUERPO,
     COLOR_DORADO,
     COLOR_TIKTOK,
@@ -13,7 +13,7 @@ from bellbird.obs.overlay_datos import (
     relacion_de_contraste,
     va_al_chat_en_el_video,
 )
-from bellbird.core.tipos_mensaje import (
+from guyrapu.core.tipos_mensaje import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
     TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,

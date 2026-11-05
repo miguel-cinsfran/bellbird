@@ -3,7 +3,7 @@
 import unittest
 from unittest import mock
 
-from bellbird.obs import fuente_chat, obs_captura, obs_cliente, obs_panel
+from guyrapu.obs import fuente_chat, obs_captura, obs_cliente, obs_panel
 
 
 VIEJA = {"inputName": "Chat YTChat", "inputKind": "browser_source"}
@@ -114,7 +114,7 @@ class ClienteRecarga:
 
 class RecargaRenombraTest(unittest.TestCase):
     def test_la_recarga_renombra_la_vieja_y_pulsa_la_nueva(self):
-        from bellbird.obs import obs_panel_recarga
+        from guyrapu.obs import obs_panel_recarga
 
         cliente = ClienteRecarga([dict(VIEJA)])
         resultado = obs_panel_recarga.recargar_fuente_panel(
@@ -133,7 +133,7 @@ class NombreNuevoTest(unittest.TestCase):
         self.assertIs(obs_panel.NOMBRE_FUENTE, fuente_chat.NOMBRE_FUENTE)
         self.assertIs(obs_panel.TIPO_FUENTE, fuente_chat.TIPO_FUENTE)
 
-    def test_la_sonda_de_ventanas_se_llama_bellbird(self):
+    def test_la_sonda_de_ventanas_se_llama_como_la_app(self):
         self.assertEqual(obs_captura.NOMBRE_SONDA,
                          "Bellbird, lista de ventanas")
 

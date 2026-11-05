@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 
 from banco_app import VentanaNoActiva, subarbol
-from bellbird.music import anuncios as anuncios_musica
+from guyrapu.music import anuncios as anuncios_musica
 
 
 def _suena(rec, segundos):

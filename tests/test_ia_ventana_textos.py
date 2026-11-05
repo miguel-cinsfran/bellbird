@@ -8,10 +8,10 @@ import unittest
 from datetime import datetime
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.ai import ventana_ia
-from bellbird.ai import conversacion
-from bellbird.ai import protocolos
-from bellbird.core.idioma import _
+from guyrapu.ai import ventana_ia
+from guyrapu.ai import conversacion
+from guyrapu.ai import protocolos
+from guyrapu.core.idioma import _
 
 
 class TestTextosVentanaIA(unittest.TestCase):

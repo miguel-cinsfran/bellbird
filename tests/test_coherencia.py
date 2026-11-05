@@ -11,10 +11,10 @@ import re
 import unittest
 from pathlib import Path
 
-from bellbird.core import config as cfg
-from bellbird.core import config_predeterminada as fabrica
-from bellbird.core import eventos_sonido
-from bellbird.ui import atajos_captura
+from guyrapu.core import config as cfg
+from guyrapu.core import config_predeterminada as fabrica
+from guyrapu.core import eventos_sonido
+from guyrapu.ui import atajos_captura
 
 RAIZ = Path(__file__).resolve().parent.parent
 
@@ -36,7 +36,7 @@ def _datos_f2():
     `estado_sesion.py`. `formatear_estado` cuenta como render porque anuncia
     `transmision_supervisada`, que ningún `_render_*` toca por separado."""
     componentes, etiquetas = set(), set()
-    arbol_cat = _arbol("bellbird/capture/componentes_estado.py")
+    arbol_cat = _arbol("guyrapu/capture/componentes_estado.py")
     for nodo in ast.walk(arbol_cat):
         if isinstance(nodo, (ast.Assign, ast.AnnAssign)):
             valor = nodo.value
@@ -48,7 +48,7 @@ def _datos_f2():
                 elif nombre == "ETIQUETAS" and isinstance(valor, ast.Dict):
                     etiquetas = {k.value for k in valor.keys}
     render, campos, dichos = set(), set(), set()
-    arbol = _arbol("bellbird/capture/estado_sesion.py")
+    arbol = _arbol("guyrapu/capture/estado_sesion.py")
     for nodo in ast.walk(arbol):
         if isinstance(nodo, (ast.Assign, ast.AnnAssign)):
             valor = nodo.value
@@ -78,9 +78,9 @@ class PruebaEstadoF2(unittest.TestCase):
     def test_conjuntos_iguales(self):
         componentes, etiquetas, render, _, _ = _datos_f2()
         candidatos = {
-            "ETIQUETAS (bellbird/capture/componentes_estado.py)": etiquetas,
-            "render (bellbird/capture/estado_sesion.py)": render,
-            "[estado] (bellbird/core/config_predeterminada.py)": set(
+            "ETIQUETAS (guyrapu/capture/componentes_estado.py)": etiquetas,
+            "render (guyrapu/capture/estado_sesion.py)": render,
+            "[estado] (guyrapu/core/config_predeterminada.py)": set(
                 fabrica.seccion("estado")),
         }
         problemas = []
@@ -97,7 +97,7 @@ class PruebaEstadoF2(unittest.TestCase):
         mudos = sorted(campos - dichos)
         self.assertEqual(mudos, [],
                          "Campos de SnapshotSesion que ninguna función de render "
-                         f"lee (bellbird/capture/estado_sesion.py): {mudos}")
+                         f"lee (guyrapu/capture/estado_sesion.py): {mudos}")
 
 
 # ── Regla 2: sonidos ────────────────────────────────────────────────────────
@@ -113,13 +113,13 @@ def _ruta_punteada(nodo):
 
 
 def _nombres_y_dinamicos():
-    """Nombres de eventos juntados con `ast` sobre `bellbird/` y `main.py`:
+    """Nombres de eventos juntados con `ast` sobre `guyrapu/` y `main.py`:
     literales de `_snd.reproducir(...)` (o `sound_player` por otro nombre),
     segundo argumento literal o `sonido=` de `Aviso(...)`, y valores de las
     constantes `SONIDO*` (incluidos los dicts como `_SONIDO_POR_FIN`).
     Devuelve (nombres, dinámicos) donde dinámicos son "archivo:línea"."""
     nombres, dinamicos = set(), []
-    archivos = sorted((RAIZ / "bellbird").rglob("*.py")) + [RAIZ / "main.py"]
+    archivos = sorted((RAIZ / "guyrapu").rglob("*.py")) + [RAIZ / "main.py"]
     for ruta in archivos:
         arbol = ast.parse(ruta.read_text(encoding="utf-8"))
         relativo = str(ruta.relative_to(RAIZ))
@@ -219,7 +219,7 @@ class PruebaSonidos(unittest.TestCase):
         faltan = sorted(nombres - set(cfg._EVENTOS_SONIDO))
         self.assertEqual(faltan, [],
                           "Sonidos usados fuera de config._EVENTOS_SONIDO "
-                          f"(bellbird/core/config.py): {faltan}")
+                          f"(guyrapu/core/config.py): {faltan}")
 
 
 class PruebaNombresSonido(unittest.TestCase):
@@ -314,12 +314,12 @@ def _pares_leidos_en_config():
     `leer_decimal` (literales en 2.º y 3.º lugar) y parecidas del parser (`get`,
     `getboolean`, ...) con literales en 1.º y 2.º lugar."""
     leidos = set()
-    arboles = (_arbol("bellbird/core/config.py"),
-                _arbol("bellbird/core/config_descargas.py"),
-                _arbol("bellbird/core/config_musica.py"),
-                _arbol("bellbird/core/config_lectura.py"),
-                _arbol("bellbird/core/config_transmision.py"),
-                _arbol("bellbird/core/config_voz.py"))
+    arboles = (_arbol("guyrapu/core/config.py"),
+                _arbol("guyrapu/core/config_descargas.py"),
+                _arbol("guyrapu/core/config_musica.py"),
+                _arbol("guyrapu/core/config_lectura.py"),
+                _arbol("guyrapu/core/config_transmision.py"),
+                _arbol("guyrapu/core/config_voz.py"))
     for arbol in arboles:
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, ast.Call):
@@ -380,14 +380,14 @@ def _pares_con_control():
     con_control = set()
     tablas = {}
     arboles = {rel: _arbol(rel) for rel in (
-        "bellbird/ui/gui_preferencias.py", "bellbird/ui/preferencias_general.py",
-        "bellbird/ui/preferencias_musica.py",
-        "bellbird/ui/preferencias_lectura.py",
-        "bellbird/ui/preferencias_eventos.py", "bellbird/ui/preferencias_ia.py",
-        "bellbird/ui/preferencias_voz.py",
-        "bellbird/ui/preferencias_voz_secundaria.py",
-        "bellbird/ui/preferencias_transmision.py",
-        "bellbird/ui/preferencias_camara.py")}
+        "guyrapu/ui/gui_preferencias.py", "guyrapu/ui/preferencias_general.py",
+        "guyrapu/ui/preferencias_musica.py",
+        "guyrapu/ui/preferencias_lectura.py",
+        "guyrapu/ui/preferencias_eventos.py", "guyrapu/ui/preferencias_ia.py",
+        "guyrapu/ui/preferencias_voz.py",
+        "guyrapu/ui/preferencias_voz_secundaria.py",
+        "guyrapu/ui/preferencias_transmision.py",
+        "guyrapu/ui/preferencias_camara.py")}
     for arbol in arboles.values():
         for nodo in ast.walk(arbol):
             if not isinstance(nodo, (ast.Assign, ast.AnnAssign)):
@@ -441,7 +441,7 @@ class PruebaConfiguracion(unittest.TestCase):
                         - set(LEIDAS_FUERA))
         self.assertEqual(
             faltan, [],
-            "Pares de fábrica que no se leen en bellbird/core/config.py: "
+            "Pares de fábrica que no se leen en guyrapu/core/config.py: "
             f"{faltan}")
 
     def test_todo_par_tiene_control(self):
@@ -450,14 +450,14 @@ class PruebaConfiguracion(unittest.TestCase):
         self.assertEqual(
             faltan, [],
             "Pares de fábrica sin control en Preferencias "
-            "(bellbird/ui/gui_preferencias.py, bellbird/ui/preferencias_general.py, "
-            "bellbird/ui/preferencias_musica.py, "
-            "bellbird/ui/preferencias_lectura.py, "
-            "bellbird/ui/preferencias_eventos.py, bellbird/ui/preferencias_ia.py, "
-            "bellbird/ui/preferencias_voz.py, "
-            "bellbird/ui/preferencias_voz_secundaria.py, "
-            "bellbird/ui/preferencias_transmision.py, "
-            "bellbird/ui/preferencias_camara.py): "
+            "(guyrapu/ui/gui_preferencias.py, guyrapu/ui/preferencias_general.py, "
+            "guyrapu/ui/preferencias_musica.py, "
+            "guyrapu/ui/preferencias_lectura.py, "
+            "guyrapu/ui/preferencias_eventos.py, guyrapu/ui/preferencias_ia.py, "
+            "guyrapu/ui/preferencias_voz.py, "
+            "guyrapu/ui/preferencias_voz_secundaria.py, "
+            "guyrapu/ui/preferencias_transmision.py, "
+            "guyrapu/ui/preferencias_camara.py): "
             f"{faltan}")
 
     def test_excepciones_existen_en_fabrica(self):
@@ -498,7 +498,7 @@ class PruebaAtajos(unittest.TestCase):
         self.assertEqual(
             faltan, [],
             "Claves de [atajos] sin nombre en la tabla de "
-            f"bellbird/ui/atajos_captura.py: {faltan}")
+            f"guyrapu/ui/atajos_captura.py: {faltan}")
 
     def test_todo_atajo_figura_en_manual(self):
         manual = _atajos_en_manual()
@@ -516,11 +516,11 @@ class PruebaAtajos(unittest.TestCase):
 
 
 def _solo_lectura_sin_tab():
-    """Llamadas a `wx.TextCtrl(...)` en `bellbird/` y `main.py` cuyo `style=`
+    """Llamadas a `wx.TextCtrl(...)` en `guyrapu/` y `main.py` cuyo `style=`
     nombra `TE_READONLY` sin `TE_MULTILINE`: wx en Windows deja esos campos
     de una línea fuera del orden de Tab. Devuelve "archivo:línea"."""
     problemas = []
-    archivos = sorted((RAIZ / "bellbird").rglob("*.py")) + [RAIZ / "main.py"]
+    archivos = sorted((RAIZ / "guyrapu").rglob("*.py")) + [RAIZ / "main.py"]
     for ruta in archivos:
         arbol = ast.parse(ruta.read_text(encoding="utf-8"))
         relativo = str(ruta.relative_to(RAIZ))

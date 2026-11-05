@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import paths
+from guyrapu.core import paths
 
 
 @contextmanager

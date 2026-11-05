@@ -9,11 +9,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.downloads import ffmpeg_bin
-from bellbird.music import transicion
-from bellbird.music.bordes import Bordes
-from bellbird.music.transicion import Transiciones
-from bellbird.player import motor_vlc
+from guyrapu.downloads import ffmpeg_bin
+from guyrapu.music import transicion
+from guyrapu.music.bordes import Bordes
+from guyrapu.music.transicion import Transiciones
+from guyrapu.player import motor_vlc
 
 
 def esperar(condicion, plazo=5.0):

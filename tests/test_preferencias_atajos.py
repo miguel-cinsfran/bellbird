@@ -10,9 +10,9 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import config
-from bellbird.ui import gui_preferencias
-from bellbird.voice import motores
+from guyrapu.core import config
+from guyrapu.ui import gui_preferencias
+from guyrapu.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import app_de_prueba, destruir
@@ -20,7 +20,7 @@ from tests.ventanas_prueba import app_de_prueba, destruir
 
 # Textos que arma otro módulo y esta página solo muestra, con valores de
 # fábrica. La nota (`atajos_captura.NOTA_PAGINA`), los títulos de grupo de
-# `bellbird/core/atajos.py` (ATAJOS_GRUPOS) y las etiquetas de los botones
+# `guyrapu/core/atajos.py` (ATAJOS_GRUPOS) y las etiquetas de los botones
 # (`etiqueta_de_accion` y `etiqueta_boton` de `atajos_captura`) ya salen
 # marcadas porque esta página las traduce. La comparación es exacta en los
 # dos sentidos: falla si aparece un texto nuevo sin envolver y si un

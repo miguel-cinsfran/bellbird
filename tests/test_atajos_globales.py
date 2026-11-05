@@ -14,10 +14,10 @@ from unittest import mock
 import wx
 
 from tests.ventanas_prueba import app_de_prueba, destruir
-from bellbird.music import anuncios
-from bellbird.ui import atajos_globales
-from bellbird.ui.atajos_captura import atajo_legible
-from bellbird.ui.atajos_globales import (
+from guyrapu.music import anuncios
+from guyrapu.ui import atajos_globales
+from guyrapu.ui.atajos_captura import atajo_legible
+from guyrapu.ui.atajos_globales import (
     AtajosGlobales, combinacion_ctrl_mayus, combinacion_windows,
 )
 
@@ -221,7 +221,7 @@ class TestAtajosGlobales(unittest.TestCase):
 
         self.assertEqual(
             registro.output,
-            ["DEBUG:bellbird.atajos_globales:ATAJO origen=global accion=musica_play"])
+            ["DEBUG:guyrapu.atajos_globales:ATAJO origen=global accion=musica_play"])
 
 
     def test_sin_atajos_no_registra_nada(self):

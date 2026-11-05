@@ -7,8 +7,8 @@ import tempfile
 import unittest
 from unittest import mock
 
-from bellbird.downloads import busqueda_youtube as busqueda
-from bellbird.downloads.busqueda_youtube import (
+from guyrapu.downloads import busqueda_youtube as busqueda
+from guyrapu.downloads.busqueda_youtube import (
     CANTIDADES,
     CANTIDAD_DEFECTO,
     Filtros,
@@ -23,7 +23,7 @@ from bellbird.downloads.busqueda_youtube import (
     refiltrar,
     url_busqueda,
 )
-from bellbird.downloads.textos_busqueda import (
+from guyrapu.downloads.textos_busqueda import (
     texto_duracion,
     texto_detalles,
     texto_fecha,
@@ -379,9 +379,9 @@ class TestBuscarArgumentos(unittest.TestCase):
     def test_pasa_inicio_y_fin_y_hay_mas(self):
         entradas = [_video(id=f"v{i}") for i in range(10)]
         with mock.patch(
-                "bellbird.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
+                "guyrapu.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
                 return_value="/fake/yt-dlp"), \
-            mock.patch("bellbird.downloads.busqueda_youtube.subprocess.run",
+            mock.patch("guyrapu.downloads.busqueda_youtube.subprocess.run",
                        return_value=self._respuesta_ok(entradas)) as correr:
             respuesta = buscar("cumbia", Filtros(), 6, 10)
         args = correr.call_args.args[0]
@@ -399,9 +399,9 @@ class TestBuscarArgumentos(unittest.TestCase):
     def test_hay_mas_falso_si_llegan_menos(self):
         entradas = [_video(id=f"v{i}") for i in range(4)]
         with mock.patch(
-                "bellbird.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
+                "guyrapu.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
                 return_value="/fake/yt-dlp"), \
-            mock.patch("bellbird.downloads.busqueda_youtube.subprocess.run",
+            mock.patch("guyrapu.downloads.busqueda_youtube.subprocess.run",
                        return_value=self._respuesta_ok(entradas)):
             respuesta = buscar("cumbia", Filtros(), 1, 10)
         self.assertFalse(respuesta.hay_mas)
@@ -411,9 +411,9 @@ class TestBuscarArgumentos(unittest.TestCase):
         viejo["timestamp"] = 1000000000
         entradas = [viejo for _ in range(10)]
         with mock.patch(
-                "bellbird.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
+                "guyrapu.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
                 return_value="/fake/yt-dlp"), \
-            mock.patch("bellbird.downloads.busqueda_youtube.subprocess.run",
+            mock.patch("guyrapu.downloads.busqueda_youtube.subprocess.run",
                        return_value=self._respuesta_ok(entradas)):
             respuesta = buscar("cumbia", Filtros(fecha="hoy"), 1, 10)
         self.assertTrue(respuesta.hay_mas)
@@ -421,7 +421,7 @@ class TestBuscarArgumentos(unittest.TestCase):
 
     def test_sin_ytdlp(self):
         with mock.patch(
-                "bellbird.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
+                "guyrapu.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
                 return_value=None):
             respuesta = buscar("cumbia", Filtros(), 1, 10)
         self.assertEqual(respuesta.error, "yt-dlp no está instalado")
@@ -434,9 +434,9 @@ class TestBuscarArgumentos(unittest.TestCase):
         terminado.stdout = ""
         terminado.stderr = "ERROR: [youtube] abc: Private video."
         with mock.patch(
-                "bellbird.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
+                "guyrapu.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
                 return_value="/fake/yt-dlp"), \
-            mock.patch("bellbird.downloads.busqueda_youtube.subprocess.run",
+            mock.patch("guyrapu.downloads.busqueda_youtube.subprocess.run",
                        return_value=terminado):
             respuesta = buscar("cumbia", Filtros(), 1, 10)
         self.assertEqual(respuesta.error, "El vídeo es privado.")
@@ -450,23 +450,23 @@ class TestBuscarArgumentos(unittest.TestCase):
         terminado.stdout = ""
         terminado.stderr = "ERROR: algo raro sin motivo"
         with mock.patch(
-                "bellbird.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
+                "guyrapu.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
                 return_value="/fake/yt-dlp"), \
-            mock.patch("bellbird.downloads.busqueda_youtube.subprocess.run",
+            mock.patch("guyrapu.downloads.busqueda_youtube.subprocess.run",
                        return_value=terminado):
             self.assertEqual(
                 buscar("cumbia", Filtros(), 1, 10).error, generico)
         with mock.patch(
-                "bellbird.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
+                "guyrapu.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
                 return_value="/fake/yt-dlp"), \
-            mock.patch("bellbird.downloads.busqueda_youtube.subprocess.run",
+            mock.patch("guyrapu.downloads.busqueda_youtube.subprocess.run",
                        side_effect=TimeoutExpired("yt-dlp", 60)):
             self.assertEqual(
                 buscar("cumbia", Filtros(), 1, 10).error, generico)
         with mock.patch(
-                "bellbird.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
+                "guyrapu.downloads.busqueda_youtube.ytdlp_bin.ruta_ytdlp",
                 return_value="/fake/yt-dlp"), \
-            mock.patch("bellbird.downloads.busqueda_youtube.subprocess.run",
+            mock.patch("guyrapu.downloads.busqueda_youtube.subprocess.run",
                        side_effect=OSError("red caída")):
             self.assertEqual(
                 buscar("cumbia", Filtros(), 1, 10).error, generico)
@@ -475,7 +475,7 @@ class TestBuscarArgumentos(unittest.TestCase):
 class TestBuscarRealConFalso(unittest.TestCase):
 
     def test_ejecuta_un_cmd_que_devuelve_json_utf8(self):
-        from bellbird.downloads import ytdlp_bin
+        from guyrapu.downloads import ytdlp_bin
         with tempfile.TemporaryDirectory() as tmp:
             falso = os.path.join(tmp, "falso.cmd")
             datos = {"entries": [dict(
@@ -503,7 +503,7 @@ class TestBuscarRealConFalso(unittest.TestCase):
         self.assertIn("Árbol", respuesta.resultados[0].descripcion)
 
     def test_ejecuta_un_cmd_que_falla(self):
-        from bellbird.downloads import ytdlp_bin
+        from guyrapu.downloads import ytdlp_bin
         with tempfile.TemporaryDirectory() as tmp:
             falso = os.path.join(tmp, "falla.cmd")
             with open(falso, "w", encoding="utf-8") as salida:
@@ -566,7 +566,7 @@ class TestContenidoRealConFalso(unittest.TestCase):
         return falso
 
     def test_lista_devuelve_titulo_total_y_solo_videos(self):
-        from bellbird.downloads import ytdlp_bin
+        from guyrapu.downloads import ytdlp_bin
         with tempfile.TemporaryDirectory() as tmp:
             falso = self._cmd_lista(tmp)
             with mock.patch.object(ytdlp_bin, "ruta_ytdlp",
@@ -579,7 +579,7 @@ class TestContenidoRealConFalso(unittest.TestCase):
         self.assertEqual([r.id for r in respuesta.resultados], ["v1", "v2"])
 
     def test_canal_falla_en_videos_y_sale_por_la_url_sola(self):
-        from bellbird.downloads import ytdlp_bin
+        from guyrapu.downloads import ytdlp_bin
         with tempfile.TemporaryDirectory() as tmp:
             falso = os.path.join(tmp, "canal.cmd")
             llamadas = os.path.join(tmp, "llamadas.txt")

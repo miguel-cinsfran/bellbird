@@ -4,8 +4,8 @@ import importlib
 import unittest
 from unittest import mock
 
-from bellbird.core import idioma
-from bellbird.player import vigilancia_relevo
+from guyrapu.core import idioma
+from guyrapu.player import vigilancia_relevo
 
 
 class Reloj:
@@ -280,7 +280,7 @@ class TestConectar(unittest.TestCase):
     def test_el_error_reinicia_con_el_mismo_desfase(self):
         panel = Panel()
         anuncios = []
-        with mock.patch("bellbird.voice.sound_player.reproducir") as sonar:
+        with mock.patch("guyrapu.voice.sound_player.reproducir") as sonar:
             vigilancia = self._conectar(panel, anuncios, sonar)
             vigilancia.aviso(
                 "[in#1/hls @ 1] Error during demuxing: I/O error", 0.0)
@@ -297,7 +297,7 @@ class TestConectar(unittest.TestCase):
     def test_en_grabado_no_toca_el_panel(self):
         panel = Panel(directo=False, vod=True)
         anuncios = []
-        with mock.patch("bellbird.voice.sound_player.reproducir") as sonar:
+        with mock.patch("guyrapu.voice.sound_player.reproducir") as sonar:
             vigilancia = self._conectar(panel, anuncios, sonar)
             vigilancia.aviso("Error during demuxing: I/O error", 0.0)
         panel._detener_relevo_ffmpeg.assert_not_called()
@@ -306,7 +306,7 @@ class TestConectar(unittest.TestCase):
     def test_una_sola_entrada_se_registra_sin_culpar_a_audio_ni_video(self):
         panel = Panel(fuentes=("video", ""))
         anuncios = []
-        with mock.patch("bellbird.voice.sound_player.reproducir") as sonar:
+        with mock.patch("guyrapu.voice.sound_player.reproducir") as sonar:
             vigilancia = self._conectar(panel, anuncios, sonar)
             vigilancia.aviso(
                 "[in#0/hls @ 1] Error during demuxing: I/O error", 0.0)

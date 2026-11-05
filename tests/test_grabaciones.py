@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from unittest import mock
 
-from bellbird.obs import grabaciones
+from guyrapu.obs import grabaciones
 
 
 class TestAnotarYLeer(unittest.TestCase):

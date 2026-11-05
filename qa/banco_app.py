@@ -19,7 +19,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "qa"))
 
-from bellbird.core.config import APP_NAME  # noqa: E402
+from guyrapu.core.config import APP_NAME  # noqa: E402
 
 from sonda import VAR_DESTINO, VAR_ORDENES, VAR_RESULTADOS  # noqa: E402
 

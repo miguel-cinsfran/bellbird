@@ -4,10 +4,10 @@ import threading
 import time
 import unittest
 
-from bellbird.obs import dispositivo_windows
-from bellbird.obs import obs_cliente
-from bellbird.obs import obs_entradas_audio
-from bellbird.obs import prueba_microfono
+from guyrapu.obs import dispositivo_windows
+from guyrapu.obs import obs_cliente
+from guyrapu.obs import obs_entradas_audio
+from guyrapu.obs import prueba_microfono
 
 
 def _evento(pico, fuente="Mic/Aux"):

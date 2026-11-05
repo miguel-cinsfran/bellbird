@@ -10,11 +10,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import avisos_tiktok
-from bellbird.core import config
-from bellbird.ui import gui, gui_preferencias
-from bellbird.ui import preferencias_transmision
-from bellbird.voice import motores
+from guyrapu.core import avisos_tiktok
+from guyrapu.core import config
+from guyrapu.ui import gui, gui_preferencias
+from guyrapu.ui import preferencias_transmision
+from guyrapu.voice import motores
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import app_de_prueba, destruir
 

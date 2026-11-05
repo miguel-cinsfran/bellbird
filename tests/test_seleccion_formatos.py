@@ -7,12 +7,12 @@ pistas m3u8 cuando hay alternativas normales. El directo no cambia.
 import unittest
 from unittest import mock
 
-from bellbird.player import formatos_youtube
-from bellbird.player import reproductor
-from bellbird.player.formatos import mejor_audio_estereo
-from bellbird.player.formatos_youtube import _video_para_altura
-from bellbird.player.formatos_youtube import espera_para_abrir
-from bellbird.player.formatos_youtube import fuentes_de_vod
+from guyrapu.player import formatos_youtube
+from guyrapu.player import reproductor
+from guyrapu.player.formatos import mejor_audio_estereo
+from guyrapu.player.formatos_youtube import _video_para_altura
+from guyrapu.player.formatos_youtube import espera_para_abrir
+from guyrapu.player.formatos_youtube import fuentes_de_vod
 
 
 def _audio(fid, protocolo, abr, lang, url=None, acodec="mp4a", ext=None):

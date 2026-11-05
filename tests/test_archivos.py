@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from bellbird.core import archivos
+from guyrapu.core import archivos
 
 
 class TestArchivos(unittest.TestCase):

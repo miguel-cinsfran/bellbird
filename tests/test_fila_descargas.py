@@ -4,7 +4,7 @@ import threading
 import unittest
 from types import SimpleNamespace
 
-from bellbird.downloads.fila_descargas import bloqueado_por_anterior
+from guyrapu.downloads.fila_descargas import bloqueado_por_anterior
 
 
 class TestBloqueadoPorAnterior(unittest.TestCase):

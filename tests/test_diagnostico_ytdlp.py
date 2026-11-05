@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from unittest import mock
 
-from bellbird.core import diagnostico
+from guyrapu.core import diagnostico
 
 
 class TestVersionYtdlpDiagnostico(unittest.TestCase):

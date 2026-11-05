@@ -7,12 +7,12 @@ from unittest import mock
 
 import wx
 
-from bellbird.obs import consultas_transmision
-from bellbird.ui import control_grabacion
-from bellbird.ui import gui_grabaciones
-from bellbird.ui import gui_transmitir
-from bellbird.ui import obs_ventana
-from bellbird.ui import operaciones_obs
+from guyrapu.obs import consultas_transmision
+from guyrapu.ui import control_grabacion
+from guyrapu.ui import gui_grabaciones
+from guyrapu.ui import gui_transmitir
+from guyrapu.ui import obs_ventana
+from guyrapu.ui import operaciones_obs
 from tests.test_gui_transmision import GestorFalso, HiloInmediato
 from tests.ventanas_prueba import app_de_prueba, destruir
 

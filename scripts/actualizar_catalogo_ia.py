@@ -21,9 +21,9 @@ RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if RAIZ not in sys.path:
     sys.path.insert(0, RAIZ)
 
-from bellbird.ai import catalogo
-from bellbird.ai import protocolos
-from bellbird.core import paths
+from guyrapu.ai import catalogo
+from guyrapu.ai import protocolos
+from guyrapu.core import paths
 
 
 def main() -> int:

@@ -2,8 +2,8 @@
 
 import unittest
 
-from bellbird.obs import filtros_microfono
-from bellbird.obs.obs_cliente import ObsError
+from guyrapu.obs import filtros_microfono
+from guyrapu.obs.obs_cliente import ObsError
 
 
 def filtro(nombre, tipo, activo=True, ajustes=None):

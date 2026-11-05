@@ -4,9 +4,9 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.music import vista
-from bellbird.music.modelo import EstadoMusica, Tema
+from guyrapu.core.idioma import _
+from guyrapu.music import vista
+from guyrapu.music.modelo import EstadoMusica, Tema
 
 
 def _tema(n, **campos):

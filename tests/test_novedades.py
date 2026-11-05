@@ -10,8 +10,8 @@ import unittest
 from unittest import mock
 from urllib.error import URLError
 
-from bellbird.core import actualizacion, canal_app, novedades
-from bellbird.core.config import APP_VERSION
+from guyrapu.core import actualizacion, canal_app, novedades
+from guyrapu.core.config import APP_VERSION
 
 
 def _publicacion(tag, body="", draft=False, prerelease=False):

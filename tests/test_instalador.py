@@ -10,9 +10,9 @@ import time
 import unittest
 from pathlib import Path
 
-from bellbird.core import espera_proceso
-from bellbird.core import instalador
-from bellbird.core import paths
+from guyrapu.core import espera_proceso
+from guyrapu.core import instalador
+from guyrapu.core import paths
 
 
 DESDE = "2.1.0"

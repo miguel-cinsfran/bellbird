@@ -30,7 +30,7 @@ RAIZ = str(Path(__file__).resolve().parent.parent)
 if RAIZ not in sys.path:
     sys.path.insert(0, RAIZ)
 
-from bellbird.core import paths  # noqa: E402
+from guyrapu.core import paths  # noqa: E402
 
 URL_API_RELEASES = "https://api.github.com/repos/denoland/deno/releases/latest"
 NOMBRE_ZIP = "deno-x86_64-pc-windows-msvc.zip"
@@ -39,7 +39,7 @@ TIEMPO_ESPERA = 30
 
 
 def _agente() -> str:
-    from bellbird.core import config
+    from guyrapu.core import config
     return f"Bellbird/{config.APP_VERSION}"
 
 

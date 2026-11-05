@@ -3,7 +3,7 @@
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.obs import ajuste_fino
+from guyrapu.obs import ajuste_fino
 
 
 class TestAjusteFino(unittest.TestCase):

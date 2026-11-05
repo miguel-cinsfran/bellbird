@@ -5,8 +5,8 @@ import types
 import unittest
 from unittest import mock
 
-from bellbird.capture.conexion import Conexiones, _VistaNula
-from bellbird.capture.sesiones import RegistroSesiones
+from guyrapu.capture.conexion import Conexiones, _VistaNula
+from guyrapu.capture.sesiones import RegistroSesiones
 
 
 class RegistroEspia(RegistroSesiones):
@@ -127,7 +127,7 @@ class PruebasCableadoConexiones(unittest.TestCase):
                                return_value=("Título", main.deteccion.LIVE, {})), \
                 mock.patch.object(main.deteccion, "tiene_chat_en_vivo", return_value=True), \
                 mock.patch.object(main, "captura_con_reconexion", side_effect=captura), \
-                mock.patch("bellbird.obs.overlay_servidor.difundir") as difundir:
+                mock.patch("guyrapu.obs.overlay_servidor.difundir") as difundir:
             self.conexiones._crear_hilo = hilo
             self.conexiones.conectar("dQw4w9WgXcQ")
             callbacks["on_message"]("Ana", "Hola", "12:00", monto="US$ 5")
@@ -146,8 +146,8 @@ class PruebasCableadoConexiones(unittest.TestCase):
         self.conexiones._crear_hilo = hilo
         with mock.patch.object(main, "procesar_entrante", side_effect=lambda *a, **k: k["on_message"](
                 "Ana", "Hola", "12:00", main.TIPO_TEXTO, "regalo", "")), \
-                mock.patch("bellbird.capture.tiktok_captura.capturar_con_reconexion", side_effect=captura), \
-                mock.patch("bellbird.obs.overlay_servidor.difundir") as difundir:
+                mock.patch("guyrapu.capture.tiktok_captura.capturar_con_reconexion", side_effect=captura), \
+                mock.patch("guyrapu.obs.overlay_servidor.difundir") as difundir:
             self.conexiones._conectar_tiktok("pepe")
             callbacks["on_evento"]("Ana", "Hola", main.TIPO_TEXTO, "regalo", "")
         self.assertEqual(difundir.call_args.args[0]["plataforma"], "tiktok")
@@ -161,7 +161,7 @@ class PruebasCableadoConexiones(unittest.TestCase):
         def captura(*args, **kwargs):
             callbacks.update(kwargs)
         self.conexiones._crear_hilo = hilo
-        from bellbird.capture import tiktok_captura
+        from guyrapu.capture import tiktok_captura
         with mock.patch.object(tiktok_captura, "capturar_con_reconexion",
                                side_effect=captura):
             self.conexiones._conectar_tiktok("pepe")
@@ -178,11 +178,11 @@ class PruebasCableadoConexiones(unittest.TestCase):
         def captura(*args, **kwargs):
             callbacks.update(kwargs)
         self.conexiones._crear_hilo = hilo
-        from bellbird.capture import tiktok_captura
+        from guyrapu.capture import tiktok_captura
         with mock.patch.object(main, "procesar_entrante"), \
                 mock.patch.object(tiktok_captura, "capturar_con_reconexion",
                                   side_effect=captura), \
-                self.assertLogs("bellbird.conexion", level="DEBUG") as registro:
+                self.assertLogs("guyrapu.conexion", level="DEBUG") as registro:
             self.conexiones._conectar_tiktok("pepe")
             callbacks["on_evento"](
                 "Ana", "Hola", main.TIPO_TEXTO, "regalo", "TIKID")
@@ -236,15 +236,15 @@ class PruebasCableadoConexiones(unittest.TestCase):
                                                     efectivas=lambda *a, **k: {})
         youtube_api_falso = types.SimpleNamespace(google_disponible=lambda: True,
                                                   ClienteYouTube=ClienteFalso)
-        # `from bellbird.youtube import x` mira primero el atributo del paquete:
+        # `from guyrapu.youtube import x` mira primero el atributo del paquete:
         # sin estos parches usaría el módulo real si otra prueba ya lo importó.
-        from bellbird import youtube as _paquete_youtube
+        from guyrapu import youtube as _paquete_youtube
         with mock.patch.object(main, "obtener_info_video",
                                return_value=("Título", main.deteccion.LIVE, {})), \
                 mock.patch.object(main.deteccion, "tiene_chat_en_vivo", return_value=True), \
                 mock.patch.object(main, "captura_con_reconexion"), \
-                mock.patch.dict(sys.modules, {"bellbird.youtube.credenciales": credenciales_falso,
-                                              "bellbird.youtube.youtube_api": youtube_api_falso}), \
+                mock.patch.dict(sys.modules, {"guyrapu.youtube.credenciales": credenciales_falso,
+                                              "guyrapu.youtube.youtube_api": youtube_api_falso}), \
                 mock.patch.object(_paquete_youtube, "credenciales",
                                   credenciales_falso, create=True), \
                 mock.patch.object(_paquete_youtube, "youtube_api",
@@ -290,15 +290,15 @@ class PruebasCableadoConexiones(unittest.TestCase):
             efectivas=lambda *a, **k: {"origen": "efectivas"})
         youtube_api_falso = types.SimpleNamespace(google_disponible=lambda: True,
                                                   ClienteYouTube=ClienteRegistra)
-        # `from bellbird.youtube import x` mira primero el atributo del paquete:
+        # `from guyrapu.youtube import x` mira primero el atributo del paquete:
         # sin estos parches usaría el módulo real si otra prueba ya lo importó.
-        from bellbird import youtube as _paquete_youtube
+        from guyrapu import youtube as _paquete_youtube
         with mock.patch.object(main, "obtener_info_video",
                                return_value=("Título", main.deteccion.LIVE, {})), \
                 mock.patch.object(main.deteccion, "tiene_chat_en_vivo", return_value=True), \
                 mock.patch.object(main, "captura_con_reconexion"), \
-                mock.patch.dict(sys.modules, {"bellbird.youtube.credenciales": credenciales_falso,
-                                              "bellbird.youtube.youtube_api": youtube_api_falso}), \
+                mock.patch.dict(sys.modules, {"guyrapu.youtube.credenciales": credenciales_falso,
+                                              "guyrapu.youtube.youtube_api": youtube_api_falso}), \
                 mock.patch.object(_paquete_youtube, "credenciales",
                                   credenciales_falso, create=True), \
                 mock.patch.object(_paquete_youtube, "youtube_api",
@@ -324,7 +324,7 @@ class PruebasCableadoConexiones(unittest.TestCase):
                                return_value=("Título", main.deteccion.LIVE, {})), \
                 mock.patch.object(main.deteccion, "tiene_chat_en_vivo", return_value=True), \
                 mock.patch.object(main, "captura_con_reconexion", side_effect=captura), \
-                mock.patch("bellbird.obs.overlay_servidor.difundir") as difundir:
+                mock.patch("guyrapu.obs.overlay_servidor.difundir") as difundir:
             # Se filtra por nombre para que los hilos auxiliares no bloqueen la prueba.
             self.conexiones._crear_hilo = lambda objetivo, nombre, **kwargs: (
                 HiloEjecuta(objetivo) if nombre == "Chat" else HiloInerte())
@@ -342,7 +342,7 @@ class PruebasCableadoConexiones(unittest.TestCase):
                                return_value=("Título", main.deteccion.LIVE, {})), \
                 mock.patch.object(main.deteccion, "tiene_chat_en_vivo", return_value=True), \
                 mock.patch.object(main, "captura_con_reconexion", side_effect=captura), \
-                mock.patch("bellbird.obs.overlay_servidor.difundir"):
+                mock.patch("guyrapu.obs.overlay_servidor.difundir"):
             # Se filtra por nombre para que los hilos auxiliares no bloqueen la prueba.
             self.conexiones._crear_hilo = lambda objetivo, nombre, **kwargs: (
                 HiloEjecuta(objetivo) if nombre == "Chat" else HiloInerte())
@@ -375,7 +375,7 @@ class TestPlataformaMensajesChat(unittest.TestCase):
                                return_value=("Título", main.deteccion.LIVE, {})), \
                 mock.patch.object(main.deteccion, "tiene_chat_en_vivo", return_value=True), \
                 mock.patch.object(main, "captura_con_reconexion", side_effect=captura), \
-                mock.patch("bellbird.obs.overlay_servidor.difundir"):
+                mock.patch("guyrapu.obs.overlay_servidor.difundir"):
             self.conexiones._crear_hilo = hilo
             self.conexiones.conectar("dQw4w9WgXcQ")
             callbacks["on_message"]("Ana", "Hola", "12:00", monto="US$ 5", canal_id="CANAL123")
@@ -390,7 +390,7 @@ class TestPlataformaMensajesChat(unittest.TestCase):
 
     def test_tiktok_entrega_plataforma_tiktok_a_gui(self):
         import main
-        from bellbird.capture import tiktok_captura
+        from guyrapu.capture import tiktok_captura
         callbacks = {}
         def hilo(objetivo, nombre, **kwargs):
             return HiloEjecuta(objetivo) if nombre == "TikTok" else HiloInerte()
@@ -401,7 +401,7 @@ class TestPlataformaMensajesChat(unittest.TestCase):
                                side_effect=lambda *a, **k: k["on_message"](
                                    "Ana", "Hola", "12:00", main.TIPO_TEXTO, "regalo", "TIKID")), \
                 mock.patch.object(tiktok_captura, "capturar_con_reconexion", side_effect=captura), \
-                mock.patch("bellbird.obs.overlay_servidor.difundir"):
+                mock.patch("guyrapu.obs.overlay_servidor.difundir"):
             self.conexiones._conectar_tiktok("pepe")
             callbacks["on_evento"]("Ana", "Hola", main.TIPO_TEXTO, "regalo", "TIKID")
         agregados = [(a, kw) for n, a, kw in self.vista.llamadas
@@ -429,7 +429,7 @@ class PruebasFinDirectoTiktok(unittest.TestCase):
         def captura(*args, **kwargs):
             callbacks.update(kwargs)
         self.conexiones._crear_hilo = hilo
-        from bellbird.capture import tiktok_captura
+        from guyrapu.capture import tiktok_captura
         with mock.patch.object(tiktok_captura, "capturar_con_reconexion",
                                side_effect=captura):
             self.conexiones._conectar_tiktok("pepe")
@@ -476,14 +476,14 @@ class PruebasPausaDirectoTiktok(unittest.TestCase):
         def captura(*args, **kwargs):
             callbacks.update(kwargs)
         self.conexiones._crear_hilo = hilo
-        from bellbird.capture import tiktok_captura
+        from guyrapu.capture import tiktok_captura
         with mock.patch.object(tiktok_captura, "capturar_con_reconexion",
                                side_effect=captura):
             self.conexiones._conectar_tiktok("pepe")
         return callbacks
 
     def test_pausa_suena_y_anuncia(self):
-        from bellbird.capture import conexion as modulo_conexion
+        from guyrapu.capture import conexion as modulo_conexion
         callbacks = self._callbacks_tiktok()
         self.vista.llamadas.clear()
         with mock.patch.object(modulo_conexion._snd, "reproducir") as sonar:
@@ -495,7 +495,7 @@ class PruebasPausaDirectoTiktok(unittest.TestCase):
             self.vista.llamadas)
 
     def test_reanudacion_suena_y_anuncia(self):
-        from bellbird.capture import conexion as modulo_conexion
+        from guyrapu.capture import conexion as modulo_conexion
         callbacks = self._callbacks_tiktok()
         self.vista.llamadas.clear()
         with mock.patch.object(modulo_conexion._snd, "reproducir") as sonar:
@@ -523,7 +523,7 @@ class PruebasOfflinePasajeroConexion(unittest.TestCase):
         def captura(*args, **kwargs):
             recibido.update(kwargs)
         conexiones._crear_hilo = hilo
-        from bellbird.capture import tiktok_captura
+        from guyrapu.capture import tiktok_captura
         with mock.patch.object(tiktok_captura, "capturar_con_reconexion",
                                side_effect=captura):
             conexiones._conectar_tiktok("pepe")
@@ -557,7 +557,7 @@ class PruebasChatEnElVideo(unittest.TestCase):
 
         def captura(*args, **kwargs):
             callbacks.update(kwargs)
-        from bellbird.capture import tiktok_captura
+        from guyrapu.capture import tiktok_captura
         self.conexiones._crear_hilo = hilo
         with mock.patch.object(tiktok_captura, "capturar_con_reconexion",
                                side_effect=captura):
@@ -574,7 +574,7 @@ class PruebasChatEnElVideo(unittest.TestCase):
                                  monto_recibido, canal_id)
         with mock.patch.object(main, "procesar_entrante",
                                side_effect=procesar), \
-                mock.patch("bellbird.obs.overlay_servidor.difundir") as difundir:
+                mock.patch("guyrapu.obs.overlay_servidor.difundir") as difundir:
             callbacks["on_evento"]("Ana", "", tipo, monto, "")
         return difundir
 
@@ -599,7 +599,7 @@ class PruebasChatEnElVideo(unittest.TestCase):
 
     def _mensaje_youtube(self, tipo, monto=""):
         callbacks = self._callbacks_youtube()
-        with mock.patch("bellbird.obs.overlay_servidor.difundir") as difundir:
+        with mock.patch("guyrapu.obs.overlay_servidor.difundir") as difundir:
             callbacks["on_message"]("Ana", "", "12:00", tipo, monto)
         return difundir
 

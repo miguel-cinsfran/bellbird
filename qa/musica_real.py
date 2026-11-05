@@ -27,7 +27,7 @@ def agujas_unicas(nombres, indice, tope=6):
     buscador de la aplicación: cada palabra buscada empieza una palabra del
     nombre, título, artista o álbum.
     """
-    from bellbird.music.biblioteca import coincide_por_palabras
+    from guyrapu.music.biblioteca import coincide_por_palabras
     if tope <= 0:
         return []
     nombres_sin_extension = [Path(nombre).stem for nombre in nombres]
@@ -57,7 +57,7 @@ def aguja_grupo(nombres, incluidos, excluidos):
     palabra que solo es prefijo de otra no sirve para aislar el grupo.
     """
     import re
-    from bellbird.music.biblioteca import coincide_por_palabras
+    from guyrapu.music.biblioteca import coincide_por_palabras
     nombres_sin_extension = [Path(nombre).stem for nombre in nombres]
     comunes = set.intersection(*[
         set(re.findall(r"[^\W_]+", nombres_sin_extension[i]))
@@ -142,7 +142,7 @@ class RecorridoMusica:
         return anteriores
 
     def _titulo_fila(self, fila):
-        # Quita el prefijo que pone `bellbird.music.vista.filas_cola`:
+        # Quita el prefijo que pone `guyrapu.music.vista.filas_cola`:
         # el estado («Sonando: » o «En pausa: »), el número y el punto.
         # La fila sigue con el título, el artista y la duración separados
         # por «, », así que el título es lo que queda antes de la primera.

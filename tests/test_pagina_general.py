@@ -8,7 +8,7 @@ Sin ventanas: solo cubre las funciones puras `mensaje_confirmar_salida`,
 import unittest
 from types import SimpleNamespace
 
-from bellbird.ui.confirmar_salida import (
+from guyrapu.ui.confirmar_salida import (
     descargas_sin_terminar, mensaje_confirmar_salida, mensaje_con_descargas)
 
 

@@ -12,8 +12,8 @@ from unittest import mock
 
 import httpx
 
-from bellbird.restream import api, cuenta, oauth, sesion
-from bellbird.youtube import credenciales
+from guyrapu.restream import api, cuenta, oauth, sesion
+from guyrapu.youtube import credenciales
 from tests.rutas_temporales import redirigir_rutas
 
 

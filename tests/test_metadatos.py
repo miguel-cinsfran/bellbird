@@ -2,8 +2,8 @@
 
 import unittest
 
-from bellbird.capture import metadatos
-from bellbird.capture.metadatos import _fmt_num, _fmt_fecha, _fmt_duracion, formatear
+from guyrapu.capture import metadatos
+from guyrapu.capture.metadatos import _fmt_num, _fmt_fecha, _fmt_duracion, formatear
 
 
 class TestFormateadores(unittest.TestCase):

@@ -7,22 +7,22 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import instancia
+from guyrapu.core import instancia
 
 RAIZ = Path(__file__).resolve().parent.parent
 
-_NOMBRE_PRUEBA = "YTChatTTS_PruebaInstancia_Mutex"
+_NOMBRE_PRUEBA = "PruebaInstancia_Mutex"
 
 _GUION = """
 import sys
-from bellbird.core import instancia
+from guyrapu.core import instancia
 print(instancia.verificar_instancia_unica([], sys.argv[1]), flush=True)
 sys.stdin.readline()
 """
 
 _GUION_ESPERA = """
 import sys
-from bellbird.core import instancia
+from guyrapu.core import instancia
 print(instancia.verificar_instancia_unica(
     ["--esperar-pid", sys.argv[2]], sys.argv[1]), flush=True)
 """
@@ -43,9 +43,9 @@ class PruebasHayOtraInstancia(unittest.TestCase):
 class PruebasOrdenReabrir(unittest.TestCase):
     def test_sin_orden_usa_la_de_la_app_y_agrega_la_espera(self):
         with mock.patch.object(instancia.paths, "orden_de_la_app",
-                               return_value=[r"C:\Apps\Bellbird.exe"]) as base:
+                               return_value=[r"C:\Apps\App.exe"]) as base:
             self.assertEqual(instancia.orden_reabrir(123),
-                             [r"C:\Apps\Bellbird.exe", "--esperar-pid", "123"])
+                             [r"C:\Apps\App.exe", "--esperar-pid", "123"])
         base.assert_called_once_with()
 
     def test_con_orden_agrega_la_espera_al_final(self):

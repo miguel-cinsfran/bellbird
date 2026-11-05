@@ -15,18 +15,18 @@ from unittest import mock
 
 import wx
 
-from bellbird.core.idioma import _
-from bellbird.restream import eventos as eventos_restream
-from bellbird.restream import perfiles
-from bellbird.restream.api import Canal, ErrorApi
-from bellbird.restream.perfiles import Perfil
-from bellbird.ui import restream_pagina_destinos
-from bellbird.ui import restream_pagina_eventos
-from bellbird.ui import restream_pagina_perfiles
-from bellbird.ui import restream_perfil
-from bellbird.ui import restream_ventana
-from bellbird.ui.preferencias_comun import nombre_de_etiqueta
-from bellbird.youtube.emision import (
+from guyrapu.core.idioma import _
+from guyrapu.restream import eventos as eventos_restream
+from guyrapu.restream import perfiles
+from guyrapu.restream.api import Canal, ErrorApi
+from guyrapu.restream.perfiles import Perfil
+from guyrapu.ui import restream_pagina_destinos
+from guyrapu.ui import restream_pagina_eventos
+from guyrapu.ui import restream_pagina_perfiles
+from guyrapu.ui import restream_perfil
+from guyrapu.ui import restream_ventana
+from guyrapu.ui.preferencias_comun import nombre_de_etiqueta
+from guyrapu.youtube.emision import (
     ETIQUETAS_LATENCIA,
     ETIQUETAS_PRIVACIDAD,
     LATENCIA_INICIAL,

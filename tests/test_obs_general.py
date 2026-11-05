@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.obs import estado_panel, obs_general
+from guyrapu.obs import estado_panel, obs_general
 
 
 TODAS = {

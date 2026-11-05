@@ -9,10 +9,10 @@ from unittest import mock
 
 import wx
 
-from bellbird.obs import escucha_microfono, nivel_microfono
-from bellbird.obs.filtros_microfono import Estado
-from bellbird.obs.obs_cliente import ObsError
-from bellbird.ui import escena_pagina_audio
+from guyrapu.obs import escucha_microfono, nivel_microfono
+from guyrapu.obs.filtros_microfono import Estado
+from guyrapu.obs.obs_cliente import ObsError
+from guyrapu.ui import escena_pagina_audio
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 TEXTO_INICIO = "Prueba del micrófono iniciada. Habla como en un directo."

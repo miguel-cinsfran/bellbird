@@ -12,13 +12,13 @@ from pathlib import Path
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.obs import grabaciones, obs_grabacion
-from bellbird.obs.obs_grabacion import (
+from guyrapu.core.idioma import _
+from guyrapu.obs import grabaciones, obs_grabacion
+from guyrapu.obs.obs_grabacion import (
     AVISO_CODIFICADOR, FALLO_GRABACION, GrabacionAlTransmitir,
     alternar_pausa, codificador_propio, codificador_propio_en_obs,
     grabar_al_transmitir)
-from bellbird.obs.obs_supervisor import SupervisorTransmision
+from guyrapu.obs.obs_supervisor import SupervisorTransmision
 
 
 def muestra(activa=True):

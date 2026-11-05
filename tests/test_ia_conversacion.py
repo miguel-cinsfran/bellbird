@@ -3,9 +3,9 @@
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.ai import conversacion
-from bellbird.ai.conversacion import Conversacion
-from bellbird.ai import protocolos
+from guyrapu.ai import conversacion
+from guyrapu.ai.conversacion import Conversacion
+from guyrapu.ai import protocolos
 
 IMAGEN_UNO = b"\xff\xd8\xffuno\xff\xd9"
 IMAGEN_DOS = b"\xff\xd8\xffdos\xff\xd9"

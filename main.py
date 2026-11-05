@@ -20,32 +20,32 @@ warnings.filterwarnings("ignore", category=DeprecationWarning, module="asyncio")
 warnings.filterwarnings("ignore", category=DeprecationWarning, module="pytchat")
 warnings.filterwarnings("ignore", message=".*get_event_loop.*")
 
-from bellbird.core.config import (
+from guyrapu.core.config import (
     APP_NAME, APP_VERSION,
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,  # noqa: F401 (tests leen main.TIPO_*)
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,  # noqa: F401
     configurar_logging, cargar_configuracion, cargar_sonidos,
 )
-from bellbird.core import avisos_tiktok
-from bellbird.core import paths
-from bellbird.core import migracion_datos
-from bellbird.core.lectura_eventos import texto_evento
-from bellbird.core.instancia import verificar_instancia_unica as _verificar_instancia_unica
+from guyrapu.core import avisos_tiktok
+from guyrapu.core import paths
+from guyrapu.core import migracion_datos
+from guyrapu.core.lectura_eventos import texto_evento
+from guyrapu.core.instancia import verificar_instancia_unica as _verificar_instancia_unica
 
-from bellbird.voice.tts_worker import TTSWorker, sanitizar, construir_tts
-from bellbird.voice.cola_tts import ColaTTS
-from bellbird.voice import sound_player as _snd
-from bellbird.capture import deteccion
-from bellbird.capture.reconexion import FiltroNuevos, espera_reconexion
-from bellbird.core import diagnostico
-from bellbird.core import avisos_red
-from bellbird.downloads import ytdlp_bin
-from bellbird.capture import conexion
-from bellbird.capture.filtro_autores import permitido
-from bellbird.ui.vista_captura import VistaGui
-from bellbird.capture import alias
-from bellbird.core.sonidos_eventos import rol_de_autor, ROL_PROPIETARIO, ROL_MODERADOR
-from bellbird.core.idioma import N_, _
+from guyrapu.voice.tts_worker import TTSWorker, sanitizar, construir_tts
+from guyrapu.voice.cola_tts import ColaTTS
+from guyrapu.voice import sound_player as _snd
+from guyrapu.capture import deteccion
+from guyrapu.capture.reconexion import FiltroNuevos, espera_reconexion
+from guyrapu.core import diagnostico
+from guyrapu.core import avisos_red
+from guyrapu.downloads import ytdlp_bin
+from guyrapu.capture import conexion
+from guyrapu.capture.filtro_autores import permitido
+from guyrapu.ui.vista_captura import VistaGui
+from guyrapu.capture import alias
+from guyrapu.core.sonidos_eventos import rol_de_autor, ROL_PROPIETARIO, ROL_MODERADOR
+from guyrapu.core.idioma import N_, _
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -124,8 +124,8 @@ def _parsear_titulo(html: str) -> str:
 def _clasificar_por_api(video_id: str) -> str:
     """Reserva: si hay API key, clasifica con la Data API. Si no, desconocido."""
     try:
-        from bellbird.youtube import credenciales
-        from bellbird.youtube import youtube_api
+        from guyrapu.youtube import credenciales
+        from guyrapu.youtube import youtube_api
         if not (youtube_api.google_disponible() and credenciales.hay_lectura()):
             return deteccion.DESCONOCIDO
         cli = youtube_api.ClienteYouTube(credenciales.efectivas())
@@ -249,7 +249,7 @@ def obtener_info_video(video_id: str, sesion_activa=None) -> tuple[str, str, dic
 def _anunciar_fallo_video(metadatos: dict, call_after) -> None:
     fallo = (metadatos or {}).get("fallo")
     if fallo:
-        from bellbird.ui.accesibilidad import anunciar
+        from guyrapu.ui.accesibilidad import anunciar
         call_after(anunciar, fallo)
 
 
@@ -263,9 +263,9 @@ def _resolver_live_chat_id(video_id: str) -> None:
     propio = False
     hay_credenciales = consulta_fallo = hay_video = hay_directo = False
     try:
-        from bellbird.youtube import credenciales
-        from bellbird.capture import redaccion
-        from bellbird.youtube import youtube_api
+        from guyrapu.youtube import credenciales
+        from guyrapu.capture import redaccion
+        from guyrapu.youtube import youtube_api
         hay_credenciales = (youtube_api.google_disponible()
                             and credenciales.hay_lectura())
         if hay_credenciales:
@@ -289,7 +289,7 @@ def _resolver_live_chat_id(video_id: str) -> None:
         causa = redaccion.causa_sin_chat(
             hay_credenciales, consulta_fallo, hay_video, hay_directo, lcid)
         import wx
-        from bellbird.ui import gui as _gm
+        from guyrapu.ui import gui as _gm
         if _gm._gui_frame and _gm._gui_frame._alive:
             wx.CallAfter(_gm._gui_frame.set_live_chat_id, lcid, causa,
                          video_id, propio)
@@ -671,7 +671,7 @@ def armar_callbacks_captura(cola, config, stats, parada):
 def iniciar_interfaz(config, cola, stats, worker, parada, iniciar_gui_fn=None):
     """Arranca la GUI y cierra los sonidos al volver del bucle."""
     if iniciar_gui_fn is None:
-        from bellbird.ui.gui import iniciar_gui as iniciar_gui_fn
+        from guyrapu.ui.gui import iniciar_gui as iniciar_gui_fn
     iniciar_captura_cb, detener_captura_cb = armar_callbacks_captura(
         cola, config, stats, parada)
     iniciar_gui_fn(
@@ -686,12 +686,12 @@ def main():
     # Autocomprobación del paquete: la corre construir.bat sobre el exe armado.
     # Va antes que todo, sin logging, sin mutex ni ventanas.
     if len(sys.argv) > 1 and sys.argv[1] == "--autocomprobar":
-        from bellbird.core import autocomprobacion
+        from guyrapu.core import autocomprobacion
         sys.exit(autocomprobacion.principal(sys.argv[2:]))
     # Modo instalador: corre dentro del exe nuevo mientras la app vieja
     # se cierra. Va primero que todo, sin logging, sin mutex ni ventanas.
     if len(sys.argv) > 1 and sys.argv[1] == "--instalar-actualizacion":
-        from bellbird.core import instalador
+        from guyrapu.core import instalador
         sys.exit(instalador.principal_instalador())
     # Aquí y no al importar el módulo: así los tests y el smoke test pueden
     # importar main sin crear el handler de ytchat.log (contaminaba el log real).
@@ -775,7 +775,7 @@ def main():
 
     try:
         import wx
-        from bellbird.ui.gui import iniciar_gui
+        from guyrapu.ui.gui import iniciar_gui
     except ImportError as exc:
         try:
             import ctypes

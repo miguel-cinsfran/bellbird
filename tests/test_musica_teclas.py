@@ -2,9 +2,9 @@
 
 import unittest
 
-from bellbird.music.modelo import ERROR_MOTOR, OK, SIN_TEMA, Resultado
-from bellbird.music.transporte import ResultadoSalto
-from bellbird.ui.musica_teclas import TeclasMusica
+from guyrapu.music.modelo import ERROR_MOTOR, OK, SIN_TEMA, Resultado
+from guyrapu.music.transporte import ResultadoSalto
+from guyrapu.ui.musica_teclas import TeclasMusica
 
 
 class ItemFalso:

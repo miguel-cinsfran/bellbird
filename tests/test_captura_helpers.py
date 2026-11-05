@@ -8,8 +8,8 @@ import types
 import unittest
 from unittest import mock
 
-from bellbird.capture import alias
-from bellbird.capture.filtro_autores import entra_en_grupo
+from guyrapu.capture import alias
+from guyrapu.capture.filtro_autores import entra_en_grupo
 import main
 from main import (
     _mensaje_error_amigable, _es_error_permanente,
@@ -122,8 +122,8 @@ class TestDirectoTerminado(unittest.TestCase):
             self.assertFalse(main._directo_terminado("v"))
 
     @unittest.skipUnless(
-        os.environ.get("BELLBIRD_PRUEBAS_CON_RED") == "1",
-        "prueba real desactivada: BELLBIRD_PRUEBAS_CON_RED=1")
+        os.environ.get("GUYRAPU_PRUEBAS_CON_RED") == "1",
+        "prueba real desactivada: GUYRAPU_PRUEBAS_CON_RED=1")
     def test_directo_terminado_real(self):
         # Sin dobles en la frontera: yt-dlp de verdad. o8itjwRYFvs es un
         # directo no listado que ya terminó, medido el 17/10/2026.

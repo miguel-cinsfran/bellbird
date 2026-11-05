@@ -11,14 +11,14 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.ai import catalogo
-from bellbird.core import config
-from bellbird.core import idioma
-from bellbird.ui import gui_preferencias
-from bellbird.ui import preferencias_ia
-from bellbird.ui import preferencias_ia_clave
-from bellbird.ui import preferencias_transmision
-from bellbird.voice import motores
+from guyrapu.ai import catalogo
+from guyrapu.core import config
+from guyrapu.core import idioma
+from guyrapu.ui import gui_preferencias
+from guyrapu.ui import preferencias_ia
+from guyrapu.ui import preferencias_ia_clave
+from guyrapu.ui import preferencias_transmision
+from guyrapu.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.test_preferencias_atajos import PENDIENTES_ATAJOS
@@ -31,7 +31,7 @@ from tests.ventanas_prueba import app_de_prueba, destruir
 
 # Textos que arma otro módulo y aparecen en el recorrido del diálogo
 # entero: no se tocan acá. Las etiquetas de la página Estado ya salen
-# marcadas de `bellbird/capture/componentes_estado.py` (etiqueta()).
+# marcadas de `guyrapu/capture/componentes_estado.py` (etiqueta()).
 PENDIENTES_PROPIOS = ()
 
 

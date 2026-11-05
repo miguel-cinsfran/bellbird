@@ -6,8 +6,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.camera import detector_rostros, encuadre
-from bellbird.camera.detector_rostros import (
+from guyrapu.camera import detector_rostros, encuadre
+from guyrapu.camera.detector_rostros import (
     DetectorNoDisponible,
     DetectorRostros,
     ImagenIlegible,

@@ -1,7 +1,7 @@
 """Pruebas de los enlaces de YouTube para la música (`enlaces.py`).
 
 Todo lo que toca yt-dlp va con el programa o el módulo parcheados: sin red.
-Las pruebas reales contra YouTube solo corren con `YTCHAT_PRUEBAS_RED=1`.
+Las pruebas reales contra YouTube solo corren con `GUYRAPU_PRUEBAS_CON_RED=1`.
 """
 
 import json
@@ -12,13 +12,13 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.core.idioma import _
-from bellbird.music import enlaces
-from bellbird.music.enlaces import ErrorEnlace
-from bellbird.music.modelo import Tema
-from bellbird.player import motor_vlc
+from guyrapu.core.idioma import _
+from guyrapu.music import enlaces
+from guyrapu.music.enlaces import ErrorEnlace
+from guyrapu.music.modelo import Tema
+from guyrapu.player import motor_vlc
 
-_HABIL_RED = os.environ.get("YTCHAT_PRUEBAS_RED") == "1"
+_HABIL_RED = os.environ.get("GUYRAPU_PRUEBAS_CON_RED") == "1"
 
 VIDEO = "jNQXAC9IVRw"
 LISTA = "PLbpi6ZahtOH71mwANLzAlPX9cZafnzIqt"
@@ -305,9 +305,9 @@ def _lista_ya_no_existe(url):
 
 
 @unittest.skipUnless(_HABIL_RED,
-                     "pruebas de red desactivadas (YTCHAT_PRUEBAS_RED=1)")
+                     "pruebas de red desactivadas (GUYRAPU_PRUEBAS_CON_RED=1)")
 class TestEnlacesRed(unittest.TestCase):
-    """Reales contra YouTube. Solo corren con `YTCHAT_PRUEBAS_RED=1`."""
+    """Reales contra YouTube. Solo corren con `GUYRAPU_PRUEBAS_CON_RED=1`."""
 
     def test_expandir_un_video(self):
         temas = enlaces.expandir(f"https://www.youtube.com/watch?v={VIDEO}")
@@ -346,13 +346,13 @@ def esperar(condicion, plazo=30.0):
 
 
 @unittest.skipUnless(_HABIL_RED,
-                     "pruebas de red desactivadas (YTCHAT_PRUEBAS_RED=1)")
+                     "pruebas de red desactivadas (GUYRAPU_PRUEBAS_CON_RED=1)")
 @unittest.skipUnless(motor_vlc.disponible(), "libVLC no está disponible")
 class TestAdaptadorPorEnlaceReal(unittest.TestCase):
     """Reproduce un vídeo de YouTube por enlace con libVLC y «adummy»."""
 
     def test_reproduce_y_avisa_sonando(self):
-        from bellbird.music.adaptador_vlc import AdaptadorVlc
+        from guyrapu.music.adaptador_vlc import AdaptadorVlc
         adaptador = AdaptadorVlc(salida_audio="adummy")
         self.addCleanup(adaptador.cerrar)
         terminado = threading.Event()

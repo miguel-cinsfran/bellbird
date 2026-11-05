@@ -9,16 +9,16 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.music import listas
-from bellbird.music.listas import ErrorListas
-from bellbird.music.modelo import Tema
-from bellbird.ui import musica_menus
-from bellbird.ui.musica_listas_propias import ListasPropiasMusica
+from guyrapu.music import listas
+from guyrapu.music.listas import ErrorListas
+from guyrapu.music.modelo import Tema
+from guyrapu.ui import musica_menus
+from guyrapu.ui.musica_listas_propias import ListasPropiasMusica
 from tests.ventanas_prueba import app_de_prueba
 
 try:
     import wx
-    from bellbird.ui import musica_editor_lista
+    from guyrapu.ui import musica_editor_lista
     from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
     from tests.ventanas_prueba import destruir
     _HAY_WX = True

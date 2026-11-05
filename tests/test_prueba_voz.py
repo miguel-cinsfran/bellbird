@@ -4,10 +4,10 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.ui import prueba_voz
-from bellbird.voice import escala_voz
-from bellbird.voice import motor_elevenlabs
-from bellbird.voice import motores
+from guyrapu.ui import prueba_voz
+from guyrapu.voice import escala_voz
+from guyrapu.voice import motor_elevenlabs
+from guyrapu.voice import motores
 
 
 class _HiloInmediato:

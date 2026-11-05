@@ -13,11 +13,11 @@ from unittest import mock
 
 import wx
 
-from bellbird.youtube import youtube_api
-from bellbird.ui import gui
-from bellbird.ui import gui_comentarios
-from bellbird.ui import gui_preferencias
-from bellbird.ui.sesion_conectada import SesionConectada
+from guyrapu.youtube import youtube_api
+from guyrapu.ui import gui
+from guyrapu.ui import gui_comentarios
+from guyrapu.ui import gui_preferencias
+from guyrapu.ui.sesion_conectada import SesionConectada
 
 
 FRASE_SESION = ("Tu sesión de YouTube caducó. Vuelve a iniciar sesión en "
@@ -85,7 +85,7 @@ class TestCierreAntesDelAviso(unittest.TestCase):
     """El token muerto se borra en el hilo, antes de avisar a la interfaz."""
 
     def _orden_accion_api(self, exc):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         orden = []
 
         def _falla(_cli):
@@ -111,7 +111,7 @@ class TestCierreAntesDelAviso(unittest.TestCase):
             ["cierre", "aviso"])
 
     def test_accion_api_con_error_comun_no_cierra(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         with mock.patch.object(gui, "anunciar"), \
                 mock.patch.object(gui.diagnostico, "crear_hilo",
                                   side_effect=lambda ob, n: HiloDirecto(ob)), \
@@ -126,7 +126,7 @@ class TestCierreAntesDelAviso(unittest.TestCase):
         cierre.assert_not_called()
 
     def test_programado_cierra_antes_de_agendar_el_fallo(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame.sesion = SesionConectada(live_chat_id="chat")
         frame.programador = gui.programados.ProgramadorMensajes([])
         orden = []
@@ -255,7 +255,7 @@ class TestApiErr(unittest.TestCase):
                 mock.patch.object(gui.wx, "MessageBox") as caja, \
                 mock.patch.object(gui_preferencias, "ofrecer_iniciar_sesion",
                                   return_value=True) as ofrecer:
-            gui.YTChatFrame._api_err(receptor, RefreshError("invalid_grant"))
+            gui.VentanaPrincipal._api_err(receptor, RefreshError("invalid_grant"))
         ofrecer.assert_called_once_with(receptor, config)
         caja.assert_not_called()
         sonar.assert_called_once_with("error")
@@ -270,7 +270,7 @@ class TestApiErr(unittest.TestCase):
                 mock.patch.object(gui.wx, "MessageBox") as caja, \
                 mock.patch.object(gui_preferencias, "ofrecer_iniciar_sesion",
                                   return_value=False):
-            gui.YTChatFrame._api_err(receptor, RefreshError("invalid_grant"))
+            gui.VentanaPrincipal._api_err(receptor, RefreshError("invalid_grant"))
         caja.assert_not_called()
         receptor._aplicar_preferencias_en_caliente.assert_not_called()
 
@@ -280,7 +280,7 @@ class TestApiErr(unittest.TestCase):
                 mock.patch.object(gui, "anunciar"), \
                 mock.patch.object(gui.wx, "MessageBox") as caja, \
                 mock.patch.object(gui_preferencias, "ofrecer_iniciar_sesion") as ofrecer:
-            gui.YTChatFrame._api_err(receptor, RuntimeError("quotaExceeded"))
+            gui.VentanaPrincipal._api_err(receptor, RuntimeError("quotaExceeded"))
         ofrecer.assert_not_called()
         caja.assert_called_once()
 
@@ -320,7 +320,7 @@ class TestEscrituraErr(unittest.TestCase):
 class TestProgramadoFallo(unittest.TestCase):
 
     def _frame(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {"programados_activo": True}
         frame.programador = gui.programados.ProgramadorMensajes([])
         frame.programador.en_curso = True

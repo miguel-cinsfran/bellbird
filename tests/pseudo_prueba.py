@@ -10,7 +10,7 @@ from contextlib import contextmanager
 
 import wx
 
-from bellbird.core import idioma
+from guyrapu.core import idioma
 
 
 @contextmanager

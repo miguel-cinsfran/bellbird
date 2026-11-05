@@ -3,7 +3,7 @@
 import re
 import unittest
 
-from bellbird.capture.agrupar_entradas import AgrupadorEntradas, nombres_del_grupo
+from guyrapu.capture.agrupar_entradas import AgrupadorEntradas, nombres_del_grupo
 
 
 class TestAgrupadorEntradas(unittest.TestCase):

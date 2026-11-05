@@ -9,7 +9,7 @@ import unittest
 from datetime import datetime
 from pathlib import Path
 
-from bellbird.youtube import fin_pendiente
+from guyrapu.youtube import fin_pendiente
 
 
 class RelojFalso:

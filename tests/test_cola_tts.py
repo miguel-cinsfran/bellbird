@@ -6,7 +6,7 @@ import threading
 import time
 import unittest
 
-from bellbird.voice.cola_tts import ColaTTS
+from guyrapu.voice.cola_tts import ColaTTS
 
 
 class TestOrdenDeLaCola(unittest.TestCase):

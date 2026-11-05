@@ -11,7 +11,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.core import idioma
+from guyrapu.core import idioma
 
 
 class TestEtiquetasDeTablas(unittest.TestCase):
@@ -24,27 +24,27 @@ class TestEtiquetasDeTablas(unittest.TestCase):
         idioma._reiniciar()
 
     def test_etiquetas_de_los_filtros_salen_marcadas(self):
-        from bellbird.ui import gui_menu
+        from guyrapu.ui import gui_menu
 
         visibles = [idioma._(nombre) for nombre, _valor in gui_menu.FILTROS]
         self.assertTrue(all(texto.startswith("[¡") for texto in visibles),
                         visibles)
 
     def test_anuncio_del_filtro_sale_marcado(self):
-        from bellbird.ui import gui
+        from guyrapu.ui import gui
 
         falso = SimpleNamespace(
             chat_vivo=SimpleNamespace(filtro=None, reconstruir=lambda: None),
             lb_chat=mock.Mock(**{"GetCount.return_value": 3}))
         with mock.patch.object(gui, "guardar_opcion"), \
                 mock.patch.object(gui, "anunciar") as anunciar:
-            gui.YTChatFrame._aplicar_filtro(falso, 0)
+            gui.VentanaPrincipal._aplicar_filtro(falso, 0)
         texto = anunciar.call_args.args[0]
         self.assertTrue(texto.startswith("[¡"), texto)
         self.assertIn("[¡Todos!]", texto)
 
     def test_criterios_de_orden_salen_marcados(self):
-        from bellbird.music import filtros
+        from guyrapu.music import filtros
 
         visibles = [idioma._(etiqueta)
                     for _clave, etiqueta in filtros.CRITERIOS]
@@ -52,7 +52,7 @@ class TestEtiquetasDeTablas(unittest.TestCase):
                         visibles)
 
     def test_titulos_de_grupos_de_atajos_salen_marcados(self):
-        from bellbird.core import atajos
+        from guyrapu.core import atajos
 
         visibles = [idioma._(titulo)
                     for titulo, _acciones in atajos.ATAJOS_GRUPOS]
@@ -60,7 +60,7 @@ class TestEtiquetasDeTablas(unittest.TestCase):
                         visibles)
 
     def test_tema_suave_sale_marcado(self):
-        from bellbird.ui import preferencias_sonidos
+        from guyrapu.ui import preferencias_sonidos
 
         self.assertTrue(
             preferencias_sonidos._nombre_visible_tema("suave").startswith("[¡"))
@@ -71,7 +71,7 @@ class TestNombreReservado(unittest.TestCase):
     def test_ningun_modulo_liga_el_nombre_de_traduccion(self):
         raiz = Path(__file__).resolve().parent.parent
         archivos = [raiz / "main.py"]
-        archivos.extend(sorted((raiz / "bellbird").rglob("*.py")))
+        archivos.extend(sorted((raiz / "guyrapu").rglob("*.py")))
         violaciones = []
         for ruta in archivos:
             arbol = ast.parse(ruta.read_text(encoding="utf-8"),

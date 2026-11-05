@@ -43,7 +43,7 @@ RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))
 sys.path.insert(0, str(RAIZ / "qa"))
 
-from bellbird.core.config import APP_NAME  # noqa: E402
+from guyrapu.core.config import APP_NAME  # noqa: E402
 
 import capturas  # noqa: E402
 import tiempos_banco  # noqa: E402
@@ -215,7 +215,7 @@ SIN_ESCENARIO: dict[str, str] = {
 
 EXTRAS_DE_INTERFAZ = ("reproductor.py", "iconos.py")
 
-# Un modulo de `bellbird/ui/` o de `bellbird/player/` dibuja interfaz si crea o
+# Un modulo de `guyrapu/ui/` o de `guyrapu/player/` dibuja interfaz si crea o
 # hereda de un control de wx. Los que solo calculan, tocan la red o piden
 # `wx.CallAfter` no se exigen en el barrido: no tienen pantalla que auditar.
 CLASES_DE_WX_QUE_DIBUJAN = frozenset({
@@ -252,8 +252,8 @@ def dibuja_interfaz(ruta: Path) -> bool:
 
 def superficies_sin_escenario() -> list[str]:
     """Modulos de interfaz que existen en el disco y no tiene quien los mire."""
-    ui = RAIZ / "bellbird" / "ui"
-    reproductor = RAIZ / "bellbird" / "player"
+    ui = RAIZ / "guyrapu" / "ui"
+    reproductor = RAIZ / "guyrapu" / "player"
     modulos = {p.name
                for carpeta in (ui, reproductor)
                for p in carpeta.glob("*.py")
@@ -263,8 +263,8 @@ def superficies_sin_escenario() -> list[str]:
                    if (ui / n).exists() or (reproductor / n).exists())
     if not modulos:
         raise RuntimeError(
-            "no se encontró ningún módulo de interfaz en bellbird/ui/ ni en "
-            "bellbird/player/: el descubrimiento mira para otro lado y el banco "
+            "no se encontró ningún módulo de interfaz en guyrapu/ui/ ni en "
+            "guyrapu/player/: el descubrimiento mira para otro lado y el banco "
             "quedaría en verde sin recorrer nada")
     huerfanos = []
     for nombre in sorted(modulos):

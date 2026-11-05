@@ -9,13 +9,13 @@ from tests.ventanas_prueba import app_de_prueba
 
 try:
     import wx
-    from bellbird.core.idioma import _
-    from bellbird.music import pregunta_igualar
-    from bellbird.music import sonoridad
-    from bellbird.music.sonoridad import ResultadoIgualacion
-    from bellbird.ui import musica_ventana
-    from bellbird.ui import musica_ventana_igualando as igualando
-    from bellbird.ui.musica_ventana_igualando import IgualandoVentanaMusica
+    from guyrapu.core.idioma import _
+    from guyrapu.music import pregunta_igualar
+    from guyrapu.music import sonoridad
+    from guyrapu.music.sonoridad import ResultadoIgualacion
+    from guyrapu.ui import musica_ventana
+    from guyrapu.ui import musica_ventana_igualando as igualando
+    from guyrapu.ui.musica_ventana_igualando import IgualandoVentanaMusica
     from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
     from tests.ventanas_prueba import destruir
     _HAY_WX = True
@@ -83,7 +83,7 @@ class TestIgualandoPseudo(unittest.TestCase):
     """Ningún texto visible de la igualación sin pasar por gettext."""
 
     # La ventana traduce las opciones de «Ordenar por» que arma
-    # `bellbird/music/filtros.py`, así que no queda ninguna pendiente. Las
+    # `guyrapu/music/filtros.py`, así que no queda ninguna pendiente. Las
     # filas de las listas no se recorren: el ayudante solo lee opciones de
     # Choice y columnas.
     PENDIENTES = ()

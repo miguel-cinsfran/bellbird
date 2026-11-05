@@ -1,4 +1,4 @@
-"""Pruebas sin ventana de `bellbird/ui/comandos_grabacion.py`."""
+"""Pruebas sin ventana de `guyrapu/ui/comandos_grabacion.py`."""
 
 import tempfile
 import unittest
@@ -6,8 +6,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from bellbird.obs import grabaciones, obs_cliente
-from bellbird.ui import comandos_grabacion
+from guyrapu.obs import grabaciones, obs_cliente
+from guyrapu.ui import comandos_grabacion
 
 
 def _llamada_inmediata(funcion, *args, **kwargs):
@@ -179,7 +179,7 @@ class TestComandosGrabacion(unittest.TestCase):
             with self.subTest(funcion=funcion.__name__):
                 error = obs_cliente.ObsError("No se pudo conectar con OBS.")
                 with mock.patch(
-                        "bellbird.obs.obs_lanzador.asegurar_obs") as asegurar:
+                        "guyrapu.obs.obs_lanzador.asegurar_obs") as asegurar:
                     gestor, anunciar, sonar = self._correr(
                         funcion, GestorGrabacionFalso(fallo=error))
                 asegurar.assert_not_called()

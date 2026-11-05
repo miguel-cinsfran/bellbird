@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from bellbird.player import esclavo_audio
+from guyrapu.player import esclavo_audio
 
 
 class PruebasEsclavoAudio(unittest.TestCase):

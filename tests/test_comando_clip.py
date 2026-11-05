@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.core import comando_clip
+from guyrapu.core import comando_clip
 
 
 class TestPedidoDeClip(unittest.TestCase):

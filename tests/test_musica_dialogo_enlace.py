@@ -8,7 +8,7 @@ from tests.ventanas_prueba import app_de_prueba
 
 try:
     import wx
-    from bellbird.ui import musica_dialogo_enlace
+    from guyrapu.ui import musica_dialogo_enlace
     from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
     from tests.ventanas_prueba import destruir
     _HAY_WX = True

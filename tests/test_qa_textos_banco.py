@@ -1,7 +1,7 @@
 """Los textos que el banco de QA espera tienen que existir en la aplicación.
 
 Lee los módulos del banco con el árbol sintáctico, sin importarlos, y busca
-cada texto en los módulos de `bellbird/`. Los que no son textos de la
+cada texto en los módulos de `guyrapu/`. Los que no son textos de la
 aplicación llevan su motivo en la lista de excepciones.
 """
 
@@ -19,7 +19,7 @@ FUNCIONES = frozenset({
     "subarbol", "boton_de",
 })
 
-# Textos que la prueba no tiene que encontrar en `bellbird/`, cada uno con su
+# Textos que la prueba no tiene que encontrar en `guyrapu/`, cada uno con su
 # motivo en una frase.
 EXCEPCIONES = {
     "Atajo_conectar": "La aplicación arma el nombre como f\"Atajo_{accion}\".",
@@ -102,9 +102,9 @@ def textos_esperados(codigo: str) -> list[tuple[int, str]]:
 
 
 def _contenido_de_la_app() -> str:
-    """Todos los módulos de `bellbird/`, sin la marca de mnemónico y en minúsculas."""
+    """Todos los módulos de `guyrapu/`, sin la marca de mnemónico y en minúsculas."""
     trozos = []
-    for ruta in (RAIZ / "bellbird").rglob("*.py"):
+    for ruta in (RAIZ / "guyrapu").rglob("*.py"):
         trozos.append(ruta.read_text(encoding="utf-8"))
     return "\n".join(trozos).replace("&", "").lower()
 

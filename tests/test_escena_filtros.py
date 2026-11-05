@@ -8,8 +8,8 @@ from unittest import mock
 
 import wx
 
-from bellbird.obs.filtros_microfono import Estado
-from bellbird.ui import escena_filtros
+from guyrapu.obs.filtros_microfono import Estado
+from guyrapu.ui import escena_filtros
 from tests.ventanas_prueba import app_de_prueba, destruir
 
 

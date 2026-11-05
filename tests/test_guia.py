@@ -8,7 +8,7 @@ crece al acercarse. Al final, los dos `.wav` fijos de `sounds/guia/`.
 import unittest
 import wave
 
-from bellbird.camera import encuadre, guia
+from guyrapu.camera import encuadre, guia
 
 
 ANCHO = 320
@@ -233,7 +233,7 @@ class TestWavsReales(unittest.TestCase):
     NOMBRES = ["listo.wav", "sin_rostro.wav"]
 
     def _carpeta(self):
-        from bellbird.core import paths
+        from guyrapu.core import paths
         return paths.carpeta_guia()
 
     def test_existen_los_dos(self):

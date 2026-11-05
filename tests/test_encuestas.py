@@ -7,7 +7,7 @@ se anuncie una sola vez por etapa aunque TikTok repita el mensaje.
 import random
 import unittest
 
-from bellbird.capture import encuestas
+from guyrapu.capture import encuestas
 
 
 class TestFraseApertura(unittest.TestCase):

@@ -8,41 +8,41 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.ui import gui
-from bellbird.ui import gui_estado
-from bellbird.ui import accesibilidad
-from bellbird.ui import tema
-from bellbird.ui import gui_comentarios
-from bellbird.ui import gui_preferencias
-from bellbird.ui import preferencias_api
-from bellbird.ui import preferencias_general
-from bellbird.ui import preferencias_ia
-from bellbird.ui import preferencias_ia_clave
-from bellbird.ui import preferencias_ia_lista
-from bellbird.ui import preferencias_musica
-from bellbird.ui import preferencias_programados
-from bellbird.ui import preferencias_transmision
-from bellbird.ui import preferencias_voz
-from bellbird.voice import motores
-from bellbird.voice.cola_tts import ColaTTS
-from bellbird.ai import ajustes_ia
-from bellbird.ai import catalogo
-from bellbird.ai import conversacion
-from bellbird.ai import opciones_ia
-from bellbird.ai import protocolos
-from bellbird.ai import proveedores
-from bellbird.ai import sondeo_gratis
-from bellbird.core import config
-from bellbird.core import eventos_sonido
-from bellbird.core.doble_pulsacion import DoblePulsacion
-from bellbird.core import paths
-from bellbird.player import reproductor
-from bellbird.core import apagado
-from bellbird.capture import alias
-from bellbird.capture import programados
-from bellbird.downloads import ytdlp_actualizar
-from bellbird.ui.lista_chat import MensajeChat, ListaChat
-from bellbird.ui.sesion_conectada import SesionConectada
+from guyrapu.ui import gui
+from guyrapu.ui import gui_estado
+from guyrapu.ui import accesibilidad
+from guyrapu.ui import tema
+from guyrapu.ui import gui_comentarios
+from guyrapu.ui import gui_preferencias
+from guyrapu.ui import preferencias_api
+from guyrapu.ui import preferencias_general
+from guyrapu.ui import preferencias_ia
+from guyrapu.ui import preferencias_ia_clave
+from guyrapu.ui import preferencias_ia_lista
+from guyrapu.ui import preferencias_musica
+from guyrapu.ui import preferencias_programados
+from guyrapu.ui import preferencias_transmision
+from guyrapu.ui import preferencias_voz
+from guyrapu.voice import motores
+from guyrapu.voice.cola_tts import ColaTTS
+from guyrapu.ai import ajustes_ia
+from guyrapu.ai import catalogo
+from guyrapu.ai import conversacion
+from guyrapu.ai import opciones_ia
+from guyrapu.ai import protocolos
+from guyrapu.ai import proveedores
+from guyrapu.ai import sondeo_gratis
+from guyrapu.core import config
+from guyrapu.core import eventos_sonido
+from guyrapu.core.doble_pulsacion import DoblePulsacion
+from guyrapu.core import paths
+from guyrapu.player import reproductor
+from guyrapu.core import apagado
+from guyrapu.capture import alias
+from guyrapu.capture import programados
+from guyrapu.downloads import ytdlp_actualizar
+from guyrapu.ui.lista_chat import MensajeChat, ListaChat
+from guyrapu.ui.sesion_conectada import SesionConectada
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
 from tests.ventanas_prueba import app_de_prueba, destruir
@@ -70,7 +70,7 @@ class TestInicioGui(unittest.TestCase):
 
         with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
                 mock.patch.object(gui.wx, "MenuBar"):
-            gui.YTChatFrame._build_menubar(frame)
+            gui.VentanaPrincipal._build_menubar(frame)
         frame._elementos_menu = elementos
         return frame
 
@@ -94,8 +94,8 @@ class TestInicioGui(unittest.TestCase):
         worker = mock.Mock()
         worker.voces.return_value = []
 
-        with mock.patch.object(gui, "AplicacionYTChat", return_value=aplicacion), \
-                mock.patch.object(gui, "YTChatFrame", return_value=frame), \
+        with mock.patch.object(gui, "AplicacionPrincipal", return_value=aplicacion), \
+                mock.patch.object(gui, "VentanaPrincipal", return_value=frame), \
                 redirigir_rutas("."), \
                 mock.patch.object(gui, "_lector_init"), \
                 mock.patch.object(gui._snd, "reproducir"), \
@@ -112,8 +112,8 @@ class TestInicioGui(unittest.TestCase):
         worker = mock.Mock()
         worker.voces.return_value = []
 
-        with mock.patch.object(gui, "AplicacionYTChat", return_value=aplicacion), \
-                mock.patch.object(gui, "YTChatFrame", return_value=frame), \
+        with mock.patch.object(gui, "AplicacionPrincipal", return_value=aplicacion), \
+                mock.patch.object(gui, "VentanaPrincipal", return_value=frame), \
                 redirigir_rutas("."), \
                 mock.patch.object(gui, "_lector_init"), \
                 mock.patch.object(gui._snd, "reproducir"), \
@@ -129,8 +129,8 @@ class TestInicioGui(unittest.TestCase):
         worker = mock.Mock()
         worker.voces.return_value = ["Voz A", "Voz B"]
 
-        with mock.patch.object(gui, "AplicacionYTChat", return_value=aplicacion), \
-                mock.patch.object(gui, "YTChatFrame", return_value=frame), \
+        with mock.patch.object(gui, "AplicacionPrincipal", return_value=aplicacion), \
+                mock.patch.object(gui, "VentanaPrincipal", return_value=frame), \
                 redirigir_rutas("."), \
                 mock.patch.object(gui, "_lector_init"), \
                 mock.patch.object(gui._snd, "reproducir"), \
@@ -143,7 +143,7 @@ class TestInicioGui(unittest.TestCase):
 
     def test_lector_init_deja_una_instancia_de_lector(self):
         import prism
-        from bellbird.voice import lector as modulo_lector
+        from guyrapu.voice import lector as modulo_lector
         contexto = mock.Mock()
         contexto.create.side_effect = prism.PrismError("sin lector")
         anterior = accesibilidad._lector
@@ -158,7 +158,7 @@ class TestInicioGui(unittest.TestCase):
         aplicacion = mock.Mock()
         with mock.patch.object(gui.logger, "warning") as registrar, \
                 mock.patch.object(gui, "anunciar") as anunciar:
-            gui.AplicacionYTChat.OnAssert(
+            gui.AplicacionPrincipal.OnAssert(
                 aplicacion, "ventana.cpp", 42, "indice < total", "índice inválido")
 
         registrar.assert_called_once_with(
@@ -173,7 +173,7 @@ class TestInicioGui(unittest.TestCase):
         anterior = gui._gui_frame
         try:
             gui._gui_frame = ventana
-            gui.AplicacionYTChat._on_fin_sesion(aplicacion, evento)
+            gui.AplicacionPrincipal._on_fin_sesion(aplicacion, evento)
         finally:
             gui._gui_frame = anterior
 
@@ -217,8 +217,8 @@ class TestInicioGui(unittest.TestCase):
 
     def test_abrir_descargas_pasa_los_dos_callbacks(self):
         frame = mock.Mock()
-        with mock.patch("bellbird.ui.gui_descargas.abrir") as abrir:
-            gui.YTChatFrame._abrir_descargas(frame, "https://youtu.be/x")
+        with mock.patch("guyrapu.ui.gui_descargas.abrir") as abrir:
+            gui.VentanaPrincipal._abrir_descargas(frame, "https://youtu.be/x")
         abrir.assert_called_once_with(
             frame, "https://youtu.be/x", frame._reconectar_desde_historial,
             frame._musica)
@@ -253,7 +253,7 @@ class TestInicioGui(unittest.TestCase):
         frame = mock.Mock()
         item = mock.Mock()
         manejador = mock.Mock()
-        gui.YTChatFrame._bind_menu(frame, item, manejador)
+        gui.VentanaPrincipal._bind_menu(frame, item, manejador)
         evento = frame.Bind.call_args.args[1]
         diferidos = []
 
@@ -269,7 +269,7 @@ class TestInicioGui(unittest.TestCase):
         frame = mock.Mock()
         item = mock.Mock()
         manejador = mock.Mock()
-        gui.YTChatFrame._bind_menu(frame, item, manejador, "primero", 2, True)
+        gui.VentanaPrincipal._bind_menu(frame, item, manejador, "primero", 2, True)
         evento = frame.Bind.call_args.args[1]
 
         with mock.patch.object(gui.wx, "CallAfter") as diferir:
@@ -285,17 +285,17 @@ class TestInicioGui(unittest.TestCase):
         frame._worker.esta_pausado.return_value = True
         with mock.patch.object(gui.wx, "Menu"), \
                 mock.patch.object(gui.wx, "MenuBar"):
-            gui.YTChatFrame._build_menubar(frame)
+            gui.VentanaPrincipal._build_menubar(frame)
 
         frame.GetMenuBar.return_value.Destroy.assert_called_once_with()
         frame._sincronizar_pausa.assert_called_once_with()
-        gui.YTChatFrame._sincronizar_pausa(frame)
+        gui.VentanaPrincipal._sincronizar_pausa(frame)
         frame.mi_pausa.SetItemLabel.assert_called_once_with("&Reanudar lectura")
 
     def test_sincronizar_pausa_sin_worker_no_revienta(self):
         frame = mock.Mock()
         frame._worker.esta_pausado.side_effect = AttributeError
-        gui.YTChatFrame._sincronizar_pausa(frame)
+        gui.VentanaPrincipal._sincronizar_pausa(frame)
         frame.mi_pausa.SetItemLabel.assert_not_called()
 
     def test_contador_accesible_selecciona_todo_al_recibir_el_foco(self):
@@ -329,7 +329,7 @@ class TestEnterEnListas(unittest.TestCase):
 
     def test_chat_alt_enter_se_deja_pasar_al_acelerador(self):
         # Alt+Enter es el acelerador de «Enviar mensaje»: no debe copiar.
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._copiar_mensaje = mock.Mock()
         evento = EventoTecladoFalso(gui.wx.WXK_RETURN, gui.wx.MOD_ALT)
         frame._on_chat_char_hook(evento)
@@ -346,14 +346,14 @@ class TestEnterEnListas(unittest.TestCase):
         self.assertTrue(evento.omitido)
 
     def test_chat_enlaza_el_gancho_de_caracteres(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame.lb_chat = mock.Mock()
         frame._enlazar_eventos_chat()
         enlaces = [llamada.args[0] for llamada in frame.lb_chat.Bind.call_args_list]
         self.assertIn(gui.wx.EVT_CHAR_HOOK, enlaces)
 
     def test_chat_enter_copia_sin_omitirlo(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._copiar_mensaje = mock.Mock()
         evento = EventoTecladoFalso(gui.wx.WXK_RETURN)
         frame._on_chat_char_hook(evento)
@@ -361,7 +361,7 @@ class TestEnterEnListas(unittest.TestCase):
         self.assertFalse(evento.omitido)
 
     def test_chat_otra_tecla_se_deja_pasar(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._copiar_mensaje = mock.Mock()
         evento = EventoTecladoFalso(ord("a"))
         frame._on_chat_char_hook(evento)
@@ -461,14 +461,14 @@ class GrabadorDeVoz:
 class TestRegistroEsAnunciable(unittest.TestCase):
 
     def test_obs_vigilante_si_se_anuncia(self):
-        self.assertTrue(gui.registro_es_anunciable("bellbird.obs_vigilante"))
+        self.assertTrue(gui.registro_es_anunciable("guyrapu.obs_vigilante"))
 
     def test_diagnostico_no_se_anuncia(self):
-        self.assertFalse(gui.registro_es_anunciable("bellbird.diagnostico"))
+        self.assertFalse(gui.registro_es_anunciable("guyrapu.diagnostico"))
 
     def test_tecnicos_no_se_anuncian(self):
-        for nombre in ("bellbird.descargas", "bellbird.main", "bellbird.tts_worker",
-                       "bellbird.sound_player"):
+        for nombre in ("guyrapu.descargas", "guyrapu.main", "guyrapu.tts_worker",
+                       "guyrapu.sound_player"):
             with self.subTest(nombre=nombre):
                 self.assertFalse(gui.registro_es_anunciable(nombre))
 
@@ -556,7 +556,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
     def test_manejador_omite_diagnostico_sin_parchear_anunciar(self):
         grabador = GrabadorDeVoz()
         registro = logging.LogRecord(
-            "bellbird.diagnostico", logging.INFO, __file__, 1, "oculto", (), None)
+            "guyrapu.diagnostico", logging.INFO, __file__, 1, "oculto", (), None)
         with mock.patch.object(accesibilidad, "_lector", grabador):
             accesibilidad.WxAnnouncingHandler().emit(registro)
 
@@ -566,7 +566,7 @@ class TestRegistroEsAnunciable(unittest.TestCase):
     def test_manejador_anuncia_mensaje_de_aplicacion(self):
         grabador = GrabadorDeVoz()
         registro = logging.LogRecord(
-            "bellbird.obs_vigilante", logging.INFO, __file__, 1, "OBS volvio a responder", (), None)
+            "guyrapu.obs_vigilante", logging.INFO, __file__, 1, "OBS volvio a responder", (), None)
         with mock.patch.object(accesibilidad, "_lector", grabador):
             accesibilidad.WxAnnouncingHandler().emit(registro)
 
@@ -651,7 +651,7 @@ class TestVentanaReal(unittest.TestCase):
         stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
         worker = SimpleNamespace(get_rate=lambda: 0, get_volume=lambda: 100, **worker_extra)
         with mock.patch.object(gui.diagnostico, "crear_hilo"):
-            frame = gui.YTChatFrame(None, configuracion,
+            frame = gui.VentanaPrincipal(None, configuracion,
                                     cola if cola is not None else queue.Queue(),
                                     stats, worker,
                                     __import__("threading").Event())
@@ -816,7 +816,7 @@ class TestConfigurarTiktokReconexionVentana(unittest.TestCase):
         stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
         worker = SimpleNamespace(get_rate=lambda: 0, get_volume=lambda: 100)
         with mock.patch.object(gui.diagnostico, "crear_hilo"):
-            frame = gui.YTChatFrame(None, configuracion,
+            frame = gui.VentanaPrincipal(None, configuracion,
                                     queue.Queue(), stats, worker,
                                     __import__("threading").Event())
         self.addCleanup(destruir, frame)
@@ -900,7 +900,7 @@ class TestFocoAlActivar(unittest.TestCase):
     suyo (p. ej. al cerrarse un aviso mientras se estaba en el reproductor)."""
 
     def _frame(self, conectado=True):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._alive = True
         frame._conectado = conectado
         frame._foco_contenido = mock.Mock()
@@ -951,7 +951,7 @@ class TestFocoAlActivar(unittest.TestCase):
 class TestInterruptoresDeLecturaYSonidos(unittest.TestCase):
 
     def _frame(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {}
         frame.mi_sil_lectura = mock.Mock()
         frame.mi_sil_sonidos = mock.Mock()
@@ -1005,7 +1005,7 @@ class TestInterruptoresDeLecturaYSonidos(unittest.TestCase):
 class TestConexionCancelable(unittest.TestCase):
 
     def _frame(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._conectado = False
         frame._conectando = False
         frame.txt_url = mock.Mock()
@@ -1049,11 +1049,11 @@ class TestConexionCancelable(unittest.TestCase):
         frame = self._frame()
         frame._conectando = True
         frame._actualizar_menus_por_conexion = mock.Mock()
-        gui.YTChatFrame._set_conectado_ui(frame, True)
+        gui.VentanaPrincipal._set_conectado_ui(frame, True)
         self.assertFalse(frame._conectando)
 
     def test_alt_enter_sin_poder_escribir_anuncia_el_motivo(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._panel_redactar = mock.Mock()
         frame._panel_redactar.motivo.return_value = "Conéctate a un directo para escribir en el chat"
         with mock.patch.object(gui, "anunciar") as anunciar:
@@ -1062,7 +1062,7 @@ class TestConexionCancelable(unittest.TestCase):
         frame._panel_redactar.enfocar.assert_not_called()
 
     def test_alt_enter_con_chat_disponible_enfoca_el_compositor(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._panel_redactar = mock.Mock()
         frame._panel_redactar.motivo.return_value = ""
         with mock.patch.object(gui, "anunciar") as anunciar:
@@ -1072,7 +1072,7 @@ class TestConexionCancelable(unittest.TestCase):
 
     def test_respuesta_de_la_api_con_la_ventana_destruida_se_ignora(self):
         # Un frame sin construir se comporta como uno ya destruido (bool False).
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         with mock.patch.object(gui._snd, "reproducir") as sonar, \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._api_ok("Mensaje enviado al chat")
@@ -1110,7 +1110,7 @@ class TestMenusPorConexion(unittest.TestCase):
         barra = _BarraDeMenu()
         frame.GetMenuBar.return_value = barra
 
-        gui.YTChatFrame._actualizar_menus_por_conexion(frame)
+        gui.VentanaPrincipal._actualizar_menus_por_conexion(frame)
 
         self.assertEqual(barra.llamadas, [])
 
@@ -1121,7 +1121,7 @@ class TestAliasEnLaLista(unittest.TestCase):
         autor = "xX_gamer_29384756_Xx"
         alias.usar({autor.lower(): "Carlos"})
         self.addCleanup(alias.usar, {})
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {"limpiar_emojis": True}
 
         texto = frame._format_display(autor, "hola", "12:00", 0, "")
@@ -1132,7 +1132,7 @@ class TestAliasEnLaLista(unittest.TestCase):
 class TestFilasEventosTikTok(unittest.TestCase):
 
     def _frame(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {"limpiar_emojis": True}
         return frame
 
@@ -1198,7 +1198,7 @@ class TestAliasDesdeElChat(unittest.TestCase):
     autor = "xX_gamer_29384756_Xx"
 
     def _frame(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame.lb_chat = mock.Mock()
         frame.chat_vivo = mock.Mock()
         frame.chat_vivo.reconstruir = mock.Mock()
@@ -1310,8 +1310,8 @@ class TestIdentidadModeracionChat(unittest.TestCase):
     """Moderación usa exclusivamente el registro seleccionado, nunca el último homónimo."""
 
     def _frame_con_chat(self):
-        from bellbird.ui.chat_vivo import ControladorChat
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        from guyrapu.ui.chat_vivo import ControladorChat
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {"limpiar_emojis": True, "silenciados_runtime": set(),
                          "silenciados_ocultar": set()}
         frame._sc_totales = {}
@@ -1340,7 +1340,7 @@ class TestIdentidadModeracionChat(unittest.TestCase):
         return frame
 
     def _encolar_y_volcar(self, frame, plataforma, autor, identificador, texto="hola"):
-        from bellbird.ui import chat_vivo
+        from guyrapu.ui import chat_vivo
         with mock.patch.object(chat_vivo.wx, "CallLater", return_value=mock.Mock()):
             frame.agregar_mensaje_chat(autor, texto, "12:00:00", "text", "", identificador,
                                        plataforma=plataforma)
@@ -1477,8 +1477,8 @@ class TestMeGustaEnLaLista(unittest.TestCase):
     """El me gusta entra al modelo y a la lista con su texto agrupado."""
 
     def _frame(self):
-        from bellbird.ui.chat_vivo import ControladorChat
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        from guyrapu.ui.chat_vivo import ControladorChat
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {"limpiar_emojis": True}
         frame._autor_esta_oculto = lambda autor: False
         frame._sumar_superchat = mock.Mock()
@@ -1501,8 +1501,8 @@ class TestMeGustaEnLaLista(unittest.TestCase):
                            tipo=tipo, monto=monto, rol="")
 
     def test_me_gusta_ocupa_su_fila_con_su_texto(self):
-        from bellbird.core.config import TIPO_TEXTO, TIPO_ME_GUSTA
-        from bellbird.ui import chat_vivo
+        from guyrapu.core.config import TIPO_TEXTO, TIPO_ME_GUSTA
+        from guyrapu.ui import chat_vivo
         frame = self._frame()
         primero = self._registro(TIPO_TEXTO, "primero")
         me_gusta = self._registro(TIPO_ME_GUSTA, "", monto="3")
@@ -1784,7 +1784,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
 
         with mock.patch.object(preferencias_musica.diagnostico, "crear_hilo",
                                side_effect=crear_hilo), \
-                mock.patch("bellbird.music.consultas_vlc.salidas_audio",
+                mock.patch("guyrapu.music.consultas_vlc.salidas_audio",
                            return_value=[("altavoces", "Altavoces")]), \
                 mock.patch.object(preferencias_musica.wx, "CallAfter",
                                   side_effect=lambda funcion, *args: funcion(*args)), \
@@ -3167,8 +3167,8 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
 
     def test_comprobar_clave_con_error_deja_la_voz_deshabilitada(self):
         from tests.test_clave_elevenlabs import _HiloInmediato
-        from bellbird.ui import clave_elevenlabs
-        from bellbird.voice import elevenlabs
+        from guyrapu.ui import clave_elevenlabs
+        from guyrapu.voice import elevenlabs
         dialogo = self._dialogo({"motor": "elevenlabs"})
         dialogo.pagina_voz.btn_comprobar_clave.Disable()
         dialogo.pagina_voz.txt_clave_eleven.SetValue("mala")
@@ -3192,8 +3192,8 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
 
     def test_comprobar_clave_con_exito_llena_voces_y_anuncia(self):
         from tests.test_clave_elevenlabs import _HiloInmediato
-        from bellbird.ui import clave_elevenlabs
-        from bellbird.voice import elevenlabs
+        from guyrapu.ui import clave_elevenlabs
+        from guyrapu.voice import elevenlabs
         dialogo = self._dialogo({"motor": "elevenlabs"})
         dialogo.pagina_voz.btn_comprobar_clave.Disable()
         dialogo.pagina_voz.txt_clave_eleven.SetValue("buena")
@@ -3312,7 +3312,7 @@ class TestAplicarPreferenciasMotor(unittest.TestCase):
         self.app = app_de_prueba()
 
     def _frame(self, configuracion):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = dict(configuracion)
         frame._conectado = False
         frame._voz_idx = 0
@@ -3739,7 +3739,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
 
 class TestProgramadorGui(unittest.TestCase):
     def _frame(self, **config):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {"programados_activo": True, **config}
         frame.programador = programados.ProgramadorMensajes(
             [{"texto": "Hola", "activo": True,
@@ -3950,7 +3950,7 @@ class TestProgramadorGui(unittest.TestCase):
 class TestPreferenciasRecargaProgramados(unittest.TestCase):
 
     def _frame(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._alive = True
         frame._config = {}
         frame.programador = programados.ProgramadorMensajes(
@@ -4038,7 +4038,7 @@ class TestPreferenciasRecargaProgramados(unittest.TestCase):
 
 class TestDescartesGui(unittest.TestCase):
     def _frame(self, descartados=3):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._alive = True
         frame._config = {"umbral_solo_nombre": 0}
         frame._stats = mock.Mock(descartados=descartados)
@@ -4115,7 +4115,7 @@ class TestLiveChatIdPorSesion(unittest.TestCase):
     y el compositor al directo equivocado."""
 
     def _frame(self, video_actual):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame.__dict__.update(_alive=True)
         frame.sesion = SesionConectada(
             video_id=video_actual, live_chat_id="", causa_sin_chat="")
@@ -4151,7 +4151,7 @@ class TestLiveChatIdPorSesion(unittest.TestCase):
         self.assertTrue(frame.sesion.chat_propio)
 
     def test_set_tipo_video_fija_el_video_de_la_sesion(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame.__dict__.update(_alive=True, _config={},
                               _sc_totales={})
         frame.sesion = SesionConectada(
@@ -4179,7 +4179,7 @@ class TestEstadoObsEnF2(unittest.TestCase):
         self.addCleanup(parche.stop)
 
     def _frame(self, toggles, vigilante=None):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {"estado_toggles": toggles, "programados_activo": False}
         frame._obs_vigilante = vigilante
         frame.sesion = SesionConectada(
@@ -4216,7 +4216,7 @@ class TestEstadoObsEnF2(unittest.TestCase):
 
 class TestTransmisionSupervisadaEnF2(unittest.TestCase):
     def _frame(self, supervisor):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {"estado_toggles": set(), "programados_activo": False}
         frame._obs_vigilante = None
         frame._supervisor = supervisor
@@ -4244,7 +4244,7 @@ class TestTransmisionSupervisadaEnF2(unittest.TestCase):
 
 class TestAnunciarAutor(unittest.TestCase):
     def _frame(self, autor):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._worker = mock.Mock()
         frame._worker.ultimo_autor.return_value = autor
         return frame
@@ -4324,7 +4324,7 @@ class TestActualizarYtdlp(unittest.TestCase):
 
     def _ejecutar(self, doble, frame=None):
         if frame is None:
-            frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+            frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         ventanas = []
         hilo = mock.Mock()
         hilo.start.side_effect = lambda: hilo.target()
@@ -4339,13 +4339,13 @@ class TestActualizarYtdlp(unittest.TestCase):
             ventanas.append(ventana)
             return ventana
 
-        with mock.patch("bellbird.ui.gui_actualizacion.DialogoActualizacion",
+        with mock.patch("guyrapu.ui.gui_actualizacion.DialogoActualizacion",
                         side_effect=fabrica), \
                 mock.patch.object(gui.wx, "ProgressDialog") as dialogo, \
                 mock.patch.object(gui.wx, "MessageBox") as mensaje, \
                 mock.patch.object(gui.diagnostico, "crear_hilo", side_effect=crear), \
                 mock.patch.object(ytdlp_actualizar, "actualizar_ytdlp", side_effect=doble):
-            gui.YTChatFrame._on_actualizar_ytdlp(frame, None)
+            gui.VentanaPrincipal._on_actualizar_ytdlp(frame, None)
         return frame, ventanas, hilo, dialogo, mensaje
 
     def test_activar_anuncia_busqueda_antes_de_empezar(self):
@@ -4403,7 +4403,7 @@ class TestActualizarYtdlp(unittest.TestCase):
         self.assertEqual("hecho", ventanas[0].anuncios[-1])
 
     def test_ventana_cerrada_descarta_el_resultado(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
 
         def doble(avisar, progreso, cancelar):
             frame._ventana_actualizar_ytdlp.cerrar()
@@ -4486,18 +4486,18 @@ class TestCierreVentana(unittest.TestCase):
             frame.mi_overlay = mock.Mock()
 
         with mock.patch.object(gui.wx.Frame, "__init__", return_value=None), \
-                mock.patch.object(gui.YTChatFrame, "_build_menubar", construir_menu), \
-                mock.patch.object(gui.YTChatFrame, "_build_ui"), \
-                mock.patch.object(gui.YTChatFrame, "_bind_events"), \
-                mock.patch.object(gui.YTChatFrame, "_init_timer"), \
-                mock.patch.object(gui.YTChatFrame, "SetBackgroundColour"), \
-                mock.patch.object(gui.YTChatFrame, "Centre"), \
+                mock.patch.object(gui.VentanaPrincipal, "_build_menubar", construir_menu), \
+                mock.patch.object(gui.VentanaPrincipal, "_build_ui"), \
+                mock.patch.object(gui.VentanaPrincipal, "_bind_events"), \
+                mock.patch.object(gui.VentanaPrincipal, "_init_timer"), \
+                mock.patch.object(gui.VentanaPrincipal, "SetBackgroundColour"), \
+                mock.patch.object(gui.VentanaPrincipal, "Centre"), \
                 mock.patch.object(gui, "anunciar_conflictos_atajos"), \
                 mock.patch.object(gui.diagnostico, "crear_hilo") as crear, \
                 mock.patch.object(gui.overlay_servidor, "encender") as encender, \
                 mock.patch.object(gui, "guardar_opcion"), \
                 mock.patch.object(gui, "anunciar"):
-            gui.YTChatFrame(None, configuracion, None, None, None, None)
+            gui.VentanaPrincipal(None, configuracion, None, None, None, None)
 
         encender.assert_called_once_with(8730)
 
@@ -4505,25 +4505,25 @@ class TestCierreVentana(unittest.TestCase):
         configuracion = {"overlay_activo": True, "overlay_puerto": 8730}
 
         with mock.patch.object(gui.wx.Frame, "__init__", return_value=None), \
-                mock.patch.object(gui.YTChatFrame, "_build_menubar"), \
-                mock.patch.object(gui.YTChatFrame, "_build_ui"), \
-                mock.patch.object(gui.YTChatFrame, "_bind_events"), \
-                mock.patch.object(gui.YTChatFrame, "_init_timer"), \
-                mock.patch.object(gui.YTChatFrame, "SetBackgroundColour"), \
-                mock.patch.object(gui.YTChatFrame, "Centre"), \
+                mock.patch.object(gui.VentanaPrincipal, "_build_menubar"), \
+                mock.patch.object(gui.VentanaPrincipal, "_build_ui"), \
+                mock.patch.object(gui.VentanaPrincipal, "_bind_events"), \
+                mock.patch.object(gui.VentanaPrincipal, "_init_timer"), \
+                mock.patch.object(gui.VentanaPrincipal, "SetBackgroundColour"), \
+                mock.patch.object(gui.VentanaPrincipal, "Centre"), \
                 mock.patch.object(gui, "anunciar_conflictos_atajos"), \
                 mock.patch.object(gui.diagnostico, "crear_hilo"), \
                 mock.patch.object(gui.overlay_servidor, "encender", side_effect=gui.overlay_servidor.OverlayPuertoOcupadoError), \
                 mock.patch.object(gui, "guardar_opcion"), \
                 mock.patch.object(gui, "anunciar") as anunciar:
-            frame = gui.YTChatFrame(None, configuracion, None, None, None, None)
+            frame = gui.VentanaPrincipal(None, configuracion, None, None, None, None)
 
         self.assertFalse(frame._config["overlay_activo"])
         anunciar.assert_called_once_with(
             "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, categoría Transmisión.")
 
     def test_el_precalentamiento_se_arranca_solo_con_la_ventana_viva(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._alive = True
         frame._rep_panel = mock.Mock()
         frame._arrancar_precalentamiento()
@@ -4535,7 +4535,7 @@ class TestCierreVentana(unittest.TestCase):
         frame._rep_panel._precalentar.assert_not_called()
 
     def _frame(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._apagando = False
         frame._alive = True
         frame.sesion = SesionConectada()
@@ -4783,7 +4783,7 @@ class TestCierreVentana(unittest.TestCase):
             def iniciar(self):
                 self.iniciado = True
 
-        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                         DobleSupervisor):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         self.assertEqual(len(creados), 1)
@@ -4814,7 +4814,7 @@ class TestCierreVentana(unittest.TestCase):
             def iniciar(self):
                 pass
 
-        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                         DobleSupervisor):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         _al_anunciar, al_conectar_chat = creados[0]
@@ -4845,7 +4845,7 @@ class TestCierreVentana(unittest.TestCase):
             def iniciar(self):
                 pass
 
-        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                         DobleSupervisor):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         _al_anunciar, al_conectar_chat = creados[0]
@@ -4874,7 +4874,7 @@ class TestCierreVentana(unittest.TestCase):
             def iniciar(self):
                 pass
 
-        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                         DobleSupervisor):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         al_anunciar, _al_conectar_chat = creados[0]
@@ -4902,7 +4902,7 @@ class TestCierreVentana(unittest.TestCase):
             def iniciar(self):
                 pass
 
-        with mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                         DobleSupervisor):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         al_anunciar, _al_conectar_chat = creados[0]
@@ -4921,7 +4921,7 @@ class TestCierreVentana(unittest.TestCase):
         previo.activo = True
         frame._supervisor = previo
         with mock.patch.object(gui, "anunciar") as anunciar, \
-                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision") as fabrica:
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision") as fabrica:
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         anunciar.assert_called_once_with("Ya hay una transmisión en curso.")
         fabrica.assert_not_called()
@@ -4949,7 +4949,7 @@ class TestCierreVentana(unittest.TestCase):
         apagar.assert_called_once_with()
 
     def test_el_timer_actualiza_la_marca_del_vigilante(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._alive = True
         frame._diagnostico_marca = 10.0
         frame._diagnostico_censo = 10.0
@@ -4970,15 +4970,15 @@ class TestCierreVentana(unittest.TestCase):
         configuracion = mock.Mock()
         configuracion.get.return_value = {}
         with mock.patch.object(gui.wx.Frame, "__init__", return_value=None), \
-                mock.patch.object(gui.YTChatFrame, "_build_menubar"), \
-                mock.patch.object(gui.YTChatFrame, "_build_ui"), \
-                mock.patch.object(gui.YTChatFrame, "_bind_events"), \
-                mock.patch.object(gui.YTChatFrame, "_init_timer"), \
-                mock.patch.object(gui.YTChatFrame, "SetBackgroundColour"), \
-                mock.patch.object(gui.YTChatFrame, "Centre"), \
+                mock.patch.object(gui.VentanaPrincipal, "_build_menubar"), \
+                mock.patch.object(gui.VentanaPrincipal, "_build_ui"), \
+                mock.patch.object(gui.VentanaPrincipal, "_bind_events"), \
+                mock.patch.object(gui.VentanaPrincipal, "_init_timer"), \
+                mock.patch.object(gui.VentanaPrincipal, "SetBackgroundColour"), \
+                mock.patch.object(gui.VentanaPrincipal, "Centre"), \
                 mock.patch.object(gui, "anunciar_conflictos_atajos"), \
                 mock.patch.object(gui.diagnostico, "crear_hilo", side_effect=crear):
-            gui.YTChatFrame(None, configuracion, None, None, None, None)
+            gui.VentanaPrincipal(None, configuracion, None, None, None, None)
 
         self.assertEqual(len(hilos), 1)
         self.assertEqual(hilos[0][1], "VigilanteInterfaz")
@@ -5122,7 +5122,7 @@ class TestSinDireccionRecordada(unittest.TestCase):
         worker.get_volume.return_value = 100
         stats = SimpleNamespace(leidos=0, superchats=0, descartados=0)
 
-        with mock.patch.object(gui, "AplicacionYTChat", return_value=aplicacion), \
+        with mock.patch.object(gui, "AplicacionPrincipal", return_value=aplicacion), \
                 mock.patch.object(gui, "_lector_init"), \
                 mock.patch.object(gui._snd, "reproducir"), \
                 mock.patch.object(gui, "anunciar"), \
@@ -5144,7 +5144,7 @@ class TestSinDireccionRecordada(unittest.TestCase):
 class TestCopiarEnlaceDirecto(unittest.TestCase):
 
     def _frame(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._alive = True
         frame.sesion = SesionConectada(enlace_directo="")
         frame._clipboard_set = mock.Mock()
@@ -5269,7 +5269,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
 
         with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
                 mock.patch.object(gui.wx, "MenuBar"):
-            gui.YTChatFrame._build_menubar(frame)
+            gui.VentanaPrincipal._build_menubar(frame)
         etiquetas = [etiqueta for etiqueta, _ in elementos]
         candidata = next(e for e in etiquetas if "enlace del directo" in e)
         self.assertIn("Copiar &enlace del directo", candidata)
@@ -5296,7 +5296,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
 
         with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
                 mock.patch.object(gui.wx, "MenuBar"):
-            gui.YTChatFrame._build_menubar(frame)
+            gui.VentanaPrincipal._build_menubar(frame)
         esperado = frame._accel("anunciar_autor")
         etiqueta, elemento = next(
             (etiqueta, elemento) for etiqueta, elemento in elementos
@@ -5325,7 +5325,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
 
         with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
                 mock.patch.object(gui.wx, "MenuBar"):
-            gui.YTChatFrame._build_menubar(frame)
+            gui.VentanaPrincipal._build_menubar(frame)
         esperado = frame._accel("describir_escena")
         etiqueta, elemento = next(
             (etiqueta, elemento) for etiqueta, elemento in elementos
@@ -5335,7 +5335,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame._bind_menu.assert_any_call(elemento, frame._describir_escena)
 
     def test_item_de_menu_preguntar_ia_enlazado(self):
-        from bellbird.ui import gui_menu
+        from guyrapu.ui import gui_menu
         frame = mock.Mock()
         frame._accel.side_effect = (
             lambda accion: "\tCtrl+Shift+I" if accion == "preguntar_ia" else "")
@@ -5356,7 +5356,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
 
         with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
                 mock.patch.object(gui.wx, "MenuBar"):
-            gui.YTChatFrame._build_menubar(frame)
+            gui.VentanaPrincipal._build_menubar(frame)
         esperado = frame._accel("preguntar_ia")
         etiqueta, elemento = next(
             (etiqueta, elemento) for etiqueta, elemento in elementos
@@ -5366,7 +5366,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame._bind_menu.assert_any_call(elemento, gui_menu._abrir_ia, frame)
 
     def test_item_de_menu_consulta_rapida_enlazado(self):
-        from bellbird.ui import gui_menu
+        from guyrapu.ui import gui_menu
         frame = mock.Mock()
         frame._accel.side_effect = (
             lambda accion: "\tCtrl+Shift+F2" if accion == "consulta_rapida_ia" else "")
@@ -5387,7 +5387,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
 
         with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
                 mock.patch.object(gui.wx, "MenuBar"):
-            gui.YTChatFrame._build_menubar(frame)
+            gui.VentanaPrincipal._build_menubar(frame)
         esperado = frame._accel("consulta_rapida_ia")
         etiqueta, elemento = next(
             (etiqueta, elemento) for etiqueta, elemento in elementos
@@ -5443,7 +5443,7 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame._accel.return_value = ""
         with mock.patch.object(gui.wx, "Menu", side_effect=crear_menu), \
                 mock.patch.object(gui.wx, "MenuBar", side_effect=crear_barra):
-            gui.YTChatFrame._build_menubar(frame)
+            gui.VentanaPrincipal._build_menubar(frame)
 
         def letra_de_acceso(etiqueta):
             texto = etiqueta.split("\t")[0]
@@ -5486,26 +5486,26 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
                     f"{repetidas}")
 
     def test_describir_escena_sin_obs_anuncia_y_no_crea_el_gestor(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._descripcion_escena_en_curso = False
         with mock.patch.object(gui.obs_activacion, "obs_esta_en_ejecucion",
                                return_value=False) as en_ejecucion, \
                 mock.patch.object(gui, "GestorPanelObs") as gestor, \
                 mock.patch.object(gui, "anunciar") as anunciar, \
                 mock.patch.object(gui.diagnostico, "crear_hilo") as crear_hilo:
-            gui.YTChatFrame._describir_escena(frame)
+            gui.VentanaPrincipal._describir_escena(frame)
         en_ejecucion.assert_called_once_with()
         anunciar.assert_called_once_with("OBS no está abierto.")
         gestor.assert_not_called()
         crear_hilo.assert_not_called()
 
     def test_describir_escena_en_curso_no_lanza_otro_hilo(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._descripcion_escena_en_curso = True
         with mock.patch.object(gui.obs_activacion, "obs_esta_en_ejecucion") as en_ejecucion, \
                 mock.patch.object(gui.diagnostico, "crear_hilo") as crear_hilo, \
                 mock.patch.object(gui, "anunciar") as anunciar:
-            gui.YTChatFrame._describir_escena(frame)
+            gui.VentanaPrincipal._describir_escena(frame)
         en_ejecucion.assert_not_called()
         crear_hilo.assert_not_called()
         anunciar.assert_not_called()
@@ -5516,7 +5516,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
     # pedir_datos_directo y el supervisor son dobles.
 
     def _frame(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._alive = True
         frame.sesion = SesionConectada()
         frame._supervisor = None
@@ -5563,8 +5563,8 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         with mock.patch.object(gui.credenciales, "cargar", return_value={}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                   return_value=False), \
-                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo") as pedir, \
-                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
+                mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo") as pedir, \
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
         anunciar.assert_called_once_with(
@@ -5579,9 +5579,9 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         with mock.patch.object(gui.credenciales, "cargar", return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                   return_value=True), \
-                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=None), \
-                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
         anunciar.assert_called_once_with("No se transmitió.")
@@ -5600,11 +5600,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                                  "api_key": "k-prueba"}) as efectivas, \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                    return_value=True), \
-                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido) as pedir, \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube") as cliente, \
                 mock.patch.object(gui, "guardar_opcion") as guardar, \
-                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)), \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
@@ -5657,14 +5657,14 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                    return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                    return_value=True), \
-                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido), \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
                 mock.patch.object(gui, "guardar_opcion"), \
-                mock.patch("bellbird.youtube.emision.ganchos_youtube",
+                mock.patch("guyrapu.youtube.emision.ganchos_youtube",
                            return_value=(mock.Mock(), mock.Mock(),
                                          mock.Mock())) as ganchos, \
-                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)), \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
@@ -5688,11 +5688,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                    return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                    return_value=True), \
-                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido) as pedir, \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
                 mock.patch.object(gui, "guardar_opcion"), \
-                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)):
             frame._supervisar_transmision("iniciar", "YouTube", "")
         self.assertTrue(callable(pedir.call_args.args[-1]))
@@ -5704,10 +5704,10 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                   return_value=True), \
-                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido), \
                 mock.patch.object(gui, "guardar_opcion"), \
-                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
                 mock.patch.object(gui, "anunciar") as anunciar:
             frame._supervisar_transmision("iniciar", "YouTube", "")
         anunciar.assert_called_once_with("Falta el título del directo.")
@@ -5724,11 +5724,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                    return_value=True), \
-                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido) as pedir, \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
                 mock.patch.object(gui, "guardar_opcion"), \
-                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)):
             frame._supervisar_transmision(
                 "iniciar", "YouTube", "", revision=revision)
@@ -5740,8 +5740,8 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
     def test_tiktok_arranca_sin_ganchos_y_sin_pedir_datos(self):
         frame = self._frame()
         creados = []
-        with mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo") as pedir, \
-                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+        with mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo") as pedir, \
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)):
             frame._supervisar_transmision("iniciar", "TikTok", "u")
         pedir.assert_not_called()
@@ -5761,11 +5761,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                                return_value={"token": "t"}), \
                 mock.patch.object(gui.credenciales, "hay_sesion",
                                    return_value=True), \
-                mock.patch("bellbird.ui.gui_directo_youtube.pedir_datos_directo",
+                mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo",
                            return_value=pedido), \
                 mock.patch.object(gui.youtube_api, "ClienteYouTube"), \
                 mock.patch.object(gui, "guardar_opcion"), \
-                mock.patch("bellbird.obs.obs_supervisor.SupervisorTransmision",
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)):
             frame._supervisar_transmision("iniciar", "YouTube", "")
         return creados[0]["al_conectar_chat"]
@@ -5825,7 +5825,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
 
 class TestOrillaChat(unittest.TestCase):
     def _frame(self, seleccion, total):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame.lb_chat = mock.Mock()
         frame.lb_chat.GetSelection.return_value = seleccion
         frame.lb_chat.GetCount.return_value = total
@@ -5840,7 +5840,7 @@ class TestOrillaChat(unittest.TestCase):
         return evento
 
     def test_arriba_en_primera_fila_suena_y_se_omite(self):
-        from bellbird.core import sonidos_eventos
+        from guyrapu.core import sonidos_eventos
         frame = self._frame(0, 5)
         evento = self._tecla(sonidos_eventos.TECLA_FLECHA_ARRIBA)
         with mock.patch.object(gui._snd, "reproducir") as reproducir:
@@ -5849,7 +5849,7 @@ class TestOrillaChat(unittest.TestCase):
         evento.Skip.assert_called_once_with()
 
     def test_abajo_en_ultima_fila_suena_y_se_omite(self):
-        from bellbird.core import sonidos_eventos
+        from guyrapu.core import sonidos_eventos
         frame = self._frame(4, 5)
         evento = self._tecla(sonidos_eventos.TECLA_FLECHA_ABAJO)
         with mock.patch.object(gui._snd, "reproducir") as reproducir:
@@ -5858,7 +5858,7 @@ class TestOrillaChat(unittest.TestCase):
         evento.Skip.assert_called_once_with()
 
     def test_arriba_en_segunda_fila_no_suena(self):
-        from bellbird.core import sonidos_eventos
+        from guyrapu.core import sonidos_eventos
         frame = self._frame(1, 5)
         evento = self._tecla(sonidos_eventos.TECLA_FLECHA_ARRIBA)
         with mock.patch.object(gui._snd, "reproducir") as reproducir:
@@ -5871,7 +5871,7 @@ class TestFinDirectoGui(unittest.TestCase):
     """«fin_directo» cierra igual que «desconectado»: solo cambia el sonido."""
 
     def _frame_conectado(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._alive = True
         frame._conectado = True
         frame.chat_vivo = mock.Mock()
@@ -5925,9 +5925,9 @@ class TestFinDirectoGui(unittest.TestCase):
 
 class TestCableadoAnuncioAjuste(unittest.TestCase):
     def test_ajustar_volume_repetido_acorta_y_otro_control_completa(self):
-        from bellbird.core import anuncio_ajuste
-        from bellbird.core.anuncio_ajuste import AnuncioAjuste
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        from guyrapu.core import anuncio_ajuste
+        from guyrapu.core.anuncio_ajuste import AnuncioAjuste
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         volumen = [40]
         velocidad = [0]
         frame._worker = mock.Mock()
@@ -5938,16 +5938,16 @@ class TestCableadoAnuncioAjuste(unittest.TestCase):
         with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()), \
                 mock.patch.object(gui, "guardar_opcion"), \
                 mock.patch.object(gui, "anunciar") as anunciar:
-            gui.YTChatFrame._ajustar_volume(frame, +5)
-            gui.YTChatFrame._ajustar_volume(frame, +5)
-            gui.YTChatFrame._ajustar_rate(frame, +1)
+            gui.VentanaPrincipal._ajustar_volume(frame, +5)
+            gui.VentanaPrincipal._ajustar_volume(frame, +5)
+            gui.VentanaPrincipal._ajustar_rate(frame, +1)
         dichos = [llamada.args[0] for llamada in anunciar.call_args_list]
         self.assertEqual(dichos, ["Volumen de la voz: 45%", "50%", "Velocidad de la voz: 1"])
 
     def _frases_ajuste(self, metodo, inicial, *deltas):
-        from bellbird.core import anuncio_ajuste
-        from bellbird.core.anuncio_ajuste import AnuncioAjuste
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        from guyrapu.core import anuncio_ajuste
+        from guyrapu.core.anuncio_ajuste import AnuncioAjuste
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         valor = [inicial]
         frame._worker = mock.Mock()
         frame._worker.cambiar_volumen.side_effect = lambda d: valor.__setitem__(
@@ -5965,22 +5965,22 @@ class TestCableadoAnuncioAjuste(unittest.TestCase):
 
     def test_ajustar_volume_en_el_maximo_dice_maximo_completo_y_corto(self):
         self.assertEqual(
-            self._frases_ajuste(gui.YTChatFrame._ajustar_volume, 100, +5, +5),
+            self._frases_ajuste(gui.VentanaPrincipal._ajustar_volume, 100, +5, +5),
             ["Volumen de la voz: 100%, máximo", "100%, máximo"])
 
     def test_ajustar_volume_en_el_minimo_dice_minimo_completo_y_corto(self):
         self.assertEqual(
-            self._frases_ajuste(gui.YTChatFrame._ajustar_volume, 0, -5, -5),
+            self._frases_ajuste(gui.VentanaPrincipal._ajustar_volume, 0, -5, -5),
             ["Volumen de la voz: 0%, mínimo", "0%, mínimo"])
 
     def test_ajustar_rate_en_el_maximo_dice_maximo_completo_y_corto(self):
         self.assertEqual(
-            self._frases_ajuste(gui.YTChatFrame._ajustar_rate, 100, +1, +1),
+            self._frases_ajuste(gui.VentanaPrincipal._ajustar_rate, 100, +1, +1),
             ["Velocidad de la voz: 100, máximo", "100, máximo"])
 
     def test_ajustar_rate_en_el_minimo_dice_minimo_completo_y_corto(self):
         self.assertEqual(
-            self._frases_ajuste(gui.YTChatFrame._ajustar_rate, 0, -1, -1),
+            self._frases_ajuste(gui.VentanaPrincipal._ajustar_rate, 0, -1, -1),
             ["Velocidad de la voz: 0, mínimo", "0, mínimo"])
 
 
@@ -6021,7 +6021,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         del self.captados[:]
 
     def _marco(self, **extras):
-        marco = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        marco = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         marco._alive = True
         marco._apagando = False
         marco._conectado = False
@@ -6076,7 +6076,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         marco._actualizar_boton_directo = mock.Mock()
         marco._conectado = False
         marco._conectando = True
-        gui.YTChatFrame._on_conectar(marco, None)
+        gui.VentanaPrincipal._on_conectar(marco, None)
         self._exigir_marcados(1)
         marco._conectando = False
         marco.txt_url.GetValue.return_value = "   "
@@ -6088,7 +6088,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
             return 0
 
         with mock.patch.object(gui.wx, "MessageBox", caja):
-            gui.YTChatFrame._on_conectar(marco, None)
+            gui.VentanaPrincipal._on_conectar(marco, None)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
         marco.txt_url.GetValue.return_value = "abc"
@@ -6098,7 +6098,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         marco.on_conectar_cb = mock.Mock()
         with mock.patch.object(gui.wx, "CallAfter",
                                side_effect=lambda f, *a: f(*a)):
-            gui.YTChatFrame._on_conectar(marco, None)
+            gui.VentanaPrincipal._on_conectar(marco, None)
         self._exigir_marcados(1)
 
     def test_url_invalida_marca_anuncio_y_cuadro(self):
@@ -6113,18 +6113,18 @@ class TestPseudoAnunciosGui(unittest.TestCase):
             return 0
 
         with mock.patch.object(gui.wx, "MessageBox", caja):
-            gui.YTChatFrame.url_invalida(marco)
+            gui.VentanaPrincipal.url_invalida(marco)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
         self._exigir_marcados(1)
 
     def test_conectado_y_desconectado_marcados(self):
-        from bellbird.capture import deteccion
+        from guyrapu.capture import deteccion
         for tipo in (deteccion.LIVE, deteccion.UPCOMING, deteccion.VOD,
                      deteccion.DESCONOCIDO):
             marco = self._marco()
             marco.sesion.tipo_video = tipo
-            gui.YTChatFrame._anunciar_conectado(marco)
+            gui.VentanaPrincipal._anunciar_conectado(marco)
         self._exigir_marcados(4)
         marco = self._marco()
         marco._conectado = True
@@ -6136,34 +6136,34 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         marco.txt_url = mock.Mock()
         with mock.patch.object(gui.wx, "CallAfter",
                                side_effect=lambda f, *a: f(*a)):
-            gui.YTChatFrame.set_conectado(marco, False)
+            gui.VentanaPrincipal.set_conectado(marco, False)
         self._exigir_marcados(1)
 
     def test_voz_filtro_y_ajustes_marcados(self):
-        from bellbird.core import anuncio_ajuste
-        from bellbird.core.anuncio_ajuste import AnuncioAjuste
+        from guyrapu.core import anuncio_ajuste
+        from guyrapu.core.anuncio_ajuste import AnuncioAjuste
         marco = self._marco()
         marco._worker.cambiar_voz = mock.Mock()
         marco.voz_submenu = mock.Mock()
         marco._nombre_voz = mock.Mock(return_value="Voz")
         with mock.patch.object(gui, "guardar_opcion"):
-            gui.YTChatFrame._aplicar_voz(marco, 0)
+            gui.VentanaPrincipal._aplicar_voz(marco, 0)
         self._exigir_marcados(1)
         with mock.patch.object(gui, "guardar_opcion"):
-            gui.YTChatFrame._aplicar_filtro(marco, 0)
+            gui.VentanaPrincipal._aplicar_filtro(marco, 0)
         self._exigir_marcados(1)
         with mock.patch.object(anuncio_ajuste, "COMPARTIDO", AnuncioAjuste()), \
                 mock.patch.object(gui, "guardar_opcion"):
-            gui.YTChatFrame._ajustar_rate(marco, 5)
-            gui.YTChatFrame._ajustar_volume(marco, 5)
+            gui.VentanaPrincipal._ajustar_rate(marco, 5)
+            gui.VentanaPrincipal._ajustar_volume(marco, 5)
         self._exigir_marcados(2)
         marco.mi_sil_sonidos = mock.Mock()
         marco.mi_sil_lectura = mock.Mock()
         with mock.patch.object(gui, "guardar_opcion"):
-            gui.YTChatFrame._toggle_silenciar_sonidos(marco)
-            gui.YTChatFrame._toggle_silenciar_sonidos(marco)
-            gui.YTChatFrame._toggle_silenciar_lectura(marco)
-            gui.YTChatFrame._toggle_silenciar_lectura(marco)
+            gui.VentanaPrincipal._toggle_silenciar_sonidos(marco)
+            gui.VentanaPrincipal._toggle_silenciar_sonidos(marco)
+            gui.VentanaPrincipal._toggle_silenciar_lectura(marco)
+            gui.VentanaPrincipal._toggle_silenciar_lectura(marco)
         self._exigir_marcados(4)
 
     def test_pausa_vaciar_detener_e_incidencia_marcados(self):
@@ -6171,41 +6171,41 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         marco._worker.toggle_pausa = mock.Mock()
         marco._worker.esta_pausado = mock.Mock(side_effect=[True, False])
         marco._sincronizar_pausa = mock.Mock()
-        gui.YTChatFrame._on_pausa(marco, None)
-        gui.YTChatFrame._on_pausa(marco, None)
+        gui.VentanaPrincipal._on_pausa(marco, None)
+        gui.VentanaPrincipal._on_pausa(marco, None)
         self._exigir_marcados(2)
         marco._worker.vaciar_cola = mock.Mock()
-        gui.YTChatFrame._on_vaciar(marco, None)
+        gui.VentanaPrincipal._on_vaciar(marco, None)
         marco._worker.detener_actual = mock.Mock()
-        gui.YTChatFrame._on_detener_tts(marco, None)
+        gui.VentanaPrincipal._on_detener_tts(marco, None)
         with mock.patch.object(gui.diagnostico, "marcar_incidencia"):
-            gui.YTChatFrame._on_marcar_incidencia(marco, None)
+            gui.VentanaPrincipal._on_marcar_incidencia(marco, None)
         self._exigir_marcados(3)
         marco._descripcion_escena_en_curso = True
-        gui.YTChatFrame._anunciar_descripcion_escena(marco, "")
+        gui.VentanaPrincipal._anunciar_descripcion_escena(marco, "")
         self._exigir_marcados(1)
 
     def test_copias_silenciamientos_y_enlace_marcados(self):
-        from bellbird.ui.lista_chat import MensajeChat
+        from guyrapu.ui.lista_chat import MensajeChat
         marco = self._marco()
         dato = MensajeChat(plataforma="youtube", autor="Ana", identificador="c1",
                            texto="hola http://x", hora="10:00", tipo="texto",
                            monto="", rol="")
         marco._get_selected_data = mock.Mock(return_value=dato)
         marco._clipboard_set = mock.Mock()
-        gui.YTChatFrame._copiar_mensaje(marco)
+        gui.VentanaPrincipal._copiar_mensaje(marco)
         self._exigir_marcados(1)
-        gui.YTChatFrame._copiar_enlace_directo(marco)
+        gui.VentanaPrincipal._copiar_enlace_directo(marco)
         self._exigir_marcados(1)
         marco.sesion.enlace_directo = "http://directo"
-        gui.YTChatFrame._copiar_enlace_directo(marco)
+        gui.VentanaPrincipal._copiar_enlace_directo(marco)
         self._exigir_marcados(1)
-        gui.YTChatFrame._copiar_todo(marco)
+        gui.VentanaPrincipal._copiar_todo(marco)
         self._exigir_marcados(1)
         marco._config.setdefault("silenciados_runtime", set())
         marco._config.setdefault("silenciados_ocultar", set())
-        gui.YTChatFrame._silenciar_autor(marco, "Ana", False)
-        gui.YTChatFrame._rehabilitar_autor(marco, "Ana")
+        gui.VentanaPrincipal._silenciar_autor(marco, "Ana", False)
+        gui.VentanaPrincipal._rehabilitar_autor(marco, "Ana")
         self._exigir_marcados(2)
         marco._get_selected_data = mock.Mock(return_value=None)
         captado = {}
@@ -6219,7 +6219,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         with mock.patch.object(gui, "_URL_RE",
                                mock.Mock(findall=mock.Mock(return_value=[]))), \
                 mock.patch.object(gui.wx, "MessageBox", caja):
-            gui.YTChatFrame._abrir_enlace(marco)
+            gui.VentanaPrincipal._abrir_enlace(marco)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
         self._exigir_marcados(1)
@@ -6227,7 +6227,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
                                mock.Mock(findall=mock.Mock(
                                    return_value=["http://x"]))), \
                 mock.patch.object(gui.webbrowser, "open"):
-            gui.YTChatFrame._abrir_enlace(marco)
+            gui.VentanaPrincipal._abrir_enlace(marco)
         self._exigir_marcados(1)
 
     def test_alias_marca_cuadro_y_anuncio(self):
@@ -6252,7 +6252,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
                 mock.patch.object(gui.alias, "usar"), \
                 mock.patch.object(gui.paths, "alias",
                                   return_value="ruta"):
-            gui.YTChatFrame._editar_alias_autor(marco, "Ana")
+            gui.VentanaPrincipal._editar_alias_autor(marco, "Ana")
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
         self._exigir_marcados(1)
@@ -6267,26 +6267,26 @@ class TestPseudoAnunciosGui(unittest.TestCase):
             return 0
 
         with mock.patch.object(gui.wx, "MessageBox", caja):
-            gui.YTChatFrame._on_about(marco, None)
+            gui.VentanaPrincipal._on_about(marco, None)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
         with mock.patch(
-                "bellbird.ui.gui_preferencias.abrir_preferencias",
+                "guyrapu.ui.gui_preferencias.abrir_preferencias",
                 side_effect=RuntimeError("boom")):
             with mock.patch.object(gui.wx, "MessageBox", caja):
-                gui.YTChatFrame._on_preferencias(marco, None)
+                gui.VentanaPrincipal._on_preferencias(marco, None)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
         with mock.patch(
-                "bellbird.ui.gui_descargas.abrir",
+                "guyrapu.ui.gui_descargas.abrir",
                 side_effect=RuntimeError("boom")):
             with mock.patch.object(gui.wx, "MessageBox", caja):
-                gui.YTChatFrame._abrir_descargas(marco)
+                gui.VentanaPrincipal._abrir_descargas(marco)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
 
     def test_tipos_y_tiktok_pasan_marcados(self):
-        from bellbird.capture import deteccion
+        from guyrapu.capture import deteccion
         fijados = []
         marco = self._marco()
         marco.chat_vivo.descartar = mock.Mock()
@@ -6301,14 +6301,14 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         marco._actualizar_boton_directo = mock.Mock()
         for tipo in (deteccion.LIVE, deteccion.UPCOMING, deteccion.VOD,
                      "otro"):
-            gui.YTChatFrame.set_tipo_video(marco, tipo, "video")
+            gui.VentanaPrincipal.set_tipo_video(marco, tipo, "video")
         self.assertEqual(len(fijados), 4)
         for texto in fijados:
             self.assertTrue(texto.startswith("[¡"), texto)
         del fijados[:]
         avisos = []
         marco._com_panel.mostrar_no_disponible = avisos.append
-        gui.YTChatFrame.configurar_tiktok(marco, "usuario", "http://flujo")
+        gui.VentanaPrincipal.configurar_tiktok(marco, "usuario", "http://flujo")
         self.assertTrue(fijados[0].startswith("[¡"), fijados[0])
         self.assertTrue(avisos[0].startswith("[¡"), avisos[0])
 
@@ -6318,7 +6318,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
         marco.txt_url = mock.Mock()
         with mock.patch.object(gui.wx, "CallAfter",
                                side_effect=lambda f, *a: f(*a)):
-            gui.YTChatFrame.set_conectado(marco, False)
+            gui.VentanaPrincipal.set_conectado(marco, False)
         fijado = marco._fijar_tipo.call_args.args[0]
         self.assertTrue(fijado.startswith("[¡"), fijado)
         self._exigir_marcados(1)
@@ -6343,7 +6343,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
             return dialogo
 
         with mock.patch.object(gui.wx, "MessageDialog", fabrica):
-            gui.YTChatFrame._on_close(marco, evento)
+            gui.VentanaPrincipal._on_close(marco, evento)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
         evento.Veto.assert_called_once_with()
@@ -6390,7 +6390,7 @@ class TestPseudoVentanaPrincipal(unittest.TestCase):
 
     def _ventana(self):
         from types import SimpleNamespace
-        from bellbird.player import reproductor
+        from guyrapu.player import reproductor
         configuracion = {
             "atajos_raw": {}, "filtro_activo": "todos",
             "mostrar_botones_reproductor": False, "mostrar_metadatos": True,
@@ -6402,7 +6402,7 @@ class TestPseudoVentanaPrincipal(unittest.TestCase):
         with mock.patch.object(gui.diagnostico, "crear_hilo"), \
                 mock.patch.object(reproductor, "disponible",
                                   return_value=True):
-            frame = gui.YTChatFrame(None, configuracion, queue.Queue(),
+            frame = gui.VentanaPrincipal(None, configuracion, queue.Queue(),
                                     stats, worker, __import__("threading").Event())
         self.addCleanup(destruir, frame)
         frame.ShowWithoutActivating()
@@ -6430,7 +6430,7 @@ class TestPseudoIrRegion(unittest.TestCase):
 
     def _ventana(self):
         from types import SimpleNamespace
-        from bellbird.player import reproductor
+        from guyrapu.player import reproductor
         configuracion = {
             "atajos_raw": {}, "filtro_activo": "todos",
             "mostrar_botones_reproductor": False, "mostrar_metadatos": True,
@@ -6442,7 +6442,7 @@ class TestPseudoIrRegion(unittest.TestCase):
         with mock.patch.object(gui.diagnostico, "crear_hilo"), \
                 mock.patch.object(reproductor, "disponible",
                                   return_value=True):
-            frame = gui.YTChatFrame(None, configuracion, queue.Queue(),
+            frame = gui.VentanaPrincipal(None, configuracion, queue.Queue(),
                                     stats, worker, __import__("threading").Event())
         self.addCleanup(destruir, frame)
         frame.ShowWithoutActivating()
@@ -6454,11 +6454,11 @@ class TestPseudoIrRegion(unittest.TestCase):
         with con_pseudo(), mock.patch.object(gui, "anunciar",
                                              captados.append):
             frame = self._ventana()
-            gui.YTChatFrame._ir_region(frame, gui.REG_CONEXION)
+            gui.VentanaPrincipal._ir_region(frame, gui.REG_CONEXION)
             frame._conectado = True
             frame._mostrar_zona(True)
             gui.wx.Yield()
-            gui.YTChatFrame._ir_region(frame, gui.REG_CONTENIDO)
+            gui.VentanaPrincipal._ir_region(frame, gui.REG_CONTENIDO)
         self.assertEqual(len(captados), 2)
         for frase in captados:
             self.assertTrue(frase.startswith("[¡"), frase)

@@ -18,10 +18,10 @@ from TikTokLiveProto.v3.webcast.model.message import (
     PollUpdateVotesContent,
 )
 
-from bellbird.capture import encuestas
-from bellbird.capture import tiktok_encuestas
-from bellbird.capture.tiktok_manejadores import registrar_manejadores
-from bellbird.core.tipos_mensaje import TIPO_ENCUESTA, TIPO_ENCUESTA_FIN
+from guyrapu.capture import encuestas
+from guyrapu.capture import tiktok_encuestas
+from guyrapu.capture.tiktok_manejadores import registrar_manejadores
+from guyrapu.core.tipos_mensaje import TIPO_ENCUESTA, TIPO_ENCUESTA_FIN
 import main
 
 

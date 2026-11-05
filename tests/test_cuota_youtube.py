@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.core import paths
-from bellbird.youtube import cuota
+from guyrapu.core import paths
+from guyrapu.youtube import cuota
 from tests.rutas_temporales import redirigir_rutas
 
 

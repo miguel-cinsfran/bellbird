@@ -87,7 +87,7 @@ echo == Ensamblando la carpeta distribuible ==
 REM Version desde config.py (fuente unica): nombra la carpeta y el zip como
 REM "Bellbird vX.Y.Z", asi el archivo que se manda y la carpeta al descomprimir
 REM dejan clara la version.
-for /f "delims=" %%v in ('uv run python -c "from bellbird.core import config;print(config.APP_VERSION)"') do set "VER=%%v"
+for /f "delims=" %%v in ('uv run python -c "from guyrapu.core import config;print(config.APP_VERSION)"') do set "VER=%%v"
 if not defined VER ( echo ERROR: no se pudo leer la version de config.py. & pause & exit /b 1 )
 set "OUT=Bellbird v%VER%"
 REM Ojo: "^>" escapado; un ">" literal en echo redirige y crea un archivo basura.
@@ -157,7 +157,7 @@ if defined FFEXE (
 )
 echo == Empaquetando yt-dlp independiente ==
 echo    La primera vez descarga yt-dlp desde GitHub y puede tardar.
-call uv run python -c "import shutil; from bellbird.downloads import ytdlp_actualizar, ytdlp_bin; from pathlib import Path; r=ytdlp_actualizar.asegurar_ytdlp(); p=ytdlp_bin.ruta_ytdlp(); d=Path(r'%OUT%') / 'yt-dlp.exe'; shutil.copy2(p,d) if r.correcta and p else None; print('   ' + ('resultado: ' if r.correcta else 'AVISO: ') + r.motivo)"
+call uv run python -c "import shutil; from guyrapu.downloads import ytdlp_actualizar, ytdlp_bin; from pathlib import Path; r=ytdlp_actualizar.asegurar_ytdlp(); p=ytdlp_bin.ruta_ytdlp(); d=Path(r'%OUT%') / 'yt-dlp.exe'; shutil.copy2(p,d) if r.correcta and p else None; print('   ' + ('resultado: ' if r.correcta else 'AVISO: ') + r.motivo)"
 REM El lanzador del entorno pesa unos 45 KB; el ejecutable oficial observado
 REM el 21/08/2026 pesa unos 17 MB. Un MiB deja margen y descarta el lanzador.
 set "YTDLP_MIN_BYTES=1048576"
@@ -224,7 +224,7 @@ if not exist "%OUT%\_internal\googleapiclient\discovery_cache\documents\youtube.
 if not exist "%OUT%\_internal\prism\_native\_prism_cffi.pyd" ( echo ERROR: falta _prism_cffi.pyd en prism\_native; sin Prism la app arrancaria sin voz ni lector de pantalla. & pause & exit /b 1 )
 if not exist "%OUT%\modelos\face_detection_yunet_2023mar.onnx" ( echo ERROR: falta el modelo del detector de rostros en modelos; el encuadre de camara no funcionaria. & pause & exit /b 1 )
 REM Cada .po del repositorio tiene que viajar compilado en el paquete.
-for /D %%c in ("idiomas\*") do if exist "%%c\LC_MESSAGES\bellbird.po" if not exist "%OUT%\idiomas\%%~nxc\LC_MESSAGES\bellbird.mo" ( echo ERROR: falta el catalogo compilado de %%~nxc en el paquete. & pause & exit /b 1 )
+for /D %%c in ("idiomas\*") do if exist "%%c\LC_MESSAGES\guyrapu.po" if not exist "%OUT%\idiomas\%%~nxc\LC_MESSAGES\guyrapu.mo" ( echo ERROR: falta el catalogo compilado de %%~nxc en el paquete. & pause & exit /b 1 )
 echo == Comprobando que el paquete carga lo critico ==
 del /q "%TEMP%\bellbird-autocomprobacion.txt" 2>nul
 start "" /wait "%OUT%\Bellbird.exe" --autocomprobar "%TEMP%\bellbird-autocomprobacion.txt"

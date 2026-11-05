@@ -7,8 +7,8 @@ import threading
 import time
 import unittest
 
-from bellbird.ai import envio_ia
-from bellbird.ai import protocolos
+from guyrapu.ai import envio_ia
+from guyrapu.ai import protocolos
 
 
 CLAVE = "clave-secreta-de-prueba"

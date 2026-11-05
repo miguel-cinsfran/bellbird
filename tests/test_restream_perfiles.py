@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from bellbird.restream.perfiles import Perfil, cargar, guardar, validar
+from guyrapu.restream.perfiles import Perfil, cargar, guardar, validar
 
 
 def _perfil(**cambios):

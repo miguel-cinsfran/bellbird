@@ -2,8 +2,8 @@
 
 import unittest
 
-from bellbird.restream import canal_youtube
-from bellbird.restream.api import Canal
+from guyrapu.restream import canal_youtube
+from guyrapu.restream.api import Canal
 
 
 def _canal(plataforma_id, nombre, identificador="", activo=True):
@@ -18,7 +18,7 @@ class TestComparar(unittest.TestCase):
         self.assertEqual(canal_youtube.SIN_CANAL,
                          canal_youtube.comparar(canales, "UCsesion"))
 
-    def test_sin_sesion_de_bellbird(self):
+    def test_sin_sesion_de_la_app(self):
         canales = [_canal(5, "youtube", "UCrestream")]
         self.assertEqual(canal_youtube.SIN_CANAL,
                          canal_youtube.comparar(canales, ""))

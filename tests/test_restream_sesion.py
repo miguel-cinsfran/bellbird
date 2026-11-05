@@ -5,7 +5,7 @@ import time
 import unittest
 from unittest import mock
 
-from bellbird.restream.sesion import (
+from guyrapu.restream.sesion import (
     RechazoDeConcesion,
     Sesion,
     SesionVencida,

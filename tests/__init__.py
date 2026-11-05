@@ -4,7 +4,7 @@ import errno
 import os
 import socket
 
-os.environ.setdefault("BELLBIRD_IDIOMA", "es")
+os.environ.setdefault("GUYRAPU_IDIOMA", "es")
 
 
 def _es_destino_local(destino):
@@ -32,7 +32,7 @@ def _con_bloqueo(conectar):
     return conectado
 
 
-if os.environ.get("BELLBIRD_PRUEBAS_CON_RED") != "1":
+if os.environ.get("GUYRAPU_PRUEBAS_CON_RED") != "1":
     # create_connection llama a connect, así que parchear connect alcanza.
     socket.socket.connect = _con_bloqueo(socket.socket.connect)
     socket.socket.connect_ex = _con_bloqueo(socket.socket.connect_ex)

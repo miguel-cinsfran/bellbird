@@ -2,8 +2,8 @@
 
 import unittest
 
-from bellbird.obs import escucha_microfono
-from bellbird.obs.obs_cliente import ObsError
+from guyrapu.obs import escucha_microfono
+from guyrapu.obs.obs_cliente import ObsError
 
 TIPO_LECTURA = "GetInputAudioMonitorType"
 TIPO_ESCRITURA = "SetInputAudioMonitorType"

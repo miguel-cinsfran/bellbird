@@ -1,9 +1,9 @@
 import unittest
 from unittest import mock
 
-from bellbird.obs import obs_cliente
-from bellbird.obs import obs_vigilante
-from bellbird.obs.obs_vigilante import EstadoObs, PLAZO_FRESCURA, VigilanteObs, dato_fresco
+from guyrapu.obs import obs_cliente
+from guyrapu.obs import obs_vigilante
+from guyrapu.obs.obs_vigilante import EstadoObs, PLAZO_FRESCURA, VigilanteObs, dato_fresco
 
 
 class TestFrescura(unittest.TestCase):

@@ -4,9 +4,9 @@ import threading
 import unittest
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.obs import obs_cliente
-from bellbird.obs import obs_destinos
-from bellbird.obs.obs_destinos import (
+from guyrapu.obs import obs_cliente
+from guyrapu.obs import obs_destinos
+from guyrapu.obs.obs_destinos import (
     Destino, cambiar_coleccion, coleccion_para, frase_destino_listo,
     preparar_destino, preparar_para_transmitir, usa_usuario_tiktok)
 

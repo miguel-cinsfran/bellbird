@@ -10,10 +10,10 @@ from unittest import mock
 
 import wx
 
-from bellbird.core import paths
-from bellbird.core.eventos_sonido import EVENTOS
-from bellbird.ui import preferencias_sonidos
-from bellbird.ui.preferencias_sonidos import PaginaSonidos
+from guyrapu.core import paths
+from guyrapu.core.eventos_sonido import EVENTOS
+from guyrapu.ui import preferencias_sonidos
+from guyrapu.ui.preferencias_sonidos import PaginaSonidos
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import app_de_prueba
 
@@ -100,7 +100,7 @@ class TestPaginaSonidos(unittest.TestCase):
             self.assertTrue(ruta.endswith(f"{EVENTOS[0]}.wav"))
 
     def test_cambiar_tema_suena_muestra_sin_guardar(self):
-        from bellbird.core import config as cfg
+        from guyrapu.core import config as cfg
         pagina = PaginaSonidos()
         pagina.cho_tema = mock.Mock()
         pagina._temas = ["default", "suave"]
@@ -120,7 +120,7 @@ class TestPaginaSonidos(unittest.TestCase):
         evento.Skip.assert_called_once_with()
 
     def test_elegir_tema_en_control_suena_muestra(self):
-        from bellbird.core import config as cfg
+        from guyrapu.core import config as cfg
         pagina = self._pagina_con_temas(["default", "suave"], "default")
         pagina.cho_tema.SetStringSelection("Suave")
         evento = wx.CommandEvent(wx.wxEVT_CHOICE, pagina.cho_tema.GetId())

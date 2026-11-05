@@ -2,8 +2,8 @@
 
 import unittest
 
-from bellbird.downloads import filas_descargas
-from bellbird.downloads.descargas import ItemDescarga
+from guyrapu.downloads import filas_descargas
+from guyrapu.downloads.descargas import ItemDescarga
 
 
 def _item(ident, estado="en_cola", nombre=None, url=None, mensaje="",

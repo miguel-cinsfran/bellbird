@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.capture.montos import parsear_monto, sumar_monto, texto_importes
+from guyrapu.capture.montos import parsear_monto, sumar_monto, texto_importes
 
 
 class TestParsearMonto(unittest.TestCase):

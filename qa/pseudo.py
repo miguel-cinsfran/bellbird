@@ -1,6 +1,6 @@
 """Barrido de la aplicación con la pseudotraducción puesta.
 
-Arranca la app con `BELLBIRD_IDIOMA=pseudo`, recorre la ventana principal,
+Arranca la app con `GUYRAPU_IDIOMA=pseudo`, recorre la ventana principal,
 los menús, los cuadros que abren, Preferencias y una sesión simulada, anota
 cada texto que no lleva la marca `[¡...!]` y se lanza con
 `python qa/pseudo.py`.
@@ -20,7 +20,7 @@ for _ruta in (_QA.parent, _QA):
     if str(_ruta) not in sys.path:
         sys.path.insert(0, str(_ruta))
 
-from bellbird.obs.fuente_chat import NOMBRE_FUENTE as NOMBRE_FUENTE_CHAT  # noqa: E402
+from guyrapu.obs.fuente_chat import NOMBRE_FUENTE as NOMBRE_FUENTE_CHAT  # noqa: E402
 
 TITULO_DIRECTO = "Directo de prueba"
 AUTOR_MENSAJE = "rolon_100"
@@ -373,8 +373,8 @@ def main():
     from conducir import (Aplicacion, Resultado, cerrar_obs_del_banco,
                           debe_cerrar_obs_al_final, obs_abierto)
 
-    os.environ["BELLBIRD_IDIOMA"] = "pseudo"
-    carpeta = Path(tempfile.mkdtemp(prefix="bellbird-pseudo-"))
+    os.environ["GUYRAPU_IDIOMA"] = "pseudo"
+    carpeta = Path(tempfile.mkdtemp(prefix="guyrapu-pseudo-"))
     app = Aplicacion(carpeta)
     res = Resultado()
     recolector = Recolector(PROPIOS)

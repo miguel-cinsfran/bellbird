@@ -1,10 +1,10 @@
-"""El núcleo de bellbird no puede depender de wxPython."""
+"""El núcleo de guyrapu no puede depender de wxPython."""
 
 import ast
 import unittest
 from pathlib import Path
 
-RAIZ = Path(__file__).resolve().parent.parent / "bellbird" / "core"
+RAIZ = Path(__file__).resolve().parent.parent / "guyrapu" / "core"
 
 # La autocomprobación del paquete comprueba que wx está empaquetado, así que
 # necesita importarlo. Es la única excepción del núcleo.

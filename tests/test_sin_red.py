@@ -22,8 +22,8 @@ class _Manejador(http.server.BaseHTTPRequestHandler):
 class TestBloqueo(unittest.TestCase):
 
     @unittest.skipUnless(
-        os.environ.get("BELLBIRD_PRUEBAS_CON_RED") != "1",
-        "prueba del bloqueo desactivada: BELLBIRD_PRUEBAS_CON_RED=1")
+        os.environ.get("GUYRAPU_PRUEBAS_CON_RED") != "1",
+        "prueba del bloqueo desactivada: GUYRAPU_PRUEBAS_CON_RED=1")
     def test_destino_publico_falla_sin_esperar(self):
         sock = socket.socket()
         sock.settimeout(2.0)

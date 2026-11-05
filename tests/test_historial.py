@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from bellbird.core import historial as h
+from guyrapu.core import historial as h
 
 
 class TestUpsert(unittest.TestCase):

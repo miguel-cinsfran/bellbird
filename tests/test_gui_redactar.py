@@ -3,8 +3,8 @@ from unittest import mock
 
 import wx
 
-from bellbird.core.idioma import _
-from bellbird.ui import gui_redactar
+from guyrapu.core.idioma import _
+from guyrapu.ui import gui_redactar
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import app_de_prueba, destruir
 
@@ -156,7 +156,7 @@ class TestDialogoRedactar(unittest.TestCase):
         destruir(dialogo)
 
 
-# La etiqueta del panel suelto la armaba `bellbird/ui/gui.py` («&Mensaje:»):
+# La etiqueta del panel suelto la armaba `guyrapu/ui/gui.py` («&Mensaje:»):
 # ya pasa por gettext, así que no queda pendiente. La comparación es exacta
 # en los dos sentidos: falla si aparece un texto nuevo sin envolver.
 PENDIENTES_REDACTAR = ()

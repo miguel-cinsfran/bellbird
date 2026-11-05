@@ -12,7 +12,7 @@ from pathlib import Path
 from babel.messages import catalog, pofile
 
 from scripts import traducciones
-from bellbird.core import idioma
+from guyrapu.core import idioma
 
 RAIZ = Path(__file__).resolve().parent.parent
 
@@ -48,7 +48,7 @@ class TestCatalogoIngles(unittest.TestCase):
 
 def _escribir_po(ruta, entradas):
     """Escribe un .po temporal con (msgid, msgstr) para probar `revisar`."""
-    catalogo = catalog.Catalog(locale="en", domain="bellbird")
+    catalogo = catalog.Catalog(locale="en", domain="guyrapu")
     for original, traducido in entradas:
         catalogo.add(original, traducido, locations=[("app.py", 1)])
     with ruta.open("wb") as salida:
@@ -60,7 +60,7 @@ class TestRevisar(unittest.TestCase):
 
     def _revisar(self, entradas):
         with tempfile.TemporaryDirectory() as tmp:
-            po = Path(tmp) / "bellbird.po"
+            po = Path(tmp) / "guyrapu.po"
             _escribir_po(po, entradas)
             salida = io.StringIO()
             with contextlib.redirect_stdout(salida):

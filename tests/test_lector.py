@@ -7,7 +7,7 @@ from unittest import mock
 from prism import BackendId, PrismError
 from prism.common import PrismNotImplementedError
 
-from bellbird.voice import lector
+from guyrapu.voice import lector
 
 
 class BackendFalso:

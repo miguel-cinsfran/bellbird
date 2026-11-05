@@ -6,10 +6,10 @@ import re
 import time
 
 from banco_app import VentanaNoActiva
-from bellbird.music import anuncios as anuncios_musica
-from bellbird.music import enlaces as enlaces_musica
-from bellbird.music import listas as listas_musica
-from bellbird.music import vista as vista_musica
+from guyrapu.music import anuncios as anuncios_musica
+from guyrapu.music import enlaces as enlaces_musica
+from guyrapu.music import listas as listas_musica
+from guyrapu.music import vista as vista_musica
 
 NOMBRE_LISTA = "QA música real"
 

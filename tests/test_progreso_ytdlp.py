@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from bellbird.downloads.progreso_ytdlp import (
+from guyrapu.downloads.progreso_ytdlp import (
     PLANTILLA_DESCARGA,
     PLANTILLA_PROCESO,
     analizar_linea_descarga,

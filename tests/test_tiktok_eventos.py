@@ -15,12 +15,12 @@ import unittest
 from unittest import mock
 
 import main
-from bellbird.capture import tiktok_captura
-from bellbird.capture.tiktok_captura import (
+from guyrapu.capture import tiktok_captura
+from guyrapu.capture.tiktok_captura import (
     debe_pasar_me_gusta, es_historico, _envolver_marcador_historico,
 )
-from bellbird.core import sonidos_eventos
-from bellbird.core.config import (
+from guyrapu.core import sonidos_eventos
+from guyrapu.core.config import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_SEGUIR,
     TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA, TIPO_ENTRADA,
 )
@@ -69,7 +69,7 @@ class TestEsHistorico(unittest.TestCase):
 
     def test_con_marca_si(self):
         ev = types.SimpleNamespace()
-        ev._ytchat_historico = True
+        ev._historico = True
         self.assertTrue(es_historico(ev))
 
     def test_nunca_lanza(self):
@@ -145,7 +145,7 @@ class TestManejadoresNuevos(unittest.TestCase):
         self.assertEqual(recibidos[0][0], "Pepe")
 
     def test_rafaga_de_me_gusta_sale_agrupada_al_vencer(self):
-        from bellbird.capture import tiktok_manejadores
+        from guyrapu.capture import tiktok_manejadores
         recibidos = []
         cliente, mod_eventos = self._sesion(recibidos)
         ahora_ms = (self.CONECTADO + 1) * 1000
@@ -167,7 +167,7 @@ class TestManejadoresNuevos(unittest.TestCase):
         recibidos = []
         cliente, mod_eventos = self._sesion(recibidos)
         historico = self._evento((self.CONECTADO + 1) * 1000)
-        historico._ytchat_historico = True
+        historico._historico = True
         asyncio.run(cliente.manejadores[mod_eventos.FollowEvent](historico))
         previo = self._evento((self.CONECTADO - 10) * 1000)
         asyncio.run(cliente.manejadores[mod_eventos.FollowEvent](previo))
@@ -182,13 +182,13 @@ class TestManejadoresNuevos(unittest.TestCase):
             recibidos, {"evento_entrada": "principal"})
         for nombre_clase in ("SubscribeEvent", "JoinEvent"):
             historico = self._evento((self.CONECTADO + 1) * 1000)
-            historico._ytchat_historico = True
+            historico._historico = True
             asyncio.run(cliente.manejadores[
                 getattr(mod_eventos, nombre_clase)](historico))
         self.assertEqual(recibidos, [])
 
     def test_cambiar_los_segundos_vale_para_los_grupos_siguientes(self):
-        from bellbird.capture import tiktok_manejadores
+        from guyrapu.capture import tiktok_manejadores
         recibidos = []
         config = {"tiktok_segundos_me_gusta": 10}
         cliente, mod_eventos = self._sesion(recibidos, config)
@@ -307,7 +307,7 @@ class TestEnvoltorioHistoricoReal(unittest.TestCase):
         # anotar): el envoltorio devuelve los eventos del original.
         class _EventoQueExplota:
             def __setattr__(self, nombre, valor):
-                if nombre == "_ytchat_historico":
+                if nombre == "_historico":
                     raise KeyError("no acepta marcas")
                 object.__setattr__(self, nombre, valor)
 
@@ -518,7 +518,7 @@ class TestMeGustaConLectura(unittest.TestCase):
 
 class TestSesionPasaOnEstado(unittest.TestCase):
     def test_sesion_pasa_su_on_estado_a_registrar(self):
-        from bellbird.capture import tiktok_manejadores
+        from guyrapu.capture import tiktok_manejadores
         cliente = _ClienteFalso()
         mod_tiktok, mod_eventos = _modulos_falsos(cliente)
         parada = threading.Event()
@@ -541,9 +541,9 @@ class TestSesionPasaOnEstado(unittest.TestCase):
 
 class TestGuiMeGustaYRegalo(unittest.TestCase):
     def _frame(self):
-        from bellbird.ui import gui
-        from bellbird.ui.chat_vivo import ControladorChat
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        from guyrapu.ui import gui
+        from guyrapu.ui.chat_vivo import ControladorChat
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._config = {"limpiar_emojis": True}
         frame._autor_esta_oculto = lambda autor: False
         frame._sumar_superchat = mock.Mock()
@@ -557,13 +557,13 @@ class TestGuiMeGustaYRegalo(unittest.TestCase):
         return frame
 
     def _procesar(self, frame, registro):
-        from bellbird.ui import chat_vivo
+        from guyrapu.ui import chat_vivo
         with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir:
             visible = frame.chat_vivo._procesar(registro)
         return visible, reproducir.call_args.args[0]
 
     def _registro(self, **extras):
-        from bellbird.ui.lista_chat import MensajeChat
+        from guyrapu.ui.lista_chat import MensajeChat
         base = {"plataforma": "tiktok", "autor": "Ana", "identificador": "C",
                 "texto": "", "hora": "12:00", "tipo": TIPO_ME_GUSTA,
                 "monto": "", "rol": ""}
@@ -571,7 +571,7 @@ class TestGuiMeGustaYRegalo(unittest.TestCase):
         return MensajeChat(**base)
 
     def test_me_gusta_entra_a_la_lista_con_su_texto(self):
-        from bellbird.ui.lista_chat import texto_fila
+        from guyrapu.ui.lista_chat import texto_fila
         frame = self._frame()
         visible, sonido = self._procesar(frame, self._registro(monto="3"))
         self.assertEqual(sonido, "me_gusta")
@@ -580,7 +580,7 @@ class TestGuiMeGustaYRegalo(unittest.TestCase):
             texto_fila("Ana", "", "12:00", TIPO_ME_GUSTA, "3"))
 
     def test_dos_me_gusta_seguidos_suenan_una_vez_y_dejan_dos_filas(self):
-        from bellbird.ui import chat_vivo
+        from guyrapu.ui import chat_vivo
         frame = self._frame()
         with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir, \
                 mock.patch.object(chat_vivo.time, "monotonic",

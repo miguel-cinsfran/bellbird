@@ -79,7 +79,7 @@ wx de nivel superior, y eso no es una: no se fuerza y queda anotado en el
 
 ## Barrido con pseudotraducción
 
-`pseudo.py` arranca la aplicación con `BELLBIRD_IDIOMA=pseudo` y recorre la
+`pseudo.py` arranca la aplicación con `GUYRAPU_IDIOMA=pseudo` y recorre la
 ventana principal, la barra de menú, los cuadros que abren las entradas que
 terminan en «…», cada categoría de Preferencias y una sesión simulada de
 YouTube con un mensaje y F2. Lista cada texto que no salió marcado con

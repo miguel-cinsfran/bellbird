@@ -3,8 +3,8 @@
 import unittest
 from unittest import mock
 
-from bellbird.ai import proveedores
-from bellbird.ui import preferencias_ia_lista
+from guyrapu.ai import proveedores
+from guyrapu.ui import preferencias_ia_lista
 
 
 class _Panel:

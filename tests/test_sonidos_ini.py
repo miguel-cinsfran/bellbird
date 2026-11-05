@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.core import sonidos_ini
+from guyrapu.core import sonidos_ini
 
 
 TEXTO_BASE = """# Comentario de cabecera

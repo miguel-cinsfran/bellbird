@@ -4,20 +4,20 @@ import unittest
 import inspect
 from unittest import mock
 
-from bellbird.core.config import (
+from guyrapu.core.config import (
     _normalizar_atajo, parsear_atajos, detectar_conflictos_atajos,
     ATAJOS_DEFAULTS, ATAJOS_AREA, atajo_valido_para_area,
     ATAJOS_FIJOS, ATAJOS_FIJOS_DEFAULTS, ATAJOS_GRUPOS, todos_los_atajos_default,
     _AREA_POR_GRUPO,
 )
-from bellbird.ui import gui_preferencias
-from bellbird.ui import preferencias_atajos
-from bellbird.ui import gui
-from bellbird.ui import gui_menu
-from bellbird.ui import atajos_captura
-from bellbird.core import config
-from bellbird.core import atajos
-from bellbird.ui.gui_preferencias import _ETIQUETAS_ATAJO, etiqueta_de_accion
+from guyrapu.ui import gui_preferencias
+from guyrapu.ui import preferencias_atajos
+from guyrapu.ui import gui
+from guyrapu.ui import gui_menu
+from guyrapu.ui import atajos_captura
+from guyrapu.core import config
+from guyrapu.core import atajos
+from guyrapu.ui.gui_preferencias import _ETIQUETAS_ATAJO, etiqueta_de_accion
 
 
 class TestNormalizarAtajo(unittest.TestCase):
@@ -374,7 +374,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertEqual(etiqueta_de_accion("guardar_clip"), "Guardar clip")
 
     def test_guardar_clip_aparece_en_el_menu_obs_con_su_atajo(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
 
         etiquetas = []
 
@@ -399,7 +399,7 @@ class TestParsearAtajos(unittest.TestCase):
             for etiqueta in etiquetas))
 
     def test_las_acciones_de_ventanas_que_salieron_no_existen(self):
-        from bellbird.ui.atajos_captura import ETIQUETAS
+        from guyrapu.ui.atajos_captura import ETIQUETAS
 
         acciones = {accion for _titulo, grupo in ATAJOS_GRUPOS
                     for accion in grupo}
@@ -434,8 +434,8 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertTrue(all(accion in parsear_atajos({}) for accion in acciones))
 
     def test_menus_usan_el_sistema_para_los_nuevos_atajos(self):
-        from bellbird.ui import menu_obs
-        from bellbird.ui import menu_transmision
+        from guyrapu.ui import menu_obs
+        from guyrapu.ui import menu_transmision
         fuente = inspect.getsource(gui_menu.construir_menu)
         fuente += inspect.getsource(menu_transmision.construir)
         fuente += inspect.getsource(menu_transmision._agregar_encuadre)
@@ -484,7 +484,7 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertNotIn("\\tCtrl+F", fuente)
 
     def test_cada_comando_de_grabacion_muestra_su_propio_atajo(self):
-        from bellbird.ui import menu_obs
+        from guyrapu.ui import menu_obs
 
         etiquetas = []
 
@@ -579,17 +579,17 @@ class TestParsearAtajos(unittest.TestCase):
         self.assertEqual(detectar_conflictos_atajos({}), [])
 
     def test_construccion_del_frame_anuncia_los_conflictos(self):
-        frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+        frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         configuracion = {"atajos_raw": {"pausa": "f6"}}
         with mock.patch.object(gui.wx.Frame, "__init__", return_value=None), \
-                mock.patch.object(gui.YTChatFrame, "SetBackgroundColour"), \
-                mock.patch.object(gui.YTChatFrame, "_build_menubar"), \
-                mock.patch.object(gui.YTChatFrame, "_build_ui"), \
-                mock.patch.object(gui.YTChatFrame, "_bind_events"), \
-                mock.patch.object(gui.YTChatFrame, "_init_timer"), \
-                mock.patch.object(gui.YTChatFrame, "Centre"), \
+                mock.patch.object(gui.VentanaPrincipal, "SetBackgroundColour"), \
+                mock.patch.object(gui.VentanaPrincipal, "_build_menubar"), \
+                mock.patch.object(gui.VentanaPrincipal, "_build_ui"), \
+                mock.patch.object(gui.VentanaPrincipal, "_bind_events"), \
+                mock.patch.object(gui.VentanaPrincipal, "_init_timer"), \
+                mock.patch.object(gui.VentanaPrincipal, "Centre"), \
                 mock.patch.object(gui, "anunciar_conflictos_atajos") as anunciar:
-            gui.YTChatFrame.__init__(frame, None, configuracion, None, None, None, None)
+            gui.VentanaPrincipal.__init__(frame, None, configuracion, None, None, None, None)
 
         anunciar.assert_called_once_with(configuracion["atajos_raw"])
 

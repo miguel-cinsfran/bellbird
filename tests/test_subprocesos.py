@@ -9,8 +9,8 @@ import unittest
 from unittest import mock
 from unittest.mock import patch
 
-from bellbird.core import subprocesos
-from bellbird.core.subprocesos import (
+from guyrapu.core import subprocesos
+from guyrapu.core.subprocesos import (
     Estado,
     ejecutar,
     sin_carpeta_dll_heredada,

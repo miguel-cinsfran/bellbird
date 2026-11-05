@@ -5,8 +5,8 @@ import time
 import unittest
 from unittest import mock
 
-from bellbird.player import reproductor
-from bellbird.player import reproductor_ciclo
+from guyrapu.player import reproductor
+from guyrapu.player import reproductor_ciclo
 
 
 class TestCicloPuro(unittest.TestCase):

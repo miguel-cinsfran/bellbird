@@ -4,8 +4,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from bellbird.ui import gui_historial
-from bellbird.core import historial
+from guyrapu.ui import gui_historial
+from guyrapu.core import historial
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import app_de_prueba, destruir
 

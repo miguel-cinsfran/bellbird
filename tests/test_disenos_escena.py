@@ -1,6 +1,6 @@
 import unittest
 
-from bellbird.obs import disenos_escena as disenos
+from guyrapu.obs import disenos_escena as disenos
 
 
 class DisenosEscenaTest(unittest.TestCase):

@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.player.formatos import mejor_audio, segundos_hasta_disponible
+from guyrapu.player.formatos import mejor_audio, segundos_hasta_disponible
 
 
 def _audio(url, abr=None, idioma=None, protocolo=None, ext=None,

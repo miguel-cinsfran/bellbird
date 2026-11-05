@@ -12,7 +12,7 @@ except Exception:
     _HAY_WX = False
 
 try:
-    from bellbird.ui import dialogo_estado
+    from guyrapu.ui import dialogo_estado
     _HAY_DIALOGO = True
 except ImportError:
     dialogo_estado = None  # type: ignore

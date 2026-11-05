@@ -7,9 +7,9 @@
     python scripts/traducciones.py compilar
     python scripts/traducciones.py revisar <código>
 
-La plantilla queda en idiomas/bellbird.pot. Cada idioma vive en
-idiomas/<código>/LC_MESSAGES/bellbird.po y su catálogo compilado en
-bellbird.mo. Las funciones reciben las carpetas por parámetro para poder
+La plantilla queda en idiomas/guyrapu.pot. Cada idioma vive en
+idiomas/<código>/LC_MESSAGES/guyrapu.po y su catálogo compilado en
+guyrapu.mo. Las funciones reciben las carpetas por parámetro para poder
 probarlas en una carpeta temporal.
 """
 
@@ -21,7 +21,7 @@ from pathlib import Path
 
 from babel.messages import catalog, extract, mofile, pofile
 
-DOMINIO = "bellbird"
+DOMINIO = "guyrapu"
 RAIZ = Path(__file__).resolve().parent.parent
 CARPETA_IDIOMAS = RAIZ / "idiomas"
 
@@ -49,7 +49,7 @@ def ruta_mo(carpeta_idiomas, codigo):
 def _archivos_fuente(carpeta_raiz):
     raiz = Path(carpeta_raiz)
     archivos = [raiz / "main.py"]
-    archivos.extend(sorted((raiz / "bellbird").rglob("*.py")))
+    archivos.extend(sorted((raiz / "guyrapu").rglob("*.py")))
     return [archivo for archivo in archivos if archivo.is_file()]
 
 
@@ -65,7 +65,7 @@ def _agregar(catalogo, mensaje, archivo, numero, comentarios, contexto):
 
 
 def extraer(carpeta_raiz=RAIZ, carpeta_idiomas=CARPETA_IDIOMAS):
-    """Genera la plantilla .pot desde main.py y bellbird/."""
+    """Genera la plantilla .pot desde main.py y guyrapu/."""
     raiz = Path(carpeta_raiz)
     catalogo = catalog.Catalog(domain=DOMINIO, project="Bellbird")
     for archivo in _archivos_fuente(raiz):
@@ -199,7 +199,7 @@ def _parser():
     ordenes = parser.add_subparsers(dest="orden", required=True)
 
     extraer_parser = ordenes.add_parser(
-        "extraer", help="genera idiomas/bellbird.pot")
+        "extraer", help="genera idiomas/guyrapu.pot")
     _agregar_carpetas(extraer_parser)
 
     actualizar_parser = ordenes.add_parser(

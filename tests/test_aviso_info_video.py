@@ -4,7 +4,7 @@ import unittest
 from unittest import mock
 
 import main
-from bellbird.ui import accesibilidad
+from guyrapu.ui import accesibilidad
 
 
 class TestAnuncioDeFalloVideo(unittest.TestCase):

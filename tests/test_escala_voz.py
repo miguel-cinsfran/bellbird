@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.voice import escala_voz
+from guyrapu.voice import escala_voz
 
 
 class TestVelocidadDesdeWpm(unittest.TestCase):

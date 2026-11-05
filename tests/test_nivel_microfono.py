@@ -4,7 +4,7 @@ import random
 import unittest
 from dataclasses import FrozenInstanceError
 
-from bellbird.obs.nivel_microfono import (
+from guyrapu.obs.nivel_microfono import (
     ALTO, BAJO, BIEN, SATURADO, SILENCIO, SIN_MUESTRAS, Nivel,
     frase_de_tramo, nivel_de, sonido_de_tramo)
 

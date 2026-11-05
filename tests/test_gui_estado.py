@@ -5,18 +5,18 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
-from bellbird.capture import encuestas
-from bellbird.capture import batallas
-from bellbird.capture import metas
-from bellbird.core.doble_pulsacion import DoblePulsacion
-from bellbird.ui import dialogo_estado
-from bellbird.ui import gui
-from bellbird.ui import gui_estado
-from bellbird.ui.sesion_conectada import SesionConectada
+from guyrapu.capture import encuestas
+from guyrapu.capture import batallas
+from guyrapu.capture import metas
+from guyrapu.core.doble_pulsacion import DoblePulsacion
+from guyrapu.ui import dialogo_estado
+from guyrapu.ui import gui
+from guyrapu.ui import gui_estado
+from guyrapu.ui.sesion_conectada import SesionConectada
 
 
 def _marco_falso(metadatos):
-    frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
+    frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
     frame._conectado = True
     frame.sesion = SesionConectada(es_tiktok=True, tipo_video="live")
     frame._titulo_stream = "T"
@@ -42,14 +42,14 @@ class TestSetEspectadores(unittest.TestCase):
 
     def test_guarda_las_dos_cifras(self):
         frame = self._frame()
-        gui.YTChatFrame.set_espectadores(frame, 3, 50)
+        gui.VentanaPrincipal.set_espectadores(frame, 3, 50)
         self.assertEqual(frame._metadatos, {"vistas": 3,
                                            "vistas_total": 50})
 
     def test_total_none_no_borra_el_total_anterior(self):
         frame = self._frame()
         frame._metadatos = {"vistas": 3, "vistas_total": 50}
-        gui.YTChatFrame.set_espectadores(frame, 4)
+        gui.VentanaPrincipal.set_espectadores(frame, 4)
         self.assertEqual(frame._metadatos, {"vistas": 4,
                                            "vistas_total": 50})
 
@@ -57,14 +57,14 @@ class TestSetEspectadores(unittest.TestCase):
         frame = self._frame()
         frame._metadatos = {"vistas": 3, "vistas_total": 50}
         with self.assertNoLogs(gui.logger, level="DEBUG"):
-            gui.YTChatFrame.set_espectadores(frame, 4, None)
+            gui.VentanaPrincipal.set_espectadores(frame, 4, None)
         self.assertEqual(frame._metadatos, {"vistas": 4,
                                            "vistas_total": 50})
 
     def test_total_que_no_es_numero_sigue_registrandose(self):
         frame = self._frame()
         with self.assertLogs(gui.logger, level="DEBUG") as registro:
-            gui.YTChatFrame.set_espectadores(frame, 4, "muchos")
+            gui.VentanaPrincipal.set_espectadores(frame, 4, "muchos")
         self.assertIn("no se pudo anotar vistas_total", registro.output[0])
 
 
@@ -126,15 +126,15 @@ class TestSnapshotBatallaYMeta(unittest.TestCase):
 
 class TestSnapshotCuotaYoutube(unittest.TestCase):
     def test_con_sesion_lleva_las_unidades_usadas(self):
-        with mock.patch("bellbird.youtube.credenciales.hay_sesion",
+        with mock.patch("guyrapu.youtube.credenciales.hay_sesion",
                         return_value=True), \
-             mock.patch("bellbird.youtube.cuota.usadas_hoy",
+             mock.patch("guyrapu.youtube.cuota.usadas_hoy",
                         return_value=42):
             snap = gui_estado.snapshot_sesion(_marco_falso({}))
         self.assertEqual(snap.cuota_youtube, 42)
 
     def test_sin_sesion_queda_en_none(self):
-        with mock.patch("bellbird.youtube.credenciales.hay_sesion",
+        with mock.patch("guyrapu.youtube.credenciales.hay_sesion",
                         return_value=False):
             snap = gui_estado.snapshot_sesion(_marco_falso({}))
         self.assertIsNone(snap.cuota_youtube)
@@ -160,16 +160,16 @@ class TestFormatoTotalSc(unittest.TestCase):
 
     def test_sin_totales(self):
         self.assertEqual(
-            gui.YTChatFrame._formato_total_sc(self._frame({})), "Super Chats: 3")
+            gui.VentanaPrincipal._formato_total_sc(self._frame({})), "Super Chats: 3")
 
     def test_una_divisa(self):
         self.assertEqual(
-            gui.YTChatFrame._formato_total_sc(self._frame({"€": 15.5})),
+            gui.VentanaPrincipal._formato_total_sc(self._frame({"€": 15.5})),
             "Super Chats: 3 (€15.50)")
 
     def test_dos_divisas(self):
         self.assertEqual(
-            gui.YTChatFrame._formato_total_sc(
+            gui.VentanaPrincipal._formato_total_sc(
                 self._frame({"€": 15.0, "$": 10.0})),
             "Super Chats: 3 (€15, $10)")
 

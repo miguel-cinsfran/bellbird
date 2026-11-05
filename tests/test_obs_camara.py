@@ -3,10 +3,10 @@
 import base64
 import unittest
 
-from bellbird.obs import obs_camara
-from bellbird.obs import obs_cliente
-from bellbird.obs.obs_camara import CamaraNoEncontrada
-from bellbird.obs.obs_captura_ia import CapturaFallida
+from guyrapu.obs import obs_camara
+from guyrapu.obs import obs_cliente
+from guyrapu.obs.obs_camara import CamaraNoEncontrada
+from guyrapu.obs.obs_captura_ia import CapturaFallida
 
 
 def dato_imagen(crudo, formato):

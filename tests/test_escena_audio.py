@@ -132,7 +132,7 @@ class TestPaginaAudioPrueba(BaseAudio):
     def setUp(self):
         super().setUp()
         self.parche_preparar = mock.patch.object(
-            escena_pagina_audio.prueba_microfono, "preparar",
+            escena_pagina_audio.prueba_microfono, "preparar_fuente",
             return_value=("Mic/Aux", False, "Micrófono USB"))
         self.parche_clase = mock.patch.object(
             escena_pagina_audio.prueba_microfono, "PruebaMicrofono")
@@ -504,6 +504,37 @@ class TestPaginaAudioLista(BaseAudio):
             ["Mic/Aux, activa, eliminación de ruido, ganancia +6 dB",
              "Audio del escritorio, activa, sin filtros"])
         self.assertEqual(pagina.fuente(), "Mic/Aux")
+
+
+class TestPaginaAudioPruebaFueraDeEntradas(BaseAudio):
+    FUENTES = ("Mic/Aux", "Audio del escritorio")
+
+    def setUp(self):
+        super().setUp()
+        self.gestor.entradas_audio = (
+            lambda parada=None: (("Mic/Aux", "wasapi_input_capture"),))
+        self.parche_clase = mock.patch.object(
+            escena_pagina_audio.prueba_microfono, "PruebaMicrofono")
+        self.parche_anunciar = mock.patch.object(
+            escena_pagina_audio, "anunciar")
+        self.parche_callafter = mock.patch.object(
+            escena_pagina_audio.wx, "CallAfter",
+            side_effect=lambda funcion, *args, **kwargs:
+            funcion(*args, **kwargs))
+        self.clase = self.parche_clase.start()
+        self.parche_anunciar.start()
+        self.parche_callafter.start()
+        for parche in (self.parche_clase, self.parche_anunciar,
+                       self.parche_callafter):
+            self.addCleanup(parche.stop)
+        self.pagina = self._crear()
+        self._sembrar(self.pagina)
+
+    def test_probar_nivel_mide_la_fuente_de_la_fila(self):
+        self.pagina.lst_audio.SetSelection(1)
+        self.pagina._al_probar()
+        self.assertEqual(
+            self.clase.call_args.args[0], "Audio del escritorio")
 
 
 class TestPaginaAudioTeclas(BaseAudio):

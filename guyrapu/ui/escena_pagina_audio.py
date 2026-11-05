@@ -234,7 +234,7 @@ class PaginaAudio(wx.Panel):
             anunciar(_("Elige una fuente de audio."))
             return
         self._operaciones.en_hilo(
-            lambda: prueba_microfono.preparar(self._gestor, fuente),
+            lambda: prueba_microfono.preparar_fuente(self._gestor, fuente),
             self._preparada)
 
     def _preparada(self, resultado):

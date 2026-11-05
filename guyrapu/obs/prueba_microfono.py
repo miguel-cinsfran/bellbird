@@ -33,6 +33,16 @@ def preparar(gestor, preferido) -> tuple:
     """
     fuente = obs_audio.elegir_microfono(
         gestor.entradas_audio(), preferido, gestor.microfono_especial())
+    return preparar_fuente(gestor, fuente)
+
+
+def preparar_fuente(gestor, fuente) -> tuple:
+    """La fuente ya elegida, su silencio y el nombre de su dispositivo.
+
+    No vuelve a elegir la fuente, así mide la que se pidió aunque no figure
+    entre las entradas de audio de OBS. Un fallo al leer el dispositivo deja
+    el nombre vacío.
+    """
     if not fuente:
         return "", False, ""
     silenciada = bool(gestor.silenciada(fuente))

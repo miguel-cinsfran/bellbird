@@ -108,6 +108,17 @@ class PrepararTest(unittest.TestCase):
             gestor.consultas_dispositivo,
             [("Audio USB", dispositivo_windows.microfono_predeterminado)])
 
+    def test_una_fuente_fuera_de_entradas_audio_se_prepara_igual(self):
+        gestor = GestorFalso(silenciada=True)
+        self.assertEqual(
+            prueba_microfono.preparar_fuente(gestor, "Audio del escritorio"),
+            ("Audio del escritorio", True, "Micrófono USB"))
+        self.assertEqual(gestor.fuente_silencio, "Audio del escritorio")
+        self.assertEqual(
+            gestor.consultas_dispositivo,
+            [("Audio del escritorio",
+              dispositivo_windows.microfono_predeterminado)])
+
 
 class FraseDeInicioTest(unittest.TestCase):
     def test_sin_manos_libres_solo_anuncia_el_inicio(self):

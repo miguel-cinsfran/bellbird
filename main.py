@@ -40,6 +40,7 @@ from bellbird.core import diagnostico
 from bellbird.core import avisos_red
 from bellbird.downloads import ytdlp_bin
 from bellbird.capture import conexion
+from bellbird.capture.filtro_autores import permitido
 from bellbird.ui.vista_captura import VistaGui
 from bellbird.capture import alias
 from bellbird.core.sonidos_eventos import rol_de_autor, ROL_PROPIETARIO, ROL_MODERADOR
@@ -332,15 +333,6 @@ def encolar(cola, item, config, stats):
     if n: stats.inc("descartados", n)
     try:    cola.put_nowait(item)
     except queue.Full: stats.inc("descartados")
-
-
-def permitido(autor: str, mensaje: str, config: dict) -> bool:
-    al = autor.lower().strip()
-    if any(u in al for u in config["usuarios_silenciados"]): return False
-    if al in config.get("silenciados_ocultar", set()): return False
-    ml = mensaje.lower()
-    if any(p in ml for p in config["palabras_silenciadas"]): return False
-    return True
 
 
 def debe_leer_tts(autor: str, config: dict) -> bool:

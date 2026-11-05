@@ -23,7 +23,7 @@ from bellbird.voice import sound_player as _snd
 from bellbird.ui.gui import ContadorAccesible, _T, _tc, nombre_accesible
 from bellbird.ui import paleta
 from bellbird.ui.preferencias_comun import (
-    ANCHO_NOTA, EleccionTexto, ajustar_ancho_categorias, crear_panel, fila_label)
+    ANCHO_NOTA, ajustar_ancho_categorias, crear_panel, fila_label)
 from bellbird.ui.preferencias_api import PaginaApi
 from bellbird.ui.preferencias_atajos import PaginaAtajos
 from bellbird.ui.preferencias_general import OPCIONES_GENERAL, PaginaGeneral, ofrecer_reinicio
@@ -405,8 +405,7 @@ class PreferenciasDialog(wx.Dialog):
 
         # Lectura: la página calcula el valor en cambios(); se aplica con el
         # _set de hoy, igual que los demás controles manuales de abajo.
-        cambios_lectura = self.pagina_lectura.cambios()
-        formato = cambios_lectura[0][2]  # (sección, clave, valor) del formato
+        formato = self.pagina_lectura.cambios()[0][2]
         self._set("lectura", "formato_prefijo", formato)
         c["formato_prefijo"] = formato
 
@@ -414,8 +413,6 @@ class PreferenciasDialog(wx.Dialog):
         estrategia = ("todas", "limite")[self.rb_estrategia.GetSelection()]
         self._set("cola", "estrategia", estrategia)
         c["estrategia"] = estrategia
-        registro_detallado = c["registro_detallado"]
-        puerto_overlay = c["overlay_puerto"]
         self.pagina_transmision.guardar(self._set, c)
         self.pagina_camara.guardar(self._set, c)
 
@@ -464,12 +461,12 @@ class PreferenciasDialog(wx.Dialog):
                                  "aplicación."))
         if motor_no_disponible:
             self.avisos.append(_("El motor elegido no está disponible, se conserva el anterior."))
-        if registro_detallado != registro_detallado_inicial:
+        if c["registro_detallado"] != registro_detallado_inicial:
             self.avisos.append(_("El cambio del registro detallado se aplica al reiniciar "
                                  "la aplicación."))
         # El servidor del panel ya escucha en el puerto viejo; no se reinicia
         # solo, así que se avisa dónde se aplica.
-        if puerto_overlay != puerto_anterior and c.get("overlay_activo", False):
+        if c["overlay_puerto"] != puerto_anterior and c.get("overlay_activo", False):
             self.avisos.append(_("El puerto del chat en el vídeo se aplica al desactivarlo y "
                                  "volver a activarlo desde el panel de transmisión."))
         self.EndModal(wx.ID_OK)

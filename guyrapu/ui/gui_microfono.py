@@ -57,13 +57,13 @@ def _devolver_foco(frame, al_cerrar) -> None:
 
 
 class ControlSilencio:
-    """Casilla que muestra y alterna el silencio del micrófono de OBS."""
+    """Casilla que muestra y alterna el silencio de la fuente de audio elegida."""
 
-    def __init__(self, gestor, casilla, operaciones, preferido, al_cambiar):
+    def __init__(self, gestor, casilla, operaciones, fuente, al_cambiar):
         self._gestor = gestor
         self._casilla = casilla
         self._operaciones = operaciones
-        self._preferido = preferido
+        self._fuente = fuente
         self._al_cambiar = al_cambiar
         self.silenciado = False
         casilla.Bind(wx.EVT_CHECKBOX, self.alternar)
@@ -72,19 +72,30 @@ class ControlSilencio:
         self.silenciado = bool(silenciado)
         self._casilla.SetValue(self.silenciado)
 
-    def alternar(self, event):
-        preferido = self._preferido()
+    def alternar(self, event=None):
+        fuente = self._fuente()
+        if not fuente:
+            self._casilla.SetValue(self.silenciado)
+            anunciar(_("Elige una fuente de audio."))
+            return
+        querer = self._casilla.GetValue()
         self._operaciones.en_hilo(
-            lambda: obs_entradas_audio.alternar_microfono(
-                self._gestor, preferido),
-            self._alternado)
+            lambda: self._aplicar(fuente, querer), self._alternado)
+
+    def _aplicar(self, fuente, querer):
+        actual = bool(self._gestor.silenciada(fuente))
+        if actual == bool(querer):
+            return fuente, actual
+        return fuente, bool(self._gestor.alternar_silencio(fuente))
 
     def _alternado(self, resultado):
-        texto, fuente, estado = resultado
-        anunciar(texto)
-        if fuente:
-            self.silenciado = bool(estado)
+        fuente, estado = resultado
+        self.silenciado = bool(estado)
         self._casilla.SetValue(self.silenciado)
+        # Traductores: {fuente} es la fuente de audio y {estado} su estado.
+        anunciar(_("{fuente}: {estado}.").format(
+            fuente=fuente,
+            estado=_("silenciada") if self.silenciado else _("activa")))
         self._al_cambiar()
 
 

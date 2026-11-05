@@ -35,7 +35,8 @@ ESPERADOS_POR_PESTANA = {
     "Escena": ("Escena", "Cambiar escena", "Fuentes", "Mover con flechas",
                "Aplicar diseño", "Agregar fuente", "Deshacer cambios",
                "Guardar imagen"),
-    "Audio": ("Silenciar micrófono", "Elegir micrófono"),
+    "Audio": ("Fuentes de audio", "Silenciar", "Elegir micrófono",
+              "Probar nivel", "Filtros", "Escuchar"),
     "Grabación": ("Iniciar grabación", "Grabar también al transmitir",
                   "Grabaciones y clips"),
 }

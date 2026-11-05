@@ -5417,7 +5417,7 @@ msgstr "Still broadcasting."
 msgid "&Agregar a la cola"
 msgstr "Add to q&ueue"
 
-#: guyrapu/ui/buscador_acciones.py
+#: guyrapu/ui/buscador_acciones.py guyrapu/ui/escena_pagina_audio.py
 msgid "&Escuchar"
 msgstr "&Listen"
 
@@ -6251,6 +6251,17 @@ msgstr "Layout name:"
 msgid "Guardar diseño"
 msgstr "Save layout"
 
+#. Traductores: {fuente} es la fuente de audio y {frase} el resultado.
+#: guyrapu/ui/escena_escucha.py
+#, python-brace-format
+msgid "{fuente}: {frase}"
+msgstr "{fuente}: {frase}"
+
+#: guyrapu/ui/escena_escucha.py guyrapu/ui/escena_pagina_audio.py
+#: guyrapu/ui/gui_microfono.py
+msgid "Elige una fuente de audio."
+msgstr "Select an audio source."
+
 #: guyrapu/ui/escena_filtros.py
 #, python-brace-format
 msgid "Filtros del micrófono: {fuente}"
@@ -6303,42 +6314,60 @@ msgid "Mover al &fondo"
 msgstr "Move to &Bottom"
 
 #: guyrapu/ui/escena_pagina_audio.py
-msgid "Si&lenciar micrófono"
-msgstr "&Mute microphone"
+msgid "Si&lenciar"
+msgstr "&Mute"
 
 #: guyrapu/ui/escena_pagina_audio.py
-msgid "&Escuchar micrófono"
-msgstr "&Listen to microphone"
+msgid "Fuentes de &audio:"
+msgstr "&Audio sources:"
 
 #: guyrapu/ui/escena_pagina_audio.py
 msgid "Elegir &micrófono…"
 msgstr "Choose a &device…"
 
 #: guyrapu/ui/escena_pagina_audio.py
-msgid "&Probar micrófono"
-msgstr "&Test microphone"
+msgid "&Probar nivel"
+msgstr "&Test level"
 
 #: guyrapu/ui/escena_pagina_audio.py
-msgid "&Filtros del micrófono…"
-msgstr "Microphone &filters…"
+msgid "&Filtros…"
+msgstr "&Filters…"
+
+#: guyrapu/ui/escena_pagina_audio.py guyrapu/ui/escena_pagina_fuentes.py
+#: guyrapu/ui/gui_historial.py guyrapu/ui/restream_pagina_eventos.py
+#: guyrapu/ui/restream_pagina_perfiles.py guyrapu/ui/restream_ventana.py
+msgid "Sin selección"
+msgstr "Nothing selected"
+
+#: guyrapu/ui/escena_pagina_audio.py
+#, python-brace-format
+msgid "Probando {fuente}. "
+msgstr "Testing {fuente}. "
 
 #: guyrapu/ui/escena_pagina_audio.py
 msgid "&Detener prueba"
 msgstr "&Stop test"
 
 #: guyrapu/ui/escena_pagina_audio.py
-msgid ""
-"El micrófono está silenciado en OBS. Desmarca Silenciar micrófono y vuelve "
-"a probar."
-msgstr "The microphone is muted in OBS. Uncheck Mute microphone and try again."
+#, python-brace-format
+msgid "La fuente {fuente} está silenciada en OBS. Desmárcala y vuelve a probar."
+msgstr "Source {fuente} is muted in OBS. Unmute it and try again."
 
 #: guyrapu/ui/escena_pagina_audio.py
-msgid "No se pudo medir el micrófono en OBS. Prueba detenida."
-msgstr "Could not measure the microphone in OBS. Test stopped."
+#, python-brace-format
+msgid "No se pudo medir {fuente} en OBS. Prueba detenida."
+msgstr "Could not measure {fuente} in OBS. Test stopped."
 
 #: guyrapu/ui/escena_pagina_audio.py
-msgid "Prueba del micrófono detenida."
-msgstr "Microphone test stopped."
+#, python-brace-format
+msgid "Prueba de nivel de {fuente} detenida."
+msgstr "Level test for {fuente} stopped."
+
+#. Traductores: {fuente} es la fuente de audio y {resumen} lo aplicado.
+#: guyrapu/ui/escena_pagina_audio.py
+#, python-brace-format
+msgid "{fuente}: {resumen}"
+msgstr "{fuente}: {resumen}"
 
 #: guyrapu/ui/escena_pagina_escena.py
 msgid "&Escena:"
@@ -6384,12 +6413,6 @@ msgstr "A&dd source…"
 #: guyrapu/ui/escena_pagina_fuentes.py
 msgid "Deshacer cambi&os"
 msgstr "&Undo changes"
-
-#: guyrapu/ui/escena_pagina_fuentes.py guyrapu/ui/gui_historial.py
-#: guyrapu/ui/restream_pagina_eventos.py guyrapu/ui/restream_pagina_perfiles.py
-#: guyrapu/ui/restream_ventana.py
-msgid "Sin selección"
-msgstr "Nothing selected"
 
 #: guyrapu/ui/escena_pagina_fuentes.py
 #, python-brace-format
@@ -6447,6 +6470,42 @@ msgstr "H&eight:"
 #: guyrapu/ui/escena_tamano.py
 msgid "Alto en porcentaje del vídeo"
 msgstr "Height as a percentage of the video"
+
+#: guyrapu/ui/fila_audio.py guyrapu/ui/gui_microfono.py
+msgid "silenciada"
+msgstr "muted"
+
+#: guyrapu/ui/fila_audio.py guyrapu/ui/gui_microfono.py
+msgid "activa"
+msgstr "active"
+
+#: guyrapu/ui/fila_audio.py
+msgid "eliminación de ruido"
+msgstr "noise suppression"
+
+#: guyrapu/ui/fila_audio.py
+msgid "puerta anti-ruidos"
+msgstr "noise gate"
+
+#. Traductores: {valor} es la ganancia en decibelios, con su signo.
+#: guyrapu/ui/fila_audio.py
+#, python-brace-format
+msgid "ganancia {valor:+d} dB"
+msgstr "gain {valor:+d} dB"
+
+#: guyrapu/ui/fila_audio.py
+msgid "y 1 filtro más"
+msgstr "and 1 more filter"
+
+#. Traductores: {cantidad} son los filtros activos que no son de la app.
+#: guyrapu/ui/fila_audio.py
+#, python-brace-format
+msgid "y {cantidad} filtros más"
+msgstr "and {cantidad} more filters"
+
+#: guyrapu/ui/fila_audio.py
+msgid "sin filtros"
+msgstr "no filters"
 
 #: guyrapu/ui/gui.py
 msgid ""
@@ -8007,6 +8066,12 @@ msgstr "Change &repeat"
 #: guyrapu/ui/gui_menu.py
 msgid "&Música"
 msgstr "&Music"
+
+#. Traductores: {fuente} es la fuente de audio y {estado} su estado.
+#: guyrapu/ui/gui_microfono.py
+#, python-brace-format
+msgid "{fuente}: {estado}."
+msgstr "{fuente}: {estado}."
 
 #: guyrapu/ui/gui_microfono.py guyrapu/ui/preferencias_transmision.py
 msgid "Micrófono de OBS"

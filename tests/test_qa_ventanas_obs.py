@@ -177,10 +177,14 @@ class TestEsperadosDePestana(unittest.TestCase):
         esperados = ventanas_obs.esperados_de_pestana("Escena")
         self.assertIn("Agregar fuente", esperados)
 
-    def test_audio_pide_su_microfono(self):
+    def test_audio_pide_sus_fuentes_y_acciones(self):
         esperados = ventanas_obs.esperados_de_pestana("Audio")
-        self.assertIn("Silenciar micrófono", esperados)
+        self.assertIn("Fuentes de audio", esperados)
+        self.assertIn("Silenciar", esperados)
         self.assertIn("Elegir micrófono", esperados)
+        self.assertIn("Probar nivel", esperados)
+        self.assertIn("Filtros", esperados)
+        self.assertIn("Escuchar", esperados)
 
     def test_grabacion_pide_sus_botones_y_su_lista(self):
         esperados = ventanas_obs.esperados_de_pestana("Grabación")

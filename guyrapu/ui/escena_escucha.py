@@ -8,65 +8,79 @@ import wx
 
 from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
-from guyrapu.obs import escucha_microfono, obs_entradas_audio, prueba_microfono
+from guyrapu.obs import escucha_microfono
 from guyrapu.ui.accesibilidad import anunciar
 
 logger = diagnostico.obtener_logger(__name__)
 
 
-class ControlEscucha:
-    """Casilla que refleja y alterna la escucha del micrófono en OBS."""
+def _con_fuente(fuente, frase):
+    # Traductores: {fuente} es la fuente de audio y {frase} el resultado.
+    return _("{fuente}: {frase}").format(fuente=fuente, frase=frase)
 
-    def __init__(self, casilla, gestor, operaciones, preferido):
+
+class ControlEscucha:
+    """Casilla que refleja y alterna la escucha de la fuente elegida en OBS."""
+
+    def __init__(self, casilla, gestor, operaciones, fuente,
+                 al_cambiar=None):
         self._casilla = casilla
         self._gestor = gestor
         self._operaciones = operaciones
-        self._preferido = preferido
+        self._fuente_elegida = fuente
+        self._al_cambiar = al_cambiar or (lambda _fuente: None)
         self.activa = False
         self._fuente = ""
         self._anterior = None
         casilla.Bind(wx.EVT_CHECKBOX, self.alternar)
 
-    def alternar(self, event):
+    def alternar(self, event=None):
         querer = self._casilla.GetValue()
         self._casilla.SetValue(self.activa)
-        if querer:
-            preferido = self._preferido()
-            self._operaciones.en_hilo(
-                lambda: self._preparar(preferido), self._activada)
-        else:
+        if not querer:
             self._operaciones.en_hilo(self._restaurar, self._desactivada)
-
-    def _preparar(self, preferido):
-        fuente = prueba_microfono.preparar(self._gestor, preferido)[0]
+            return
+        fuente = self._fuente_elegida()
         if not fuente:
-            return "", None
+            self._sin_fuente()
+            return
+        self._operaciones.en_hilo(
+            lambda: self._preparar(fuente), self._activada)
+
+    def _preparar(self, fuente):
         return fuente, escucha_microfono.activar(fuente)
+
+    def _sin_fuente(self):
+        anunciar(_("Elige una fuente de audio."))
+        self._casilla.SetFocus()
 
     def _activada(self, resultado):
         fuente, anterior = resultado
         if not fuente:
-            anunciar(_(obs_entradas_audio.AVISO_SIN_MICROFONO))
-            self._casilla.SetFocus()
+            self._sin_fuente()
             return
         self._fuente = fuente
         self._anterior = anterior
         self.activa = True
         self._casilla.SetValue(True)
-        anunciar(escucha_microfono.frase_activada(anterior))
+        anunciar(_con_fuente(fuente, escucha_microfono.frase_activada(anterior)))
         self._casilla.SetFocus()
+        self._al_cambiar(fuente)
 
     def _restaurar(self):
         escucha_microfono.restaurar(self._fuente, self._anterior)
 
     def _desactivada(self, _resultado):
+        fuente = self._fuente
         anterior = self._anterior
         self.activa = False
         self._fuente = ""
         self._anterior = None
         self._casilla.SetValue(False)
-        anunciar(escucha_microfono.frase_desactivada(anterior))
+        anunciar(_con_fuente(
+            fuente, escucha_microfono.frase_desactivada(anterior)))
         self._casilla.SetFocus()
+        self._al_cambiar(fuente)
 
     def al_cerrar(self):
         """Devuelve la monitorización al cerrar, sin anunciar y sin demorar."""

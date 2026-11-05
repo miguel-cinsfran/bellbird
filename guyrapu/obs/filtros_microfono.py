@@ -172,14 +172,34 @@ def _con_cliente(fuente, accion, crear_cliente=None):
                              "del micrófono: %s", exc)
 
 
+def _crudos(cliente, fuente):
+    respuesta = cliente.pedir(
+        "GetSourceFilterList", {"sourceName": fuente})
+    return tuple(respuesta.get("responseData", {}).get("filters", ()))
+
+
+def leer_filtros(fuente, crear_cliente=None):
+    """La lista de filtros de la fuente, tal como la devuelve OBS."""
+    return _con_cliente(fuente, _crudos, crear_cliente)
+
+
+def leer_filtros_de(fuentes, crear_cliente=None):
+    """Los filtros de cada fuente, con una sola conexión.
+
+    Devuelve un diccionario con el nombre de la fuente y su lista.
+    """
+
+    def accion(cliente, nombres):
+        return {nombre: _crudos(cliente, nombre) for nombre in nombres}
+
+    return _con_cliente(tuple(fuentes), accion, crear_cliente)
+
+
 def leer(fuente, crear_cliente=None):
     """El estado de los filtros del micrófono en OBS."""
 
     def accion(cliente, nombre):
-        respuesta = cliente.pedir(
-            "GetSourceFilterList", {"sourceName": nombre})
-        filtros = respuesta.get("responseData", {}).get("filters", ())
-        return estado_de(filtros)
+        return estado_de(_crudos(cliente, nombre))
 
     return _con_cliente(fuente, accion, crear_cliente)
 
@@ -188,9 +208,7 @@ def aplicar(fuente, elegido, crear_cliente=None):
     """Deja en OBS los filtros elegidos."""
 
     def accion(cliente, nombre):
-        respuesta = cliente.pedir(
-            "GetSourceFilterList", {"sourceName": nombre})
-        filtros = respuesta.get("responseData", {}).get("filters", ())
+        filtros = _crudos(cliente, nombre)
         for tipo, datos in plan(filtros, elegido):
             cliente.pedir(tipo, {"sourceName": nombre, **datos})
 

@@ -717,14 +717,19 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(pagina.fuente(), "Cámara")
         releer.assert_called_once_with("Principal")
 
-    def test_silenciar_usa_el_preferido_del_principal(self):
+    def test_silenciar_usa_la_fuente_de_la_fila(self):
+        pagina = self.dialogo._pagina_audio
+        pagina._poner_filas((("Mic/Aux", False, ()),), "Mic/Aux")
         with mock.patch.object(
-                gui_microfono.obs_entradas_audio, "alternar_microfono",
-                return_value=("Micrófono silenciado", "Mic/Aux", True)) as alternar:
-            self._marcar(self.dialogo._pagina_audio.chk_silenciar, True)
-        alternar.assert_called_once_with(self.gestor, "Mic/Aux")
-        self.assertIn("Micrófono silenciado", self.anuncios)
-        self.assertTrue(self.dialogo._pagina_audio.chk_silenciar.GetValue())
+                escena_pagina_audio.filtros_microfono, "leer_filtros_de",
+                return_value={"Mic/Aux": ()}), \
+                mock.patch.object(
+                    escena_pagina_audio.filtros_microfono, "leer_filtros",
+                    return_value=()):
+            self._marcar(pagina.chk_silenciar, True)
+        self.assertIn(("alternar_silencio", "Mic/Aux"), self.gestor.llamadas)
+        self.assertIn("Mic/Aux: silenciada.", self.anuncios)
+        self.assertTrue(pagina.chk_silenciar.GetValue())
 
     def test_elegir_microfono_abre_con_el_principal(self):
         with mock.patch.object(escena_pagina_audio.gui_microfono,
@@ -768,10 +773,12 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(fuentes.btn_agregar.GetName(), "Agregar fuente…")
         self.assertEqual(fuentes.btn_restaurar.GetName(), "Deshacer cambios")
         audio = self.dialogo._pagina_audio
-        self.assertEqual(audio.chk_silenciar.GetName(), "Silenciar micrófono")
-        self.assertEqual(audio.chk_escuchar.GetName(), "Escuchar micrófono")
+        self.assertEqual(audio.lst_audio.GetName(), "Fuentes de audio")
+        self.assertEqual(audio.chk_silenciar.GetName(), "Silenciar")
+        self.assertEqual(audio.chk_escuchar.GetName(), "Escuchar")
         self.assertEqual(audio.btn_microfono.GetName(), "Elegir micrófono…")
-        self.assertEqual(audio.btn_probar.GetName(), "Probar micrófono")
+        self.assertEqual(audio.btn_probar.GetName(), "Probar nivel")
+        self.assertEqual(audio.btn_filtros.GetName(), "Filtros…")
         self.assertEqual(self.dialogo.btn_cerrar.GetName(), "Cerrar")
 
     def test_orden_de_tab_de_cada_pestana(self):
@@ -780,8 +787,8 @@ class TestVentanaObs(unittest.TestCase):
             "Aplicar diseño…", "Agregar fuente…", "Deshacer cambios",
             "Guardar imagen…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_audio), [
-            "Silenciar micrófono", "Elegir micrófono…", "Probar micrófono",
-            "Filtros del micrófono…", "Escuchar micrófono"])
+            "Fuentes de audio", "Silenciar", "Elegir micrófono…",
+            "Probar nivel", "Filtros…", "Escuchar"])
         self.assertEqual(self._nombres(self.dialogo)[-1:], ["Cerrar"])
 
     def test_cuadro_tamano_abre_con_el_comun_actual(self):

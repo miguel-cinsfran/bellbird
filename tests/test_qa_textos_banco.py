@@ -1,8 +1,8 @@
 """Los textos que el banco de QA espera tienen que existir en la aplicación.
 
-Lee `qa/conducir.py` con el árbol sintáctico, sin importarlo, y busca cada
-texto en los módulos de `bellbird/`. Los que no son textos de la aplicación
-llevan su motivo en la lista de excepciones.
+Lee los módulos del banco con el árbol sintáctico, sin importarlos, y busca
+cada texto en los módulos de `bellbird/`. Los que no son textos de la
+aplicación llevan su motivo en la lista de excepciones.
 """
 
 import ast
@@ -10,7 +10,7 @@ import unittest
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
-BANCO = RAIZ / "qa" / "conducir.py"
+BANCOS = sorted((RAIZ / "qa").glob("*.py"))
 
 # Funciones del banco que reciben un texto que después se compara con la
 # aplicación. `boton_de` busca un control por su nombre accesible.
@@ -120,14 +120,17 @@ def _existe(texto: str, contenido: str) -> bool:
 class TextosDelBancoTest(unittest.TestCase):
 
     def test_cada_texto_que_espera_el_banco_existe_en_la_app(self):
-        codigo = BANCO.read_text(encoding="utf-8")
         contenido = _contenido_de_la_app()
         faltan = []
-        for linea, texto in textos_esperados(codigo):
-            if texto in EXCEPCIONES:
-                continue
-            if not _existe(texto, contenido):
-                faltan.append("«%s» en qa/conducir.py:%d" % (texto, linea))
+        for ruta in BANCOS:
+            codigo = ruta.read_text(encoding="utf-8")
+            for linea, texto in textos_esperados(codigo):
+                if texto in EXCEPCIONES:
+                    continue
+                if not _existe(texto, contenido):
+                    faltan.append("«%s» en %s:%d"
+                                  % (texto, ruta.relative_to(RAIZ).as_posix(),
+                                     linea))
         self.assertEqual(
             faltan, [],
             "El banco espera textos que la aplicación no tiene: "

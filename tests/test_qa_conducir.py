@@ -18,6 +18,11 @@ _paquete = importlib.util.spec_from_file_location("conducir_qa", _RUTA)
 conducir = importlib.util.module_from_spec(_paquete)
 _paquete.loader.exec_module(conducir)
 
+import banco_app  # noqa: E402
+import banco_auditoria  # noqa: E402
+import escenarios_app  # noqa: E402
+import escenarios_obs  # noqa: E402
+
 
 class TestDebeCerrarObsAlFinal(unittest.TestCase):
 
@@ -140,7 +145,7 @@ class TestVersionCoherente(unittest.TestCase):
             ruta = Path(base) / "docs" / "es" / "CHANGELOG.md"
             ruta.parent.mkdir(parents=True, exist_ok=True)
             ruta.write_text(texto_changelog, encoding="utf-8")
-            with mock.patch.object(conducir, "RAIZ", Path(base)):
+            with mock.patch.object(escenarios_app, "RAIZ", Path(base)):
                 res = conducir.Resultado()
                 conducir._version_coherente(
                     ["Bellbird v%s" % mostrada], res)
@@ -265,7 +270,7 @@ class TestTiemposDeLasOrdenes(unittest.TestCase):
             app = conducir.Aplicacion(Path(base))
             app.resultados_ruta.write_text(
                 '{"id": 1, "ok": true, "datos": {}}\n', encoding="utf-8")
-            with mock.patch.object(conducir, "_ESCENARIO_EN_CURSO", "prueba"):
+            with mock.patch.object(banco_app, "_ESCENARIO_EN_CURSO", "prueba"):
                 app.pedir("ping", tiempo=1.0)
 
         self.assertEqual(len(conducir._TIEMPOS), 1)
@@ -279,7 +284,7 @@ class TestTiemposDeLasOrdenes(unittest.TestCase):
     def test_pedir_anota_tambien_la_orden_que_vence(self):
         with tempfile.TemporaryDirectory() as base:
             app = conducir.Aplicacion(Path(base))
-            with mock.patch.object(conducir, "_ESCENARIO_EN_CURSO", "prueba"):
+            with mock.patch.object(banco_app, "_ESCENARIO_EN_CURSO", "prueba"):
                 with self.assertRaises(TimeoutError):
                     app.pedir("ping", tiempo=0.05)
 
@@ -293,7 +298,8 @@ class TestTiemposDeLasOrdenes(unittest.TestCase):
         def lenta():
             time.sleep(0.3)
 
-        with mock.patch.object(conducir, "_ESCENARIO_EN_CURSO", "prueba"):
+        with mock.patch.object(banco_auditoria, "_ESCENARIO_EN_CURSO",
+                               "prueba"):
             conducir._con_tope(lenta, 0.05, "por defecto")
 
         self.assertEqual(len(conducir._TIEMPOS), 1)
@@ -305,7 +311,8 @@ class TestTiemposDeLasOrdenes(unittest.TestCase):
         self.assertGreaterEqual(anotacion["segundos"], 0.05)
 
     def test_con_tope_con_lambda_toma_el_nombre_de_quien_la_pide(self):
-        with mock.patch.object(conducir, "_ESCENARIO_EN_CURSO", "prueba"):
+        with mock.patch.object(banco_auditoria, "_ESCENARIO_EN_CURSO",
+                               "prueba"):
             conducir._con_tope(lambda: "listo", 1.0, None)
 
         self.assertEqual(
@@ -323,7 +330,8 @@ class TestTiemposDeLasOrdenes(unittest.TestCase):
             def navegar(self, ventana=None):
                 pass
 
-        with mock.patch.object(conducir, "_ESCENARIO_EN_CURSO", "prueba"):
+        with mock.patch.object(banco_auditoria, "_ESCENARIO_EN_CURSO",
+                               "prueba"):
             conducir.recorrer_tab(_AppDoble(), conducir.Resultado(),
                                   "Preferencias", vueltas=1)
 
@@ -419,7 +427,7 @@ class TestPestanaDeRestream(unittest.TestCase):
             llamadas.append(kwargs)
             return True
 
-        with mock.patch.object(conducir, "auditar_dialogo",
+        with mock.patch.object(escenarios_obs, "auditar_dialogo",
                                side_effect=auditar_falso):
             conducir.escenario_restream(mock.Mock(), None,
                                        conducir.Resultado())

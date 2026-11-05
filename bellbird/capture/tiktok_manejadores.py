@@ -8,7 +8,12 @@ from __future__ import annotations
 
 import time
 
+from bellbird.capture.agrupar_entradas import (
+    AgrupadorEntradas,
+    nombres_del_grupo,
+)
 from bellbird.capture.agrupar_me_gusta import AgrupadorMeGusta
+from bellbird.capture.filtro_autores import entra_en_grupo
 from bellbird.capture.tiktok_captura import (
     _clase_suscripcion,
     autor_de_evento,
@@ -109,6 +114,19 @@ def _emitir_vencidos(agrupador, on_evento, ahora):
         on_evento(autor, "", TIPO_ME_GUSTA, str(total), canal_id)
 
 
+def _emitir_entradas_vencidas(agrupador, on_evento, ahora):
+    """Emite el grupo de entradas vencido, con todos sus nombres."""
+    personas = agrupador.vencido(ahora)
+    if not personas:
+        return
+    if len(personas) == 1:
+        autor, canal_id = personas[0]
+        on_evento(autor, "", TIPO_ENTRADA, "", canal_id)
+        return
+    nombres = nombres_del_grupo([autor for autor, _canal in personas])
+    on_evento(nombres, "", TIPO_ENTRADA, str(len(personas)), "")
+
+
 def _al_me_gusta(on_evento, descartar, agrupador):
     async def _on_like(evento):
         if descartar(evento):
@@ -179,22 +197,30 @@ def _al_reanudacion(on_estado, descartar):
     return _on_unpause
 
 
-def _al_entrar(on_evento, descartar):
+def _al_entrar(on_evento, descartar, agrupador, config):
     async def _on_join(evento):
         if descartar(evento):
             return
         autor, canal_id = autor_de_evento(evento)
-        on_evento(autor, "", TIPO_ENTRADA, "", canal_id)
+        if not entra_en_grupo(autor, config):
+            return
+        ahora = time.monotonic()
+        agrupador.sumar(autor, canal_id, ahora)
+        _emitir_entradas_vencidas(agrupador, on_evento, ahora)
 
     return _on_join
 
 
-def _al_contar_espectadores(on_espectadores, agrupador=None, on_evento=None):
+def _al_contar_espectadores(on_espectadores, agrupador=None, on_evento=None,
+                            agrupador_entradas=None):
     async def _on_user_seq(evento):
-        # El conteo llega seguido: también vacía los me gusta vencidos, para
-        # que el último grupo no quede esperando a otro toque.
+        # El conteo llega seguido: también vacía los grupos vencidos, para
+        # que el último no quede esperando a otro toque.
+        ahora = time.monotonic()
         if agrupador is not None and on_evento is not None:
-            _emitir_vencidos(agrupador, on_evento, time.monotonic())
+            _emitir_vencidos(agrupador, on_evento, ahora)
+        if agrupador_entradas is not None and on_evento is not None:
+            _emitir_entradas_vencidas(agrupador_entradas, on_evento, ahora)
         # Conteo de espectadores EN VIVO (se actualiza cada pocos segundos).
         if not on_espectadores:
             return
@@ -229,8 +255,23 @@ _EVENTOS_OPCIONALES = [
 
 def _segundos_me_gusta(config) -> int:
     """Segundos de agrupación de los me gusta, con el borde de la config."""
+    if not (config or {}).get("tiktok_agrupar_me_gusta", True):
+        return 0
+    return _segundos_entre_uno_y_ciento_veinte(
+        (config or {}).get("tiktok_segundos_me_gusta", 10))
+
+
+def _segundos_entradas(config) -> int:
+    """Segundos de agrupación de las entradas, con el borde de la config."""
+    if not (config or {}).get("tiktok_agrupar_entradas", True):
+        return 0
+    return _segundos_entre_uno_y_ciento_veinte(
+        (config or {}).get("tiktok_segundos_entradas", 10))
+
+
+def _segundos_entre_uno_y_ciento_veinte(valor) -> int:
     try:
-        segundos = int((config or {}).get("tiktok_segundos_me_gusta", 10))
+        segundos = int(valor)
     except (TypeError, ValueError):
         return 10
     return max(1, min(120, segundos))
@@ -241,13 +282,12 @@ def registrar_manejadores(client, modulo_eventos, *, on_evento,
                           on_estado=None):
     """Registra los manejadores de eventos de TikTok en `client`."""
     agrupador = AgrupadorMeGusta(ventana=lambda: _segundos_me_gusta(config))
-    clase_comentario = modulo_eventos.CommentEvent
-    clase_regalo = modulo_eventos.GiftEvent
-    clase_entrada = modulo_eventos.JoinEvent
-    clase_conteo = modulo_eventos.RoomUserSeqEvent
+    agrupador_entradas = AgrupadorEntradas(
+        ventana=lambda: _segundos_entradas(config))
     clase_suscripcion = _clase_suscripcion(modulo_eventos)
-    client.on(clase_comentario)(_al_comentar(on_evento, descartar))
-    client.on(clase_regalo)(_al_regalo(on_evento, descartar))
+    client.on(modulo_eventos.CommentEvent)(
+        _al_comentar(on_evento, descartar))
+    client.on(modulo_eventos.GiftEvent)(_al_regalo(on_evento, descartar))
     if clase_suscripcion is not None:
         client.on(clase_suscripcion)(_al_suscribir(on_evento, descartar))
     for nombre, fabrica, modo in _EVENTOS_OPCIONALES:
@@ -262,5 +302,7 @@ def registrar_manejadores(client, modulo_eventos, *, on_evento,
             client.on(clase)(fabrica(on_evento, descartar, agrupador))
         else:
             client.on(clase)(fabrica(on_evento, descartar))
-    client.on(clase_entrada)(_al_entrar(on_evento, descartar))
-    client.on(clase_conteo)(_al_contar_espectadores(on_espectadores, agrupador, on_evento))
+    client.on(modulo_eventos.JoinEvent)(
+        _al_entrar(on_evento, descartar, agrupador_entradas, config))
+    client.on(modulo_eventos.RoomUserSeqEvent)(_al_contar_espectadores(
+        on_espectadores, agrupador, on_evento, agrupador_entradas))

@@ -7,7 +7,9 @@ from unittest import mock
 
 from bellbird.capture import tiktok_manejadores
 from bellbird.capture.tiktok_manejadores import registrar_manejadores
-from bellbird.core.config import TIPO_COFRE, TIPO_ME_GUSTA, TIPO_TEXTO
+from bellbird.core.config import (
+    TIPO_COFRE, TIPO_ENTRADA, TIPO_ME_GUSTA, TIPO_TEXTO,
+)
 
 _TODAS = ("CommentEvent", "GiftEvent", "JoinEvent", "RoomUserSeqEvent",
           "SubscribeEvent", "FollowEvent", "ShareEvent", "EnvelopeEvent",
@@ -35,7 +37,7 @@ def _modulo(nombres):
 
 
 def _registrar(nombres, evento_entrada="mostrar", descartar=None,
-                 on_estado=None, sin_estado=False):
+                 on_estado=None, sin_estado=False, config=None):
     cliente = _ClienteFalso()
     mod = _modulo(nombres)
     recibidos = []
@@ -43,10 +45,12 @@ def _registrar(nombres, evento_entrada="mostrar", descartar=None,
     estados = []
     estado = None if sin_estado else (
         on_estado or (lambda *a: estados.append(a)))
+    opciones = {"evento_entrada": evento_entrada}
+    opciones.update(config or {})
     registrar_manejadores(
         cliente, mod, on_evento=lambda *a: recibidos.append(a),
         on_espectadores=lambda *a: vistos.append(a),
-        config={"evento_entrada": evento_entrada},
+        config=opciones,
         descartar=(descartar or (lambda evento: False)),
         on_estado=estado)
     return cliente, mod, recibidos, vistos, estados
@@ -122,6 +126,11 @@ def _evento_pregunta(texto="¿qué juego es?"):
 def _evento_me_gusta(count=15):
     autor = types.SimpleNamespace(nick_name="Ana", id="1")
     return types.SimpleNamespace(count=count, user_info=autor)
+
+
+def _evento_entrada(nombre, ident):
+    autor = types.SimpleNamespace(nick_name=nombre, id=ident)
+    return types.SimpleNamespace(user_info=autor)
 
 
 class TestStickersYPreguntas(unittest.TestCase):
@@ -236,6 +245,78 @@ class TestMeGustaAgrupado(unittest.TestCase):
         cliente, mod, _recibidos, vistos, _est = _registrar(_TODAS_NUEVAS)
         _vaciar_con_conteo(cliente, mod, 1010.0)
         self.assertEqual(vistos, [(3, 50)])
+
+
+class TestEntradasAgrupadas(unittest.TestCase):
+    def _entrar(self, cliente, mod, nombre, ident, reloj):
+        with mock.patch.object(tiktok_manejadores.time, "monotonic",
+                               return_value=reloj):
+            asyncio.run(cliente.manejadores[mod.JoinEvent](
+                _evento_entrada(nombre, ident)))
+
+    def test_tres_entradas_dentro_de_la_ventana_salen_en_una_fila(self):
+        cliente, mod, recibidos, _vistos, _est = _registrar(_TODAS_NUEVAS)
+        for indice, nombre in enumerate(("Ana", "Beto", "Caro")):
+            self._entrar(cliente, mod, nombre, str(indice + 1), 1000.0)
+        self.assertEqual(recibidos, [])
+        _vaciar_con_conteo(cliente, mod, 1010.0)
+        self.assertEqual(len(recibidos), 1)
+        self.assertEqual(recibidos[0][0], "Ana, Beto y Caro")
+        self.assertEqual(recibidos[0][2], TIPO_ENTRADA)
+        self.assertEqual(recibidos[0][3], "3")
+
+    def test_agrupar_entradas_desmarcado_emite_cada_una_al_llegar(self):
+        cliente, mod, recibidos, _vistos, _est = _registrar(
+            _TODAS_NUEVAS, config={"tiktok_agrupar_entradas": False})
+        for indice, nombre in enumerate(("Ana", "Beto", "Caro")):
+            self._entrar(cliente, mod, nombre, str(indice + 1), 1000.0)
+        self.assertEqual(len(recibidos), 3)
+        self.assertEqual([r[0] for r in recibidos], ["Ana", "Beto", "Caro"])
+        self.assertEqual([r[3] for r in recibidos], ["", "", ""])
+
+    def test_una_persona_silenciada_no_aparece_y_las_demas_siguen(self):
+        cliente, mod, recibidos, _vistos, _est = _registrar(
+            _TODAS_NUEVAS, config={"usuarios_silenciados": ["beto"]})
+        for indice, nombre in enumerate(("Ana", "Beto", "Caro")):
+            self._entrar(cliente, mod, nombre, str(indice + 1), 1000.0)
+        _vaciar_con_conteo(cliente, mod, 1010.0)
+        self.assertEqual(len(recibidos), 1)
+        self.assertEqual(recibidos[0][0], "Ana y Caro")
+        self.assertEqual(recibidos[0][2], TIPO_ENTRADA)
+        self.assertEqual(recibidos[0][3], "2")
+
+    def test_una_persona_oculta_en_la_sesion_tampoco_aparece(self):
+        cliente, mod, recibidos, _vistos, _est = _registrar(
+            _TODAS_NUEVAS,
+            config={"silenciados_runtime": {"beto"}})
+        for indice, nombre in enumerate(("Ana", "Beto", "Caro")):
+            self._entrar(cliente, mod, nombre, str(indice + 1), 1000.0)
+        _vaciar_con_conteo(cliente, mod, 1010.0)
+        self.assertEqual(len(recibidos), 1)
+        self.assertEqual(recibidos[0][0], "Ana y Caro")
+        self.assertEqual(recibidos[0][3], "2")
+
+    def test_una_sola_persona_conserva_la_fila_y_su_autor(self):
+        cliente, mod, recibidos, _vistos, _est = _registrar(_TODAS_NUEVAS)
+        self._entrar(cliente, mod, "Ana", "1", 1000.0)
+        _vaciar_con_conteo(cliente, mod, 1010.0)
+        self.assertEqual(recibidos, [("Ana", "", TIPO_ENTRADA, "", "1")])
+
+
+class TestMeGustaSinAgrupar(unittest.TestCase):
+    def test_agrupar_me_gusta_desmarcado_emite_cada_uno_al_llegar(self):
+        cliente, mod, recibidos, _vistos, _est = _registrar(
+            _TODAS_NUEVAS, config={"tiktok_agrupar_me_gusta": False})
+        with mock.patch.object(tiktok_manejadores.time, "monotonic",
+                               return_value=1000.0):
+            asyncio.run(cliente.manejadores[mod.LikeEvent](
+                _evento_me_gusta(15)))
+            asyncio.run(cliente.manejadores[mod.LikeEvent](
+                _evento_me_gusta(15)))
+        self.assertEqual(len(recibidos), 2)
+        self.assertEqual([r[2] for r in recibidos],
+                         [TIPO_ME_GUSTA, TIPO_ME_GUSTA])
+        self.assertEqual([r[3] for r in recibidos], ["15", "15"])
 
 
 class TestCofreConRemitente(unittest.TestCase):

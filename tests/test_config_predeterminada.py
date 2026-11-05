@@ -182,6 +182,12 @@ class TestEstadoDefecto(unittest.TestCase):
         self.assertEqual(pred.obtener("estado", "encuesta"), "true")
         self.assertEqual(pred.obtener("eventos", "encuesta"), "principal")
 
+    def test_batalla_y_meta_activas_de_fabrica_y_en_voz_principal(self):
+        for clave in ("batalla", "meta"):
+            with self.subTest(clave=clave):
+                self.assertEqual(pred.obtener("estado", clave), "true")
+                self.assertEqual(pred.obtener("eventos", clave), "principal")
+
 
 class TestConstruirBat(unittest.TestCase):
     def test_construir_sin_config_de_fabrica_y_con_guarda_antes_del_zip(self):

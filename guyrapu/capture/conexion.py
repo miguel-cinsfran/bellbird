@@ -64,9 +64,7 @@ class Conexiones:
         def _on_msg(autor, mensaje, hora, tipo=main.TIPO_TEXTO, monto="", canal_id="", rol=""):
             if not self._registro.vigente(gen):
                 return  # mensaje de una sesión anterior: descartar
-            if va_al_chat_en_el_video(tipo):
-                overlay_servidor.difundir(
-                    evento_de_mensaje(autor, mensaje, "youtube", monto or None))
+            self._difundir(autor, mensaje, "youtube", tipo, monto)
             self._vista.agregar_mensaje(
                 autor, mensaje, hora, tipo, monto, canal_id,
                 plataforma="youtube", rol=rol)
@@ -169,6 +167,11 @@ class Conexiones:
 
         self._crear_hilo(_run, "Chat").start()
 
+    def _difundir(self, autor, mensaje, plataforma, tipo, monto):
+        if va_al_chat_en_el_video(tipo):
+            overlay_servidor.difundir(
+                evento_de_mensaje(autor, mensaje, plataforma, monto or None))
+
     def _conectar_tiktok(self, usuario):
         """Rama TikTok: mismo esquema de sesión (ps + gen) que YouTube, con la
         captura de tiktok_captura y el pipeline común procesar_entrante."""
@@ -180,9 +183,7 @@ class Conexiones:
         def _on_msg(autor, mensaje, hora, tipo=main.TIPO_TEXTO, monto="", canal_id="", rol=""):
             if not self._registro.vigente(gen):
                 return
-            if va_al_chat_en_el_video(tipo):
-                overlay_servidor.difundir(
-                    evento_de_mensaje(autor, mensaje, "tiktok", monto or None))
+            self._difundir(autor, mensaje, "tiktok", tipo, monto)
             self._vista.agregar_mensaje(
                 autor, mensaje, hora, tipo, monto, canal_id,
                 plataforma="tiktok", rol=rol)

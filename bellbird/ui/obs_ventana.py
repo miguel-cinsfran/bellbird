@@ -118,15 +118,12 @@ class VentanaObs(wx.Dialog):
         evento.Skip()
 
     def _primer_control(self, indice):
-        controles = (
-            self._pagina_general.txt_estado,
-            self._pagina_escena.cho_escena,
-            self._pagina_fuentes.cho_fuente,
-            self._pagina_agregar.cho_ventana,
-            self._pagina_transmision.cho_destino,
-            self._pagina_audio.chk_silenciar,
-            self._pagina_grabacion._grabacion.boton)
-        return controles[indice] if 0 <= indice < len(controles) else None
+        controles = {
+            PESTANA_GENERAL: self._pagina_general.txt_estado,
+            PESTANA_FUENTES: self._pagina_fuentes.cho_fuente,
+            PESTANA_AGREGAR: self._pagina_agregar.cho_ventana,
+            PESTANA_AUDIO: self._pagina_audio.chk_silenciar}
+        return controles.get(indice)
 
     def _enfocar_pestana(self, indice):
         control = self._primer_control(indice)

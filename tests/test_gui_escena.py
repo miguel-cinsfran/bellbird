@@ -183,8 +183,8 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(
             [self.dialogo.nb.GetPageText(i)
              for i in range(self.dialogo.nb.GetPageCount())],
-            ["Transmisión", "Escena", "Audio", "Grabación", "Fuentes",
-             "Agregar", "General"])
+            ["General", "Escena", "Fuentes", "Agregar", "Transmisión",
+             "Audio", "Grabación"])
 
     def test_al_abrir_la_escena_al_aire_la_descripcion_y_las_fuentes(self):
         self.anuncios.clear()
@@ -586,7 +586,6 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(audio.chk_escuchar.GetName(), "Escuchar micrófono")
         self.assertEqual(audio.btn_microfono.GetName(), "Elegir micrófono…")
         self.assertEqual(audio.btn_probar.GetName(), "Probar micrófono")
-        self.assertEqual(self.dialogo.btn_ayuda.GetName(), "Ayuda")
         self.assertEqual(self.dialogo.btn_cerrar.GetName(), "Cerrar")
 
     def test_orden_de_tab_de_cada_pestana(self):
@@ -602,7 +601,7 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(self._nombres(self.dialogo._pagina_audio), [
             "Silenciar micrófono", "Elegir micrófono…", "Probar micrófono",
             "Filtros del micrófono…", "Escuchar micrófono"])
-        self.assertEqual(self._nombres(self.dialogo)[-2:], ["Ayuda", "Cerrar"])
+        self.assertEqual(self._nombres(self.dialogo)[-1:], ["Cerrar"])
 
     def test_cuadro_tamano_abre_con_el_comun_actual(self):
         dialogo = self._cuadro_tamano(25, 33)
@@ -695,12 +694,9 @@ class TestVentanaObs(unittest.TestCase):
         self.dialogo._al_tecla(EventoTecla(wx.WXK_ESCAPE))
         self.dialogo.EndModal.assert_called_once_with(wx.ID_CANCEL)
 
-    def test_ayuda_titulo_y_texto(self):
-        with mock.patch.object(obs_ventana.wx, "MessageBox") as aviso:
-            self._pulsar(self.dialogo.btn_ayuda)
-        self.assertEqual(aviso.call_args.args[0],
-                         obs_ventana.TEXTO_AYUDA_OBS)
-        self.assertEqual(aviso.call_args.args[1], "Ayuda del panel de OBS")
+    def test_el_pie_solo_tiene_cerrar(self):
+        self.assertFalse(hasattr(self.dialogo, "btn_ayuda"))
+        self.assertTrue(hasattr(self.dialogo, "btn_cerrar"))
 
 
 if __name__ == "__main__":

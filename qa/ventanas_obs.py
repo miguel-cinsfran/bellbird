@@ -16,33 +16,32 @@ SEGUNDOS_CARGA_OBS = 90.0
 
 TITULO_VENTANA = "Panel de OBS"
 
-PESTANAS_OBS = ("Transmisión", "Escena", "Audio", "Grabación", "Fuentes",
-                "Agregar", "General")
+PESTANAS_OBS = ("General", "Escena", "Fuentes", "Agregar", "Transmisión",
+                "Audio", "Grabación")
 
-PESTANA_TRANSMISION = 0
+PESTANA_GENERAL = 0
 PESTANA_ESCENA = 1
-PESTANA_GRABACION = 3
+PESTANA_TRANSMISION = 4
+PESTANA_GRABACION = 6
 
-ESPERADOS_EN_TODAS = ("Ayuda", "Cerrar")
+ESPERADOS_EN_TODAS = ("Cerrar",)
 
-ORDEN_TRANSMISION = ("Estado", "Transmitir a", "Usuario de TikTok",
+ORDEN_TRANSMISION = ("Transmitir a", "Usuario de TikTok",
                      "Transmitir en directo", "Mostrar chat en el vídeo",
-                     "Restream…", "Actualizar estado")
+                     "Restream…")
 
 ESPERADOS_POR_PESTANA = {
-    "Transmisión": ("Estado", "Transmitir a", "Transmitir en directo",
-                    "Restream…", "Actualizar estado"),
+    "General": ("Estado", "Actualizar estado", "Mostrar OBS"),
+    "Transmisión": ("Transmitir a", "Transmitir en directo", "Restream…"),
     "Escena": ("Escena", "Cambiar escena", "Descripción de la escena",
                "Guardar imagen"),
     "Audio": ("Silenciar micrófono", "Elegir micrófono"),
-    "Grabación": ("Estado", "Iniciar grabación",
-                  "Grabar también al transmitir", "Actualizar estado",
+    "Grabación": ("Iniciar grabación", "Grabar también al transmitir",
                   "Grabaciones y clips"),
     "Fuentes": ("Fuente", "Detalle de la fuente", "Posición", "Mover fuente",
                 "Mostrar en la escena", "Bloquear posición", "Ordenar",
                 "Tamaño…", "Mover con flechas", "Deshacer cambios"),
     "Agregar": ("Ventana", "Capturar ventana", "Agregar cámara"),
-    "General": ("Estado de OBS", "Actualizar estado", "Mostrar OBS"),
 }
 
 
@@ -141,7 +140,7 @@ def _pestana_actual(app) -> int:
 
 
 def _abrir_panel(app, res) -> bool:
-    """Abre el panel con Ctrl+Mayús+O en la pestaña Transmisión."""
+    """Abre el panel con Ctrl+Mayús+O en la pestaña General."""
     app.pedir("frente")
     try:
         app.teclas(("o", ["ctrl", "shift"]))
@@ -152,11 +151,11 @@ def _abrir_panel(app, res) -> bool:
         res.fallo("Panel de OBS: Ctrl+Mayús+O no abrió la ventana")
         return False
     actual = _pestana_actual(app)
-    if actual != PESTANA_TRANSMISION:
+    if actual != PESTANA_GENERAL:
         res.fallo(f"Panel de OBS: Ctrl+Mayús+O abrió la pestaña {actual + 1}, "
-                  f"debería abrir la {PESTANA_TRANSMISION + 1}")
+                  f"debería abrir la {PESTANA_GENERAL + 1}")
         return False
-    res.nota("Panel de OBS: Ctrl+Mayús+O abre en Transmisión")
+    res.nota("Panel de OBS: Ctrl+Mayús+O abre en General")
     return True
 
 
@@ -210,7 +209,7 @@ def auditar_grabacion(app, res, recorrer_tab, revisar_nombres,
     try:
         if not _ir_a_pestana(app, res, PESTANA_GRABACION):
             return
-        if not esperar_habilitado(app, faltan_habilitados, "Actualizar estado",
+        if not esperar_habilitado(app, faltan_habilitados, "Iniciar grabación",
                                   SEGUNDOS_CARGA_OBS, res):
             return
         visibles = [c for c in app.arbol(TITULO_VENTANA)
@@ -229,16 +228,18 @@ def auditar_grabacion(app, res, recorrer_tab, revisar_nombres,
 
 def auditar_transmision(app, res, recorrer_tab, revisar_nombres,
                         faltan_habilitados, vueltas_tab: int) -> None:
-    """Abre el panel con Ctrl+Mayús+O y audita la pestaña Transmisión."""
+    """Abre el panel con Ctrl+Mayús+O, pasa a Transmisión y la audita."""
     if not _abrir_panel(app, res):
         return
     try:
+        if not _ir_a_pestana(app, res, PESTANA_TRANSMISION):
+            return
         paginas = app.pedir("pestanas", ventana=TITULO_VENTANA).get(
             "datos", {}).get("paginas", [])
         descuadre = descuadre_de_pestanas(paginas)
         if descuadre:
             res.fallo(f"Panel de OBS: {descuadre}")
-        if not esperar_habilitado(app, faltan_habilitados, "Actualizar estado",
+        if not esperar_habilitado(app, faltan_habilitados, "Transmitir a",
                                   SEGUNDOS_CARGA_OBS, res):
             return
         visibles = [c for c in app.arbol(TITULO_VENTANA)

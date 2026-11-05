@@ -5,12 +5,12 @@ from __future__ import annotations
 import wx
 
 from bellbird.core import diagnostico
-from bellbird.core.idioma import N_, _
+from bellbird.core.idioma import _
 from bellbird.obs import consultas_transmision
+from bellbird.obs import estado_panel
 from bellbird.obs import obs_disposicion
 from bellbird.obs import obs_general
 from bellbird.obs import obs_lanzador
-from bellbird.obs.estado_panel import EstadoPanel
 from bellbird.obs.obs_destinos import DESTINOS
 from bellbird.obs.obs_panel import GestorPanelObs
 from bellbird.obs.restablecimiento import RegistroRestablecimiento
@@ -24,45 +24,17 @@ from bellbird.ui.gui_transmision import PaginaTransmision
 from bellbird.ui.obs_pagina_grabacion import PaginaGrabacion
 from bellbird.ui.obs_pagina_general import PaginaGeneral
 from bellbird.ui.operaciones_obs import OperacionesObs
-from bellbird.ui.preferencias_comun import boton, nombre_de_etiqueta
+from bellbird.ui.preferencias_comun import boton
 
 logger = diagnostico.obtener_logger(__name__)
 
-PESTANA_TRANSMISION = 0
+PESTANA_GENERAL = 0
 PESTANA_ESCENA = 1
-PESTANA_AUDIO = 2
-PESTANA_GRABACION = 3
-PESTANA_FUENTES = 4
-PESTANA_AGREGAR = 5
-PESTANA_GENERAL = 6
-
-TEXTO_AYUDA_OBS = N_(
-    "Esta ventana reúne en pestañas lo que se hace con OBS. Ctrl+Tab pasa a "
-    "la pestaña siguiente y Ctrl+Mayús+Tab a la anterior.\n\n"
-    "Transmisión inicia y detiene el directo, elige adónde se transmite y "
-    "muestra el chat en el vídeo. Restream abre la ventana de Restream.\n\n"
-    "Escena elige cuál se edita, dice qué tiene y cambia cuál se emite. "
-    "Recorrer la lista no cambia nada en el directo.\n\n"
-    "Audio silencia el micrófono de OBS y elige cuál se usa. Probar "
-    "micrófono dice cada cinco segundos cómo llega la voz y qué hacer, hasta "
-    "que se detiene. Filtros del micrófono activa la eliminación de ruido, "
-    "la puerta anti-ruidos y la ganancia en OBS. Escuchar micrófono activa la "
-    "monitorización de audio de OBS para oírte con los filtros; usa "
-    "auriculares.\n\n"
-    "Grabación inicia, pausa y detiene la grabación. La lista tiene lo "
-    "grabado: Intro abre el archivo y Supr lo elimina de la lista. La tecla "
-    "Aplicaciones muestra las demás acciones.\n\n"
-    "Fuentes elige una fuente de la escena. La mueve, la cambia de tamaño, "
-    "la oculta, la bloquea o cambia su capa. Mover con flechas la mueve "
-    "en pasos pequeños: Ctrl da pasos grandes, Mayús pasos de un píxel, "
-    "Intro confirma y Esc deshace. Aplicar diseño reparte la escena de una "
-    "vez: la fuente principal, la cámara y el chat, con diseños de fábrica o "
-    "guardados. Deshacer cambios vuelve a como estaba todo al abrir esta "
-    "ventana.\n\n"
-    "Agregar captura una ventana del equipo o agrega una cámara de Windows "
-    "a la escena actual.\n\n"
-    "General dice el perfil de OBS y cómo rinde el equipo. Mostrar OBS trae "
-    "su ventana al frente.")
+PESTANA_FUENTES = 2
+PESTANA_AGREGAR = 3
+PESTANA_TRANSMISION = 4
+PESTANA_AUDIO = 5
+PESTANA_GRABACION = 6
 
 
 class VentanaObs(wx.Dialog):
@@ -89,14 +61,15 @@ class VentanaObs(wx.Dialog):
         caja = wx.BoxSizer(wx.VERTICAL)
         self.nb = wx.Notebook(panel, name="PestanasObs")
         self._pagina_transmision = PaginaTransmision(
-            self.nb, self._principal, self._gestor, self._operaciones)
+            self.nb, self._principal, self._gestor, self._operaciones,
+            self._refrescar_general)
         self._pagina_escena = PaginaEscena(
             self.nb, self._gestor, self._operaciones, self._elegir_escena)
         self._pagina_audio = PaginaAudio(
             self.nb, self._principal, self._gestor, self._operaciones)
         self._pagina_grabacion = PaginaGrabacion(
             self.nb, self._principal, self._gestor, self._operaciones,
-            self._refrescar_grabacion, self._actualizar_grabacion)
+            self._refrescar_grabacion)
         self._pagina_fuentes = PaginaFuentes(
             self.nb, self, self._gestor, self._operaciones,
             self._restablecimiento, self._escena_elegida)
@@ -105,34 +78,25 @@ class VentanaObs(wx.Dialog):
             self._escena_elegida, self._recargar_escena)
         self._pagina_general = PaginaGeneral(
             self.nb, self._actualizar_general, self._mostrar_obs)
-        self.nb.AddPage(self._pagina_transmision, _("Transmisión"))
+        self.nb.AddPage(self._pagina_general, _("General"))
         self.nb.AddPage(self._pagina_escena, _("Escena"))
-        self.nb.AddPage(self._pagina_audio, _("Audio"))
-        self.nb.AddPage(self._pagina_grabacion, _("Grabación"))
         self.nb.AddPage(self._pagina_fuentes, _("Fuentes"))
         self.nb.AddPage(self._pagina_agregar, _("Agregar"))
-        self.nb.AddPage(self._pagina_general, _("General"))
+        self.nb.AddPage(self._pagina_transmision, _("Transmisión"))
+        self.nb.AddPage(self._pagina_audio, _("Audio"))
+        self.nb.AddPage(self._pagina_grabacion, _("Grabación"))
         self.nb.SetSelection(self._pestana_inicial)
         caja.Add(self.nb, 1, wx.EXPAND | wx.ALL, 10)
         self._crear_pie(panel, caja)
         panel.SetSizer(caja)
-        self._acciones = (
-            *self._pagina_transmision.acciones,
-            *self._pagina_escena.acciones, *self._pagina_audio.acciones,
-            *self._pagina_grabacion.acciones, *self._pagina_fuentes.acciones,
-            *self._pagina_agregar.acciones, *self._pagina_general.acciones,
-            self.btn_ayuda, self.btn_cerrar)
         self._enlazar_eventos()
         self.SetMinSize((620, -1))
         self.Centre()
         paleta.pintar_ventana(self)
 
     def _crear_pie(self, panel, caja):
-        self.btn_ayuda = boton(
-            panel, _("A&yuda"), nombre_de_etiqueta(_("A&yuda")))
         self.btn_cerrar = boton(panel, _("Cerrar"), _("Cerrar"), wx.ID_CANCEL)
         fila = wx.BoxSizer(wx.HORIZONTAL)
-        fila.Add(self.btn_ayuda, 0, wx.RIGHT, 8)
         fila.AddStretchSpacer(1)
         fila.Add(self.btn_cerrar, 0)
         caja.Add(fila, 0, wx.EXPAND | wx.ALL, 10)
@@ -140,25 +104,28 @@ class VentanaObs(wx.Dialog):
     def _enlazar_eventos(self):
         enlazar_anuncio_de_pestana(self.nb)
         self.nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._al_cambiar_pestana)
-        self.btn_ayuda.Bind(wx.EVT_BUTTON, self._ayuda)
         self.btn_cerrar.Bind(wx.EVT_BUTTON, self._cerrar)
         self.Bind(wx.EVT_CLOSE, self._cerrar)
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
 
     def _al_cambiar_pestana(self, evento):
-        if self.nb.GetPage(evento.GetSelection()) is self._pagina_grabacion:
+        seleccion = evento.GetSelection()
+        if self.nb.GetPage(seleccion) is self._pagina_grabacion:
             self._pagina_grabacion.releer_lista()
+        if seleccion == PESTANA_GENERAL:
+            self._refrescar_general()
+            self._pagina_general.txt_estado.SetFocus()
         evento.Skip()
 
     def _primer_control(self, indice):
         controles = (
-            self._pagina_transmision.cho_destino,
+            self._pagina_general.txt_estado,
             self._pagina_escena.cho_escena,
-            self._pagina_audio.chk_silenciar,
-            self._pagina_grabacion.txt_estado,
             self._pagina_fuentes.cho_fuente,
             self._pagina_agregar.cho_ventana,
-            self._pagina_general.txt_estado)
+            self._pagina_transmision.cho_destino,
+            self._pagina_audio.chk_silenciar,
+            self._pagina_grabacion._grabacion.boton)
         return controles[indice] if 0 <= indice < len(controles) else None
 
     def _enfocar_pestana(self, indice):
@@ -194,12 +161,10 @@ class VentanaObs(wx.Dialog):
         self._pagina_audio.fijar(estado.silenciado)
         self._pagina_grabacion.aplicar(estado)
         self._pagina_transmision.cargar(estado)
-        self._pagina_general.mostrar(
-            obs_general.lineas(estado.perfil, estadisticas))
+        self._mostrar_general(estado, estadisticas)
         if self._pestana_inicial == PESTANA_TRANSMISION:
             self._pagina_transmision.enfocar_inicial()
         elif self._pestana_inicial == PESTANA_GRABACION:
-            anunciar(self._pagina_grabacion.titular)
             self._pagina_grabacion._grabacion.boton.SetFocus()
         elif self._pestana_inicial == PESTANA_ESCENA:
             if leida.descripcion:
@@ -238,26 +203,37 @@ class VentanaObs(wx.Dialog):
 
     def _grabacion_leida(self, datos):
         self._pagina_grabacion.aplicar(datos)
+        self._refrescar_general()
 
-    def _actualizar_grabacion(self):
-        self._en_hilo(
-            lambda: consultas_transmision.leer_estado(
-                self._gestor, "", self._preferido()),
-            lambda datos: self._grabacion_actualizada(datos))
+    def _mostrar_general(self, estado, estadisticas):
+        resumen = estado_panel.resumir(
+            self._pagina_transmision.destino_actual(), estado.transmision,
+            estado.grabacion, estado.escena, estado.microfono,
+            estado.silenciado, estado.problemas)
+        self._pagina_general.mostrar(
+            obs_general.resumen(resumen, estado.perfil, estadisticas))
 
-    def _grabacion_actualizada(self, datos):
-        self._pagina_grabacion.aplicar(datos)
-        anunciar(self._pagina_grabacion.txt_estado.GetValue())
+    def _refrescar_general(self):
+        if self._operaciones.en_vuelo or self._operaciones.cerrando:
+            return
+        destino = self._pagina_transmision.destino_actual()
+        self._en_hilo(lambda: self._leer_general(destino), self._general_leida)
 
     def _actualizar_general(self):
-        self._en_hilo(self._leer_general, self._general_leida)
+        destino = self._pagina_transmision.destino_actual()
+        self._en_hilo(lambda: self._leer_general(destino),
+                      self._general_actualizada)
 
-    def _leer_general(self):
-        return self._gestor.perfil_actual(), self._gestor.estadisticas()
+    def _leer_general(self, destino=""):
+        estado = consultas_transmision.leer_estado(
+            self._gestor, destino, self._preferido())
+        return estado, self._gestor.estadisticas()
 
     def _general_leida(self, datos):
-        perfil, estadisticas = datos
-        self._pagina_general.mostrar(obs_general.lineas(perfil, estadisticas))
+        self._mostrar_general(*datos)
+
+    def _general_actualizada(self, datos):
+        self._mostrar_general(*datos)
         anunciar(self._pagina_general.texto())
 
     def _mostrar_obs(self):
@@ -267,33 +243,36 @@ class VentanaObs(wx.Dialog):
             anunciar(texto)
 
     def _activar(self, activo):
-        for control in self._acciones:
-            control.Enable(activo)
+        paginas = (self._pagina_transmision, self._pagina_escena,
+                   self._pagina_audio, self._pagina_grabacion,
+                   self._pagina_fuentes, self._pagina_agregar,
+                   self._pagina_general)
+        for pagina in paginas:
+            for control in pagina.acciones:
+                control.Enable(activo)
+        self.btn_cerrar.Enable(activo)
 
     def _tras_operacion(self, resultado):
         if isinstance(resultado, obs_disposicion.SnapshotPanel):
             self._pagina_fuentes.mostrar_snap(resultado)
 
     def _escribir_fallo(self, mensaje):
-        self._pagina_transmision.mostrar_fallo(mensaje)
+        self._pagina_general.mostrar([mensaje])
         self._pagina_escena.mostrar_fallo(mensaje)
-        self._pagina_grabacion.mostrar_estado(
-            EstadoPanel(mensaje, "aviso", ()))
 
     def _enfocar_tras_fallo(self):
-        if self.nb.GetSelection() == PESTANA_TRANSMISION:
-            self._pagina_transmision.enfocar_actualizar()
-        else:
-            self.btn_cerrar.SetFocus()
+        """El foco se queda donde estaba: el fallo ya se anunció."""
+        return None
 
     def _en_hilo(self, funcion, al_terminar=None):
         self._operaciones.en_hilo(funcion, al_terminar)
 
-    def _ayuda(self, event):
-        wx.MessageBox(_(TEXTO_AYUDA_OBS), _("Ayuda del panel de OBS"),
-                      wx.OK | wx.ICON_INFORMATION, self)
-
     def _al_tecla(self, evento):
+        if evento.GetKeyCode() == wx.WXK_F1:
+            from bellbird.ui import gui_menu
+            gui_menu.abrir_documento_paquete(self, "MANUAL",
+                                             _("Manual de uso"))
+            return
         if evento.GetKeyCode() == wx.WXK_ESCAPE:
             if self._pagina_fuentes.en_ajuste:
                 evento.Skip()

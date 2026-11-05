@@ -62,8 +62,8 @@ class TestAbrirPanel(unittest.TestCase):
                          [(("o", ["ctrl", "shift"]),)])
         self.assertTrue(ventanas_obs._ir_a_pestana(
             app, res, ventanas_obs.PESTANA_GRABACION))
-        self.assertEqual(app.teclas_llamadas[-3:],
-                         [(("tab", ["ctrl"]),)] * 3)
+        self.assertEqual(app.teclas_llamadas[-6:],
+                         [(("tab", ["ctrl"]),)] * 6)
         self.assertEqual(app.actual, ventanas_obs.PESTANA_GRABACION)
         self.assertEqual(res.fallos, [])
 
@@ -72,33 +72,33 @@ class TestDescuadreDePestanas(unittest.TestCase):
 
     def test_las_siete_en_orden_no_descuidran(self):
         self.assertIsNone(ventanas_obs.descuadre_de_pestanas(
-            ["Transmisión", "Escena", "Audio", "Grabación", "Fuentes",
-             "Agregar", "General"]))
+            ["General", "Escena", "Fuentes", "Agregar", "Transmisión",
+             "Audio", "Grabación"]))
 
     def test_una_pestana_de_mas_es_fallo_y_la_nombra(self):
         texto = ventanas_obs.descuadre_de_pestanas(
-            ["Transmisión", "Escena", "Audio", "Grabación", "Fuentes",
-             "Agregar", "General", "Filtros"])
+            ["General", "Escena", "Fuentes", "Agregar", "Transmisión",
+             "Audio", "Grabación", "Filtros"])
         self.assertIsNotNone(texto)
         self.assertIn("Filtros", texto)
 
     def test_una_pestana_de_menos_es_fallo(self):
         texto = ventanas_obs.descuadre_de_pestanas(
-            ["Transmisión", "Escena", "Audio", "Grabación", "Fuentes",
-             "Agregar"])
+            ["General", "Escena", "Fuentes", "Agregar", "Transmisión",
+             "Audio"])
         self.assertIsNotNone(texto)
 
     def test_el_orden_cambiado_es_fallo_y_lo_muestra(self):
         texto = ventanas_obs.descuadre_de_pestanas(
-            ["Escena", "Transmisión", "Audio", "Grabación", "Fuentes",
-             "Agregar", "General"])
+            ["Escena", "General", "Fuentes", "Agregar", "Transmisión",
+             "Audio", "Grabación"])
         self.assertIsNotNone(texto)
         self.assertIn("Escena", texto)
 
     def test_ignora_mayusculas_y_espacios(self):
         self.assertIsNone(ventanas_obs.descuadre_de_pestanas(
-            [" transmisión ", "Escena", "Audio", "grabación", "Fuentes",
-             "AGREGAR", "General"]))
+            [" general ", "Escena", "Fuentes", "agregar", "transmisión",
+             "AUDIO", "Grabación"]))
 
 
 class TestFaltanEnTab(unittest.TestCase):
@@ -130,52 +130,49 @@ class TestOrdenDeTransmision(unittest.TestCase):
 
     def test_el_orden_de_p2_no_esta_descuidado(self):
         self.assertIsNone(ventanas_obs.orden_de_transmision([
-            "TextCtrl: Estado", "Choice: Transmitir a",
+            "Choice: Transmitir a",
             "Button: Transmitir en directo", "CheckBox: Mostrar chat en el vídeo",
-            "Button: Restream…", "Button: Actualizar estado"]))
+            "Button: Restream…"]))
 
     def test_sin_los_condicionales_el_orden_sigue_valiendo(self):
         self.assertIsNone(ventanas_obs.orden_de_transmision([
-            "TextCtrl: Estado", "Choice: Transmitir a",
-            "Button: Transmitir en directo", "Button: Restream…",
-            "Button: Actualizar estado"]))
+            "Choice: Transmitir a",
+            "Button: Transmitir en directo", "Button: Restream…"]))
 
     def test_el_recorrido_circular_desde_transmitir_a_sigue_en_orden(self):
         self.assertIsNone(ventanas_obs.orden_de_transmision([
-            "Choice: Transmitir a", "Button: Transmitir en directo",
+            "Button: Transmitir en directo",
             "CheckBox: Mostrar chat en el vídeo", "Button: Restream…",
-            "Button: Actualizar estado", "TextCtrl: Estado"]))
+            "Choice: Transmitir a"]))
 
     def test_un_control_fuera_de_orden_se_nombra(self):
         texto = ventanas_obs.orden_de_transmision([
-            "TextCtrl: Estado", "Button: Actualizar estado",
-            "Choice: Transmitir a", "Button: Transmitir en directo",
+            "Button: Transmitir en directo", "Choice: Transmitir a",
             "Button: Restream…"])
         self.assertIsNotNone(texto)
-        self.assertIn("actualizar estado", texto)
+        self.assertIn("transmitir a", texto)
 
     def test_la_marca_de_mnemonico_no_cambia_el_orden(self):
         self.assertIsNone(ventanas_obs.orden_de_transmision([
-            "TextCtrl: Estado", "Choice: Transmitir &a",
-            "Button: Transmitir en directo", "Button: Re&stream…",
-            "Button: Ac&tualizar estado"]))
+            "Choice: Transmitir &a",
+            "Button: Transmitir en directo", "Button: Re&stream…"]))
 
 
 class TestEsperadosDePestana(unittest.TestCase):
 
-    def test_cada_pestana_suma_ayuda_y_cerrar(self):
+    def test_cada_pestana_suma_cerrar(self):
         for nombre in ventanas_obs.PESTANAS_OBS:
             esperados = ventanas_obs.esperados_de_pestana(nombre)
-            self.assertIn("Ayuda", esperados)
             self.assertIn("Cerrar", esperados)
+            self.assertNotIn("Ayuda", esperados)
 
     def test_transmision_pide_sus_controles(self):
         esperados = ventanas_obs.esperados_de_pestana("Transmisión")
-        self.assertIn("Estado", esperados)
         self.assertIn("Transmitir a", esperados)
         self.assertIn("Transmitir en directo", esperados)
         self.assertIn("Restream…", esperados)
-        self.assertIn("Actualizar estado", esperados)
+        self.assertNotIn("Estado", esperados)
+        self.assertNotIn("Actualizar estado", esperados)
         self.assertNotIn("Escena…", esperados)
         self.assertNotIn("Grabación…", esperados)
         self.assertNotIn("Mostrar OBS", esperados)
@@ -185,17 +182,18 @@ class TestEsperadosDePestana(unittest.TestCase):
         self.assertIn("Silenciar micrófono", esperados)
         self.assertIn("Elegir micrófono", esperados)
 
-    def test_grabacion_pide_su_estado_y_su_lista(self):
+    def test_grabacion_pide_sus_botones_y_su_lista(self):
         esperados = ventanas_obs.esperados_de_pestana("Grabación")
-        self.assertIn("Estado", esperados)
         self.assertIn("Iniciar grabación", esperados)
         self.assertIn("Grabaciones y clips", esperados)
+        self.assertNotIn("Estado", esperados)
+        self.assertNotIn("Actualizar estado", esperados)
         self.assertNotIn("Escena…", esperados)
         self.assertNotIn("Grabaciones…", esperados)
 
     def test_general_pide_estado_actualizar_y_mostrar(self):
         esperados = ventanas_obs.esperados_de_pestana("General")
-        self.assertIn("Estado de OBS", esperados)
+        self.assertIn("Estado", esperados)
         self.assertIn("Actualizar estado", esperados)
         self.assertIn("Mostrar OBS", esperados)
 

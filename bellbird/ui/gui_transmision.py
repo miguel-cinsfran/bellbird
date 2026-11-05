@@ -7,7 +7,7 @@ import wx
 from bellbird.core.idioma import N_, _, pgettext
 from bellbird.obs import (consultas_transmision, obs_lanzador,
                           overlay_servidor, transmision_directa)
-from bellbird.obs.estado_panel import EstadoPanel, resumir
+from bellbird.obs.estado_panel import resumir
 from bellbird.obs.obs_destinos import DESTINOS
 from bellbird.obs.obs_panel import NOMBRE_FUENTE
 from bellbird.ui import gui_microfono, menu_transmision, tema
@@ -15,8 +15,7 @@ from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.directo_panel import DirectoPanel
 from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui.preferencias_comun import (
-    CampoEstado, boton, fila_campo, fila_horizontal, mostrar_control,
-    mostrar_fila)
+    boton, fila_campo, mostrar_control, mostrar_fila)
 
 _PUERTO_PANEL_DEFECTO = 8730
 _RUTA_PANEL_CHAT = "/chat"
@@ -25,13 +24,14 @@ _ETIQUETA_CHAT = N_("Mostrar &chat en el vídeo")
 
 
 class PaginaTransmision(wx.Panel):
-    """Lo que hace la pestaña Transmisión: el directo y su estado."""
+    """Lo que hace la pestaña Transmisión: el directo y sus acciones."""
 
-    def __init__(self, parent, principal, gestor, operaciones):
+    def __init__(self, parent, principal, gestor, operaciones, al_terminar=None):
         super().__init__(parent, name="PaginaTransmision")
         self._principal = principal
         self._gestor = gestor
         self._operaciones = operaciones
+        self._al_terminar = al_terminar
         config = getattr(principal, "_config", None) or {}
         self._alternar_panel = getattr(principal, "_cambiar_overlay", None)
         self._supervisar = getattr(
@@ -41,7 +41,6 @@ class PaginaTransmision(wx.Panel):
         self._guardar_destino = getattr(
             principal, "_guardar_destino_transmision", None)
         self._usuario_tiktok = config.get("tiktok_usuario", "") or ""
-        self._estado_actual = EstadoPanel("", "listo", ())
         self._escena_al_aire = ""
         self._crear_controles()
         self._directo = DirectoPanel(
@@ -54,26 +53,15 @@ class PaginaTransmision(wx.Panel):
     def _crear_controles(self):
         caja = wx.BoxSizer(wx.VERTICAL)
         self._filas = {}
-        self._crear_estado(caja)
         self._crear_grupo_directo(caja)
         self.btn_restream = boton(
             self, pgettext("pestaña Transmisión", "Re&stream…"),
             _("Restream…"))
-        self.btn_actualizar = boton(
-            self, _("Ac&tualizar estado"), _("Actualizar estado"))
-        caja.Add(fila_horizontal((self.btn_restream, self.btn_actualizar)),
-                 0, wx.ALL, 10)
+        caja.Add(self.btn_restream, 0, wx.ALL, 10)
         self.SetSizer(caja)
         self.acciones = (
             self.cho_destino, self.txt_usuario_tiktok, self.btn_directo,
-            self.chk_chat, self.btn_restream, self.btn_actualizar)
-
-    def _crear_estado(self, contenido):
-        rotulo = wx.StaticText(self, label=_("&Estado:"))
-        self.txt_estado = CampoEstado(self, _("Estado"))
-        contenido.Add(rotulo, 0, wx.ALL, 6)
-        contenido.Add(self.txt_estado, 0, wx.EXPAND | wx.LEFT | wx.RIGHT
-                      | wx.BOTTOM, 6)
+            self.chk_chat, self.btn_restream)
 
     def _crear_grupo_directo(self, contenido):
         sizer, padre = caja_de_grupo(self, _("Directo"))
@@ -101,7 +89,6 @@ class PaginaTransmision(wx.Panel):
         contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
 
     def _enlazar_eventos(self):
-        self.btn_actualizar.Bind(wx.EVT_BUTTON, self._actualizar)
         self.btn_restream.Bind(wx.EVT_BUTTON, self._abrir_restream)
         self.chk_chat.Bind(wx.EVT_CHECKBOX, self._alternar_chat)
         self.cho_destino.Bind(wx.EVT_CHOICE, self._al_cambiar_destino)
@@ -109,6 +96,9 @@ class PaginaTransmision(wx.Panel):
     def _destino_elegido(self):
         seleccion = self.cho_destino.GetSelection()
         return DESTINOS[seleccion] if seleccion != wx.NOT_FOUND else None
+
+    def destino_actual(self):
+        return self._destino_elegido() or ""
 
     def _datos_directo(self):
         return (self._destino_elegido() or "",
@@ -123,7 +113,7 @@ class PaginaTransmision(wx.Panel):
     def _al_cambiar_destino(self, event):
         self._directo.recordar_destino(self._destino_elegido() or "")
         self._aplicar_visibilidad()
-        self._refrescar_estado()
+        self._refrescar_estado(anunciar_titular=True)
         event.Skip()
 
     def _al_cambiar_directo(self, foco=None):
@@ -146,17 +136,6 @@ class PaginaTransmision(wx.Panel):
             self.btn_directo)
         self.Layout()
 
-    def _mostrar_estado(self, estado):
-        self._estado_actual = estado
-        self.txt_estado.mostrar(estado)
-
-    def mostrar_fallo(self, mensaje):
-        self._mostrar_estado(EstadoPanel(mensaje, "aviso", ()))
-
-    def enfocar_actualizar(self):
-        self.btn_actualizar.Enable(True)
-        self.btn_actualizar.SetFocus()
-
     def _en_hilo(self, funcion, al_terminar=None):
         self._operaciones.en_hilo(funcion, al_terminar)
 
@@ -173,7 +152,6 @@ class PaginaTransmision(wx.Panel):
         self._aplicar_datos(datos)
 
     def enfocar_inicial(self):
-        anunciar(self._estado_actual.titular)
         if self.cho_destino.IsShown():
             self.cho_destino.SetFocus()
         else:
@@ -182,21 +160,26 @@ class PaginaTransmision(wx.Panel):
     def cerrar_directo(self):
         self._directo.cerrar()
 
-    def _refrescar_estado(self, anunciar_cuadro=False):
+    def _refrescar_estado(self, anunciar_titular=False):
         destino = self._destino_elegido() or ""
         preferido = self._microfono_preferido()
         self._en_hilo(
             lambda: consultas_transmision.leer_estado(
                 self._gestor, destino, preferido),
-            lambda datos: self._estado_leido(datos, anunciar_cuadro))
+            lambda datos: self._estado_leido(datos, anunciar_titular))
 
-    def _estado_leido(self, datos, anunciar_cuadro=False):
+    def _estado_leido(self, datos, anunciar_titular=False):
         self._aplicar_datos(datos)
-        if anunciar_cuadro:
-            anunciar(self.txt_estado.GetValue())
+        if anunciar_titular:
+            anunciar(self._resumen(datos).titular)
+        if self._al_terminar is not None:
+            self._al_terminar()
 
-    def _actualizar(self, event):
-        self._refrescar_estado(anunciar_cuadro=True)
+    def _resumen(self, datos):
+        escena = getattr(datos, "al_aire", "") or getattr(datos, "escena", "")
+        return resumir(
+            self._destino_elegido() or "", datos.transmision, datos.grabacion,
+            escena, datos.microfono, datos.silenciado, datos.problemas)
 
     def _aplicar_datos(self, datos):
         if not self._directo.deteniendo:
@@ -204,9 +187,6 @@ class PaginaTransmision(wx.Panel):
                 bool(datos.transmision.get("outputActive", False)))
         escena = getattr(datos, "al_aire", "") or getattr(datos, "escena", "")
         self._escena_al_aire = escena
-        self._mostrar_estado(resumir(
-            self._destino_elegido() or "", datos.transmision, datos.grabacion,
-            escena, datos.microfono, datos.silenciado, datos.problemas))
         self._aplicar_visibilidad()
 
     def _alternar_chat(self, event):

@@ -2,7 +2,7 @@
 
 import unittest
 
-from bellbird.obs import obs_general
+from bellbird.obs import estado_panel, obs_general
 
 
 TODAS = {
@@ -76,6 +76,65 @@ class TestLineasDeGeneral(unittest.TestCase):
     def test_sin_estadisticas_solo_queda_el_perfil(self):
         self.assertEqual(obs_general.lineas("TikTok", {}),
                          ["Conectado con OBS. Perfil: TikTok."])
+
+
+def _estado(destino="TikTok", transmision=None, grabacion=None,
+            escena="Principal", microfono="Mic/Aux", silenciado=False,
+            problemas=()):
+    return estado_panel.resumir(
+        destino, transmision or {"outputActive": False, "outputDuration": 0},
+        grabacion or {"outputActive": False, "outputPaused": False,
+                      "outputTimecode": "00:00:00.000"},
+        escena, microfono, silenciado, problemas)
+
+
+class TestResumenDeGeneral(unittest.TestCase):
+    """El estado de General reúne la transmisión, la escena y el equipo."""
+
+    def test_con_transmision_activa_empieza_por_su_titular(self):
+        estado = _estado(transmision={"outputActive": True,
+                                      "outputDuration": 61})
+        resultado = obs_general.resumen(estado, "TikTok", TODAS)
+        self.assertEqual(resultado[0], "Transmitiendo a TikTok desde hace 1 min")
+        self.assertIn("Escena actual: Principal", resultado)
+        self.assertIn("Micrófono Mic/Aux: activado", resultado)
+        self.assertIn("Grabación: detenida", resultado)
+        self.assertIn("Conectado con OBS. Perfil: TikTok.", resultado)
+
+    def test_con_un_problema_de_revision_lo_encabeza(self):
+        estado = _estado(problemas=("El micrófono está silenciado.",))
+        resultado = obs_general.resumen(estado, "TikTok", TODAS)
+        self.assertEqual(
+            resultado[0],
+            "Revisa antes de transmitir: El micrófono está silenciado.")
+
+    def test_sin_destino_pide_elegirlo(self):
+        estado = _estado(destino="")
+        self.assertEqual(obs_general.resumen(estado, "", TODAS)[0],
+                         "Elige a dónde transmitir")
+
+    def test_con_grabacion_en_pausa_lo_dice_en_sus_lineas(self):
+        estado = _estado(grabacion={
+            "outputActive": True, "outputPaused": True,
+            "outputTimecode": "00:02:03.500"})
+        self.assertIn("Grabación: en pausa, 00:02:03",
+                      obs_general.resumen(estado, "TikTok", TODAS))
+
+    def test_sin_estadisticas_queda_el_estado_y_el_perfil(self):
+        estado = _estado()
+        self.assertEqual(obs_general.resumen(estado, "TikTok", {}), [
+            "Preparado para transmitir a TikTok",
+            "Escena actual: Principal",
+            "Micrófono Mic/Aux: activado",
+            "Grabación: detenida",
+            "Conectado con OBS. Perfil: TikTok.",
+        ])
+
+    def test_ningun_dato_aparece_dos_veces(self):
+        estado = _estado(transmision={"outputActive": True,
+                                      "outputDuration": 61})
+        resultado = obs_general.resumen(estado, "TikTok", TODAS)
+        self.assertEqual(len(resultado), len(set(resultado)), resultado)
 
 
 if __name__ == "__main__":

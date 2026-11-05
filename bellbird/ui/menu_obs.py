@@ -20,11 +20,11 @@ def mostrar_obs() -> None:
 
 
 def abrir_obs(frame) -> None:
-    """Abre el panel de OBS en su pestaña Transmisión."""
+    """Abre el panel de OBS en su pestaña General."""
     from bellbird.ui import obs_ventana
 
     obs_ventana.abrir_obs(
-        frame, frame, pestana=obs_ventana.PESTANA_TRANSMISION)
+        frame, frame, pestana=obs_ventana.PESTANA_GENERAL)
 
 
 def _agregar_comandos(m, frame):

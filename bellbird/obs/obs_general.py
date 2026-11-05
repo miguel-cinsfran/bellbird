@@ -50,3 +50,17 @@ def lineas(perfil, estadisticas) -> list[str]:
         resultado.append(_("Espacio en disco disponible: {tamano}.").format(
             tamano=texto_tamano(espacio * _BYTES_POR_MB)))
     return resultado
+
+
+def resumen(estado, perfil, estadisticas) -> list[str]:
+    """El estado de General completo, sin repetir ningún dato.
+
+    Primero el titular de la transmisión, después sus líneas y al final el
+    perfil y el rendimiento del equipo.
+    """
+    resultado = []
+    for linea in (estado.titular, *estado.lineas,
+                  *lineas(perfil, estadisticas)):
+        if linea and linea not in resultado:
+            resultado.append(linea)
+    return resultado

@@ -1,4 +1,4 @@
-"""Pestaña General del panel de OBS: el perfil y cómo rinde el equipo."""
+"""Pestaña General del panel de OBS: el estado completo de OBS."""
 
 from __future__ import annotations
 
@@ -22,11 +22,11 @@ class PaginaGeneral(wx.Panel):
 
     def _crear_controles(self):
         caja = wx.BoxSizer(wx.VERTICAL)
-        rotulo = wx.StaticText(self, label=_("&Estado de OBS:"))
+        rotulo = wx.StaticText(self, label=_("&Estado:"))
         self.txt_estado = wx.TextCtrl(
             self, style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name=_("Estado de OBS"))
-        nombre_accesible(self.txt_estado, _("Estado de OBS"))
+            name=_("Estado"))
+        nombre_accesible(self.txt_estado, _("Estado"))
         self.txt_estado.SetMinSize((-1, 150))
         caja.Add(rotulo, 0, wx.ALL, 6)
         caja.Add(self.txt_estado, 1, wx.EXPAND | wx.LEFT | wx.RIGHT

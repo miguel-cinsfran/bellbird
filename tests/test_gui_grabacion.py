@@ -131,9 +131,19 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
     def test_titulo_y_orden_de_tab_de_grabacion(self):
         self.assertEqual(self.dialogo.GetTitle(), "Panel de OBS")
         self.assertEqual(self._nombres(self.dialogo._pagina_grabacion), [
-            "Estado", "Iniciar grabación",
-            "Grabar también al transmitir", "Actualizar estado",
+            "Iniciar grabación", "Grabar también al transmitir",
             "Grabaciones y clips"])
+
+    def test_la_pestana_no_tiene_campo_de_estado_ni_actualizar(self):
+        pagina = self.dialogo._pagina_grabacion
+        self.assertFalse(hasattr(pagina, "txt_estado"))
+        self.assertFalse(hasattr(pagina, "btn_actualizar"))
+
+    def test_general_reune_escena_microfono_y_grabacion(self):
+        texto = self.dialogo._pagina_general.texto()
+        self.assertIn("Escena actual: Principal", texto)
+        self.assertIn("Micrófono Mic/Aux: activado", texto)
+        self.assertIn("Grabación: detenida", texto)
 
     def test_volver_a_grabacion_relee_la_lista(self):
         entrada = {"ruta": "C:/Videos/clips/clip.mp4", "fecha": 1000,
@@ -158,24 +168,12 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
         self.assertIn("Detener grabación", nombres)
         self.assertIn("Pausar grabación", nombres)
 
-    def test_al_abrir_anuncia_el_titular_y_enfoca_iniciar(self):
+    def test_al_abrir_enfoca_iniciar_sin_anunciar_el_estado(self):
         self.anuncios.clear()
         dialogo = self._crear()
-        self.assertEqual(self.anuncios, ["Sin grabar"])
+        self.assertEqual(self.anuncios, [])
         self.assertIs(dialogo.FindFocus(),
                       dialogo._pagina_grabacion._grabacion.boton)
-
-    def test_el_estado_dice_escena_microfono_y_transmision(self):
-        self.dialogo._pagina_grabacion.aplicar(SimpleNamespace(
-            escena="Principal", transmision={"outputActive": True},
-            grabacion={"outputActive": True, "outputPaused": False,
-                       "outputTimecode": "00:01:02.000"},
-            microfono="Mic/Aux", silenciado=False))
-        lineas = self.dialogo._pagina_grabacion.txt_estado.GetValue().splitlines()
-        self.assertEqual(lineas[0], "Grabando, 00:01:02")
-        self.assertIn("Escena actual: Principal", lineas)
-        self.assertIn("Micrófono Mic/Aux: activado", lineas)
-        self.assertIn("También se está transmitiendo.", lineas)
 
     def test_iniciar_llama_a_alternar_grabacion_con_ruta_y_refresca(self):
         with mock.patch.object(
@@ -186,7 +184,9 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
                     wraps=consultas_transmision.leer_estado) as leer:
             self._pulsar(self.dialogo._pagina_grabacion._grabacion.boton)
         alternar.assert_called_once_with()
-        leer.assert_called_once()
+        self.assertEqual(leer.call_count, 2)
+        self.assertIn("Grabación: en curso, 00:01:02",
+                      self.dialogo._pagina_general.texto())
 
     def test_los_botones_suenan_y_anuncian_como_el_panel(self):
         self._pulsar(self.dialogo._pagina_grabacion._grabacion.boton)
@@ -217,7 +217,7 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
         asegurar.assert_called_once()
         self.assertEqual(gestor.veces_conectar, 1)
         self.assertTrue(gestor.conectado)
-        self.assertTrue(dialogo._pagina_grabacion.txt_estado.GetValue())
+        self.assertTrue(dialogo._pagina_general.texto())
 
     def test_si_obs_no_responde_lo_dice_en_el_estado(self):
         gestor = GestorFalso(fallo=True)
@@ -225,7 +225,7 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
                                _asegurar_obs):
             dialogo = self._crear(gestor=gestor)
         self.assertIn("OBS no está disponible",
-                      dialogo._pagina_grabacion.txt_estado.GetValue())
+                      dialogo._pagina_general.texto())
         self.assertFalse(dialogo._operaciones.en_vuelo)
 
     def test_el_atajo_configurado_de_abrir_grabacion_ya_no_cambia_de_pestana(self):

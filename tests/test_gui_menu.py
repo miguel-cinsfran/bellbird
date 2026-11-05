@@ -687,7 +687,7 @@ class TestMenuObs(unittest.TestCase):
 
 
 class TestCableadoPanelObs(unittest.TestCase):
-    """El comando Panel de OBS abre el panel en su pestaña Transmisión."""
+    """El comando Panel de OBS abre el panel en su pestaña General."""
 
     @classmethod
     def setUpClass(cls):
@@ -712,7 +712,7 @@ class TestCableadoPanelObs(unittest.TestCase):
         frame.SetMenuBar(barra)
         return frame
 
-    def test_el_comando_abre_el_panel_en_transmision(self):
+    def test_el_comando_abre_el_panel_en_general(self):
         from bellbird.ui import menu_obs
         from bellbird.ui import obs_ventana
 
@@ -725,7 +725,7 @@ class TestCableadoPanelObs(unittest.TestCase):
             frame.GetEventHandler().ProcessEvent(evento)
 
         abrir.assert_called_once_with(
-            frame, frame, pestana=obs_ventana.PESTANA_TRANSMISION)
+            frame, frame, pestana=obs_ventana.PESTANA_GENERAL)
 
 
 class TestCableadoMostrarObs(unittest.TestCase):

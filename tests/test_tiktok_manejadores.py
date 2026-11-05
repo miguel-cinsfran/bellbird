@@ -5,6 +5,7 @@ import types
 import unittest
 from unittest import mock
 
+from bellbird.capture import encuestas
 from bellbird.capture import tiktok_manejadores
 from bellbird.capture.tiktok_manejadores import registrar_manejadores
 from bellbird.core.config import (
@@ -109,6 +110,33 @@ class TestRegistrarManejadores(unittest.TestCase):
         asyncio.run(cliente.manejadores[mod.RoomUserSeqEvent](
             types.SimpleNamespace(total=3, total_user=50)))
         self.assertEqual(vistos, [(3, 50)])
+
+
+class TestEncuestasDeUnaConexionNueva(unittest.TestCase):
+
+    def test_registrar_manejadores_olvida_la_encuesta_anterior(self):
+        encuestas.registro.abrir(
+            "vieja", "Encuesta vieja", [("pizza", 3)])
+        self.assertNotEqual(encuestas.registro.en_curso(), "")
+        _registrar(_TODAS)
+        self.assertEqual(encuestas.registro.en_curso(), "")
+
+    def test_poll_event_descartado_no_emite_ni_toca_el_registro(self):
+        from TikTokLive.events import PollEvent
+        from TikTokLiveProto.v3.webcast.model.message import (
+            PollOptionInfo, PollStartContent)
+
+        cliente, mod, recibidos, _vistos, _est = _registrar(
+            _TODAS_NUEVAS, descartar=lambda evento: True)
+        evento = PollEvent(
+            poll_id=99,
+            start_content=PollStartContent(
+                title="¿Qué almorzamos?",
+                option_list=[PollOptionInfo(
+                    display_content="pizza", votes=0, option_idx=0)]))
+        asyncio.run(cliente.manejadores[mod.PollEvent](evento))
+        self.assertEqual(recibidos, [])
+        self.assertEqual(encuestas.registro.en_curso(), "")
 
 
 def _evento_sticker(cuantos=1):

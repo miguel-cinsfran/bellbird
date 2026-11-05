@@ -307,7 +307,10 @@ def construir_entradas_reales() -> list:
     from bellbird.ui import gui_menu
     from bellbird.ui.gui import _fmt_accel
 
-    app = wx.App(False)
+    app = wx.App.Get()
+    creada = app is None
+    if creada:
+        app = wx.App(False)
     defaults = todos_los_atajos_default()
     frame = _DobleFrame(
         wx.Frame(None),
@@ -326,7 +329,8 @@ def construir_entradas_reales() -> list:
             barra.GetMenuLabel(i)), "", "menu", 0))
         _recorrer(barra.GetMenu(i), (titulo,), 1, entradas)
     frame.Destroy()
-    app.Destroy()
+    if creada:
+        app.Destroy()
     return entradas
 
 

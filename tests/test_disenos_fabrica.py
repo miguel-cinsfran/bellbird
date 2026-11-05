@@ -13,13 +13,19 @@ def _fuentes():
     ]
 
 
+def _fabrica(clave):
+    return next(fabrica for fabrica in disenos_fabrica.FABRICA
+                if fabrica.clave == clave)
+
+
 class FabricaTest(unittest.TestCase):
 
-    def test_los_seis_disenos_en_orden(self):
+    def test_los_siete_disenos_en_orden(self):
         self.assertEqual(
             [fabrica.nombre for fabrica in disenos_fabrica.FABRICA],
             ["Fuente principal con cámara en una esquina",
              "Fuente principal con cámara y chat a la derecha",
+             "Cámara con la fuente principal en una esquina",
              "Fuente principal a pantalla completa",
              "Cámara a pantalla completa",
              "Fuente principal y cámara lado a lado",
@@ -42,11 +48,36 @@ class FabricaTest(unittest.TestCase):
             imagen.diseno, imagen.papeles, fuentes)
         self.assertEqual((completa.principal, completa.secundaria),
                          ("Juego", "Cámara"))
-        dividida = disenos_fabrica.FABRICA[4]
+        dividida = _fabrica("dividida_mitades")
         completa = disenos_fabrica.completar(
             dividida.diseno, dividida.papeles, fuentes)
         self.assertEqual((completa.izquierda, completa.derecha),
                          ("Juego", "Cámara"))
+
+    def test_camara_a_pantalla_completa_con_la_principal_en_una_esquina(self):
+        fuentes = _fuentes()
+        fabrica = _fabrica("camara_esquina")
+        completa = disenos_fabrica.completar(
+            fabrica.diseno, fabrica.papeles, fuentes)
+        self.assertEqual((completa.principal, completa.secundaria),
+                         ("Cámara", "Juego"))
+        colocaciones = disenos_escena.calcular(1600, 900, fuentes, completa)
+        por_nombre = {colocacion["nombre"]: colocacion
+                      for colocacion in colocaciones}
+        camara = por_nombre["Cámara"]
+        self.assertEqual(
+            (camara["positionX"], camara["positionY"],
+             camara["boundsWidth"], camara["boundsHeight"]),
+            (0, 0, 1600, 900))
+        self.assertEqual(camara["estado"], disenos_escena.ESTADO_LLENA)
+        juego = por_nombre["Juego"]
+        self.assertEqual(
+            (juego["positionX"], juego["positionY"],
+             juego["boundsWidth"], juego["boundsHeight"]),
+            (1168, 657, 400, 225))
+        self.assertEqual(juego["estado"], disenos_escena.ESTADO_AJUSTA)
+        nombres = [colocacion["nombre"] for colocacion in colocaciones]
+        self.assertLess(nombres.index("Juego"), nombres.index("Cámara"))
 
     def test_papel_principal_acepta_captura_y_otra(self):
         self.assertIn("captura", disenos_fabrica.PAPEL_PRINCIPAL)

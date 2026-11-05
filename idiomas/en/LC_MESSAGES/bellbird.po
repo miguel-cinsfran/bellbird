@@ -34,48 +34,6 @@ msgstr "{etiqueta} from {autor}: {monto}. {mensaje}"
 msgid "{etiqueta} de {autor}: {monto}"
 msgstr "{etiqueta} from {autor}: {monto}"
 
-#: main.py
-#, python-brace-format
-msgid "Nuevo miembro: {autor}"
-msgstr "New member: {autor}"
-
-#. Traductores: {autor} es quien entró; en un grupo, varios nombres.
-#: main.py
-#, python-brace-format
-msgid "{autor} entraron"
-msgstr "{autor} joined"
-
-#: main.py
-#, python-brace-format
-msgid "{autor} entró"
-msgstr "{autor} joined"
-
-#: main.py
-#, python-brace-format
-msgid "{autor} sigue el canal"
-msgstr "{autor} followed the channel"
-
-#: main.py
-#, python-brace-format
-msgid "{autor} compartió el directo"
-msgstr "{autor} shared the live stream"
-
-#: main.py
-#, python-brace-format
-msgid "{autor} envió un cofre"
-msgstr "{autor} sent a treasure chest"
-
-#. Traductores: {n} es cuántos «me gusta» dieron.
-#: main.py
-#, python-brace-format
-msgid "{autor} dio {n} me gusta"
-msgstr "{autor} sent {n} likes"
-
-#: main.py
-#, python-brace-format
-msgid "{autor} dio me gusta"
-msgstr "{autor} liked"
-
 #. Traductores: autor cuando el chat no da el nombre; una sola palabra.
 #. Traductores: autor cuando YouTube no da el nombre; una sola palabra.
 #: bellbird/voice/tts_worker.py bellbird/youtube/youtube_api.py main.py
@@ -1738,6 +1696,48 @@ msgstr "{base} ({fecha})"
 msgid "Idioma de Windows"
 msgstr "Windows language"
 
+#: bellbird/core/lectura_eventos.py
+#, python-brace-format
+msgid "Nuevo miembro: {autor}"
+msgstr "New member: {autor}"
+
+#. Traductores: {autor} es quien entró; en un grupo, varios nombres.
+#: bellbird/core/lectura_eventos.py
+#, python-brace-format
+msgid "{autor} entraron"
+msgstr "{autor} joined"
+
+#: bellbird/core/lectura_eventos.py
+#, python-brace-format
+msgid "{autor} entró"
+msgstr "{autor} joined"
+
+#: bellbird/core/lectura_eventos.py
+#, python-brace-format
+msgid "{autor} sigue el canal"
+msgstr "{autor} followed the channel"
+
+#: bellbird/core/lectura_eventos.py
+#, python-brace-format
+msgid "{autor} compartió el directo"
+msgstr "{autor} shared the live stream"
+
+#: bellbird/core/lectura_eventos.py
+#, python-brace-format
+msgid "{autor} envió un cofre"
+msgstr "{autor} sent a treasure chest"
+
+#. Traductores: {n} es cuántos «me gusta» dieron.
+#: bellbird/core/lectura_eventos.py
+#, python-brace-format
+msgid "{autor} dio {n} me gusta"
+msgstr "{autor} sent {n} likes"
+
+#: bellbird/core/lectura_eventos.py
+#, python-brace-format
+msgid "{autor} dio me gusta"
+msgstr "{autor} liked"
+
 #. Traductores: encabezado de las novedades de una versión.
 #: bellbird/core/novedades.py
 #, python-brace-format
@@ -2703,6 +2703,10 @@ msgid "Fuente principal con cámara y chat a la derecha"
 msgstr "Main source with camera and chat on the right"
 
 #: bellbird/obs/disenos_fabrica.py
+msgid "Cámara con la fuente principal en una esquina"
+msgstr "Camera with main source in a corner"
+
+#: bellbird/obs/disenos_fabrica.py
 msgid "Fuente principal a pantalla completa"
 msgstr "Main source full screen"
 
@@ -2808,14 +2812,6 @@ msgstr "Audio monitoring disabled."
 #: bellbird/obs/escucha_microfono.py
 msgid "Monitorización restablecida como estaba en OBS."
 msgstr "Audio monitoring restored to how it was in OBS."
-
-#: bellbird/obs/estado_grabacion.py
-msgid "Sin grabar"
-msgstr "Not recording"
-
-#: bellbird/obs/estado_grabacion.py
-msgid "También se está transmitiendo."
-msgstr "You are also broadcasting."
 
 #: bellbird/obs/estado_panel.py bellbird/obs/obs_estado.py
 #, python-brace-format
@@ -5726,7 +5722,7 @@ msgstr "Progress"
 
 #. Traductores: nombre del cuadro de estado.
 #: bellbird/ui/descargas_listas.py bellbird/ui/gui_actualizacion.py
-#: bellbird/ui/gui_transmision.py bellbird/ui/obs_pagina_grabacion.py
+#: bellbird/ui/obs_pagina_general.py
 msgid "Estado"
 msgstr "Status"
 
@@ -7658,11 +7654,11 @@ msgstr "&Check for updates…"
 msgid "&Acerca de"
 msgstr "&About"
 
-#: bellbird/ui/gui_menu.py bellbird/ui/obs_ventana.py
+#: bellbird/ui/gui_menu.py
 msgid "A&yuda"
 msgstr "&Help"
 
-#: bellbird/ui/gui_menu.py
+#: bellbird/ui/gui_menu.py bellbird/ui/obs_ventana.py
 msgid "Manual de uso"
 msgstr "User manual"
 
@@ -8121,19 +8117,6 @@ msgstr "Restre&am…"
 #: bellbird/ui/gui_transmision.py
 msgid "Restream…"
 msgstr "Restream…"
-
-#: bellbird/ui/gui_transmision.py bellbird/ui/obs_pagina_general.py
-#: bellbird/ui/obs_pagina_grabacion.py
-msgid "Ac&tualizar estado"
-msgstr "Re&fresh status"
-
-#: bellbird/ui/gui_transmision.py bellbird/ui/obs_pagina_grabacion.py
-msgid "Actualizar estado"
-msgstr "Refresh status"
-
-#: bellbird/ui/gui_transmision.py bellbird/ui/obs_pagina_grabacion.py
-msgid "&Estado:"
-msgstr "&Status:"
 
 #: bellbird/ui/gui_transmision.py
 msgid "Directo"
@@ -8723,12 +8706,12 @@ msgid "Detener la igualación"
 msgstr "Stop matching"
 
 #: bellbird/ui/obs_pagina_general.py
-msgid "&Estado de OBS:"
-msgstr "OBS &status:"
+msgid "&Estado:"
+msgstr "&Status:"
 
 #: bellbird/ui/obs_pagina_general.py
-msgid "Estado de OBS"
-msgstr "OBS status"
+msgid "Ac&tualizar estado"
+msgstr "Re&fresh status"
 
 #: bellbird/ui/obs_pagina_general.py
 msgid "Mostrar &OBS"
@@ -8743,92 +8726,12 @@ msgid "Grabar también al transmitir"
 msgstr "Record while broadcasting"
 
 #: bellbird/ui/obs_ventana.py
-msgid ""
-"Esta ventana reúne en pestañas lo que se hace con OBS. Ctrl+Tab pasa a la "
-"pestaña siguiente y Ctrl+Mayús+Tab a la anterior.\n"
-"\n"
-"Transmisión inicia y detiene el directo, elige adónde se transmite y "
-"muestra el chat en el vídeo. Restream abre la ventana de Restream.\n"
-"\n"
-"Escena elige cuál se edita, dice qué tiene y cambia cuál se emite. Recorrer"
-" la lista no cambia nada en el directo.\n"
-"\n"
-"Audio silencia el micrófono de OBS y elige cuál se usa. Probar micrófono "
-"dice cada cinco segundos cómo llega la voz y qué hacer, hasta que se "
-"detiene. Filtros del micrófono activa la eliminación de ruido, la puerta "
-"anti-ruidos y la ganancia en OBS. Escuchar micrófono activa la "
-"monitorización de audio de OBS para oírte con los filtros; usa auriculares."
-"\n"
-"\n"
-"Grabación inicia, pausa y detiene la grabación. La lista tiene lo grabado: "
-"Intro abre el archivo y Supr lo elimina de la lista. La tecla Aplicaciones "
-"muestra las demás acciones.\n"
-"\n"
-"Fuentes elige una fuente de la escena. La mueve, la cambia de tamaño, la "
-"oculta, la bloquea o cambia su capa. Mover con flechas la mueve en pasos "
-"pequeños: Ctrl da pasos grandes, Mayús pasos de un píxel, Intro confirma y "
-"Esc deshace. Aplicar diseño reparte la escena de una vez: la fuente "
-"principal, la cámara y el chat, con diseños de fábrica o guardados. "
-"Deshacer cambios vuelve a como estaba todo al abrir esta ventana.\n"
-"\n"
-"Agregar captura una ventana del equipo o agrega una cámara de Windows a la "
-"escena actual.\n"
-"\n"
-"General dice el perfil de OBS y cómo rinde el equipo. Mostrar OBS trae su "
-"ventana al frente."
-msgstr ""
-"This window brings together in tabs what is done with OBS. Ctrl+Tab moves "
-"to the next tab and Ctrl+Shift+Tab to the previous one.\n"
-"\n"
-"Broadcast starts and stops the live stream, chooses where it is broadcast "
-"and shows the chat on video. Restream opens the Restream window.\n"
-"\n"
-"Scene chooses which one is edited, says what it has and changes which one "
-"is broadcast. Browsing the list does not change anything in the live "
-"stream.\n"
-"\n"
-"Audio mutes the OBS microphone and chooses which one is used. Test "
-"microphone says every five seconds how the voice is coming in and what to "
-"do, until it stops. Microphone filters turns on Noise Suppression, Noise "
-"Gate and Gain in OBS. Listen to microphone enables OBS audio monitoring so "
-"you hear yourself with the filters; use headphones.\n"
-"\n"
-"Recording starts, pauses and stops recording. The list has what was "
-"recorded: Enter opens the file and Delete removes it from the list. The "
-"Applications key shows the other actions.\n"
-"\n"
-"Sources chooses a source of the scene. It moves it, changes its size, hides"
-" it, locks it or changes its layer. Move with arrows moves it in small "
-"steps: Ctrl gives large steps, Shift one-pixel steps, Enter confirms and "
-"Esc undoes. Apply layout distributes the scene at once: the main source, "
-"the camera and the chat, with factory or saved layouts. Undo changes "
-"returns everything to how it was when this window was opened.\n"
-"\n"
-"Add captures a window from the computer or adds a Windows camera to the "
-"current scene.\n"
-"\n"
-"General says the OBS profile and how the computer performs. Show OBS brings"
-" its window to the front."
-
-#: bellbird/ui/obs_ventana.py
 msgid "Panel de OBS"
 msgstr "OBS panel"
 
 #: bellbird/ui/obs_ventana.py
-msgid "Transmisión"
-msgstr "Broadcast"
-
-#: bellbird/ui/obs_ventana.py
 msgid "Escena"
 msgstr "Scene"
-
-#: bellbird/ui/obs_ventana.py
-msgid "Audio"
-msgstr "Audio"
-
-#: bellbird/ui/obs_ventana.py
-msgid "Grabación"
-msgstr "Recording"
 
 #: bellbird/ui/obs_ventana.py
 msgid "Fuentes"
@@ -8839,8 +8742,16 @@ msgid "Agregar"
 msgstr "Add"
 
 #: bellbird/ui/obs_ventana.py
-msgid "Ayuda del panel de OBS"
-msgstr "OBS panel help"
+msgid "Transmisión"
+msgstr "Broadcast"
+
+#: bellbird/ui/obs_ventana.py
+msgid "Audio"
+msgstr "Audio"
+
+#: bellbird/ui/obs_ventana.py
+msgid "Grabación"
+msgstr "Recording"
 
 #. Traductores: primera opción del combinado de salida de música; la que elige
 #. el sistema.

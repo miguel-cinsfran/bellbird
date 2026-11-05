@@ -23,6 +23,12 @@ def _fuentes():
     ]
 
 
+def _indice(clave):
+    return next(indice for indice, fabrica
+                in enumerate(disenos_fabrica.FABRICA)
+                if fabrica.clave == clave)
+
+
 class DisenoEscenaDialogTest(unittest.TestCase):
 
     def setUp(self):
@@ -62,7 +68,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_elegir_cada_clase_muestra_solo_sus_controles(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, 0)
+        self._elegir(dialogo, _indice("imagen_esquina"))
         self.assertTrue(dialogo.cho_principal.IsShown())
         self.assertTrue(dialogo.cho_ajuste_principal.IsShown())
         self.assertTrue(dialogo.cho_secundaria.IsShown())
@@ -73,7 +79,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
         self.assertTrue(dialogo.cho_tamano.IsShown())
         self.assertFalse(dialogo.cho_reparto.IsShown())
 
-        self._elegir(dialogo, 2)
+        self._elegir(dialogo, _indice("pantalla_juego"))
         self.assertTrue(dialogo.cho_principal.IsShown())
         self.assertFalse(dialogo.cho_secundaria.IsShown())
         self.assertFalse(dialogo.cho_izquierda.IsShown())
@@ -82,7 +88,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
         self.assertFalse(dialogo.cho_tamano.IsShown())
         self.assertFalse(dialogo.cho_reparto.IsShown())
 
-        self._elegir(dialogo, 4)
+        self._elegir(dialogo, _indice("dividida_mitades"))
         self.assertFalse(dialogo.cho_principal.IsShown())
         self.assertFalse(dialogo.cho_secundaria.IsShown())
         self.assertTrue(dialogo.cho_izquierda.IsShown())
@@ -93,21 +99,21 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_el_chat_encima_muestra_su_esquina(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, 2)
+        self._elegir(dialogo, _indice("pantalla_juego"))
         self.assertFalse(dialogo.cho_esquina_chat.IsShown())
         self._cambiar_chat(dialogo, 1)
         self.assertTrue(dialogo.cho_esquina_chat.IsShown())
 
     def test_al_elegir_completa_los_lugares_con_las_fuentes(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, 0)
+        self._elegir(dialogo, _indice("imagen_esquina"))
         self.assertEqual(dialogo.cho_principal.GetStringSelection(), "Juego")
         self.assertEqual(dialogo.cho_secundaria.GetStringSelection(), "Cámara")
         self.assertNotIn(NOMBRE_FUENTE, dialogo.cho_principal.GetStrings())
 
     def test_los_controles_ajustan_el_diseno(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, 0)
+        self._elegir(dialogo, _indice("imagen_esquina"))
         dialogo.cho_principal.SetStringSelection("Cámara")
         dialogo.cho_secundaria.SetStringSelection("Juego")
         dialogo.cho_ajuste_principal.SetSelection(2)
@@ -125,13 +131,13 @@ class DisenoEscenaDialogTest(unittest.TestCase):
                          ("superior-izquierda", "grande"))
         self.assertEqual((diseno.chat, diseno.esquina_chat),
                          ("superpuesto", "superior-derecha"))
-        self._elegir(dialogo, 4)
+        self._elegir(dialogo, _indice("dividida_mitades"))
         dialogo.cho_reparto.SetSelection(1)
         self.assertEqual(dialogo._diseno_actual().proporcion, "dos_tercios")
 
     def test_aceptar_devuelve_el_nombre_y_el_diseno_completo(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, 0)
+        self._elegir(dialogo, _indice("imagen_esquina"))
         dialogo.EndModal = mock.Mock()
         dialogo._al_aplicar(None)
         nombre, diseno = dialogo.diseno_elegido()
@@ -142,7 +148,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_aceptar_con_una_fuente_repetida_no_cierra_y_enfoca_la_segunda(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, 4)
+        self._elegir(dialogo, _indice("dividida_mitades"))
         dialogo.cho_izquierda.SetStringSelection("Juego")
         dialogo.cho_derecha.SetStringSelection("Juego")
         dialogo.EndModal = mock.Mock()
@@ -155,7 +161,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_guardar_y_eliminar_un_diseno_guardado(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, 0)
+        self._elegir(dialogo, _indice("imagen_esquina"))
         with mock.patch.object(escena_disenos, "_pedir_nombre",
                                return_value="Mi diseño"):
             dialogo._al_guardar(None)
@@ -172,10 +178,11 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_un_nombre_de_fabrica_no_se_guarda(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, 0)
+        self._elegir(dialogo, _indice("imagen_esquina"))
         with mock.patch.object(
                 escena_disenos, "_pedir_nombre",
-                return_value=disenos_fabrica.FABRICA[2].nombre):
+                return_value=disenos_fabrica.FABRICA[
+                    _indice("pantalla_juego")].nombre):
             dialogo._al_guardar(None)
         self.assertEqual(disenos_guardados.cargar(), [])
         self.assertIn("Ese nombre es de un diseño de fábrica. Elige otro.",
@@ -183,7 +190,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_los_disenos_de_fabrica_no_se_eliminan(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, 0)
+        self._elegir(dialogo, _indice("imagen_esquina"))
         dialogo._al_eliminar(None)
         self.assertIn("Los diseños de fábrica no se eliminan.", self.anuncios)
 

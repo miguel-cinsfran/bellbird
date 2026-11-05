@@ -31,7 +31,7 @@ function pedido(ruta, cuerpo, { metodo = "POST", cabeceras = {} } = {}) {
     opciones.body = typeof cuerpo === "string" ? cuerpo : JSON.stringify(cuerpo);
   }
   return new Request(
-    `https://restream-tokens.bellbird.workers.dev${ruta}`,
+    `https://restream-tokens.guyrapu.workers.dev${ruta}`,
     opciones,
   );
 }

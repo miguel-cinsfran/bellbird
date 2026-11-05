@@ -272,6 +272,10 @@ def _libre(puerto):
 
 class TestServicio(unittest.TestCase):
 
+    def test_la_direccion_es_la_del_worker_renombrado(self):
+        self.assertEqual(
+            oauth.SERVICIO, "https://restream-tokens.guyrapu.workers.dev")
+
     def test_p6_canje_manda_json_y_devuelve_tokens(self):
         with _servicio(200, {"access_token": "acceso",
                              "refresh_token": "renovacion",

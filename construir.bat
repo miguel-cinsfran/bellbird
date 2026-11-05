@@ -1,10 +1,10 @@
 @echo off
 REM ============================================================================
-REM  Bellbird - Construye el ejecutable distribuible con PyInstaller (onedir)
+REM  Guyrapu - Construye el ejecutable distribuible con PyInstaller (onedir)
 REM
-REM  Resultado: carpeta "Bellbird vX.Y.Z" en la raiz del proyecto, lista para
+REM  Resultado: carpeta "Guyrapu" en la raiz del proyecto, lista para
 REM  comprimir (7-Zip / ZIP) y enviar. Quien la reciba solo descomprime y abre
-REM  Bellbird.exe; no necesita Python ni nada instalado.
+REM  Guyrapu.exe; no necesita Python ni nada instalado.
 REM
 REM  Modo onedir: el .exe queda junto a la carpeta _internal (dependencias) y a
 REM  los archivos editables (sounds.ini, sounds/). Es mas fiable y
@@ -56,6 +56,10 @@ echo == Generando documentacion HTML (Manual) ==
 REM No fatal: si pandoc no esta, se usan los HTML ya versionados en docs/.
 call uv run python scripts\generar_docs.py || echo    AVISO: no se pudo regenerar; se usara la copia versionada en docs/.
 
+echo == Generando los metadatos de version del ejecutable ==
+call uv run python scripts\version_exe.py "%TEMP%\guyrapu-version.txt"
+if errorlevel 1 ( echo ERROR generando los metadatos del ejecutable. & pause & exit /b 1 )
+
 echo == Empaquetando con PyInstaller ==
 REM --noupx: NO comprimir con UPX. UPX dispara muchos falsos positivos de
 REM antivirus; sin el, el .exe levanta menos sospechas en el PC del amigo.
@@ -65,7 +69,8 @@ REM --exclude-module imageio_ffmpeg: su hook metia un segundo ffmpeg.exe en
 REM _internal; la app empaquetada usa el que se copia a la raiz mas abajo
 REM (ffmpeg_bin.ruta_ffmpeg lo busca primero), asi que el otro sobraba.
 call uv run pyinstaller main.py ^
-  --name Bellbird ^
+  --name Guyrapu ^
+  --version-file "%TEMP%\guyrapu-version.txt" ^
   --onedir --windowed --noconfirm --clean --noupx ^
   --distpath dist --workpath build --specpath build ^
   %ICONO% ^
@@ -84,22 +89,23 @@ call uv run pyinstaller main.py ^
 if errorlevel 1 ( echo ERROR en PyInstaller. & pause & exit /b 1 )
 
 echo == Ensamblando la carpeta distribuible ==
-REM Version desde config.py (fuente unica): nombra la carpeta y el zip como
-REM "Bellbird vX.Y.Z", asi el archivo que se manda y la carpeta al descomprimir
-REM dejan clara la version.
+REM Version desde config.py (fuente unica): nombra el zip con el texto tal cual,
+REM porque es un nombre de archivo y no un texto para leer.
 for /f "delims=" %%v in ('uv run python -c "from guyrapu.core import config;print(config.APP_VERSION)"') do set "VER=%%v"
 if not defined VER ( echo ERROR: no se pudo leer la version de config.py. & pause & exit /b 1 )
-set "OUT=Bellbird v%VER%"
+set "SALIDA=paquete"
+set "OUT=%SALIDA%\Guyrapu"
+set "ZIP=Guyrapu-%VER%.zip"
 REM Ojo: "^>" escapado; un ">" literal en echo redirige y crea un archivo basura.
 echo    Version %VER%  -^>  "%OUT%"
 REM Limpia builds previos de CUALQUIER version para no acumular carpetas/zips.
 for /d %%d in ("Bellbird v*") do rmdir /s /q "%%d"
 for /d %%d in ("YTChat TTS v*") do rmdir /s /q "%%d"
 if exist "YTChat TTS" rmdir /s /q "YTChat TTS"
-if exist "%OUT%" rmdir /s /q "%OUT%"
+if exist "%SALIDA%" rmdir /s /q "%SALIDA%"
 
 REM robocopy devuelve codigos ^>=1 incluso en exito; no encadenamos errorlevel.
-robocopy "dist\Bellbird" "%OUT%" /E /NFL /NDL /NJH /NJS /NP >nul
+robocopy "dist\Guyrapu" "%OUT%" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "sounds" "%OUT%\sounds" /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "docs"   "%OUT%\docs"   /E /NFL /NDL /NJH /NJS /NP >nul
 robocopy "web"    "%OUT%\web"    /E /NFL /NDL /NJH /NJS /NP >nul
@@ -193,6 +199,7 @@ REM sounds.ini sigue con el tratamiento previo: intentar git, si no local.
 git show HEAD:sounds.ini > "%OUT%\sounds.ini" 2>nul
 if errorlevel 1 ( echo    AVISO: sin git; sounds.ini local ^(puede llevar ajustes personales^). & copy /y "sounds.ini" "%OUT%\" >nul )
 copy /y "LICENSE"    "%OUT%\" >nul
+copy /y "NOTICE"     "%OUT%\" >nul
 REM Documentacion de cara al usuario en HTML (se abre con doble clic; el amigo
 REM no tiene por que saber abrir un Markdown). Se genera con scripts\generar_docs.py y
 REM viaja tambien dentro de docs/, con una carpeta por idioma. En la raiz va una
@@ -226,10 +233,10 @@ if not exist "%OUT%\modelos\face_detection_yunet_2023mar.onnx" ( echo ERROR: fal
 REM Cada .po del repositorio tiene que viajar compilado en el paquete.
 for /D %%c in ("idiomas\*") do if exist "%%c\LC_MESSAGES\guyrapu.po" if not exist "%OUT%\idiomas\%%~nxc\LC_MESSAGES\guyrapu.mo" ( echo ERROR: falta el catalogo compilado de %%~nxc en el paquete. & pause & exit /b 1 )
 echo == Comprobando que el paquete carga lo critico ==
-del /q "%TEMP%\bellbird-autocomprobacion.txt" 2>nul
-start "" /wait "%OUT%\Bellbird.exe" --autocomprobar "%TEMP%\bellbird-autocomprobacion.txt"
+del /q "%TEMP%\guyrapu-autocomprobacion.txt" 2>nul
+start "" /wait "%OUT%\Guyrapu.exe" --autocomprobar "%TEMP%\guyrapu-autocomprobacion.txt"
 set "AUTOCOMP=%errorlevel%"
-type "%TEMP%\bellbird-autocomprobacion.txt" 2>nul
+type "%TEMP%\guyrapu-autocomprobacion.txt" 2>nul
 if not "%AUTOCOMP%"=="0" ( echo ERROR: el paquete no carga todo lo critico, ver las lineas FALLA de arriba. & pause & exit /b 1 )
 rmdir /s /q "%OUT%\data" 2>nul
 set "OTROS_DOCS="
@@ -238,7 +245,7 @@ if defined OTROS_DOCS echo    AVISO: quedaron documentos de API de Google ademas
 
 echo == Escribiendo el manifiesto del paquete ==
 REM Lo lee el instalador para saber que version trae el zip y cual es su exe.
-call uv run python -c "import json;json.dump({'version':'%VER%','ejecutable':'Bellbird.exe'},open(r'%OUT%\paquete.json','w'))"
+call uv run python -c "import json;json.dump({'version':'%VER%','ejecutable':'Guyrapu.exe'},open(r'%OUT%\paquete.json','w'))"
 if not exist "%OUT%\paquete.json" ( echo ERROR: no se pudo escribir paquete.json. & pause & exit /b 1 )
 
 echo == Escribiendo el manifiesto de sonidos ==
@@ -248,7 +255,7 @@ REM sonidos que el usuario cambio o agrego al actualizar.
 call uv run python -c "import hashlib,json,pathlib;base=pathlib.Path('sounds');tema=base/'themes';archivos=sorted(tema.rglob('*')) if tema.is_dir() else [];datos={a.relative_to(base).as_posix():hashlib.sha256(a.read_bytes()).hexdigest().lower() for a in archivos if a.is_file()};open(r'%OUT%\sonidos.json','w').write(json.dumps(datos,sort_keys=True))"
 if not exist "%OUT%\sonidos.json" ( echo ERROR: no se pudo escribir sonidos.json. & pause & exit /b 1 )
 
-echo == Comprimiendo a "%OUT%.zip" ==
+echo == Comprimiendo a "%ZIP%" ==
 REM Borra zips de cualquier version anterior (incluido el viejo sin version).
 del /q "Bellbird.zip" 2>nul
 del /q "Bellbird v*.zip" 2>nul
@@ -258,22 +265,24 @@ del /q "Bellbird.zip.sha256" 2>nul
 del /q "Bellbird v*.zip.sha256" 2>nul
 del /q "YTChat TTS.zip.sha256" 2>nul
 del /q "YTChat TTS v*.zip.sha256" 2>nul
-powershell -NoProfile -Command "Compress-Archive -Path '%OUT%' -DestinationPath '%OUT%.zip' -Force"
+del /q "Guyrapu*.zip" 2>nul
+del /q "Guyrapu*.zip.sha256" 2>nul
+powershell -NoProfile -Command "Compress-Archive -Path '%OUT%' -DestinationPath '%ZIP%' -Force"
 
 echo == Firmando el zip ==
 REM SHA-256 en minusculas, dos espacios y el nombre del zip. El actualizador
 REM lo usa para verificar la descarga antes de instalar. Se calcula con
 REM Python y hashlib, igual que paquete.json: el powershell viejo heredaba
 REM PSModulePath de PowerShell 7 y no encontraba su modulo de huella.
-call uv run python -c "import hashlib;h=hashlib.sha256(open(r'%OUT%.zip','rb').read()).hexdigest().lower();open(r'%OUT%.zip.sha256','w').write(h+'  %OUT%.zip')"
-if not exist "%OUT%.zip.sha256" ( echo ERROR: no se pudo firmar el zip. & pause & exit /b 1 )
+call uv run python -c "import hashlib;h=hashlib.sha256(open(r'%ZIP%','rb').read()).hexdigest().lower();open(r'%ZIP%.sha256','w').write(h+'  %ZIP%')"
+if not exist "%ZIP%.sha256" ( echo ERROR: no se pudo firmar el zip. & pause & exit /b 1 )
 
 echo.
 echo ============================================================================
 echo  Listo.
-echo    Carpeta: "%OUT%"        (para probar: "%OUT%\Bellbird.exe")
-echo    ZIP    : "%OUT%.zip"    (esto es lo que mandas al amigo)
-echo    FIRMA  : "%OUT%.zip.sha256"    (subelo junto al zip a la release)
-echo  El amigo solo descomprime y abre Bellbird.exe; no necesita nada mas.
+echo    Carpeta: "%OUT%"        (para probar: "%OUT%\Guyrapu.exe")
+echo    ZIP    : "%ZIP%"    (esto es lo que mandas al amigo)
+echo    FIRMA  : "%ZIP%.sha256"    (subelo junto al zip a la release)
+echo  El amigo solo descomprime y abre Guyrapu.exe; no necesita nada mas.
 echo ============================================================================
 pause

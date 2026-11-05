@@ -100,3 +100,6 @@ idiomas/*.pot
 servicio/**/node_modules/
 servicio/**/.wrangler/
 servicio/**/.dev.vars
+
+# Salida del armado distribuible: se regenera con construir.bat.
+/paquete/

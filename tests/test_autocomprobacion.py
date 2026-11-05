@@ -236,3 +236,28 @@ class TestConstruirLlevaDetector(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestMetadatosDelEjecutable(unittest.TestCase):
+    """scripts/version_exe.py escribe los campos que pide Windows."""
+
+    def test_el_archivo_generado_lleva_los_campos_de_la_app(self):
+        from scripts import version_exe
+        from guyrapu.core import config
+        from guyrapu.core.version_legible import version_legible
+        with tempfile.TemporaryDirectory() as temporal:
+            ruta = Path(temporal) / "version.txt"
+            version_exe.escribir(ruta)
+            texto = ruta.read_text(encoding="utf-8")
+        campos = {
+            "ProductName": "Guyrapu",
+            "FileDescription": "Guyrapu",
+            "CompanyName": "Miguel Ángel Insfrán Caballero",
+            "LegalCopyright": ("Copyright (C) 2026 Miguel Ángel Insfrán "
+                               "Caballero. GPL-3.0 con condiciones adicionales."),
+            "OriginalFilename": "Guyrapu.exe",
+            "ProductVersion": version_legible(config.APP_VERSION),
+            "FileVersion": "3.0.0.0",
+        }
+        for nombre, valor in campos.items():
+            self.assertIn(f"StringStruct('{nombre}', {valor!r})", texto)

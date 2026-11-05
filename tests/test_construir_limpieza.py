@@ -41,6 +41,14 @@ def _objetivo_rmdir(linea):
     return None
 
 
+def _objetivo_del(linea):
+    posicion = linea.lower().find("del ")
+    if posicion < 0:
+        return None
+    citado = re.search(r'"([^"]+)"', linea[posicion:])
+    return citado.group(1) if citado else None
+
+
 class TestConstruirLimpieza(unittest.TestCase):
 
     def test_ningun_rmdir_apunta_a_carpeta_versionada(self):
@@ -63,6 +71,27 @@ class TestConstruirLimpieza(unittest.TestCase):
                     f"construir.bat:{numero} borra {objetivo!r} "
                     f"que coincide con la carpeta versionada {carpeta!r}",
                 )
+
+
+    def test_ningun_rmdir_ni_del_apunta_a_una_carpeta_versionada(self):
+        base = Path(__file__).parents[1]
+        lineas = (base / "construir.bat").read_text(encoding="utf-8").splitlines()
+        carpetas = _carpetas_versionadas(base)
+        for numero, linea in enumerate(lineas, 1):
+            if "rmdir" not in linea.lower() and "del " not in linea.lower():
+                continue
+            objetivos = [_objetivo_rmdir(linea), _objetivo_del(linea)]
+            for objetivo in objetivos:
+                if not objetivo or "%%" in objetivo:
+                    continue
+                if objetivo.upper().startswith(("%OUT%", "%SALIDA%")):
+                    continue
+                for carpeta in carpetas:
+                    self.assertFalse(
+                        fnmatch.fnmatchcase(carpeta.lower(), objetivo.lower()),
+                        f"construir.bat:{numero} borra {objetivo!r} "
+                        f"que coincide con la carpeta versionada {carpeta!r}",
+                    )
 
 
 if __name__ == "__main__":

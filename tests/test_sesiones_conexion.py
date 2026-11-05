@@ -145,7 +145,7 @@ class PruebasCableadoConexiones(unittest.TestCase):
             callbacks.update(kwargs)
         self.conexiones._crear_hilo = hilo
         with mock.patch.object(main, "procesar_entrante", side_effect=lambda *a, **k: k["on_message"](
-                "Ana", "Hola", main.TIPO_TEXTO, "regalo", "")), \
+                "Ana", "Hola", "12:00", main.TIPO_TEXTO, "regalo", "")), \
                 mock.patch("bellbird.capture.tiktok_captura.capturar_con_reconexion", side_effect=captura), \
                 mock.patch("bellbird.obs.overlay_servidor.difundir") as difundir:
             self.conexiones._conectar_tiktok("pepe")
@@ -536,6 +536,111 @@ class PruebasOfflinePasajeroConexion(unittest.TestCase):
 
     def test_vista_nula_pasa_false(self):
         self.assertIs(self._offline_pasajero_recibido(_VistaNula()), False)
+
+
+class PruebasChatEnElVideo(unittest.TestCase):
+    """Los avisos del directo se quedan en la lista y no van al vídeo."""
+
+    def setUp(self):
+        self.registro = RegistroEspia()
+        self.vista = VistaFalsa()
+        self.conexiones = Conexiones(
+            queue.Queue(), {}, mock.Mock(), threading.Event(),
+            crear_hilo=crear_hilo_inerte, registro=self.registro,
+            vista=self.vista)
+
+    def _callbacks_tiktok(self):
+        callbacks = {}
+
+        def hilo(objetivo, nombre, **kwargs):
+            return HiloEjecuta(objetivo) if nombre == "TikTok" else HiloInerte()
+
+        def captura(*args, **kwargs):
+            callbacks.update(kwargs)
+        from bellbird.capture import tiktok_captura
+        self.conexiones._crear_hilo = hilo
+        with mock.patch.object(tiktok_captura, "capturar_con_reconexion",
+                               side_effect=captura):
+            self.conexiones._conectar_tiktok("pepe")
+        return callbacks
+
+    def _evento_tiktok(self, tipo, monto=""):
+        import main
+        callbacks = self._callbacks_tiktok()
+
+        def procesar(autor, mensaje, tipo_recibido, monto_recibido, canal_id,
+                     *args, **kwargs):
+            kwargs["on_message"](autor, mensaje, "12:00", tipo_recibido,
+                                 monto_recibido, canal_id)
+        with mock.patch.object(main, "procesar_entrante",
+                               side_effect=procesar), \
+                mock.patch("bellbird.obs.overlay_servidor.difundir") as difundir:
+            callbacks["on_evento"]("Ana", "", tipo, monto, "")
+        return difundir
+
+    def _callbacks_youtube(self):
+        import main
+        callbacks = {}
+
+        def hilo(objetivo, nombre, **kwargs):
+            return HiloEjecuta(objetivo) if nombre == "Chat" else HiloInerte()
+
+        def captura(*args, **kwargs):
+            callbacks.update(kwargs)
+        with mock.patch.object(main, "obtener_info_video",
+                               return_value=("Título", main.deteccion.LIVE, {})), \
+                mock.patch.object(main.deteccion, "tiene_chat_en_vivo",
+                                  return_value=True), \
+                mock.patch.object(main, "captura_con_reconexion",
+                                  side_effect=captura):
+            self.conexiones._crear_hilo = hilo
+            self.conexiones.conectar("dQw4w9WgXcQ")
+        return callbacks
+
+    def _mensaje_youtube(self, tipo, monto=""):
+        callbacks = self._callbacks_youtube()
+        with mock.patch("bellbird.obs.overlay_servidor.difundir") as difundir:
+            callbacks["on_message"]("Ana", "", "12:00", tipo, monto)
+        return difundir
+
+    def _agrego_a_la_lista(self):
+        return "agregar_mensaje" in [n for n, _a, _k in self.vista.llamadas]
+
+    def test_tiktok_me_gusta_con_monto_no_va_al_chat_en_el_video(self):
+        import main
+        difundir = self._evento_tiktok(main.TIPO_ME_GUSTA, "3")
+        difundir.assert_not_called()
+        self.assertTrue(self._agrego_a_la_lista())
+
+    def test_tiktok_entrada_no_va_al_chat_en_el_video(self):
+        import main
+        difundir = self._evento_tiktok(main.TIPO_ENTRADA)
+        difundir.assert_not_called()
+        self.assertTrue(self._agrego_a_la_lista())
+
+    def test_tiktok_texto_va_a_la_lista_y_al_chat_en_el_video(self):
+        import main
+        difundir = self._evento_tiktok(main.TIPO_TEXTO)
+        difundir.assert_called_once()
+        self.assertTrue(self._agrego_a_la_lista())
+
+    def test_tiktok_superchat_va_a_la_lista_y_al_chat_en_el_video(self):
+        import main
+        difundir = self._evento_tiktok(main.TIPO_SUPERCHAT, "$5")
+        difundir.assert_called_once()
+        self.assertTrue(self._agrego_a_la_lista())
+
+    def test_youtube_miembro_no_va_al_chat_en_el_video(self):
+        import main
+        difundir = self._mensaje_youtube(main.TIPO_MIEMBRO)
+        difundir.assert_not_called()
+        self.assertTrue(self._agrego_a_la_lista())
+
+    def test_youtube_texto_va_a_la_lista_y_al_chat_en_el_video(self):
+        import main
+        difundir = self._mensaje_youtube(main.TIPO_TEXTO)
+        difundir.assert_called_once()
+        self.assertTrue(self._agrego_a_la_lista())
 
 
 if __name__ == "__main__":

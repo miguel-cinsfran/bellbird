@@ -11,6 +11,11 @@ from bellbird.obs.overlay_datos import (
     evento_de_mensaje,
     inicial_de,
     relacion_de_contraste,
+    va_al_chat_en_el_video,
+)
+from bellbird.core.tipos_mensaje import (
+    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
 
 
@@ -54,3 +59,14 @@ class OverlayDatosTests(unittest.TestCase):
         relacion = relacion_de_contraste("#000000", "#FFFFFF")
         self.assertAlmostEqual(relacion, 21.0, places=6)
         self.assertEqual(relacion_de_contraste("#123456", "#123456"), 1.0)
+
+    def test_va_al_chat_en_el_video_solo_para_mensajes_y_regalos(self):
+        self.assertTrue(va_al_chat_en_el_video(TIPO_TEXTO))
+        self.assertTrue(va_al_chat_en_el_video(TIPO_SUPERCHAT))
+        self.assertTrue(va_al_chat_en_el_video(TIPO_STICKER))
+
+    def test_los_avisos_del_directo_no_van_al_chat_en_el_video(self):
+        for tipo in (TIPO_MIEMBRO, TIPO_ENTRADA, TIPO_SEGUIR,
+                     TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA):
+            with self.subTest(tipo=tipo):
+                self.assertFalse(va_al_chat_en_el_video(tipo))

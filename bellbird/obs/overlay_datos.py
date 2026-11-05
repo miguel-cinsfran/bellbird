@@ -1,5 +1,9 @@
 """Datos y transformaciones puras del panel de chat."""
 
+from bellbird.core.tipos_mensaje import (
+    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER,
+)
+
 PALETA_NOMBRES = (
     "#ED8068", "#5FBFA8", "#E0AE4E", "#8FB8E8", "#C79BE0", "#9CC97E",
     "#F0908A", "#6FD0C4", "#D8C06A", "#B0A8F0", "#E3A277", "#7FC8E8",
@@ -34,6 +38,15 @@ def evento_de_mensaje(autor: str, texto: str, plataforma: str,
         "plataforma": plataforma,
         "monto": monto,
     }
+
+
+def va_al_chat_en_el_video(tipo) -> bool:
+    """Si el tipo se muestra en el chat superpuesto del vídeo.
+
+    Solo los mensajes y los regalos: los avisos del directo se quedan en la
+    lista de Bellbird y en la voz.
+    """
+    return tipo in (TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER)
 
 
 def relacion_de_contraste(color_a: str, color_b: str) -> float:

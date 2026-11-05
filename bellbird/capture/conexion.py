@@ -6,7 +6,9 @@ from bellbird.core import diagnostico
 from bellbird.voice import sound_player as _snd
 from bellbird.capture import tiktok_captura
 from bellbird.obs import overlay_servidor
-from bellbird.obs.overlay_datos import evento_de_mensaje
+from bellbird.obs.overlay_datos import (
+    evento_de_mensaje, va_al_chat_en_el_video,
+)
 
 from bellbird.capture.sesiones import RegistroSesiones
 from bellbird.core.idioma import _
@@ -62,8 +64,9 @@ class Conexiones:
         def _on_msg(autor, mensaje, hora, tipo=main.TIPO_TEXTO, monto="", canal_id="", rol=""):
             if not self._registro.vigente(gen):
                 return  # mensaje de una sesión anterior: descartar
-            overlay_servidor.difundir(
-                evento_de_mensaje(autor, mensaje, "youtube", monto or None))
+            if va_al_chat_en_el_video(tipo):
+                overlay_servidor.difundir(
+                    evento_de_mensaje(autor, mensaje, "youtube", monto or None))
             self._vista.agregar_mensaje(
                 autor, mensaje, hora, tipo, monto, canal_id,
                 plataforma="youtube", rol=rol)
@@ -177,8 +180,9 @@ class Conexiones:
         def _on_msg(autor, mensaje, hora, tipo=main.TIPO_TEXTO, monto="", canal_id="", rol=""):
             if not self._registro.vigente(gen):
                 return
-            overlay_servidor.difundir(
-                evento_de_mensaje(autor, mensaje, "tiktok", monto or None))
+            if va_al_chat_en_el_video(tipo):
+                overlay_servidor.difundir(
+                    evento_de_mensaje(autor, mensaje, "tiktok", monto or None))
             self._vista.agregar_mensaje(
                 autor, mensaje, hora, tipo, monto, canal_id,
                 plataforma="tiktok", rol=rol)

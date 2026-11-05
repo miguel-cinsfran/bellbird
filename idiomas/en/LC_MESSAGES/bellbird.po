@@ -3937,9 +3937,11 @@ msgstr "The {nombre} desktop audio is muted."
 
 #: bellbird/obs/obs_prevuelo.py
 msgid ""
-"La escena no tiene ninguna fuente visible. Agrégala en la pestaña Agregar "
-"de la ventana Escena."
-msgstr "The scene has no visible source. Add it on the Add tab of the Scene window."
+"La escena no tiene ninguna fuente visible. Agrégala con Agregar fuente, en "
+"la pestaña Escena del Panel de OBS."
+msgstr ""
+"The scene has no visible source. Add it with Add source, on the Scene tab "
+"of the OBS panel."
 
 #: bellbird/obs/obs_prevuelo.py
 msgid ""
@@ -4816,8 +4818,8 @@ msgid "Quedó {lugar}, delante de las demás fuentes."
 msgstr "It is at the {lugar}, in front of the other sources."
 
 #: bellbird/ui/agregar_camara.py
-msgid "Para moverla, usa la pestaña Fuentes de la ventana Escena."
-msgstr "To move it, use the Sources tab of the Scene window."
+msgid "Para moverla, usa Posición y tamaño, en la pestaña Escena del Panel de OBS."
+msgstr "To move it, use Position and size, on the Scene tab of the OBS panel."
 
 #: bellbird/ui/atajos_captura.py
 msgid "Debe ser Ctrl y una tecla (por ejemplo Ctrl+P)."

@@ -140,5 +140,6 @@ def _camara_agregada(ventana, al_agregar, nombre, escena, descripcion, fuentes):
     if descripcion:
         mensaje += " " + descripcion
     mensaje += " " + _(
-        "Para moverla, usa la pestaña Fuentes de la ventana Escena.")
+        "Para moverla, usa Posición y tamaño, en la pestaña Escena del "
+        "Panel de OBS.")
     anunciar(mensaje)

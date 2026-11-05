@@ -9,12 +9,15 @@ import tempfile
 import time
 from pathlib import Path
 
-from banco_app import Aplicacion, RAIZ, Resultado, VentanaNoActiva
+from banco_app import Aplicacion, Resultado, VentanaNoActiva
 from banco_auditoria import (
     VUELTAS_TAB_TRANSMISION, auditar_dialogo, faltan_habilitados,
     recorrer_tab, revisar_nombres,
 )
 
+from encuadre_imagenes import (  # noqa: E402
+    Alternador, variantes_foto, variantes_gris,
+)
 import ventanas_obs  # noqa: E402
 
 def escenario_restream(app: Aplicacion, args, res: Resultado):
@@ -159,16 +162,24 @@ def escenario_microfono(app: Aplicacion, args, res: Resultado):
         esperados_en_tab=esperados)
 
 
-def _bmp_gris(ruta, ancho=160, alto=120, tono=128):
-    """Un BMP gris de 24 bits, para tapar el rostro en la prueba."""
-    import struct
-    fila = bytes([tono, tono, tono]) * ancho
-    fila += b"\x00" * ((4 - len(fila) % 4) % 4)
-    datos = fila * alto
-    cabecera = struct.pack("<2sIHHI", b"BM", 54 + len(datos), 0, 0, 54)
-    info = struct.pack("<IiiHHIIiiII", 40, ancho, alto, 1, 24, 0,
-                       len(datos), 0, 0, 0, 0)
-    ruta.write_bytes(cabecera + info + datos)
+def _avisos(propia, desde):
+    """Los textos anunciados desde `desde`, sin los vacíos."""
+    return [a.get("texto", "") for a in propia.anuncios[desde:]
+            if a.get("texto")]
+
+
+def _nota_o_fallo(propia, res, esperado, segundos, desde, instante, etiqueta):
+    """Espera un aviso y anota los segundos, o el fallo con lo que se oyó."""
+    if propia.esperar_dicho(esperado, segundos=segundos, desde=desde):
+        tardanza = f"{time.monotonic() - instante:.1f}".replace(".", ",")
+        res.nota(f"Encuadre: {etiqueta}, avisó «{esperado}» en {tardanza} s")
+        return True
+    oidos = _avisos(propia, desde)
+    detalle = ("se anunció «" + "» «".join(oidos) + "»") if oidos \
+        else "no se anunció nada"
+    res.fallo(f"Encuadre: {etiqueta}, no avisó «{esperado}» en "
+              f"{segundos:g} s; {detalle}")
+    return False
 
 
 def _quitar_fuente_encuadre(gestor, escena, nombre):
@@ -227,9 +238,9 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
     Monta su propia aplicación con la cámara ya elegida, como
     arranque_frio: la configuración se escribe antes de abrir. Sin OBS
     no hay nada que mirar y se vuelve. La fuente sigue visible todo el
-    tiempo: lo que cambia es su archivo, entre la foto de prueba y un
-    gris generado en un temporal. Deja OBS y config.ini como los
-    encontró.
+    tiempo: lo que cambian son las variantes de la foto de prueba y del
+    gris, generadas en un temporal y alternadas para que la imagen no se
+    congele. Deja OBS y config.ini como los encontró.
     """
     from bellbird.core import paths as _rutas
     from bellbird.core.config import guardar_opcion
@@ -242,7 +253,7 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
     gestor = None
     escena = ""
     temporal = Path(tempfile.mkdtemp(prefix="qa-encuadre-"))
-    gris = temporal / "gris.bmp"
+    alternador = None
     propia = None
     try:
         from bellbird.obs.obs_panel import GestorPanelObs
@@ -256,14 +267,14 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
         if not escena:
             res.nota("Encuadre: OBS no tiene escena al aire")
             return
-        _bmp_gris(gris)
-        foto = RAIZ / "tests" / "datos" / "rostro.jpg"
+        foto = variantes_foto(temporal)
+        gris = variantes_gris(temporal)
         _quitar_fuente_encuadre(gestor, escena, nombre)
         try:
             gestor._pedir("CreateInput",
                           {"sceneName": escena, "inputName": nombre,
                            "inputKind": "image_source",
-                           "inputSettings": {"file": str(foto)},
+                           "inputSettings": {"file": str(foto[0])},
                            "sceneItemEnabled": True})
         except Exception as exc:
             res.fallo(f"Encuadre: no se pudo agregar la fuente, {exc}")
@@ -272,6 +283,7 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
                               nombre):
             res.fallo("Encuadre: no se pudo fijar la cámara en config.ini")
             return
+        alternador = Alternador(gestor, nombre, {"foto": foto, "gris": gris})
         propia = Aplicacion(app.anuncios_ruta.parent / "encuadre")
         propia.arrancar()
         if not propia.esperar_lista(segundos=60):
@@ -279,6 +291,7 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
             return
         try:
             antes = len(propia.anuncios)
+            instante = time.monotonic()
             propia.teclas(("f3", ["ctrl"]))
         except VentanaNoActiva as exc:
             res.no_probado(f"Encuadre: no se pudo pulsar Ctrl+F3, {exc}")
@@ -291,46 +304,33 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
             res.fallo(f"Encuadre: Ctrl+F3 anunció «{dicho}» "
                       "con el rostro a la vista")
             return
-        res.nota(f"Encuadre: Ctrl+F3 anunció «{dicho}»")
+        tardanza = f"{time.monotonic() - instante:.1f}".replace(".", ",")
+        res.nota(f"Encuadre: Ctrl+F3 anunció «{dicho}» en {tardanza} s")
         try:
             antes = len(propia.anuncios)
+            instante = time.monotonic()
             propia.teclas(("f3", ["ctrl", "shift"]))
         except VentanaNoActiva as exc:
             res.no_probado(f"Encuadre: no se pudo activar avisos, {exc}")
             return
-        if not propia.esperar_dicho("Avisos de encuadre activados",
-                                    segundos=10, desde=antes):
-            res.fallo("Encuadre: no se activaron los avisos")
+        if not _nota_o_fallo(propia, res, "Avisos de encuadre activados",
+                             segundos=10, desde=antes, instante=instante,
+                             etiqueta="avisos activados"):
             return
-        try:
-            gestor._pedir("SetInputSettings",
-                          {"inputName": nombre,
-                           "inputSettings": {"file": str(gris)}})
-        except Exception as exc:
-            res.fallo(f"Encuadre: no se pudo tapar el rostro, {exc}")
-            return
+        instante = alternador.mostrar("gris")
         antes = len(propia.anuncios)
-        if not propia.esperar_dicho("Ningún rostro.", segundos=6,
-                                    desde=antes):
-            res.fallo("Encuadre: tapado el rostro, no avisó que no hay "
-                      "ninguno en 6 s")
+        if not _nota_o_fallo(propia, res, "Ningún rostro.", segundos=6,
+                             desde=antes, instante=instante,
+                             etiqueta="tapado el rostro"):
             return
-        res.nota("Encuadre: tapado el rostro, avisó «Ningún rostro.»")
-        try:
-            gestor._pedir("SetInputSettings",
-                          {"inputName": nombre,
-                           "inputSettings": {"file": str(foto)}})
-        except Exception as exc:
-            res.fallo(f"Encuadre: no se pudo mostrar el rostro, {exc}")
-            return
+        instante = alternador.mostrar("foto")
         antes = len(propia.anuncios)
-        if not propia.esperar_dicho("Rostro centrado.", segundos=8,
-                                    desde=antes):
-            res.fallo("Encuadre: vuelto el rostro, no avisó de la vuelta")
-        else:
-            res.nota("Encuadre: vuelto el rostro, avisó «Rostro centrado.»")
+        _nota_o_fallo(propia, res, "Rostro centrado.", segundos=8,
+                      desde=antes, instante=instante,
+                      etiqueta="vuelto el rostro")
         try:
             antes = len(propia.anuncios)
+            instante = time.monotonic()
             propia.teclas(("f3", ["ctrl"]), ("f3", ["ctrl"]))
         except VentanaNoActiva as exc:
             res.no_probado("Encuadre: no se pudo pulsar dos veces Ctrl+F3, "
@@ -341,6 +341,10 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
                     segundos=10, desde=antes):
                 res.nota("Encuadre: la doble pulsación no inició la guía")
             else:
+                tardanza = f"{time.monotonic() - instante:.1f}"
+                tardanza = tardanza.replace(".", ",")
+                res.nota("Encuadre: la guía arrancó, avisó «Guía de "
+                         f"encuadre. Sigue los pitidos.» en {tardanza} s")
                 frase = _frase_final_guia(propia, len(propia.anuncios),
                                           segundos=10.0)
                 if frase is None:
@@ -353,6 +357,11 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
                 else:
                     res.nota(f"Encuadre: la guía terminó sola: «{frase}»")
     finally:
+        if alternador is not None:
+            alternador.detener()
+            if alternador.fallo is not None:
+                res.fallo("Encuadre: la imagen dejó de moverse, "
+                          f"{alternador.fallo}")
         if propia is not None:
             propia.cerrar()
         if respaldo is not None:

@@ -394,3 +394,7 @@ def registro_actualizacion_en(instalacion: Path) -> Path:
 
 def registro_actualizacion() -> Path:
     return registro_actualizacion_en(carpeta_instalacion())
+
+
+def marca_migracion_accesos() -> Path:
+    return carpeta_datos() / "migracion-accesos.ok"

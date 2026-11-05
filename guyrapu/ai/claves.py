@@ -5,7 +5,7 @@ from __future__ import annotations
 import ctypes
 import os
 
-PREFIJO = "Bellbird/ia/"
+PREFIJO = "Guyrapu/ia/"
 
 _TIPO_GENERICO = 1
 _PERSISTENCIA_LOCAL = 2

@@ -33,6 +33,7 @@ from guyrapu.core.config import (
 from guyrapu.core import avisos_tiktok
 from guyrapu.core import paths
 from guyrapu.core import migracion_datos
+from guyrapu.core import migracion_nombre
 from guyrapu.core.lectura_eventos import texto_evento
 from guyrapu.core.instancia import verificar_instancia_unica as _verificar_instancia_unica
 
@@ -707,6 +708,8 @@ def main():
         resultado_migracion = None
     configurar_logging()
     migracion_datos.anotar_resultado(resultado_migracion, logger)
+    migracion_nombre.migrar_credenciales()
+    migracion_nombre.lanzar_migracion_accesos()
     diagnostico.instalar_capturadores(
         paths.log_fallos(), version=APP_VERSION)
     diagnostico.registrar_entorno_en_hilo(APP_VERSION)

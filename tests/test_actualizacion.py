@@ -701,6 +701,14 @@ class TestTextosAviso(unittest.TestCase):
                 "2.2.0"),
             f"{APP_NAME} se actualizó a la versión 2.3.0.")
 
+    def test_ok_muestra_la_version_nueva_sin_v_ni_guion(self):
+        from guyrapu.core.config import APP_NAME
+        texto = actualizacion.texto_resultado(
+            {"resultado": "ok", "hacia": "v3.0.0-beta.2"}, "2.2.0")
+        self.assertEqual(
+            texto, f"{APP_NAME} se actualizó a la versión 3.0.0 beta 2.")
+        self.assertNotIn("v3", texto)
+
     def test_fallo_dice_motivo_y_version_actual(self):
         self.assertEqual(
             actualizacion.texto_resultado(

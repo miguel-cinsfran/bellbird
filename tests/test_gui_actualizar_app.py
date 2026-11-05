@@ -180,6 +180,15 @@ class TestVentana(unittest.TestCase):
                       "Comprueba la conexión a Internet.", ventana.anuncios)
         self.assertEqual(0, ventana.progresos[-1])
 
+    def test_la_version_nueva_se_lee_sin_v_ni_guion(self):
+        _, ventana, _ = self._abrir(
+            consultar=_paquete("v3.0.0-beta.2"), frozen=True, admite=True)
+        self.assertEqual(
+            "Hay una versión nueva, la 3.0.0 beta 2. "
+            f"La instalada es la {version_legible(APP_VERSION)}.",
+            ventana.anuncios[-1])
+        self.assertNotIn("v3", ventana.anuncios[-1])
+
     def test_sin_version_nueva_anuncia_la_instalada(self):
         _, ventana, _ = self._abrir(consultar=_paquete(APP_VERSION, ""))
         self.assertIn(f"Esta es la última versión, la {version_legible(APP_VERSION)}.",

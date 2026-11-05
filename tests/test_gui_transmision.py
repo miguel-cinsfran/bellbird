@@ -455,6 +455,15 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(ventana._pagina_general.texto().splitlines()[0],
                          "Elige a dónde transmitir")
 
+    def test_si_cambia_de_pestana_durante_la_carga_el_foco_no_va_a_general(self):
+        with mock.patch.object(obs_ventana.VentanaObs, "_inicial_cargada"):
+            ventana = self._crear(pestana=obs_ventana.PESTANA_GENERAL)
+        ventana.nb.SetSelection(obs_ventana.PESTANA_TRANSMISION)
+        ventana._pagina_transmision.cho_destino.SetFocus()
+        ventana._inicial_cargada(ventana._cargar_inicial())
+        self.assertIs(ventana.FindFocus(),
+                      ventana._pagina_transmision.cho_destino)
+
     def test_al_abrir_en_transmision_enfoca_el_boton_si_el_destino_esta_oculto(self):
         pagina = self.dialogo
         pagina._directo.sincronizar(True)

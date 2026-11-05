@@ -162,6 +162,8 @@ class VentanaObs(wx.Dialog):
         self._pagina_grabacion.aplicar(estado)
         self._pagina_transmision.cargar(estado)
         self._mostrar_general(estado, estadisticas)
+        if self.nb.GetSelection() != self._pestana_inicial:
+            return
         if self._pestana_inicial == PESTANA_TRANSMISION:
             self._pagina_transmision.enfocar_inicial()
         elif self._pestana_inicial == PESTANA_GRABACION:

@@ -40,15 +40,10 @@ APP_VERSION = "3.0.0-beta.1"
 
 # ── Tipos de mensaje ──────────────────────────────────────────────────────────
 
-TIPO_TEXTO     = "text"
-TIPO_SUPERCHAT = "superchat"
-TIPO_STICKER   = "sticker"
-TIPO_MIEMBRO   = "member"
-TIPO_ENTRADA   = "entrada"   # alguien entra al directo (solo TikTok, opcional)
-TIPO_SEGUIR    = "seguir"    # alguien sigue el canal (solo TikTok)
-TIPO_COMPARTIR = "compartir" # alguien comparte el directo (solo TikTok)
-TIPO_COFRE     = "cofre"     # cofre de regalos (solo TikTok)
-TIPO_ME_GUSTA  = "me_gusta"  # me gusta del directo (solo TikTok, solo suena)
+from bellbird.core.tipos_mensaje import (  # reexport para quien importa desde config
+    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,  # noqa: F401
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,  # noqa: F401
+)
 
 # ── Carpeta base ──────────────────────────────────────────────────────────────
 # Cuando se empaqueta con PyInstaller (onedir), los archivos editables

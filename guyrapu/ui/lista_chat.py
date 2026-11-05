@@ -21,7 +21,7 @@ from guyrapu.core.config import (
 )
 from guyrapu.core.tipos_mensaje import (
     TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,
-    TIPO_BATALLA_FIN,
+    TIPO_BATALLA_FIN, VARIANTE_REGALO, VARIANTE_SUPERFANS,
 )
 from guyrapu.core.idioma import _, ngettext
 
@@ -113,7 +113,7 @@ def _texto_entrada(autor, monto, hora) -> str:
     return _("👋 {autor} entró, {hora}").format(autor=autor, hora=hora)
 
 
-def _texto_aviso(autor, msg, hora, tipo) -> str | None:
+def _texto_aviso(autor, msg, hora, tipo, monto) -> str | None:
     """Fila de un aviso del directo, o None si el tipo no es uno de ellos."""
     if tipo == TIPO_SEGUIR:
         # Traductores: fila de seguimiento; {autor} su nombre y {hora} la hora.
@@ -122,6 +122,10 @@ def _texto_aviso(autor, msg, hora, tipo) -> str | None:
         # Traductores: fila de compartido; {autor} su nombre y {hora} la hora.
         return _("{autor} compartió el directo, {hora}").format(autor=autor, hora=hora)
     if tipo == TIPO_COFRE:
+        if monto == VARIANTE_SUPERFANS:
+            # Traductores: fila de caja de superfans; {autor} su nombre y {hora} la hora.
+            return _("{autor} envió una caja de superfans, {hora}").format(
+                autor=autor, hora=hora)
         # Traductores: fila de cofre; {autor} su nombre y {hora} la hora.
         return _("{autor} envió un cofre, {hora}").format(autor=autor, hora=hora)
     if tipo in (TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META,
@@ -142,11 +146,14 @@ def texto_fila(autor, msg, hora, tipo, monto) -> str:
         # Traductores: fila de sticker con importe; {monto} el importe ya formateado, {autor} su nombre y {hora} la hora. El emoji del principio se conserva.
         return _("🎨 [{monto}] {autor}, {hora}").format(**datos)
     if tipo == TIPO_MIEMBRO:
+        if monto == VARIANTE_REGALO:
+            # Traductores: fila de suscripción regalada; {autor} su nombre y {hora} la hora.
+            return _("Suscripción de regalo: {autor}, {hora}").format(**datos)
         # Traductores: fila de miembro nuevo; {autor} su nombre y {hora} la hora. El emoji del principio se conserva.
         return _("⭐ Nuevo miembro: {autor}, {hora}").format(**datos)
     if tipo == TIPO_ENTRADA:
         return _texto_entrada(autor, monto, hora)
-    aviso = _texto_aviso(autor, msg, hora, tipo)
+    aviso = _texto_aviso(autor, msg, hora, tipo, monto)
     if aviso is not None:
         return aviso
     if tipo == TIPO_ME_GUSTA:

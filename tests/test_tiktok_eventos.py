@@ -24,6 +24,7 @@ from guyrapu.core.config import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_SEGUIR,
     TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA, TIPO_ENTRADA,
 )
+from guyrapu.core.tipos_mensaje import VARIANTE_REGALO, VARIANTE_SUPERFANS
 
 _NOMBRES_EVENTOS = (
     "ConnectEvent", "CommentEvent", "GiftEvent", "DisconnectEvent",
@@ -212,6 +213,124 @@ class TestManejadoresNuevos(unittest.TestCase):
                 cliente, mod_eventos = self._sesion(
                     [], {"evento_entrada": modo})
                 self.assertIn(mod_eventos.JoinEvent, cliente.manejadores)
+
+
+class TestSuscripcionesYCajaDeSuperfans(unittest.TestCase):
+    """El manejador distingue la caja de superfans y la suscripción regalada
+    y calla los avisos que no son una compra."""
+
+    CONECTADO = 1750000000.0
+
+    def _sesion(self, recibidos):
+        cliente = _ClienteFalso()
+        mod_tiktok, mod_eventos = _modulos_falsos(cliente)
+        parada = threading.Event()
+        parada.set()
+        with mock.patch.dict(sys.modules, {"TikTokLive": mod_tiktok,
+                                           "TikTokLive.events": mod_eventos}):
+            error = tiktok_captura._sesion(
+                "pepe", parada, lambda *a: recibidos.append(a),
+                lambda *a: None, lambda d: None, None,
+                config={})
+        self.assertIsNone(error)
+        with mock.patch("time.time", return_value=self.CONECTADO):
+            asyncio.run(cliente.manejadores[mod_eventos.ConnectEvent](
+                mod_eventos.ConnectEvent()))
+        return cliente, mod_eventos
+
+    def _aviso(self, tipo):
+        autor = types.SimpleNamespace(nick_name="Ana", id="7")
+        evento = types.SimpleNamespace(user_info=autor)
+        if tipo is not None:
+            evento.message_type = tipo
+        return evento
+
+    def _voz_y_fila(self, recibido):
+        from guyrapu.ui.lista_chat import texto_fila
+        autor, mensaje, tipo, monto, _canal = recibido
+        cola = queue.Queue()
+        main.procesar_entrante(
+            autor, mensaje, tipo, monto, "7", cola, _config_minima(),
+            main.Stats(), on_message=lambda *a, **k: None)
+        return (cola.get_nowait()["texto_tts"],
+                texto_fila(autor, mensaje, "12:00:00", tipo, monto))
+
+    def test_caja_de_superfans_sale_como_cofre_con_su_variante(self):
+        from TikTokLive.events import EnvelopeEvent
+        from TikTokLiveProto.v3.webcast.model.data import EnvelopeBusinessType
+        from TikTokLiveProto.v3.webcast.model.message.redenvelope import (
+            MessageRedEnvelopInfo)
+        recibidos = []
+        cliente, mod_eventos = self._sesion(recibidos)
+        evento = EnvelopeEvent(envelope_info=MessageRedEnvelopInfo(
+            send_user_name="Ana", send_user_id="7",
+            business_type=EnvelopeBusinessType.SUPER_FAN_BOX))
+        asyncio.run(cliente.manejadores[mod_eventos.EnvelopeEvent](evento))
+        self.assertEqual(
+            recibidos, [("Ana", "", TIPO_COFRE, VARIANTE_SUPERFANS, "7")])
+        self.assertEqual(
+            self._voz_y_fila(recibidos[0]),
+            ("Ana envió una caja de superfans",
+             "Ana envió una caja de superfans, 12:00:00"))
+
+    def test_cofre_comun_sigue_igual(self):
+        from TikTokLive.events import EnvelopeEvent
+        from TikTokLiveProto.v3.webcast.model.data import EnvelopeBusinessType
+        from TikTokLiveProto.v3.webcast.model.message.redenvelope import (
+            MessageRedEnvelopInfo)
+        recibidos = []
+        cliente, mod_eventos = self._sesion(recibidos)
+        evento = EnvelopeEvent(envelope_info=MessageRedEnvelopInfo(
+            send_user_name="Ana", send_user_id="7",
+            business_type=EnvelopeBusinessType.BUSINESS_TYPE_USER_DIAMOND))
+        asyncio.run(cliente.manejadores[mod_eventos.EnvelopeEvent](evento))
+        self.assertEqual(recibidos, [("Ana", "", TIPO_COFRE, "", "7")])
+        self.assertEqual(
+            self._voz_y_fila(recibidos[0]),
+            ("Ana envió un cofre", "Ana envió un cofre, 12:00:00"))
+
+    def test_suscripcion_nueva_sigue_igual(self):
+        from TikTokLive.proto import MessageType
+        recibidos = []
+        cliente, mod_eventos = self._sesion(recibidos)
+        asyncio.run(cliente.manejadores[mod_eventos.SubscribeEvent](
+            self._aviso(MessageType.SUB_SUCCESS)))
+        self.assertEqual(recibidos, [("Ana", "", TIPO_MIEMBRO, "", "7")])
+        self.assertEqual(
+            self._voz_y_fila(recibidos[0]),
+            ("Nuevo miembro: Ana", "⭐ Nuevo miembro: Ana, 12:00:00"))
+
+    def test_suscripcion_regalada_con_su_variante(self):
+        from TikTokLive.proto import MessageType
+        recibidos = []
+        cliente, mod_eventos = self._sesion(recibidos)
+        asyncio.run(cliente.manejadores[mod_eventos.SubscribeEvent](
+            self._aviso(MessageType.SUB_GIFTS_END_SUCCEED_ROOM_MESSAGE)))
+        self.assertEqual(
+            recibidos, [("Ana", "", TIPO_MIEMBRO, VARIANTE_REGALO, "7")])
+        self.assertEqual(
+            self._voz_y_fila(recibidos[0]),
+            ("Suscripción de regalo: Ana",
+             "Suscripción de regalo: Ana, 12:00:00"))
+
+    def test_aviso_que_no_es_compra_no_se_anuncia_y_queda_en_el_registro(self):
+        from TikTokLive.proto import MessageType
+        recibidos = []
+        cliente, mod_eventos = self._sesion(recibidos)
+        with self.assertLogs("guyrapu.capture.tiktok_manejadores",
+                             level="DEBUG") as registro:
+            asyncio.run(cliente.manejadores[mod_eventos.SubscribeEvent](
+                self._aviso(MessageType.ANCHOR_REMINDER)))
+        self.assertEqual(recibidos, [])
+        self.assertIn("ANCHOR_REMINDER", "\n".join(registro.output))
+
+    def test_sin_message_type_se_lee_como_nuevo_miembro(self):
+        recibidos = []
+        cliente, mod_eventos = self._sesion(recibidos)
+        asyncio.run(cliente.manejadores[mod_eventos.SubscribeEvent](
+            self._aviso(None)))
+        self.assertEqual(recibidos, [("Ana", "", TIPO_MIEMBRO, "", "7")])
+        self.assertEqual(self._voz_y_fila(recibidos[0])[0], "Nuevo miembro: Ana")
 
 
 class TestEnvoltorioHistoricoReal(unittest.TestCase):

@@ -1909,6 +1909,11 @@ msgstr "Windows language"
 
 #: guyrapu/core/lectura_eventos.py
 #, python-brace-format
+msgid "Suscripción de regalo: {autor}"
+msgstr "Gift subscription: {autor}"
+
+#: guyrapu/core/lectura_eventos.py
+#, python-brace-format
 msgid "Nuevo miembro: {autor}"
 msgstr "New member: {autor}"
 
@@ -1932,6 +1937,11 @@ msgstr "{autor} followed the channel"
 #, python-brace-format
 msgid "{autor} compartió el directo"
 msgstr "{autor} shared the live stream"
+
+#: guyrapu/core/lectura_eventos.py
+#, python-brace-format
+msgid "{autor} envió una caja de superfans"
+msgstr "{autor} sent a superfan box"
 
 #: guyrapu/core/lectura_eventos.py
 #, python-brace-format
@@ -8585,6 +8595,12 @@ msgstr "{autor} followed the channel, {hora}"
 msgid "{autor} compartió el directo, {hora}"
 msgstr "{autor} shared the live stream, {hora}"
 
+#. Traductores: fila de caja de superfans; {autor} su nombre y {hora} la hora.
+#: guyrapu/ui/lista_chat.py
+#, python-brace-format
+msgid "{autor} envió una caja de superfans, {hora}"
+msgstr "{autor} sent a superfan box, {hora}"
+
 #. Traductores: fila de cofre; {autor} su nombre y {hora} la hora.
 #: guyrapu/ui/lista_chat.py
 #, python-brace-format
@@ -8612,6 +8628,13 @@ msgstr "💲 [{monto}] {autor}: {mensaje}, {hora}"
 #, python-brace-format
 msgid "🎨 [{monto}] {autor}, {hora}"
 msgstr "🎨 [{monto}] {autor}, {hora}"
+
+#. Traductores: fila de suscripción regalada; {autor} su nombre y {hora} la
+#. hora.
+#: guyrapu/ui/lista_chat.py
+#, python-brace-format
+msgid "Suscripción de regalo: {autor}, {hora}"
+msgstr "Gift subscription: {autor}, {hora}"
 
 #. Traductores: fila de miembro nuevo; {autor} su nombre y {hora} la hora. El
 #. emoji del principio se conserva.

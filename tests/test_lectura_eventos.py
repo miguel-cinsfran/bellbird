@@ -10,7 +10,7 @@ from guyrapu.core.tipos_mensaje import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
     TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,
-    TIPO_BATALLA_FIN,
+    TIPO_BATALLA_FIN, VARIANTE_REGALO, VARIANTE_SUPERFANS,
 )
 
 
@@ -31,6 +31,10 @@ class TextoDeEventoTests(unittest.TestCase):
         self.assertEqual(texto_evento(TIPO_MIEMBRO, "Ana", ""),
                          "Nuevo miembro: Ana")
 
+    def test_miembro_regalado(self):
+        self.assertEqual(texto_evento(TIPO_MIEMBRO, "Ana", VARIANTE_REGALO),
+                         "Suscripción de regalo: Ana")
+
     def test_entrada_sin_monto(self):
         self.assertEqual(texto_evento(TIPO_ENTRADA, "Ana", ""),
                          "Ana entró")
@@ -50,6 +54,10 @@ class TextoDeEventoTests(unittest.TestCase):
     def test_cofre(self):
         self.assertEqual(texto_evento(TIPO_COFRE, "Ana", ""),
                          "Ana envió un cofre")
+
+    def test_cofre_caja_de_superfans(self):
+        self.assertEqual(texto_evento(TIPO_COFRE, "Ana", VARIANTE_SUPERFANS),
+                         "Ana envió una caja de superfans")
 
     def test_me_gusta_con_monto(self):
         self.assertEqual(texto_evento(TIPO_ME_GUSTA, "Ana", "3"),

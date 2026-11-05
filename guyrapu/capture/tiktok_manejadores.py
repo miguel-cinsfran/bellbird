@@ -6,6 +6,7 @@ traduce; la conexión y la reconexión viven en tiktok_captura.
 
 from __future__ import annotations
 
+import logging
 import time
 
 from guyrapu.capture.agrupar_entradas import (
@@ -32,6 +33,9 @@ from guyrapu.core.config import (
     TIPO_SUPERCHAT,
     TIPO_TEXTO,
 )
+from guyrapu.core.tipos_mensaje import VARIANTE_REGALO, VARIANTE_SUPERFANS
+
+logger = logging.getLogger(__name__)
 
 
 def _al_comentar(on_evento, descartar):
@@ -65,12 +69,41 @@ def _al_regalo(on_evento, descartar):
     return _on_gift
 
 
+def _variante_suscripcion(evento):
+    """Variante del aviso de suscripción, o None si no hay que anunciarlo.
+
+    Sin `message_type` legible se comporta como antes: suscripción nueva.
+    """
+    try:
+        tipo = getattr(evento, "message_type", None)
+    except Exception as exc:
+        logger.debug("suscripción sin message_type legible: %s", exc)
+        return ""
+    if tipo is None:
+        return ""
+    try:
+        from TikTokLive.proto import MessageType
+        if tipo == MessageType.SUB_GIFTS_END_SUCCEED_ROOM_MESSAGE:
+            return VARIANTE_REGALO
+        if tipo == MessageType.SUB_SUCCESS:
+            return ""
+    except Exception as exc:
+        logger.debug("no se pudo comparar message_type: %s", exc)
+        return ""
+    logger.debug("aviso de suscripción ignorado: %s",
+                 getattr(tipo, "name", tipo))
+    return None
+
+
 def _al_suscribir(on_evento, descartar):
     async def _on_subscribe(evento):
         if descartar(evento):
             return
+        variante = _variante_suscripcion(evento)
+        if variante is None:
+            return
         autor, canal_id = autor_de_evento(evento)
-        on_evento(autor, "", TIPO_MIEMBRO, "", canal_id)
+        on_evento(autor, "", TIPO_MIEMBRO, variante, canal_id)
 
     return _on_subscribe
 
@@ -95,6 +128,14 @@ def _al_compartir(on_evento, descartar):
     return _on_share
 
 
+def _es_caja_superfans(info) -> bool:
+    """True si el sobre es una caja de superfans (SUPER_FAN_BOX, 19)."""
+    try:
+        return int(getattr(info, "business_type", 0) or 0) == 19
+    except (TypeError, ValueError):
+        return False
+
+
 def _al_cofre(on_evento, descartar):
     async def _on_envelope(evento):
         if descartar(evento):
@@ -106,7 +147,8 @@ def _al_cofre(on_evento, descartar):
             autor, ident = autor_de_evento(evento)
             nombre = nombre or autor
             canal_id = canal_id or ident
-        on_evento(nombre, "", TIPO_COFRE, "", canal_id)
+        variante = (VARIANTE_SUPERFANS if _es_caja_superfans(info) else "")
+        on_evento(nombre, "", TIPO_COFRE, variante, canal_id)
 
     return _on_envelope
 

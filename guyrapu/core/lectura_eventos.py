@@ -9,7 +9,7 @@ from guyrapu.core.idioma import _
 from guyrapu.core.tipos_mensaje import (
     TIPO_MIEMBRO, TIPO_ENTRADA, TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
     TIPO_ME_GUSTA, TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META,
-    TIPO_BATALLA, TIPO_BATALLA_FIN,
+    TIPO_BATALLA, TIPO_BATALLA_FIN, VARIANTE_REGALO, VARIANTE_SUPERFANS,
 )
 
 
@@ -19,6 +19,8 @@ def texto_evento(tipo, autor, monto, mensaje="") -> str | None:
                 TIPO_BATALLA, TIPO_BATALLA_FIN):
         return mensaje
     if tipo == TIPO_MIEMBRO:
+        if monto == VARIANTE_REGALO:
+            return _("Suscripción de regalo: {autor}").format(autor=autor)
         return _("Nuevo miembro: {autor}").format(autor=autor)
     if tipo == TIPO_ENTRADA:
         try:
@@ -33,6 +35,8 @@ def texto_evento(tipo, autor, monto, mensaje="") -> str | None:
     if tipo == TIPO_COMPARTIR:
         return _("{autor} compartió el directo").format(autor=autor)
     if tipo == TIPO_COFRE:
+        if monto == VARIANTE_SUPERFANS:
+            return _("{autor} envió una caja de superfans").format(autor=autor)
         return _("{autor} envió un cofre").format(autor=autor)
     if tipo == TIPO_ME_GUSTA:
         # Traductores: {n} es cuántos «me gusta» dieron.

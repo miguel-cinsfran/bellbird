@@ -21,3 +21,7 @@ TIPO_ENCUESTA_FIN = "encuesta_fin"  # se cerró una encuesta (solo TikTok)
 TIPO_META         = "meta"          # se cumplió una meta (solo TikTok)
 TIPO_BATALLA      = "batalla"       # empezó una batalla (solo TikTok)
 TIPO_BATALLA_FIN  = "batalla_fin"   # terminó una batalla (solo TikTok)
+
+# Variantes que viajan en `monto` cuando el tipo es TIPO_COFRE o TIPO_MIEMBRO.
+VARIANTE_SUPERFANS = "superfans"  # caja de superfans (solo TikTok)
+VARIANTE_REGALO    = "regalo"     # suscripción regalada (solo TikTok)

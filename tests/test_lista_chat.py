@@ -13,7 +13,7 @@ from guyrapu.core.config import (
 )
 from guyrapu.core.tipos_mensaje import (
     TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,
-    TIPO_BATALLA_FIN,
+    TIPO_BATALLA_FIN, VARIANTE_REGALO, VARIANTE_SUPERFANS,
 )
 from guyrapu.ui.lista_chat import ListaChat, MensajeChat, texto_fila, texto_reciente
 from tests.pseudo_prueba import con_pseudo
@@ -290,6 +290,11 @@ class TestTextoFila(unittest.TestCase):
             texto_fila("Ana", "hola", "12:00:00", TIPO_MIEMBRO, ""),
             "⭐ Nuevo miembro: Ana, 12:00:00")
 
+    def test_miembro_regalado_sin_emoji(self):
+        self.assertEqual(
+            texto_fila("Ana", "", "12:00:00", TIPO_MIEMBRO, VARIANTE_REGALO),
+            "Suscripción de regalo: Ana, 12:00:00")
+
     def test_entrada(self):
         self.assertEqual(
             texto_fila("Ana", "hola", "12:00:00", TIPO_ENTRADA, ""),
@@ -315,6 +320,11 @@ class TestTextoFila(unittest.TestCase):
         self.assertEqual(
             texto_fila("Ana", "hola", "12:00:00", TIPO_COFRE, ""),
             "Ana envió un cofre, 12:00:00")
+
+    def test_cofre_caja_de_superfans(self):
+        self.assertEqual(
+            texto_fila("Ana", "", "12:00:00", TIPO_COFRE, VARIANTE_SUPERFANS),
+            "Ana envió una caja de superfans, 12:00:00")
 
     def test_me_gusta_uno_y_varios(self):
         self.assertEqual(

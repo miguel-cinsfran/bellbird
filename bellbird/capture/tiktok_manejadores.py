@@ -15,6 +15,8 @@ from bellbird.capture.agrupar_entradas import (
 from bellbird.capture.agrupar_me_gusta import AgrupadorMeGusta
 from bellbird.capture.filtro_autores import entra_en_grupo
 from bellbird.capture import tiktok_encuestas
+from bellbird.capture import tiktok_metas
+from bellbird.capture import tiktok_batallas
 from bellbird.capture.tiktok_captura import (
     _clase_suscripcion,
     autor_de_evento,
@@ -183,6 +185,33 @@ def _al_encuesta(on_evento, descartar):
     return _on_poll
 
 
+def _al_meta(on_evento, descartar):
+    async def _on_goal(evento):
+        if descartar(evento):
+            return
+        tiktok_metas.procesar(evento, on_evento)
+
+    return _on_goal
+
+
+def _al_batalla(on_evento, descartar):
+    async def _on_battle(evento):
+        if descartar(evento):
+            return
+        tiktok_batallas.procesar(evento, on_evento)
+
+    return _on_battle
+
+
+def _al_armies(on_evento, descartar):
+    async def _on_armies(evento):
+        if descartar(evento):
+            return
+        tiktok_batallas.procesar_armies(evento)
+
+    return _on_armies
+
+
 def _al_pausa(on_estado, descartar):
     async def _on_pause(evento):
         if descartar(evento):
@@ -259,6 +288,9 @@ _EVENTOS_OPCIONALES = [
     ("EmoteChatEvent", _al_sticker, "evento"),
     ("QuestionNewEvent", _al_pregunta, "evento"),
     ("PollEvent", _al_encuesta, "evento"),
+    ("GoalUpdateEvent", _al_meta, "evento"),
+    ("LinkMicBattleEvent", _al_batalla, "evento"),
+    ("LinkMicArmiesEvent", _al_armies, "evento"),
     ("LivePauseEvent", _al_pausa, "estado"),
     ("LiveUnpauseEvent", _al_reanudacion, "estado"),
 ]
@@ -288,11 +320,18 @@ def _segundos_entre_uno_y_ciento_veinte(valor) -> int:
     return max(1, min(120, segundos))
 
 
+def _reiniciar_registros() -> None:
+    """Olvida encuestas, metas y batallas de una conexión anterior."""
+    tiktok_encuestas.reiniciar()
+    tiktok_metas.reiniciar()
+    tiktok_batallas.reiniciar()
+
+
 def registrar_manejadores(client, modulo_eventos, *, on_evento,
                           on_espectadores, config, descartar,
                           on_estado=None):
     """Registra los manejadores de eventos de TikTok en `client`."""
-    tiktok_encuestas.reiniciar()
+    _reiniciar_registros()
     agrupador = AgrupadorMeGusta(ventana=lambda: _segundos_me_gusta(config))
     agrupador_entradas = AgrupadorEntradas(
         ventana=lambda: _segundos_entradas(config))

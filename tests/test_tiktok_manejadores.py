@@ -6,17 +6,22 @@ import unittest
 from unittest import mock
 
 from bellbird.capture import encuestas
+from bellbird.capture import batallas
+from bellbird.capture import metas
 from bellbird.capture import tiktok_manejadores
 from bellbird.capture.tiktok_manejadores import registrar_manejadores
 from bellbird.core.config import (
     TIPO_COFRE, TIPO_ENTRADA, TIPO_ME_GUSTA, TIPO_TEXTO,
 )
+from bellbird.core.tipos_mensaje import TIPO_BATALLA, TIPO_META
 
 _TODAS = ("CommentEvent", "GiftEvent", "JoinEvent", "RoomUserSeqEvent",
           "SubscribeEvent", "FollowEvent", "ShareEvent", "EnvelopeEvent",
           "LikeEvent", "PollEvent")
 _TODAS_NUEVAS = _TODAS + ("EmoteChatEvent", "QuestionNewEvent",
-                          "LivePauseEvent", "LiveUnpauseEvent")
+                          "LivePauseEvent", "LiveUnpauseEvent",
+                          "GoalUpdateEvent", "LinkMicBattleEvent",
+                          "LinkMicArmiesEvent")
 
 
 class _ClienteFalso:
@@ -430,8 +435,9 @@ class TestOrdenDeRegistro(unittest.TestCase):
             [mod.CommentEvent, mod.GiftEvent, mod.SubscribeEvent,
              mod.FollowEvent, mod.ShareEvent, mod.EnvelopeEvent,
              mod.LikeEvent, mod.EmoteChatEvent, mod.QuestionNewEvent,
-             mod.PollEvent, mod.LivePauseEvent, mod.LiveUnpauseEvent,
-             mod.JoinEvent, mod.RoomUserSeqEvent])
+             mod.PollEvent, mod.GoalUpdateEvent, mod.LinkMicBattleEvent,
+             mod.LinkMicArmiesEvent, mod.LivePauseEvent,
+             mod.LiveUnpauseEvent, mod.JoinEvent, mod.RoomUserSeqEvent])
 
     def test_sin_on_estado_no_registra_pausa_ni_reanudacion(self):
         cliente, mod, _rec, _vis, _est = _registrar(
@@ -440,6 +446,123 @@ class TestOrdenDeRegistro(unittest.TestCase):
         self.assertNotIn(mod.LiveUnpauseEvent, cliente.manejadores)
         self.assertIn(mod.FollowEvent, cliente.manejadores)
         self.assertIn(mod.LikeEvent, cliente.manejadores)
+
+
+def _modulo_con_metas_y_batallas():
+    from TikTokLive.events import (
+        GoalUpdateEvent, LinkMicArmiesEvent, LinkMicBattleEvent)
+    modulo = types.ModuleType("TikTokLive.events")
+    for nombre in ("CommentEvent", "GiftEvent", "JoinEvent",
+                   "RoomUserSeqEvent"):
+        setattr(modulo, nombre, type(nombre, (), {}))
+    modulo.GoalUpdateEvent = GoalUpdateEvent
+    modulo.LinkMicBattleEvent = LinkMicBattleEvent
+    modulo.LinkMicArmiesEvent = LinkMicArmiesEvent
+    return modulo
+
+
+def _meta_completa():
+    from TikTokLive.events import GoalUpdateEvent
+    from TikTokLiveProto.v3.webcast.model.gift.model import (
+        LiveStreamGoal, LiveStreamSubGoal)
+    return GoalUpdateEvent(goal=LiveStreamGoal(
+        id_str="g1", description="Viaje",
+        sub_goals=[LiveStreamSubGoal(progress=10, target=10)]))
+
+
+def _meta_en_curso():
+    from TikTokLive.events import GoalUpdateEvent
+    from TikTokLiveProto.v3.webcast.model.gift.model import (
+        LiveStreamGoal, LiveStreamSubGoal)
+    return GoalUpdateEvent(goal=LiveStreamGoal(
+        id_str="g1", description="Viaje",
+        sub_goals=[LiveStreamSubGoal(progress=3, target=10)]))
+
+
+def _batalla(accion, id_batalla=7):
+    from TikTokLive.events import LinkMicBattleEvent
+    from TikTokLiveProto.v3.webcast.model.live.match import (
+        BattleBaseUserInfo, BattleUserInfo)
+    from TikTokLiveProto.v3.webcast.model.message.battle import (
+        BattleUserInfoWrapper)
+    anfitriones = [
+        BattleUserInfoWrapper(value=BattleUserInfo(user=BattleBaseUserInfo(
+            user_id=1, nick_name="Ana"))),
+        BattleUserInfoWrapper(value=BattleUserInfo(user=BattleBaseUserInfo(
+            user_id=2, nick_name="Fulano"))),
+    ]
+    return LinkMicBattleEvent(battle_id=id_batalla, action=accion,
+                              anchors_info=anfitriones)
+
+
+def _armies(puntajes, id_batalla=7):
+    from TikTokLive.events import LinkMicArmiesEvent
+    from TikTokLiveProto.v3.webcast.model.message.battle import (
+        BattleUserArmies)
+    return LinkMicArmiesEvent(
+        battle_id=id_batalla,
+        armies={ident: BattleUserArmies(hostscore=puntos)
+                for ident, puntos in puntajes.items()})
+
+
+class TestMetasYBatallasEnElCableado(unittest.TestCase):
+
+    def setUp(self):
+        metas.registro.reiniciar()
+        batallas.registro.reiniciar()
+
+    def _registrar(self, descartar=None):
+        cliente = _ClienteFalso()
+        modulo = _modulo_con_metas_y_batallas()
+        recibidos = []
+        registrar_manejadores(
+            cliente, modulo,
+            on_evento=lambda *a: recibidos.append(a),
+            on_espectadores=lambda *a: None, config={},
+            descartar=descartar or (lambda evento: False))
+        return cliente, modulo, recibidos
+
+    def test_un_evento_real_de_meta_emite_su_tipo(self):
+        cliente, modulo, recibidos = self._registrar()
+        asyncio.run(cliente.manejadores[modulo.GoalUpdateEvent](
+            _meta_completa()))
+        self.assertEqual(recibidos[0][2], TIPO_META)
+
+    def test_un_evento_real_de_batalla_emite_su_tipo(self):
+        from TikTokLiveProto.v3.webcast.im import LinkMicBattleBattleAction
+        cliente, modulo, recibidos = self._registrar()
+        asyncio.run(cliente.manejadores[modulo.LinkMicBattleEvent](
+            _batalla(LinkMicBattleBattleAction.OPEN)))
+        self.assertEqual(recibidos[0][2], TIPO_BATALLA)
+
+    def test_registrar_otra_vez_vacia_los_dos_registros(self):
+        from TikTokLiveProto.v3.webcast.im import LinkMicBattleBattleAction
+        cliente, modulo, _recibidos = self._registrar()
+        asyncio.run(cliente.manejadores[modulo.GoalUpdateEvent](
+            _meta_en_curso()))
+        asyncio.run(cliente.manejadores[modulo.LinkMicBattleEvent](
+            _batalla(LinkMicBattleBattleAction.OPEN)))
+        asyncio.run(cliente.manejadores[modulo.LinkMicArmiesEvent](
+            _armies({1: 1200, 2: 900})))
+        self.assertNotEqual(metas.registro.en_curso(), "")
+        self.assertNotEqual(batallas.registro.en_curso(), "")
+        self._registrar()
+        self.assertEqual(metas.registro.en_curso(), "")
+        self.assertEqual(batallas.registro.en_curso(), "")
+
+    def test_un_evento_descartado_no_emite_ni_toca_el_registro(self):
+        from TikTokLiveProto.v3.webcast.im import LinkMicBattleBattleAction
+        cliente, modulo, recibidos = self._registrar(
+            descartar=lambda evento: True)
+        asyncio.run(cliente.manejadores[modulo.GoalUpdateEvent](
+            _meta_completa()))
+        asyncio.run(cliente.manejadores[modulo.LinkMicBattleEvent](
+            _batalla(LinkMicBattleBattleAction.OPEN)))
+        asyncio.run(cliente.manejadores[modulo.LinkMicArmiesEvent](
+            _armies({1: 1200, 2: 900})))
+        self.assertEqual(recibidos, [])
+        self.assertEqual(metas.registro.en_curso(), "")
+        self.assertEqual(batallas.registro.en_curso(), "")
 
 
 if __name__ == "__main__":

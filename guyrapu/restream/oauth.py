@@ -1,6 +1,6 @@
 """Inicio de sesión en Restream por OAuth y llamadas al servicio de tokens.
 
-El secreto de la aplicación no vive en Bellbird: el canje y la renovación
+El secreto de la aplicación no vive en la app: el canje y la renovación
 pasan por un servicio propio que lo agrega. La revocación va directa a
 Restream, que no lo pide. Ningún código, `state` ni token se escribe en el
 registro ni en el texto de un error.
@@ -18,6 +18,7 @@ from urllib.parse import parse_qs, urlencode, urlsplit
 
 import httpx
 
+from guyrapu.core.config import APP_NAME
 from guyrapu.core.idioma import _, idioma_actual
 from guyrapu.restream import sesion
 
@@ -82,23 +83,24 @@ def url_autorizacion(redirect_uri, state, client_id=CLIENT_ID):
 def _pagina(exito):
     """Página corta que el navegador muestra al volver de Restream."""
     if exito:
-        texto = _("Bellbird ya tiene acceso a tu cuenta de Restream. "
-                  "Puedes cerrar esta pestaña.")
+        texto = _("{app} ya tiene acceso a tu cuenta de Restream. "
+                  "Puedes cerrar esta pestaña.").format(app=APP_NAME)
     else:
         texto = _("No se completó el inicio de sesión en Restream. Puedes "
-                  "cerrar esta pestaña y volver a intentarlo desde Bellbird.")
+                  "cerrar esta pestaña y volver a intentarlo desde "
+                  "{app}.").format(app=APP_NAME)
     idioma = html.escape(idioma_actual() or "")
     return (
         "<!DOCTYPE html>\n"
         f'<html lang="{idioma}">\n'
-        '<head><meta charset="utf-8"><title>Bellbird</title></head>\n'
+        f'<head><meta charset="utf-8"><title>{APP_NAME}</title></head>\n'
         f"<body><p>{html.escape(texto)}</p></body>\n"
         "</html>\n"
     ).encode("utf-8")
 
 
 class _Manejador(http.server.BaseHTTPRequestHandler):
-    server_version = "Bellbird/1.0"
+    server_version = f"{APP_NAME}/1.0"
 
     def log_message(self, formato, *argumentos):
         # La línea por defecto trae la ruta con el código a stderr.

@@ -163,7 +163,7 @@ def _cambiar_y_volver(cliente, parada=None) -> None:
     otro = next((nombre for nombre in perfiles if nombre != actual), "")
     temporal = ""
     if not otro:
-        temporal = "Bellbird " + uuid.uuid4().hex[:8]
+        temporal = "Guyrapu " + uuid.uuid4().hex[:8]
         cliente.pedir("CreateProfile", {"profileName": temporal}, parada)
         otro = temporal
     cliente.pedir("SetCurrentProfile", {"profileName": otro}, parada)

@@ -10,7 +10,7 @@ from dataclasses import dataclass
 
 from guyrapu.ai import catalogo
 from guyrapu.ai import protocolos
-from guyrapu.core.config import APP_VERSION
+from guyrapu.core.config import USER_AGENT
 from guyrapu.core.idioma import N_
 
 
@@ -81,5 +81,5 @@ def cabeceras(proveedor, sesion):
     """Cabeceras extra que pide el proveedor, o un dict vacío."""
     if proveedor.id == "opencode-go":
         return {"x-opencode-session": sesion,
-                "User-Agent": f"Bellbird/{APP_VERSION}"}
+                "User-Agent": USER_AGENT}
     return {}

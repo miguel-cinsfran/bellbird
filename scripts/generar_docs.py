@@ -38,11 +38,11 @@ DOCS = RAIZ / "docs"
 
 # Título de la pestaña y del lector de pantalla para cada documento e idioma.
 TITULOS = {
-    ("es", "MANUAL"): "Bellbird, manual de uso",
-    ("es", "CHANGELOG"): "Bellbird — Novedades",
-    ("es", "CONFIGURACION_API"): "Bellbird — Configurar la API de YouTube",
-    ("en", "MANUAL"): "Bellbird, user manual",
-    ("en", "CHANGELOG"): "Bellbird, what's new",
+    ("es", "MANUAL"): "Guyrapu, manual de uso",
+    ("es", "CHANGELOG"): "Guyrapu, novedades",
+    ("es", "CONFIGURACION_API"): "Guyrapu, configurar la API de YouTube",
+    ("en", "MANUAL"): "Guyrapu, user manual",
+    ("en", "CHANGELOG"): "Guyrapu, what's new",
 }
 
 # Cómo se llama el manual en la página del paquete, en cada idioma.
@@ -178,12 +178,12 @@ def _escribir_manual_paquete() -> bool:
         "<head>\n"
         '<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
-        "<title>Bellbird, manual de uso</title>\n"
+        "<title>Guyrapu, manual de uso</title>\n"
         "<!-- Los enlaces valen desde la raíz del paquete. -->\n"
         f"{_ESTILO}"
         "</head>\n"
         "<body>\n"
-        "<h1>Bellbird</h1>\n"
+        "<h1>Guyrapu</h1>\n"
         "<ul>\n"
         + "\n".join(f"  {enlace}" for enlace in enlaces)
         + "\n</ul>\n"

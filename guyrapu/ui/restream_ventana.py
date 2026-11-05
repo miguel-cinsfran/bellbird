@@ -14,6 +14,7 @@ from types import SimpleNamespace
 import wx
 
 from guyrapu.core import diagnostico
+from guyrapu.core.config import APP_NAME
 from guyrapu.core.idioma import _
 from guyrapu.restream import canal_youtube
 from guyrapu.restream.api import ErrorApi
@@ -307,7 +308,7 @@ class VentanaRestream(wx.Dialog):
     def _agregar_destino(self):
         self._esperando_destinos = True
         anunciar(_("Restream se abre en el navegador. Agrega el destino ahí "
-                   "y vuelve a Bellbird."))
+                   "y vuelve a {app}.").format(app=APP_NAME))
 
     def _al_activar(self, evento):
         if evento.GetActive() and self._esperando_destinos:

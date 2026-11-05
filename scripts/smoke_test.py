@@ -95,7 +95,7 @@ _MINIMO_CONTROLES = 20
 _MODULOS_PUROS, _MODULOS_GUI = _modulos_de_la_raiz()
 
 _PREFIJO_TITULO = APP_NAME
-_PROCESOS_APLICACION = {"python.exe", "pythonw.exe", "bellbird.exe"}
+_PROCESOS_APLICACION = {"python.exe", "pythonw.exe", "guyrapu.exe"}
 
 _SYNCHRONIZE = 0x00100000
 _ERROR_ACCESS_DENIED = 5

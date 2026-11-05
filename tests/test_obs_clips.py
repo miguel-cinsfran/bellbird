@@ -246,7 +246,7 @@ class PrepararTest(unittest.TestCase):
         creados = [datos["profileName"] for tipo, datos in cliente.llamadas
                    if tipo == "CreateProfile"]
         self.assertEqual(len(creados), 1)
-        self.assertTrue(creados[0].startswith("Bellbird"))
+        self.assertTrue(creados[0].startswith("Guyrapu"))
         self.assertIn(("SetCurrentProfile", {"profileName": creados[0]}),
                       cliente.llamadas)
         self.assertIn(("RemoveProfile", {"profileName": creados[0]}),

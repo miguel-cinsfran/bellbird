@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from guyrapu.core.config import APP_NAME, APP_VERSION
 from guyrapu.core.idioma import _
+from guyrapu.core.version_legible import version_legible
 
 
 def prefijo_estado(estado_obs) -> str:
@@ -25,12 +26,13 @@ def componer(titulo_stream, prefijo) -> str:
     """Arma el título de la ventana con el prefijo de estado delante."""
     titulo = (titulo_stream or "").strip()
     if titulo:
-        # Formato tipo navegador: «Nombre del vídeo — Bellbird».
+        # Formato tipo navegador: «Nombre del vídeo — Guyrapu».
         # Traductores: {titulo} es el vídeo y {app} la app.
         texto = _("{titulo} — {app}").format(titulo=titulo, app=APP_NAME)
     else:
         # Traductores: título de la ventana: nombre de la app y versión.
-        texto = _("{app} v{version}").format(app=APP_NAME, version=APP_VERSION)
+        texto = _("{app} {version}").format(
+            app=APP_NAME, version=version_legible(APP_VERSION))
     return f"{prefijo} {texto}" if prefijo else texto
 
 

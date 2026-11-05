@@ -1391,7 +1391,7 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         juntos = " ".join(etiquetas).replace("&", "")
         for texto in ("Agregar a la cola", "Escuchar", "Descargar como audio",
                       "Descargar como vídeo", "Elegir formato",
-                      "Abrir en Bellbird", "Agregar a la música",
+                      "Abrir en Guyrapu", "Agregar a la música",
                       "Copiar enlace", "Abrir en el navegador",
                       "Ver sitios compatibles"):
             self.assertIn(texto, juntos)

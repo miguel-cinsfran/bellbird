@@ -19,11 +19,10 @@ from pathlib import Path
 
 import wx
 
-from guyrapu.core import actualizacion, novedades
-from guyrapu.core import diagnostico
-from guyrapu.core import paths
+from guyrapu.core import actualizacion, diagnostico, novedades, paths
 from guyrapu.core.config import APP_NAME, APP_VERSION, guardar_opcion
 from guyrapu.core.idioma import _
+from guyrapu.core.version_legible import version_legible as _v
 from guyrapu.downloads import ytdlp_actualizar
 from guyrapu.ui import aviso_diferido
 from guyrapu.ui.accesibilidad import anunciar
@@ -212,7 +211,7 @@ def _decidir_aviso(frame, paquete) -> None:
 def _avisar_version(version: str) -> None:
     try:
         anunciar(_("Hay una versión nueva de {app}, la {version}. "
-                  "Para instalarla: menú Ayuda, Buscar actualizaciones.").format(app=APP_NAME, version=version))
+                  "Para instalarla: menú Ayuda, Buscar actualizaciones.").format(app=APP_NAME, version=_v(version)))
         guardar_version_avisada(version)
     except Exception as exc:
         logger.warning("aviso de versión: %s", exc)
@@ -258,11 +257,11 @@ class _FlujoActualizacion:
             return
         if not actualizacion.hay_version_nueva(APP_VERSION, paquete.version):
             self.ventana.progreso(100)
-            self.ventana.estado(_("Esta es la última versión, la {version}.").format(version=APP_VERSION))
+            self.ventana.estado(_("Esta es la última versión, la {version}.").format(version=_v(APP_VERSION)))
             return
         self.paquete_elegido = paquete
         texto = (_("Hay una versión nueva, la {nueva}. La instalada es la {instalada}.").format(
-            nueva=paquete.version, instalada=APP_VERSION))
+            nueva=_v(paquete.version), instalada=_v(APP_VERSION)))
         if not getattr(sys, "frozen", False):
             self.ventana.estado(texto + _(" Desde el código fuente no se instala: "
                                           "se actualiza con git."))
@@ -297,7 +296,7 @@ class _FlujoActualizacion:
     def _descargar(self):
         self.ventana.quitar_accion()
         self.ventana.estado(
-            _("Descargando la versión {version}.").format(version=self.paquete_elegido.version))
+            _("Descargando la versión {version}.").format(version=_v(self.paquete_elegido.version)))
         diagnostico.crear_hilo(
             self._run_descarga, "DescargarActualizacion").start()
 
@@ -324,7 +323,7 @@ class _FlujoActualizacion:
             self.ultimo_texto = porcentaje
             self.ventana.txt_estado.SetValue(
                 _("Descargando la versión {version}: {porcentaje} por ciento").format(
-                    version=self.paquete_elegido.version, porcentaje=porcentaje))
+                    version=_v(self.paquete_elegido.version), porcentaje=porcentaje))
 
     def _terminar_descarga(self, resultado):
         if not resultado.correcta:

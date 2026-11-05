@@ -15,6 +15,13 @@ import httpx
 from guyrapu.restream import oauth, sesion
 
 
+class TestServidorLocalVersion(unittest.TestCase):
+
+    def test_el_servidor_dice_el_nombre_de_la_app(self):
+        from guyrapu.core.config import APP_NAME
+        self.assertEqual(oauth._Manejador.server_version, f"{APP_NAME}/1.0")
+
+
 CODIGO = "codigo-de-prueba"
 TOKEN = "renovacion-de-prueba"
 VUELTA = "http://127.0.0.1:47615/callback"
@@ -138,7 +145,7 @@ class TestServidorLocal(unittest.TestCase):
         self.assertTrue(redirect_uri.endswith(oauth.RUTA_VUELTA))
         self.assertTrue(_hasta(lambda: len(salida) == 1))
         self.assertEqual(salida[0][0], 200)
-        self.assertIn("Bellbird ya tiene acceso", salida[0][1])
+        self.assertIn("Guyrapu ya tiene acceso", salida[0][1])
         self.assertTrue(visto["state"])
 
     def test_p3_ruta_equivocada_responde_404_y_sigue_esperando(self):

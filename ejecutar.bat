@@ -1,6 +1,6 @@
 @echo off
 REM ============================================================================
-REM  Bellbird - Arranca la aplicacion desde el codigo fuente (con uv).
+REM  Guyrapu - Arranca la aplicacion desde el codigo fuente (con uv).
 REM  Si falta el entorno o alguna dependencia, uv los prepara solo.
 REM ============================================================================
 cd /d "%~dp0"

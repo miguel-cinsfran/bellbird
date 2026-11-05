@@ -31,7 +31,7 @@ class Entrada(NamedTuple):
 
 
 PERMITIDAS = ("YouTube", "TikTok", "OBS", "IA", "API", "VLC", "NVDA",
-              "Bellbird", "ElevenLabs", "SAPI5", "yt-dlp", "Windows",
+              "Guyrapu", "ElevenLabs", "SAPI5", "yt-dlp", "Windows",
               "TTS")
 
 TECLAS_INGLES = ("Left", "Right", "Up", "Down", "Home", "End", "PageUp",

@@ -575,7 +575,7 @@ class PruebaVentanaRestream(unittest.TestCase):
             abrir.assert_called_once_with(restream_pagina_destinos.URL_DESTINOS)
             anunciar.assert_called_once_with(
                 "Restream se abre en el navegador. Agrega el destino ahí y "
-                "vuelve a Bellbird.")
+                "vuelve a Guyrapu.")
 
             destinos.append(Canal(2, 5, "YouTube", "dos", "", True))
             evento = mock.Mock()
@@ -701,7 +701,7 @@ class PruebaVentanaRestream(unittest.TestCase):
             dialogo._pagina_cuenta.txt_estado.GetValue()))
         self.assertIn(
             "YouTube en Restream: uno, el mismo canal de la sesión de "
-            "Bellbird.",
+            "Guyrapu.",
             dialogo._pagina_cuenta.txt_estado.GetValue().splitlines())
 
     def test_p3_dice_que_el_youtube_de_restream_no_es_el_de_la_sesion(self):
@@ -715,7 +715,7 @@ class PruebaVentanaRestream(unittest.TestCase):
             dialogo._pagina_cuenta.txt_estado.GetValue()))
         self.assertIn(
             "YouTube en Restream: uno, que no es el canal de la sesión de "
-            "Bellbird.",
+            "Guyrapu.",
             dialogo._pagina_cuenta.txt_estado.GetValue().splitlines())
 
     def test_p4_sin_identificador_de_la_sesion_no_hay_linea(self):

@@ -9,6 +9,13 @@ import tempfile
 from scripts import bajar_deno
 
 
+class TestAgente(unittest.TestCase):
+
+    def test_usa_el_user_agent_de_la_app(self):
+        from guyrapu.core import config
+        self.assertEqual(bajar_deno._agente(), config.USER_AGENT)
+
+
 class TestFirmaGetFileHash(unittest.TestCase):
 
     def test_lee_la_linea_hash_en_mayusculas(self):

@@ -256,7 +256,7 @@ class SupervisorTransmision:
             logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
 
     def abandonar(self) -> None:
-        # Deja de vigilar sin detener OBS y sin anunciar: cerrar Bellbird no
+        # Deja de vigilar sin detener OBS y sin anunciar: cerrar la app no
         # corta el directo.
         self._parada.set()
         self._corte.set()

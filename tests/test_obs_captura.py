@@ -321,6 +321,17 @@ class VentanasTest(unittest.TestCase):
         self.assertEqual(doble.entradas, [])
         self.assertEqual(doble.elementos, [])
 
+    def test_borra_tambien_la_sonda_del_nombre_viejo(self):
+        doble = Doble(
+            elementos=(elemento(9, obs_captura.NOMBRE_SONDA_ANTERIOR,
+                                "window_capture"),),
+            entradas=({"inputName": obs_captura.NOMBRE_SONDA_ANTERIOR,
+                        "inputKind": "window_capture"},),
+            propiedades=self._propiedades())
+        obs_captura.ventanas(doble, "Escena")
+        self.assertEqual(doble.entradas, [])
+        self.assertEqual(doble.elementos, [])
+
     def test_sin_captura_borra_la_sonda_tambien_si_la_lista_falla(self):
         doble = Doble(propiedades=self._propiedades(), falla_lista=True)
         with self.assertRaises(RuntimeError):

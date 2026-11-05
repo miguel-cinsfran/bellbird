@@ -13,7 +13,9 @@ from guyrapu.obs import obs_cliente, obs_disposicion
 
 
 NOMBRE_CAMARA = N_("Cámara")
-NOMBRE_SONDA = N_("Bellbird, lista de cámaras")
+NOMBRE_SONDA = N_("Guyrapu, lista de cámaras")
+NOMBRE_SONDA_ANTERIOR = N_("Bellbird, lista de cámaras")
+NOMBRES_SONDA = (NOMBRE_SONDA, NOMBRE_SONDA_ANTERIOR)
 
 
 def _datos(cliente, tipo, datos=None, parada=None):
@@ -21,10 +23,10 @@ def _datos(cliente, tipo, datos=None, parada=None):
     return respuesta.get("responseData", {}) or {}
 
 
-def _sonda_en_lista(cliente, parada=None) -> bool:
+def _sonda_en_lista(cliente, parada=None, nombre=NOMBRE_SONDA) -> bool:
     entradas = _datos(cliente, "GetInputList", parada=parada).get(
         "inputs", ()) or ()
-    return any(entrada.get("inputName", "") == NOMBRE_SONDA
+    return any(entrada.get("inputName", "") == nombre
                for entrada in entradas)
 
 
@@ -32,31 +34,38 @@ def _quitar_sonda(cliente, escena, parada=None) -> None:
     # RemoveInput no quita las entradas que están en una escena (en OBS
     # 32.2.2 responde éxito sin borrarlas, medido el 13/10/2026); por eso la
     # sonda se quita con RemoveSceneItem y RemoveInput solo cubre el resto de
-    # que viva en otra escena.
+    # que viva en otra escena. También se borra la sonda del nombre viejo,
+    # que puede haber quedado en el OBS del usuario.
     elementos = _datos(cliente, "GetSceneItemList", {"sceneName": escena},
                        parada).get("sceneItems", ()) or ()
     for elemento in elementos:
-        if (elemento.get("sourceName", "") == NOMBRE_SONDA
+        if (elemento.get("sourceName", "") in NOMBRES_SONDA
                 and elemento.get("sceneItemId") is not None):
             cliente.pedir("RemoveSceneItem",
                           {"sceneName": escena,
                            "sceneItemId": elemento.get("sceneItemId")},
                           parada=parada)
-    if _sonda_en_lista(cliente, parada):
+    presentes = {entrada.get("inputName", "") for entrada in
+                 (_datos(cliente, "GetInputList", parada=parada).get(
+                     "inputs", ()) or ())}
+    for nombre in NOMBRES_SONDA:
+        if nombre not in presentes:
+            continue
         try:
-            cliente.pedir("RemoveInput", {"inputName": NOMBRE_SONDA},
+            cliente.pedir("RemoveInput", {"inputName": nombre},
                           parada=parada)
         except obs_cliente.ObsError:
-            if _sonda_en_lista(cliente, parada):
+            if _sonda_en_lista(cliente, parada, nombre):
                 raise
 
 
 def _sonda_visible(cliente, escena, parada=None) -> bool:
-    if _sonda_en_lista(cliente, parada):
+    if any(_sonda_en_lista(cliente, parada, nombre)
+           for nombre in NOMBRES_SONDA):
         return True
     elementos = _datos(cliente, "GetSceneItemList", {"sceneName": escena},
                        parada).get("sceneItems", ()) or ()
-    return any(elemento.get("sourceName", "") == NOMBRE_SONDA
+    return any(elemento.get("sourceName", "") in NOMBRES_SONDA
                for elemento in elementos)
 
 

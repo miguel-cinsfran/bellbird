@@ -15,61 +15,69 @@ class TestArmarTitulo(unittest.TestCase):
 
     def test_con_hora(self):
         self.assertEqual(directo_real.armar_titulo("20:15"),
-                         "Prueba de YTChat 20:15")
+                         "Prueba de Guyrapu 20:15")
 
     def test_sin_hora_no_deja_basura(self):
-        self.assertEqual(directo_real.armar_titulo("  "), "Prueba de YTChat")
+        self.assertEqual(directo_real.armar_titulo("  "), "Prueba de Guyrapu")
 
 
 class TestEsBorrable(unittest.TestCase):
 
     def test_lo_propio_no_listado_se_borra(self):
         self.assertTrue(directo_real.es_borrable(
-            "Prueba de YTChat 20:15", "unlisted"))
+            "Prueba de Guyrapu 20:15", "unlisted"))
 
     def test_exige_privacidad_no_listada(self):
         self.assertFalse(directo_real.es_borrable(
-            "Prueba de YTChat 20:15", "public"))
+            "Prueba de Guyrapu 20:15", "public"))
         self.assertFalse(directo_real.es_borrable(
-            "Prueba de YTChat 20:15", "private"))
+            "Prueba de Guyrapu 20:15", "private"))
         self.assertFalse(directo_real.es_borrable(
-            "Prueba de YTChat 20:15", ""))
+            "Prueba de Guyrapu 20:15", ""))
 
     def test_exige_titulo_de_la_prueba(self):
         self.assertFalse(directo_real.es_borrable(
             "Mi directo", "unlisted"))
         self.assertFalse(directo_real.es_borrable("", "unlisted"))
 
+    def test_reconoce_el_prefijo_viejo_para_limpiar(self):
+        self.assertTrue(directo_real.es_borrable(
+            "Prueba de YTChat 20:15", "unlisted"))
+
 
 class TestArmarTituloLista(unittest.TestCase):
 
     def test_con_hora(self):
         self.assertEqual(directo_real.armar_titulo_lista("20:15"),
-                         "Prueba de YTChat lista 20:15")
+                         "Prueba de Guyrapu lista 20:15")
 
     def test_sin_hora_no_deja_basura(self):
         self.assertEqual(directo_real.armar_titulo_lista("  "),
-                         "Prueba de YTChat lista")
+                         "Prueba de Guyrapu lista")
 
 
 class TestEsListaBorrable(unittest.TestCase):
 
     def test_lo_propio_privado_se_borra(self):
         self.assertTrue(directo_real.es_lista_borrable(
-            "Prueba de YTChat lista 20:15", "private"))
+            "Prueba de Guyrapu lista 20:15", "private"))
 
     def test_exige_privacidad_privada(self):
         self.assertFalse(directo_real.es_lista_borrable(
-            "Prueba de YTChat lista 20:15", "public"))
+            "Prueba de Guyrapu lista 20:15", "public"))
         self.assertFalse(directo_real.es_lista_borrable(
-            "Prueba de YTChat lista 20:15", "unlisted"))
+            "Prueba de Guyrapu lista 20:15", "unlisted"))
         self.assertFalse(directo_real.es_lista_borrable(
-            "Prueba de YTChat lista 20:15", ""))
+            "Prueba de Guyrapu lista 20:15", ""))
 
     def test_exige_titulo_de_la_prueba(self):
         self.assertFalse(directo_real.es_lista_borrable(
             "Mi lista", "private"))
         self.assertFalse(directo_real.es_lista_borrable("", "private"))
+
+    def test_reconoce_el_prefijo_viejo_para_limpiar(self):
+        self.assertTrue(directo_real.es_lista_borrable(
+            "Prueba de YTChat lista 20:15", "private"))
 
 
 class TestExtraerIdVideo(unittest.TestCase):
@@ -600,7 +608,7 @@ class TestBorrarLista(unittest.TestCase):
 
     def test_lista_de_la_prueba_se_borra(self):
         cliente = _ClienteListasFalso([{
-            "snippet": {"title": "Prueba de YTChat lista 20:15"},
+            "snippet": {"title": "Prueba de Guyrapu lista 20:15"},
             "status": {"privacyStatus": "private"}}])
         borrada, motivo = directo_real._borrar_lista(cliente, "abc123")
         self.assertTrue(borrada)
@@ -617,7 +625,7 @@ class TestBorrarLista(unittest.TestCase):
 
     def test_lista_publica_no_se_borra(self):
         cliente = _ClienteListasFalso([{
-            "snippet": {"title": "Prueba de YTChat lista 20:15"},
+            "snippet": {"title": "Prueba de Guyrapu lista 20:15"},
             "status": {"privacyStatus": "public"}}])
         borrada, _ = directo_real._borrar_lista(cliente, "abc123")
         self.assertFalse(borrada)

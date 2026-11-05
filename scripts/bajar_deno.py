@@ -40,7 +40,7 @@ TIEMPO_ESPERA = 30
 
 def _agente() -> str:
     from guyrapu.core import config
-    return f"Bellbird/{config.APP_VERSION}"
+    return config.USER_AGENT
 
 
 def firma_desde_get_file_hash(texto: str) -> str:

@@ -18,6 +18,7 @@ from guyrapu.core import canal_app
 from guyrapu.core import versiones
 from guyrapu.core.config import APP_VERSION
 from guyrapu.core.idioma import _
+from guyrapu.core.version_legible import version_legible
 
 
 URL_PUBLICACIONES = canal_app.URL_PUBLICACIONES
@@ -26,10 +27,9 @@ URL_PUBLICACIONES = canal_app.URL_PUBLICACIONES
 def _texto_publicacion(publicacion: dict) -> str:
     """Encabezado con la versión y, debajo, el cuerpo tal como vino."""
     version = publicacion.get("tag_name", "")
-    if version.startswith("v"):
-        version = version[1:]
     # Traductores: encabezado de las novedades de una versión.
-    encabezado = "## " + _("Versión {version}").format(version=version)
+    encabezado = "## " + _("Versión {version}").format(
+        version=version_legible(version))
     cuerpo = publicacion.get("body")
     if not isinstance(cuerpo, str):
         cuerpo = ""

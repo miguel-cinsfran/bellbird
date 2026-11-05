@@ -44,7 +44,7 @@ def va_al_chat_en_el_video(tipo) -> bool:
     """Si el tipo se muestra en el chat superpuesto del vídeo.
 
     Solo los mensajes y los regalos: los avisos del directo se quedan en la
-    lista de Bellbird y en la voz.
+    lista de la app y en la voz.
     """
     return tipo in (TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER)
 

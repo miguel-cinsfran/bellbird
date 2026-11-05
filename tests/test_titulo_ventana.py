@@ -9,6 +9,7 @@ import unittest
 from unittest import mock
 
 from guyrapu.core.config import APP_NAME, APP_VERSION
+from guyrapu.core.version_legible import version_legible
 from guyrapu.obs.obs_vigilante import EstadoObs
 from guyrapu.ui import gui
 from guyrapu.ui import titulo_ventana
@@ -83,11 +84,22 @@ class ComponerTest(unittest.TestCase):
     def test_sin_titulo_usa_la_version(self):
         self.assertEqual(
             titulo_ventana.componer("", "(Grabando)"),
-            f"(Grabando) {APP_NAME} v{APP_VERSION}")
+            f"(Grabando) {APP_NAME} {version_legible(APP_VERSION)}")
 
     def test_sin_prefijo_deja_el_titulo_de_siempre(self):
         self.assertEqual(titulo_ventana.componer("Charla", ""),
                          f"Charla — {APP_NAME}")
+
+
+class AcercaDeCableadoTest(unittest.TestCase):
+    def test_el_cuadro_muestra_el_texto_de_acerca_de(self):
+        marco = mock.Mock()
+        with mock.patch.object(gui.acerca_de, "texto",
+                               return_value="texto completo") as texto, \
+                mock.patch.object(gui.wx, "MessageBox") as cuadro:
+            gui.VentanaPrincipal._on_about(marco, None)
+        texto.assert_called_once_with(APP_VERSION)
+        self.assertEqual(cuadro.call_args.args[0], "texto completo")
 
 
 class AplicarTest(unittest.TestCase):

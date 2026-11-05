@@ -20,6 +20,7 @@ for _ruta in (_QA.parent, _QA):
     if str(_ruta) not in sys.path:
         sys.path.insert(0, str(_ruta))
 
+from guyrapu.core.config import APP_NAME  # noqa: E402
 from guyrapu.obs.fuente_chat import NOMBRE_FUENTE as NOMBRE_FUENTE_CHAT  # noqa: E402
 
 TITULO_DIRECTO = "Directo de prueba"
@@ -61,7 +62,7 @@ DATOS_DE_USUARIO = (
 )
 
 _PROPIOS = re.compile(
-    r"\b(?:Bellbird|YouTube|TikTok|OBS|NVDA|VLC|Google|Windows)\b",
+    r"\b(?:" + re.escape(APP_NAME) + r"|YouTube|TikTok|OBS|NVDA|VLC|Google|Windows)\b",
     re.IGNORECASE)
 _ATAJOS = re.compile(
     r"(?:\[¡[^\[\]]*!\]|Ctrl|Control|Alt|Shift|Mayús|Mayus|Windows|Win)"
@@ -175,7 +176,7 @@ def _titulos_visibles(app):
 def _titulo_principal(app):
     for ventana in app.ventanas():
         titulo = ventana.get("titulo") or ""
-        if ventana.get("visible") and "bellbird" in titulo.casefold():
+        if ventana.get("visible") and APP_NAME.casefold() in titulo.casefold():
             return titulo
     return ""
 

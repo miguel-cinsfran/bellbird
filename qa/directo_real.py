@@ -47,12 +47,14 @@ from guyrapu.core.config import APP_NAME  # noqa: E402
 
 from conducir import contestar_salir_si_aparece
 
-PREFIJO_TITULO = "Prueba de YTChat"
+PREFIJO_TITULO = "Prueba de Guyrapu"
+PREFIJOS_TITULO = (PREFIJO_TITULO, "Prueba de YTChat")
 PRIVACIDAD_ESPERADA = "unlisted"
-PREFIJO_LISTA = "Prueba de YTChat lista"
+PREFIJO_LISTA = "Prueba de Guyrapu lista"
+PREFIJOS_LISTA = (PREFIJO_LISTA, "Prueba de YTChat lista")
 PRIVACIDAD_LISTA = "private"
 DESCRIPCION_PRUEBA = (
-    "Directo de prueba de YTChat, se borra al terminar."
+    "Directo de prueba de Guyrapu, se borra al terminar."
 )
 
 # Opciones del directo que la prueba deja puestas y después comprueba: latencia
@@ -61,7 +63,7 @@ DESCRIPCION_PRUEBA = (
 # YouTube Studio. La miniatura se genera en un archivo temporal de un color.
 LATENCIA_PRUEBA = "ultraLow"
 CATEGORIA_PRUEBA = "27"
-ETIQUETAS_PRUEBA = "prueba, bellbird"
+ETIQUETAS_PRUEBA = "prueba, guyrapu"
 ANCHO_MINIATURA = 1280
 ALTO_MINIATURA = 720
 COLOR_MINIATURA = (30, 60, 120)
@@ -74,8 +76,8 @@ VOLUMEN_PRUEBA = 0.12
 # ventana encima del panel de chat. Título y color de cada ventana.
 VENTANA_CAMARA = ("Cámara de prueba", "00C000")
 VENTANA_APLICACION = ("Aplicación de prueba", "C000C0")
-FUENTE_CAMARA = "Prueba YTChat cámara"
-FUENTE_APLICACION = "Prueba YTChat aplicación"
+FUENTE_CAMARA = "Prueba Guyrapu cámara"
+FUENTE_APLICACION = "Prueba Guyrapu aplicación"
 ANUNCIO_PANEL_ADELANTE = "el chat en el vídeo estaba detrás de"
 COMENTARIOS_PRUEBA = ("Comentario de prueba 1", "Comentario de prueba 2",
                       "Comentario de prueba 3")
@@ -111,7 +113,7 @@ def armar_titulo(hora: str) -> str:
 
 def es_borrable(titulo: str, privacidad: str) -> bool:
     """Solo se borra lo que la herramienta creó: título propio y no listado."""
-    return (titulo or "").startswith(PREFIJO_TITULO) \
+    return (titulo or "").startswith(PREFIJOS_TITULO) \
         and (privacidad or "") == PRIVACIDAD_ESPERADA
 
 
@@ -122,7 +124,7 @@ def armar_titulo_lista(hora: str) -> str:
 
 def es_lista_borrable(titulo: str, privacidad: str) -> bool:
     """Solo se borra la lista que creó la prueba: prefijo propio y privada."""
-    return (titulo or "").startswith(PREFIJO_LISTA) \
+    return (titulo or "").startswith(PREFIJOS_LISTA) \
         and (privacidad or "") == PRIVACIDAD_LISTA
 
 
@@ -635,7 +637,7 @@ def _crear_lista(cliente, titulo: str) -> str:
     resp = cliente._escritura().playlists().insert(
         part="snippet,status",
         body={"snippet": {"title": titulo,
-                          "description": "Lista de prueba de YTChat, "
+                          "description": "Lista de prueba de Guyrapu, "
                                          "se borra al terminar."},
               "status": {"privacyStatus": PRIVACIDAD_LISTA}}).execute()
     return (resp or {}).get("id") or ""
@@ -1547,7 +1549,7 @@ def _correr(args) -> tuple[list[tuple[str, bool, str]], int]:
                         _quitar_fuente(gestor_obs, escena_prueba,
                                        FUENTE_APLICACION, borrar_entrada=True)
                         anotar(paso, True,
-                               "«Prueba YTChat cámara» y «Prueba YTChat "
+                               "«Prueba Guyrapu cámara» y «Prueba Guyrapu "
                                "aplicación» fuera de la escena")
                     else:
                         from guyrapu.obs.obs_panel import NOMBRE_FUENTE

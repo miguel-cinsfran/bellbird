@@ -35,8 +35,10 @@ LIBRERIAS_SILENCIADAS = ("httpx", "httpcore", "hpack", "h2", "websockets", "goog
 
 # ── Identidad ─────────────────────────────────────────────────────────────────
 
-APP_NAME    = "Bellbird"
+APP_NAME    = "Guyrapu"
 APP_VERSION = "3.0.0-beta.1"
+URL_REPOSITORIO = "https://github.com/miguel-cinsfran/guyrapu"
+USER_AGENT = f"{APP_NAME}/{APP_VERSION}"
 
 # ── Tipos de mensaje ──────────────────────────────────────────────────────────
 

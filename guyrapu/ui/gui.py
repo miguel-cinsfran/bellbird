@@ -19,10 +19,11 @@ import wx
 from wx.lib.wordwrap import wordwrap
 
 from guyrapu.core.config import APP_NAME, APP_VERSION, TIPO_TEXTO
+from guyrapu.core.version_legible import version_legible
 from guyrapu.ui.gui_menu import FILTROS
 from guyrapu.core.config import parsear_atajos, detectar_conflictos_atajos, guardar_opcion
 from guyrapu.core.idioma import N_, _
-from guyrapu.core import paths
+from guyrapu.core import acerca_de, paths
 from guyrapu.core import anuncio_ajuste
 from guyrapu.core import sonidos_eventos
 from guyrapu.capture import deteccion
@@ -157,7 +158,8 @@ class VentanaPrincipal(wx.Frame):
         super().__init__(
             parent,
             # Traductores: título de la ventana: nombre de la app y versión.
-            title=_("{app} v{version}").format(app=APP_NAME, version=APP_VERSION),
+            title=_("{app} {version}").format(
+                app=APP_NAME, version=version_legible(APP_VERSION)),
             size=(ANCHO_DEFECTO, ALTO_DEFECTO),
             name="VentanaPrincipal",
         )
@@ -832,9 +834,7 @@ class VentanaPrincipal(wx.Frame):
 
     def _on_about(self, event):
         wx.MessageBox(
-            _("{app} v{version}\n\nLee en voz alta el chat de los directos de YouTube y TikTok. Incluye "
-              "moderación, comentarios, reproductor, música, descargas y "
-              "control de OBS Studio.").format(app=APP_NAME, version=APP_VERSION),
+            acerca_de.texto(APP_VERSION),
             _("Acerca de"), wx.OK | wx.ICON_INFORMATION, self)
 
     def _on_marcar_incidencia(self, event):

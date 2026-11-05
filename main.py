@@ -1,3 +1,7 @@
+# Guyrapu. Copyright (C) 2026 Miguel Ángel Insfrán Caballero.
+# Software libre bajo la GPL versión 3, con las condiciones
+# adicionales del archivo NOTICE. La licencia está en LICENSE.
+
 """Punto de entrada. Abre la interfaz gráfica directamente."""
 
 from __future__ import annotations
@@ -694,7 +698,7 @@ def main():
         from guyrapu.core import instalador
         sys.exit(instalador.principal_instalador())
     # Aquí y no al importar el módulo: así los tests y el smoke test pueden
-    # importar main sin crear el handler de ytchat.log (contaminaba el log real).
+    # importar main sin crear el handler del registro (contaminaba el log real).
     try:
         resultado_migracion = migracion_datos.migrar(
             paths.carpeta_instalacion(), paths.carpeta_datos(), paths.datos_a_migrar(),

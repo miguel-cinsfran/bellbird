@@ -2124,7 +2124,7 @@ class TestAtajosGlobalesControl(unittest.TestCase):
         self.assertEqual(
             [c.args[0] for c in env.anunciar.call_args_list],
             ["Atajos de música activos en cualquier aplicación",
-             "Atajos de música solo en Bellbird"])
+             "Atajos de música solo en Guyrapu"])
         self.assertEqual(env.snd.sonidos, [])
 
     def test_aplicar_dos_veces_no_repite_el_anuncio(self):

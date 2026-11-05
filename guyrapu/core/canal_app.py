@@ -21,7 +21,7 @@ from guyrapu.core import versiones
 CANALES = ("estable", "beta")
 
 URL_PUBLICACIONES = (
-    "https://api.github.com/repos/miguel-cinsfran/bellbird/releases?per_page=30"
+    f"{actualizacion.URL_API_REPOSITORIO}/releases?per_page=30"
 )
 
 

@@ -136,6 +136,15 @@ class CamarasDisponiblesTest(unittest.TestCase):
         self.assertEqual(lista[1]["inputName"],
                          obs_camara_nueva.NOMBRE_SONDA)
 
+    def test_borra_tambien_la_sonda_del_nombre_viejo(self):
+        doble = Doble(
+            entradas=({"inputName": obs_camara_nueva.NOMBRE_SONDA_ANTERIOR,
+                       "inputKind": "dshow_input"},),
+            propiedades=(item("EasyCamera", "abc", True),))
+        self.assertEqual(_disponibles(doble), (("EasyCamera", "abc"),))
+        self.assertEqual(doble.entradas, [])
+        self.assertEqual(doble.elementos, [])
+
     def test_solo_devuelve_las_camaras_habilitadas(self):
         doble = Doble(propiedades=(
             item("Seleccionar dispositivo", "", False),

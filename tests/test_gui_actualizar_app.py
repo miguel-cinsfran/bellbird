@@ -16,6 +16,7 @@ from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.ventanas_prueba import app_de_prueba, destruir
 from guyrapu.core import actualizacion, novedades
 from guyrapu.core.config import APP_NAME, APP_VERSION
+from guyrapu.core.version_legible import version_legible
 from guyrapu.ui import gui_actualizar_app as app
 
 try:
@@ -181,7 +182,7 @@ class TestVentana(unittest.TestCase):
 
     def test_sin_version_nueva_anuncia_la_instalada(self):
         _, ventana, _ = self._abrir(consultar=_paquete(APP_VERSION, ""))
-        self.assertIn(f"Esta es la última versión, la {APP_VERSION}.",
+        self.assertIn(f"Esta es la última versión, la {version_legible(APP_VERSION)}.",
                       ventana.anuncios)
         self.assertEqual(100, ventana.progresos[-1])
 
@@ -189,7 +190,7 @@ class TestVentana(unittest.TestCase):
         _, ventana, red = self._abrir(
             consultar=_paquete(VERSION_NUEVA), frozen=False)
         self.assertIn(f"Hay una versión nueva, la {VERSION_NUEVA}. "
-                      f"La instalada es la {APP_VERSION}. "
+                      f"La instalada es la {version_legible(APP_VERSION)}. "
                       "Desde el código fuente no se instala: "
                       "se actualiza con git.", ventana.anuncios)
         self.assertEqual(["novedades"], ventana.notas_vistas)
@@ -210,7 +211,7 @@ class TestVentana(unittest.TestCase):
         _, ventana, _ = self._abrir(
             consultar=_paquete(VERSION_NUEVA), frozen=True, admite=True)
         self.assertEqual(f"Hay una versión nueva, la {VERSION_NUEVA}. "
-                         f"La instalada es la {APP_VERSION}.",
+                         f"La instalada es la {version_legible(APP_VERSION)}.",
                          ventana.anuncios[-1])
         self.assertEqual(["novedades"], ventana.notas_vistas)
         self.assertEqual("&Descargar e instalar", ventana.accion_etiqueta)
@@ -411,7 +412,7 @@ class TestVentana(unittest.TestCase):
         consulta.assert_not_called()
         self.assertNotIn("Buscando la última versión.", ventana.anuncios)
         self.assertIn(f"Hay una versión nueva, la {VERSION_NUEVA}. "
-                      f"La instalada es la {APP_VERSION}.", ventana.anuncios)
+                      f"La instalada es la {version_legible(APP_VERSION)}.", ventana.anuncios)
         self.assertEqual("&Descargar e instalar", ventana.accion_etiqueta)
 
     def test_al_arrancar_el_cierre_dice_mas_tarde(self):
@@ -585,7 +586,7 @@ class TestGanchos(unittest.TestCase):
         app.programar_resultado_actualizacion()
         anunciar.assert_called_once_with(
             "La actualización no se completó: corte de luz. "
-            f"Sigue la versión {APP_VERSION}.")
+            f"Sigue la versión {version_legible(APP_VERSION)}.")
         sonido.assert_called_once_with("error")
 
     def _resultado_empaquetado(self, resultado, frozen=True):
@@ -632,7 +633,7 @@ class TestGanchos(unittest.TestCase):
         ventana, anunciar, sonido, _ = self._resultado_empaquetado(
             {"resultado": "fallo", "motivo": "corte de luz"})
         self.assertIn("La actualización no se completó: corte de luz. "
-                      f"Sigue la versión {APP_VERSION}.", ventana.estados)
+                      f"Sigue la versión {version_legible(APP_VERSION)}.", ventana.estados)
         self.assertEqual(0, ventana.progresos[-1])
         ventana.btn_cerrar.SetFocus.assert_called()
         anunciar.assert_not_called()
@@ -645,7 +646,7 @@ class TestGanchos(unittest.TestCase):
         dialogo.assert_not_called()
         anunciar.assert_called_once_with(
             "La actualización no se completó: corte de luz. "
-            f"Sigue la versión {APP_VERSION}.")
+            f"Sigue la versión {version_legible(APP_VERSION)}.")
         sonido.assert_called_once_with("error")
 
     def test_sin_resultado_no_anuncia(self):

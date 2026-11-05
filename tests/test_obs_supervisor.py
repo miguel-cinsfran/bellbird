@@ -1533,12 +1533,12 @@ class FinPendienteTest(unittest.TestCase):
             self.assertTrue(esperar_condicion(
                 lambda: any(f == "YouTube sigue sin confirmar el fin del "
                                    "directo. Se intentará de nuevo al abrir "
-                                   "Bellbird." for f, _ in anuncios)))
+                                   "Guyrapu." for f, _ in anuncios)))
             self.assertEqual([e["id"] for e in fin_pendiente.leer(ruta)],
                              ["vid123"])
         self.assertIn((
             "YouTube sigue sin confirmar el fin del directo. "
-            "Se intentará de nuevo al abrir Bellbird.", "transmision_problema"),
+            "Se intentará de nuevo al abrir Guyrapu.", "transmision_problema"),
             anuncios)
 
     def test_sin_ruta_no_toca_el_disco_ni_reintenta(self):
@@ -1783,12 +1783,12 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
             with con_pseudo():
                 supervisor._finalizar_youtube_si_toca()
                 self.assertTrue(esperar_condicion(
-                    lambda: any("al abrir Bellbird" in frase
+                    lambda: any("al abrir Guyrapu" in frase
                                 for frase, _ in anuncios)))
             marcados = self._exigir_marcados(anuncios)
             self.assertIn("[¡YouTube no confirmó el fin del directo. Se "
                           "reintentará durante 10 minutos.!]", marcados)
-            self.assertTrue(any("Bellbird" in frase for frase in marcados))
+            self.assertTrue(any("Guyrapu" in frase for frase in marcados))
 
     def test_reintento_marca_el_fin(self):
         llamadas = []

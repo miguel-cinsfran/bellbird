@@ -1,4 +1,4 @@
-"""Herramientas de diagnóstico de bajo volumen para Bellbird."""
+"""Herramientas de diagnóstico de bajo volumen para la app."""
 
 from __future__ import annotations
 

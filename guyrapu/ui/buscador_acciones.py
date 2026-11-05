@@ -12,6 +12,7 @@ import webbrowser
 import wx
 
 from guyrapu.core import diagnostico
+from guyrapu.core.config import APP_NAME
 from guyrapu.core.idioma import _
 from guyrapu.ui.gui import anunciar, copiar_al_portapapeles
 from guyrapu.voice import sound_player as _snd
@@ -28,7 +29,7 @@ def textos() -> dict:
         "audio": _("Descargar como a&udio"),
         "video": _("Descargar como &vídeo"),
         "formato": _("Elegir &formato…"),
-        "app": _("Abrir en &Bellbird"),
+        "app": _("Abrir en &{app}").format(app=APP_NAME),
         "musica": _("Agregar a la &música"),
         "contenido": _("Ver co&ntenido"),
         "copiar": _("&Copiar enlace"),
@@ -40,7 +41,7 @@ def textos() -> dict:
 def opciones_de(entrada, hay_app, hay_musica) -> tuple:
     """Qué ofrece el menú para ese resultado o esos resultados.
 
-    Un directo solo sirve en Bellbird, uno programado todavía no sirve
+    Un directo solo sirve en la app, uno programado todavía no sirve
     para nada más que copiarlo, y con varios elegidos solo vale agregar
     si todos se pueden bajar.
     """

@@ -67,7 +67,7 @@ def _agregar(catalogo, mensaje, archivo, numero, comentarios, contexto):
 def extraer(carpeta_raiz=RAIZ, carpeta_idiomas=CARPETA_IDIOMAS):
     """Genera la plantilla .pot desde main.py y guyrapu/."""
     raiz = Path(carpeta_raiz)
-    catalogo = catalog.Catalog(domain=DOMINIO, project="Bellbird")
+    catalogo = catalog.Catalog(domain=DOMINIO, project="Guyrapu")
     for archivo in _archivos_fuente(raiz):
         relativa = str(archivo.relative_to(raiz)).replace("\\", "/")
         extraidos = extract.extract_from_file(
@@ -195,7 +195,7 @@ def _agregar_carpetas(parser):
 
 def _parser():
     parser = argparse.ArgumentParser(
-        description="Extrae, actualiza y compila las traducciones de Bellbird.")
+        description="Extrae, actualiza y compila las traducciones de Guyrapu.")
     ordenes = parser.add_subparsers(dest="orden", required=True)
 
     extraer_parser = ordenes.add_parser(

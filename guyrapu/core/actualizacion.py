@@ -26,8 +26,9 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from guyrapu.core import paths
-from guyrapu.core.config import APP_NAME, APP_VERSION
+from guyrapu.core.config import APP_NAME, URL_REPOSITORIO, USER_AGENT
 from guyrapu.core.idioma import _
+from guyrapu.core.version_legible import version_legible
 from guyrapu.core.versiones import version_como_tupla
 # Se reexportan con el mismo nombre para quien las llama como
 # `actualizacion.debe_avisar` o `actualizacion.hay_version_nueva`.
@@ -35,11 +36,9 @@ from guyrapu.core.versiones import debe_avisar as debe_avisar
 from guyrapu.core.versiones import hay_version_nueva as hay_version_nueva
 
 
-URL_ULTIMA_VERSION = (
-    "https://api.github.com/repos/miguel-cinsfran/bellbird/releases/latest"
-)
-URL_PAGINA_RELEASES = "https://github.com/miguel-cinsfran/bellbird/releases/latest"
-USER_AGENT = f"Bellbird/{APP_VERSION}"
+URL_API_REPOSITORIO = URL_REPOSITORIO.replace("https://github.com/", "https://api.github.com/repos/")
+URL_ULTIMA_VERSION = f"{URL_API_REPOSITORIO}/releases/latest"
+URL_PAGINA_RELEASES = f"{URL_REPOSITORIO}/releases/latest"
 TIEMPO_ESPERA = 30
 
 logger = logging.getLogger(f"guyrapu.{__name__}")
@@ -462,11 +461,12 @@ def texto_resultado(resultado: dict | None, version_actual: str) -> str:
     estado = resultado.get("resultado")
     if estado == "ok":
         hacia = resultado.get("hacia") or version_actual
-        return _("{app} se actualizó a la versión {hacia}.").format(app=APP_NAME, hacia=hacia)
+        return _("{app} se actualizó a la versión {hacia}.").format(
+            app=APP_NAME, hacia=version_legible(hacia))
     if estado == "fallo":
         motivo = resultado.get("motivo") or _("motivo desconocido")
         return (_("La actualización no se completó: {motivo}. Sigue la versión {actual}.").format(
-            motivo=motivo, actual=version_actual))
+            motivo=motivo, actual=version_legible(version_actual)))
     return ""
 
 

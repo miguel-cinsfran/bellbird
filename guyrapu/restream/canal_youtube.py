@@ -1,4 +1,4 @@
-"""Si el YouTube de Restream es el canal de la sesión de Bellbird.
+"""Si el YouTube de Restream es el canal de la sesión de la app.
 
 Puro: no habla con la red ni con wx. Decide entre tres resultados y arma la
 línea de la pestaña Cuenta. La transmisión por Restream usará la misma
@@ -7,6 +7,7 @@ comparación antes de empezar.
 
 from __future__ import annotations
 
+from guyrapu.core.config import APP_NAME
 from guyrapu.core.idioma import _
 
 PLATAFORMA_YOUTUBE = 5
@@ -41,8 +42,8 @@ def texto(canales, id_sesion):
                         for canal in _youtube(canales))
     if resultado == COINCIDEN:
         plantilla = _("YouTube en Restream: {canales}, el mismo canal de "
-                      "la sesión de Bellbird.")
+                      "la sesión de {app}.")
     else:
         plantilla = _("YouTube en Restream: {canales}, que no es el canal "
-                      "de la sesión de Bellbird.")
-    return plantilla.format(canales=nombres)
+                      "de la sesión de {app}.")
+    return plantilla.format(canales=nombres, app=APP_NAME)

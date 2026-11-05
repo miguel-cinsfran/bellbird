@@ -892,11 +892,11 @@ class TestUserAgentConVersionDeLaApp(unittest.TestCase):
     def test_actualizacion_usa_la_app_y_version(self):
         from guyrapu.core import actualizacion
         from guyrapu.core.config import APP_VERSION
-        self.assertEqual(actualizacion.USER_AGENT, f"Bellbird/{APP_VERSION}")
+        self.assertEqual(actualizacion.USER_AGENT, f"Guyrapu/{APP_VERSION}")
 
     def test_ytdlp_envia_la_app_y_version(self):
         from guyrapu.core.config import APP_VERSION
-        esperado = f"Bellbird/{APP_VERSION}"
+        esperado = f"Guyrapu/{APP_VERSION}"
         pedidos = []
 
         def espia(solicitud, timeout=None):

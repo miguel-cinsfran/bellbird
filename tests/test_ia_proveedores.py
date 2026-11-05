@@ -5,7 +5,7 @@ import unittest
 from guyrapu.ai import catalogo
 from guyrapu.ai import protocolos
 from guyrapu.ai import proveedores
-from guyrapu.core.config import APP_VERSION
+from guyrapu.core.config import APP_NAME, APP_VERSION
 
 
 def _muestra():
@@ -129,7 +129,7 @@ class TestCabeceras(unittest.TestCase):
         cabeceras = proveedores.cabeceras(proveedor, "sesion-1")
         self.assertEqual(cabeceras["x-opencode-session"], "sesion-1")
         self.assertEqual(cabeceras["User-Agent"],
-                         "Bellbird/{}".format(APP_VERSION))
+                         "{}/{}".format(APP_NAME, APP_VERSION))
 
     def test_el_resto_vacio(self):
         for proveedor in proveedores.PROVEEDORES:

@@ -90,8 +90,8 @@ class TestJuntarNovedades(unittest.TestCase):
         ]
         texto = novedades.juntar_novedades(
             publicaciones, "2.5.1", "3.0.0", incluir_betas=True)
-        self.assertEqual(["3.0.0", "3.0.0-beta.10", "3.0.0-beta.2",
-                          "3.0.0-beta.1"], _versiones(texto))
+        self.assertEqual(["3.0.0", "3.0.0 beta 10", "3.0.0 beta 2",
+                          "3.0.0 beta 1"], _versiones(texto))
         self.assertIn("diez", texto)
         self.assertNotIn("borrador", texto)
 
@@ -229,7 +229,7 @@ class TestConsultarConNovedades(unittest.TestCase):
             paquete = novedades.consultar_con_novedades()
         estable.assert_not_called()
         self.assertEqual("v3.0.0-beta.2", paquete.version)
-        self.assertEqual(["3.0.0-beta.2", "3.0.0-beta.1"],
+        self.assertEqual(["3.0.0 beta 2", "3.0.0 beta 1"],
                          _versiones(paquete.notas))
 
     def test_canal_beta_incluye_la_beta_intermedia_y_estable_no(self):

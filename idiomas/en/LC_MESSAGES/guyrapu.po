@@ -1643,6 +1643,34 @@ msgstr ""
 msgid "OBS está transmitiendo, pero TikTok todavía no muestra el directo."
 msgstr "OBS is broadcasting, but TikTok still shows no live stream."
 
+#: guyrapu/core/acerca_de.py
+#, python-brace-format
+msgid ""
+"{app} {version}\n"
+"\n"
+"Lee en voz alta el chat de los directos de YouTube y TikTok. Incluye "
+"moderación, comentarios, reproductor, música, descargas y control de OBS "
+"Studio.\n"
+"\n"
+"Autor: Miguel Ángel Insfrán\n"
+"\n"
+"Licencia: GPL versión 3, con condiciones adicionales. Los detalles están en"
+" los archivos LICENSE y NOTICE, en la carpeta de la aplicación.\n"
+"\n"
+"Repositorio: {url}"
+msgstr ""
+"{app} {version}\n"
+"\n"
+"Reads the chat of YouTube and TikTok live streams aloud. Includes "
+"moderation, comments, a player, music, downloads, and OBS Studio control.\n"
+"\n"
+"Author: Miguel Ángel Insfrán\n"
+"\n"
+"License: GPL version 3, with additional terms. Details are in the LICENSE "
+"and NOTICE files, in the application folder.\n"
+"\n"
+"Repository: {url}"
+
 #: guyrapu/core/actualizacion.py
 msgid "la descarga exige un enlace https"
 msgstr "download requires an https link"
@@ -3284,6 +3312,10 @@ msgid "Cámara"
 msgstr "Camera"
 
 #: guyrapu/obs/obs_camara_nueva.py
+msgid "Guyrapu, lista de cámaras"
+msgstr "Guyrapu, camera list"
+
+#: guyrapu/obs/obs_camara_nueva.py
 msgid "Bellbird, lista de cámaras"
 msgstr "Bellbird, camera list"
 
@@ -3315,6 +3347,10 @@ msgstr "{fuente}: {n} of {total} in order."
 #: guyrapu/obs/obs_captura.py
 msgid "Captura de ventana"
 msgstr "Window capture"
+
+#: guyrapu/obs/obs_captura.py
+msgid "Guyrapu, lista de ventanas"
+msgstr "Guyrapu, window list"
 
 #: guyrapu/obs/obs_captura.py
 msgid "Bellbird, lista de ventanas"
@@ -4399,8 +4435,7 @@ msgid "No se pudo reanudar"
 msgstr "Could not resume"
 
 #. Traductores: panel del reproductor.
-#: guyrapu/player/reproductor.py guyrapu/ui/gui.py
-#: guyrapu/ui/gui_preferencias.py
+#: guyrapu/player/reproductor.py guyrapu/ui/gui.py guyrapu/ui/gui_preferencias.py
 msgid "Reproductor"
 msgstr "Player"
 
@@ -4735,13 +4770,13 @@ msgstr "Platform {id}"
 
 #: guyrapu/restream/canal_youtube.py
 #, python-brace-format
-msgid "YouTube en Restream: {canales}, el mismo canal de la sesión de Bellbird."
-msgstr "YouTube on Restream: {canales}, the same channel as the Bellbird session."
+msgid "YouTube en Restream: {canales}, el mismo canal de la sesión de {app}."
+msgstr "YouTube on Restream: {canales}, the same channel as the {app} session."
 
 #: guyrapu/restream/canal_youtube.py
 #, python-brace-format
-msgid "YouTube en Restream: {canales}, que no es el canal de la sesión de Bellbird."
-msgstr "YouTube on Restream: {canales}, which is not the Bellbird session's channel."
+msgid "YouTube en Restream: {canales}, que no es el canal de la sesión de {app}."
+msgstr "YouTube on Restream: {canales}, which is not the {app} session's channel."
 
 #: guyrapu/restream/eventos.py
 #, python-brace-format
@@ -4834,18 +4869,18 @@ msgid "No se pudo completar el inicio de sesión con Restream. Vuelve a intentar
 msgstr "Could not complete the sign-in to Restream. Try again."
 
 #: guyrapu/restream/oauth.py
-msgid ""
-"Bellbird ya tiene acceso a tu cuenta de Restream. Puedes cerrar esta "
-"pestaña."
-msgstr "Bellbird now has access to your Restream account. You can close this tab."
+#, python-brace-format
+msgid "{app} ya tiene acceso a tu cuenta de Restream. Puedes cerrar esta pestaña."
+msgstr "{app} now has access to your Restream account. You can close this tab."
 
 #: guyrapu/restream/oauth.py
+#, python-brace-format
 msgid ""
 "No se completó el inicio de sesión en Restream. Puedes cerrar esta pestaña "
-"y volver a intentarlo desde Bellbird."
+"y volver a intentarlo desde {app}."
 msgstr ""
 "The Restream sign-in was not completed. You can close this tab and try "
-"again from Bellbird."
+"again from {app}."
 
 #: guyrapu/restream/perfiles.py
 msgid "Escribe un nombre para el perfil de Restream."
@@ -5389,8 +5424,9 @@ msgid "Elegir &formato…"
 msgstr "Choose &format…"
 
 #: guyrapu/ui/buscador_acciones.py
-msgid "Abrir en &Bellbird"
-msgstr "Open in &Bellbird"
+#, python-brace-format
+msgid "Abrir en &{app}"
+msgstr "Open in &{app}"
 
 #: guyrapu/ui/buscador_acciones.py
 msgid "Agregar a la &música"
@@ -6046,7 +6082,7 @@ msgstr "Framing warnings off"
 msgid "Capturar ventana"
 msgstr "Capture window"
 
-#: guyrapu/ui/escena_captura_ventana.py guyrapu/ui/escena_pagina_agregar.py
+#: guyrapu/ui/escena_captura_ventana.py
 msgid "&Ventana:"
 msgstr "&Window:"
 
@@ -6055,7 +6091,7 @@ msgstr "&Window:"
 msgid "&Aceptar"
 msgstr "&Accept"
 
-#: guyrapu/ui/escena_captura_ventana.py guyrapu/ui/escena_pagina_agregar.py
+#: guyrapu/ui/escena_captura_ventana.py
 msgid "Elige primero una ventana en Ventana."
 msgstr "First choose a window in Window."
 
@@ -6256,18 +6292,6 @@ msgstr "Move &Down"
 msgid "Mover al &fondo"
 msgstr "Move to &Bottom"
 
-#: guyrapu/ui/escena_pagina_agregar.py
-msgid "Ventana capturada"
-msgstr "Captured window"
-
-#: guyrapu/ui/escena_pagina_agregar.py
-msgid "&Capturar ventana"
-msgstr "&Capture window"
-
-#: guyrapu/ui/escena_pagina_agregar.py
-msgid "Agregar cá&mara…"
-msgstr "Add ca&mera…"
-
 #: guyrapu/ui/escena_pagina_audio.py
 msgid "Si&lenciar micrófono"
 msgstr "&Mute microphone"
@@ -6445,8 +6469,8 @@ msgstr ""
 #. Traductores: título de la ventana: nombre de la app y versión.
 #: guyrapu/ui/gui.py guyrapu/ui/titulo_ventana.py
 #, python-brace-format
-msgid "{app} v{version}"
-msgstr "{app} v{version}"
+msgid "{app} {version}"
+msgstr "{app} {version}"
 
 #: guyrapu/ui/gui.py
 msgid "&Reanudar lectura"
@@ -6609,20 +6633,6 @@ msgid ""
 msgstr ""
 "Download manager error:\n"
 "{detalle}"
-
-#: guyrapu/ui/gui.py
-#, python-brace-format
-msgid ""
-"{app} v{version}\n"
-"\n"
-"Lee en voz alta el chat de los directos de YouTube y TikTok. Incluye "
-"moderación, comentarios, reproductor, música, descargas y control de OBS "
-"Studio."
-msgstr ""
-"{app} v{version}\n"
-"\n"
-"Reads the chat of YouTube and TikTok live streams aloud. Includes "
-"moderation, comments, a player, music, downloads, and OBS Studio control."
 
 #: guyrapu/ui/gui.py
 msgid "Acerca de"
@@ -6836,8 +6846,7 @@ msgstr "TikTok live stream by @{usuario}: reading the chat."
 msgid "(no disponible)"
 msgstr "(not available)"
 
-#: guyrapu/ui/gui.py guyrapu/ui/gui_menu.py
-#: guyrapu/ui/restream_pagina_cuenta.py
+#: guyrapu/ui/gui.py guyrapu/ui/gui_menu.py guyrapu/ui/restream_pagina_cuenta.py
 msgid "&Desconectar"
 msgstr "&Disconnect"
 
@@ -10377,10 +10386,11 @@ msgid "No se pudieron leer los destinos."
 msgstr "Could not read the destinations."
 
 #: guyrapu/ui/restream_ventana.py
-msgid "Restream se abre en el navegador. Agrega el destino ahí y vuelve a Bellbird."
+#, python-brace-format
+msgid "Restream se abre en el navegador. Agrega el destino ahí y vuelve a {app}."
 msgstr ""
 "Restream opens in the browser. Add the destination there and return to "
-"Bellbird."
+"{app}."
 
 #: guyrapu/ui/restream_ventana.py
 msgid "No se pudo eliminar el destino. Vuelve a intentarlo."

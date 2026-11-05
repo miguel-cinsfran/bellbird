@@ -39,7 +39,7 @@ def _canal_configurado() -> str:
 def _user_agent():
     # Import local por el ciclo diagnostico, ytdlp_bin, config.
     from guyrapu.core import config
-    return f"Bellbird/{config.APP_VERSION}"
+    return config.USER_AGENT
 
 
 class ResultadoDescarga(NamedTuple):

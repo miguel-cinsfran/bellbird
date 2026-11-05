@@ -18,17 +18,17 @@ from scripts.smoke_test import (_MINIMO_CONTROLES, _MUTEX_INSTANCIA,
 class VentanaEsDeLaAplicacionTest(unittest.TestCase):
 
     def test_acepta_titulo_y_python(self):
-        self.assertTrue(ventana_es_de_la_aplicacion("Bellbird v2.5.1", "python.exe"))
+        self.assertTrue(ventana_es_de_la_aplicacion("Guyrapu v2.5.1", "python.exe"))
 
     def test_acepta_ejecutable_de_la_app(self):
-        self.assertTrue(ventana_es_de_la_aplicacion("Bellbird v2.5.1", "bellbird.exe"))
+        self.assertTrue(ventana_es_de_la_aplicacion("Guyrapu v2.5.1", "guyrapu.exe"))
 
     def test_rechaza_proceso_viejo(self):
-        self.assertFalse(ventana_es_de_la_aplicacion("Bellbird v2.5.1", "ytchattts.exe"))
+        self.assertFalse(ventana_es_de_la_aplicacion("Guyrapu v2.5.1", "ytchattts.exe"))
 
     def test_rechaza_explorador_con_titulo_correcto(self):
         self.assertFalse(ventana_es_de_la_aplicacion(
-            "Bellbird - para probar", "explorer.exe"))
+            "Guyrapu - para probar", "explorer.exe"))
 
     def test_rechaza_titulo_distinto_con_proceso_correcto(self):
         self.assertFalse(ventana_es_de_la_aplicacion("Otra ventana", "python.exe"))
@@ -37,7 +37,7 @@ class VentanaEsDeLaAplicacionTest(unittest.TestCase):
         self.assertFalse(ventana_es_de_la_aplicacion("YTChat TTS v2.5.1", "python.exe"))
 
     def test_compara_el_proceso_sin_mayusculas(self):
-        self.assertTrue(ventana_es_de_la_aplicacion("Bellbird v2.5.1", "PYTHONW.EXE"))
+        self.assertTrue(ventana_es_de_la_aplicacion("Guyrapu v2.5.1", "PYTHONW.EXE"))
 
 
 class MutexInstanciaTest(unittest.TestCase):

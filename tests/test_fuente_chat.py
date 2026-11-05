@@ -135,7 +135,7 @@ class NombreNuevoTest(unittest.TestCase):
 
     def test_la_sonda_de_ventanas_se_llama_como_la_app(self):
         self.assertEqual(obs_captura.NOMBRE_SONDA,
-                         "Bellbird, lista de ventanas")
+                         "Guyrapu, lista de ventanas")
 
 
 if __name__ == "__main__":

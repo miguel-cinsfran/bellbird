@@ -38,7 +38,7 @@ class EnlacesMusica:
         self.abrir_enlace(url, "final")
 
     def ceder_al_reproductor(self, url) -> None:
-        """Deja la música fuera del camino al abrir ese vídeo en Bellbird.
+        """Deja la música fuera del camino al abrir ese vídeo en la app.
 
         Si es el tema actual, se detiene y sale de la cola. Si suena otro,
         queda en pausa sin reanudarse. Sin tema activo no hace nada.

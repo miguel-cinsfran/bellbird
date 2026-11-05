@@ -16,7 +16,8 @@ import wx
 
 from guyrapu.core import avisos_tiktok
 from guyrapu.core import diagnostico
-from guyrapu.core.config import TIPO_MIEMBRO, TIPO_SUPERCHAT, TIPO_TEXTO
+from guyrapu.core.config import (
+    TIPO_MIEMBRO, TIPO_SUPERCHAT, TIPO_TEXTO, URL_REPOSITORIO)
 from guyrapu.core.idioma import _, N_, idioma_actual
 from guyrapu.core import paths
 from guyrapu.ui import menu_obs
@@ -198,7 +199,7 @@ def _construir_menu_ayuda(frame, mb):
     frame.Bind(wx.EVT_MENU, lambda e: abrir_documento_paquete(
         frame, "CHANGELOG", _("Novedades")), mi_novedades)
     frame.Bind(wx.EVT_MENU, lambda e: webbrowser.open(
-        "https://github.com/miguel-cinsfran/bellbird/blob/main/docs/CONFIGURACION_API.md"),
+        f"{URL_REPOSITORIO}/blob/main/docs/CONFIGURACION_API.md"),
         mi_guia)
     frame.Bind(wx.EVT_MENU, lambda e: wx.CallAfter(
         frame._on_marcar_incidencia, None), mi_incidente)

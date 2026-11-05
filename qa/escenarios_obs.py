@@ -249,7 +249,7 @@ def escenario_encuadre(app: Aplicacion, args, res: Resultado):
         return
     ruta_config = _rutas.config_ini()
     respaldo = ruta_config.read_bytes() if ruta_config.is_file() else None
-    nombre = "Prueba Bellbird encuadre"
+    nombre = "Prueba Guyrapu encuadre"
     gestor = None
     escena = ""
     temporal = Path(tempfile.mkdtemp(prefix="qa-encuadre-"))

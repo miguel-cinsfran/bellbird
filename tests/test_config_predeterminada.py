@@ -289,7 +289,7 @@ class TestConstruirBat(unittest.TestCase):
         texto = (base / "construir.bat").read_text(encoding="utf-8")
         # Manifiesto con la versión y el ejecutable, antes de comprimir.
         self.assertIn("paquete.json", texto)
-        self.assertIn("'ejecutable':'Bellbird.exe'", texto)
+        self.assertIn("'ejecutable':'Guyrapu.exe'", texto)
         indice_manifiesto = texto.find("paquete.json")
         indice_zip = texto.lower().find("compress-archive")
         self.assertGreater(indice_manifiesto, -1)
@@ -303,8 +303,8 @@ class TestConstruirBat(unittest.TestCase):
         indice_firma = texto.find("hashlib", indice_zip)
         self.assertGreater(indice_firma, indice_zip)
         # Si la firma no existe, el script se detiene con error.
-        self.assertIn('if not exist "%OUT%.zip.sha256"', texto)
-        indice_guarda = texto.find('if not exist "%OUT%.zip.sha256"')
+        self.assertIn('if not exist "%ZIP%.sha256"', texto)
+        indice_guarda = texto.find('if not exist "%ZIP%.sha256"')
         self.assertGreater(indice_guarda, indice_firma)
         self.assertIn("exit /b 1", texto[indice_guarda:indice_guarda + 200])
         # Se borran las firmas viejas donde se borran los zips viejos.

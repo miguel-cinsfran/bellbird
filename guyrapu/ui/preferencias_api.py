@@ -11,6 +11,7 @@ import webbrowser
 import wx
 
 from guyrapu.core import diagnostico
+from guyrapu.core.config import URL_REPOSITORIO
 from guyrapu.core.idioma import _
 from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.ui.tema import _T, _tc
@@ -22,7 +23,7 @@ from guyrapu.youtube import youtube_api
 logger = diagnostico.obtener_logger(__name__)
 
 
-URL_GUIA = "https://github.com/miguel-cinsfran/bellbird/blob/main/docs/CONFIGURACION_API.md"
+URL_GUIA = f"{URL_REPOSITORIO}/blob/main/docs/CONFIGURACION_API.md"
 
 
 class PaginaApi:

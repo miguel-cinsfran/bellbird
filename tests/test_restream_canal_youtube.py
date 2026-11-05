@@ -47,14 +47,14 @@ class TestTexto(unittest.TestCase):
                    _canal(5, "segundo", "UCsesion")]
         self.assertEqual(
             "YouTube en Restream: primero, segundo, el mismo canal de la "
-            "sesión de Bellbird.",
+            "sesión de Guyrapu.",
             canal_youtube.texto(canales, "UCsesion"))
 
     def test_no_coinciden(self):
         canales = [_canal(5, "primero", "UCotro")]
         self.assertEqual(
             "YouTube en Restream: primero, que no es el canal de la sesión "
-            "de Bellbird.",
+            "de Guyrapu.",
             canal_youtube.texto(canales, "UCsesion"))
 
     def test_sin_linea(self):

@@ -159,6 +159,25 @@ def _migrar_registro(vieja: Path, nueva: Path, datos: Path,
         resultado.errores.append(f"{nueva.name}: {exc}")
 
 
+def anotar_resultado(resultado: ResultadoMigracion | None, registro) -> None:
+    """Anota en el registro el resultado de la migración de datos."""
+    if resultado is None:
+        return
+    try:
+        if resultado.movidos or resultado.copiados:
+            registro.info(
+                "Migración de datos: movidos %s, copiados %s",
+                resultado.movidos, resultado.copiados)
+        for nombre in resultado.conflictos:
+            registro.warning(
+                "Migración de datos: %s ya existe en data, no se tocó nada",
+                nombre)
+        for error in resultado.errores:
+            registro.warning("Migración de datos: %s", error)
+    except Exception as error:
+        registro.debug("no se pudo informar el resultado de la migración: %s", error)
+
+
 def migrar(instalacion: Path, datos: Path, rutas: list[Path],
            sounds_ini: Path,
            pares_anteriores: tuple | None = None) -> ResultadoMigracion:

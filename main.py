@@ -706,20 +706,7 @@ def main():
     except Exception:
         resultado_migracion = None
     configurar_logging()
-    if resultado_migracion is not None:
-        try:
-            if resultado_migracion.movidos or resultado_migracion.copiados:
-                logger.info(
-                    "Migración de datos: movidos %s, copiados %s",
-                    resultado_migracion.movidos, resultado_migracion.copiados)
-            for nombre in resultado_migracion.conflictos:
-                logger.warning(
-                    "Migración de datos: %s ya existe en data, no se tocó nada",
-                    nombre)
-            for error in resultado_migracion.errores:
-                logger.warning("Migración de datos: %s", error)
-        except Exception as error:
-            logger.debug("no se pudo informar el resultado de la migración: %s", error)
+    migracion_datos.anotar_resultado(resultado_migracion, logger)
     diagnostico.instalar_capturadores(
         paths.log_fallos(), version=APP_VERSION)
     diagnostico.registrar_entorno_en_hilo(APP_VERSION)

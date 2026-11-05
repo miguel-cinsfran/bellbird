@@ -13,7 +13,7 @@ from bellbird.core.config import (
 
 _TODAS = ("CommentEvent", "GiftEvent", "JoinEvent", "RoomUserSeqEvent",
           "SubscribeEvent", "FollowEvent", "ShareEvent", "EnvelopeEvent",
-          "LikeEvent")
+          "LikeEvent", "PollEvent")
 _TODAS_NUEVAS = _TODAS + ("EmoteChatEvent", "QuestionNewEvent",
                           "LivePauseEvent", "LiveUnpauseEvent")
 
@@ -402,8 +402,8 @@ class TestOrdenDeRegistro(unittest.TestCase):
             [mod.CommentEvent, mod.GiftEvent, mod.SubscribeEvent,
              mod.FollowEvent, mod.ShareEvent, mod.EnvelopeEvent,
              mod.LikeEvent, mod.EmoteChatEvent, mod.QuestionNewEvent,
-             mod.LivePauseEvent, mod.LiveUnpauseEvent, mod.JoinEvent,
-             mod.RoomUserSeqEvent])
+             mod.PollEvent, mod.LivePauseEvent, mod.LiveUnpauseEvent,
+             mod.JoinEvent, mod.RoomUserSeqEvent])
 
     def test_sin_on_estado_no_registra_pausa_ni_reanudacion(self):
         cliente, mod, _rec, _vis, _est = _registrar(

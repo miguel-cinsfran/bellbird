@@ -64,10 +64,15 @@ def _con_tipo(identificador, nombre, indice, tipo, visible=True, **tamano):
     return creado
 
 
+def _fabrica(clave):
+    return next(fabrica for fabrica in disenos_fabrica.FABRICA
+                if fabrica.clave == clave)
+
+
 def _principal(elementos):
     gestor = obs_panel.GestorPanelObs(DobleObs(elementos))
     fuentes = aplicar_diseno.fuentes_de_escena(gestor, "Escena")
-    fabrica = disenos_fabrica.FABRICA[2]
+    fabrica = _fabrica("pantalla_juego")
     return disenos_fabrica.completar(
         fabrica.diseno, fabrica.papeles, fuentes).principal
 

@@ -41,6 +41,7 @@ EVENTOS_NUEVOS = [
     "grabacion_en_pausa", "grabacion_reanudada",
     "reconectando_directo", "directo_con_cortes",
     "descarga_avance", "descarga_quieta",
+    "encuesta", "encuesta_fin",
 ]
 
 # Tope de duración por evento: la espera de la IA lleva una figura melódica

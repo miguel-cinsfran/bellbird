@@ -376,7 +376,7 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
                     else _("{etiqueta} de {autor}: {monto}")).format(
             etiqueta=_(etiqueta_monto), autor=autor_visible, monto=monto, mensaje=ml)
     else:
-        texto_del_evento = texto_evento(tipo, autor_visible, monto)
+        texto_del_evento = texto_evento(tipo, autor_visible, monto, mensaje)
         if texto_del_evento is not None:
             tts_text = texto_del_evento
         elif umbral > 0 and cola.qsize() >= umbral:

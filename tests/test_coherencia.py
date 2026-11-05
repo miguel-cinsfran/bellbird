@@ -282,6 +282,7 @@ LEIDAS_FUERA = {
     ("eventos", "seguir"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
     ("eventos", "compartir"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
     ("eventos", "cofre"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
+    ("eventos", "encuesta"): "la lee avisos_tiktok.opciones_eventos (avisos_tiktok.py)",
     ("ia", "direccion"): "la lee ajustes_ia.leer (ajustes_ia.py:94)",
     ("ia", "largo"): "la lee ajustes_ia.leer (ajustes_ia.py:96)",
     ("ia", "modelo"): "la lee ajustes_ia.leer (ajustes_ia.py:93)",

@@ -28,6 +28,7 @@ _EVENTOS_LECTURA = {
     "seguir": N_("Seguidores nue&vos:"),
     "compartir": N_("&Directo compartido:"),
     "cofre": N_("Co&fres:"),
+    "encuesta": N_("Encues&tas:"),
 }
 
 
@@ -65,6 +66,8 @@ OPCIONES_LECTURA = (
     ("cho_evento_compartir", "eventos", "compartir", "evento_compartir",
      str, "principal"),
     ("cho_evento_cofre", "eventos", "cofre", "evento_cofre",
+     str, "principal"),
+    ("cho_evento_encuesta", "eventos", "encuesta", "evento_encuesta",
      str, "principal"),
     ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int, 200),
     ("cho_lectura_recientes", "lectura", "recientes", "lectura_recientes", str, "lector"),
@@ -136,7 +139,7 @@ class PaginaLectura:
             if clave == "entrada":
                 self._agregar_agrupacion(
                     grilla, padre, "agrupar_entradas",
-                    _("Agrupar en&tradas"), _("Agrupar entradas"),
+                    _("Agrupar ent&radas"), _("Agrupar entradas"),
                     _("Agrupar entradas durante (segund&os):"),
                     _("Agrupar entradas durante, en segundos"),
                     "sp_segundos_entradas")
@@ -167,7 +170,7 @@ class PaginaLectura:
         grilla.Add(contador, 0)
 
     def _construir_recientes(self, p, vs):
-        vs.Add(self._fila_label(p, _("Leer los mensajes &recientes con:")),
+        vs.Add(self._fila_label(p, _("Leer los mensajes rec&ientes con:")),
                0, wx.LEFT | wx.RIGHT, 10)
         self.cho_lectura_recientes = EleccionTexto(
             p, (("lector", _("El lector de pantalla")),

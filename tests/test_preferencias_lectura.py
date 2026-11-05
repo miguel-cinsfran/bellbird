@@ -138,6 +138,7 @@ EVENTOS_ESPERADOS = (
     ("cho_evento_compartir", "evento_compartir", "&Directo compartido:",
      "Directo compartido"),
     ("cho_evento_cofre", "evento_cofre", "Co&fres:", "Cofres"),
+    ("cho_evento_encuesta", "evento_encuesta", "Encues&tas:", "Encuestas"),
 )
 
 
@@ -180,7 +181,7 @@ class TestEventosDelDirecto(unittest.TestCase):
         self.addCleanup(destruir, dialogo)
         return dialogo
 
-    def test_las_siete_listas_tienen_su_nombre_y_su_valor(self):
+    def test_las_ocho_listas_tienen_su_nombre_y_su_valor(self):
         dialogo = self._dialogo({"evento_superchat": "ocultar",
                                  "evento_cofre": "secundaria"})
         esperados = {"evento_superchat": "ocultar",
@@ -189,7 +190,8 @@ class TestEventosDelDirecto(unittest.TestCase):
                      "evento_me_gusta": "mostrar",
                      "evento_seguir": "principal",
                      "evento_compartir": "principal",
-                     "evento_cofre": "secundaria"}
+                     "evento_cofre": "secundaria",
+                     "evento_encuesta": "principal"}
         for atributo, en_memoria, _etiqueta, nombre in EVENTOS_ESPERADOS:
             with self.subTest(atributo=atributo):
                 control = getattr(dialogo, atributo)
@@ -284,14 +286,17 @@ class TestEventosDelDirecto(unittest.TestCase):
         dialogo = self._dialogo()
         dialogo.cho_evento_superchat.SetValue("ocultar")
         dialogo.cho_evento_cofre.SetValue("secundaria")
+        dialogo.cho_evento_encuesta.SetValue("mostrar")
         with mock.patch.object(gui_preferencias._snd, "reproducir"),                 mock.patch.object(preferencias_transmision, "anunciar"),                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         self.assertEqual(dialogo._config.get("evento_superchat"), "ocultar")
         self.assertEqual(dialogo._config.get("evento_cofre"), "secundaria")
+        self.assertEqual(dialogo._config.get("evento_encuesta"), "mostrar")
         parser = config._mk_parser()
         parser.read(self.ruta / "config.ini", encoding="utf-8")
         self.assertEqual(parser.get("eventos", "superchat"), "ocultar")
         self.assertEqual(parser.get("eventos", "cofre"), "secundaria")
+        self.assertEqual(parser.get("eventos", "encuesta"), "mostrar")
 
     def test_no_quedan_las_listas_viejas_de_tiktok(self):
         dialogo = self._dialogo()

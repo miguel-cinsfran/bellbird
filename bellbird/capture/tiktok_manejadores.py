@@ -14,6 +14,7 @@ from bellbird.capture.agrupar_entradas import (
 )
 from bellbird.capture.agrupar_me_gusta import AgrupadorMeGusta
 from bellbird.capture.filtro_autores import entra_en_grupo
+from bellbird.capture import tiktok_encuestas
 from bellbird.capture.tiktok_captura import (
     _clase_suscripcion,
     autor_de_evento,
@@ -173,6 +174,15 @@ def _al_pregunta(on_evento, descartar):
     return _on_question
 
 
+def _al_encuesta(on_evento, descartar):
+    async def _on_poll(evento):
+        if descartar(evento):
+            return
+        tiktok_encuestas.procesar(evento, on_evento)
+
+    return _on_poll
+
+
 def _al_pausa(on_estado, descartar):
     async def _on_pause(evento):
         if descartar(evento):
@@ -248,6 +258,7 @@ _EVENTOS_OPCIONALES = [
     ("LikeEvent", _al_me_gusta, "megusta"),
     ("EmoteChatEvent", _al_sticker, "evento"),
     ("QuestionNewEvent", _al_pregunta, "evento"),
+    ("PollEvent", _al_encuesta, "evento"),
     ("LivePauseEvent", _al_pausa, "estado"),
     ("LiveUnpauseEvent", _al_reanudacion, "estado"),
 ]
@@ -281,6 +292,7 @@ def registrar_manejadores(client, modulo_eventos, *, on_evento,
                           on_espectadores, config, descartar,
                           on_estado=None):
     """Registra los manejadores de eventos de TikTok en `client`."""
+    tiktok_encuestas.reiniciar()
     agrupador = AgrupadorMeGusta(ventana=lambda: _segundos_me_gusta(config))
     agrupador_entradas = AgrupadorEntradas(
         ventana=lambda: _segundos_entradas(config))

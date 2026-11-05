@@ -142,6 +142,24 @@ class TestAportes(unittest.TestCase):
         self.assertIn("5 regalos", formatear_estado(s, {"aportes"}))
 
 
+class TestEncuesta(unittest.TestCase):
+
+    def test_componente_despues_de_aportes_y_activo_de_fabrica(self):
+        self.assertLess(COMPONENTES.index("aportes"),
+                        COMPONENTES.index("encuesta"))
+        self.assertIn("encuesta", ACTIVOS_DEFECTO)
+        self.assertEqual(ETIQUETAS["encuesta"], "Encuesta en curso")
+
+    def test_se_dice_con_una_encuesta_abierta(self):
+        frase = ("Encuesta en curso: ¿Qué almorzamos? Pizza con 5 votos, "
+                 "empanadas con 3 votos y sushi sin votos")
+        self.assertEqual(
+            formatear_estado(SnapshotSesion(encuesta=frase), {"encuesta"}),
+            frase + ".")
+        self.assertEqual(
+            formatear_estado(SnapshotSesion(encuesta=""), {"encuesta"}), "")
+
+
 class TestModoLargo(unittest.TestCase):
 
     def test_largo_es_multilinea_con_etiquetas(self):

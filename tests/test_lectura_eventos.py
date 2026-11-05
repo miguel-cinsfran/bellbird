@@ -9,6 +9,7 @@ from bellbird.core.lectura_eventos import texto_evento
 from bellbird.core.tipos_mensaje import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
+    TIPO_ENCUESTA, TIPO_ENCUESTA_FIN,
 )
 
 
@@ -60,6 +61,14 @@ class TextoDeEventoTests(unittest.TestCase):
     def test_texto_y_superchat_no_son_eventos(self):
         self.assertIsNone(texto_evento(TIPO_TEXTO, "Ana", ""))
         self.assertIsNone(texto_evento(TIPO_SUPERCHAT, "Ana", "$5"))
+
+    def test_las_encuestas_dicen_el_mensaje_tal_cual(self):
+        frase = "Encuesta: ¿Qué almorzamos? Opciones: pizza y sushi"
+        for tipo in (TIPO_ENCUESTA, TIPO_ENCUESTA_FIN):
+            with self.subTest(tipo=tipo):
+                self.assertEqual(
+                    texto_evento(tipo, "", "", frase), frase)
+                self.assertEqual(texto_evento(tipo, "", ""), "")
 
 
 if __name__ == "__main__":

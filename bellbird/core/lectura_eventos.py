@@ -8,12 +8,14 @@ from __future__ import annotations
 from bellbird.core.idioma import _
 from bellbird.core.tipos_mensaje import (
     TIPO_MIEMBRO, TIPO_ENTRADA, TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE,
-    TIPO_ME_GUSTA,
+    TIPO_ME_GUSTA, TIPO_ENCUESTA, TIPO_ENCUESTA_FIN,
 )
 
 
-def texto_evento(tipo, autor, monto) -> str | None:
+def texto_evento(tipo, autor, monto, mensaje="") -> str | None:
     """Texto de la voz para un evento del directo, o None si no lo es."""
+    if tipo in (TIPO_ENCUESTA, TIPO_ENCUESTA_FIN):
+        return mensaje
     if tipo == TIPO_MIEMBRO:
         return _("Nuevo miembro: {autor}").format(autor=autor)
     if tipo == TIPO_ENTRADA:

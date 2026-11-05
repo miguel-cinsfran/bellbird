@@ -62,6 +62,8 @@ EVENTOS = [
     "reconectando_directo", "directo_con_cortes",
     # Avance de una descarga en curso y descarga que sigue en cero.
     "descarga_avance", "descarga_quieta",
+    # Encuestas del directo de TikTok: apertura y cierre.
+    "encuesta", "encuesta_fin",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -151,4 +153,6 @@ NOMBRES = {
     "directo_con_cortes": "Directo con cortes seguidos",
     "descarga_avance": "Avance de descarga",
     "descarga_quieta": "Descarga quieta",
+    "encuesta": "Encuesta abierta",
+    "encuesta_fin": "Encuesta terminada",
 }

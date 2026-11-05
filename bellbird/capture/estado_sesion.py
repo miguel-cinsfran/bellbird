@@ -48,6 +48,7 @@ class SnapshotSesion:
     mensajes_leidos: int = 0
     aportes: int = 0            # nº de Super Chats (YouTube) o regalos (TikTok)
     total_aportes: str = ""     # ya formateado (p. ej. "US$12.50"), "" si no hay
+    encuesta: str = ""          # frase de la encuesta en curso, "" si no hay
     en_cola: int = 0
     voz_velocidad: int = 0
     voz_volumen: int = 0
@@ -240,6 +241,10 @@ def _render_aportes(s: SnapshotSesion, largo: bool) -> str:
     return _aportes_youtube(s.aportes, total, largo)
 
 
+def _render_encuesta(s: SnapshotSesion, largo: bool) -> str:
+    return s.encuesta or ""
+
+
 def _render_en_cola(s: SnapshotSesion, largo: bool) -> str:
     n = _fmt_num(s.en_cola)
     if largo:
@@ -326,6 +331,7 @@ _RENDERERS = {
     "desfase_directo": _render_desfase_directo,
     "mensajes_leidos": _render_mensajes_leidos,
     "aportes": _render_aportes,
+    "encuesta": _render_encuesta,
     "en_cola": _render_en_cola,
     "voz": _render_voz,
     "lectura_silenciada": _render_lectura_silenciada,

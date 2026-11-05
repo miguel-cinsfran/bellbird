@@ -17,7 +17,8 @@ AVISOS = (("entrada", "aviso_entradas", N_("&Entradas al directo:"),
            "leer"),
           ("compartir", "aviso_compartidos", N_("Directo compar&tido:"),
            "leer"),
-          ("cofre", "aviso_cofres", N_("Co&fres:"), "leer"))
+          ("cofre", "aviso_cofres", N_("Co&fres:"), "leer"),
+          ("encuesta", "aviso_encuestas", N_("Encues&tas:"), "principal"))
 
 MODOS_EVENTO = (("principal", N_("Voz principal")),
                 ("secundaria", N_("Voz secundaria")),
@@ -31,14 +32,18 @@ EVENTOS = (("superchat", "principal"),
            ("me_gusta", "mostrar"),
            ("seguir", "principal"),
            ("compartir", "principal"),
-           ("cofre", "principal"))
+           ("cofre", "principal"),
+           ("encuesta", "principal"))
 
-TIPOS_AVISO = frozenset(tipo for tipo, _clave, _rotulo, _fabrica in AVISOS)
+TIPOS_AVISO = frozenset(
+    [tipo for tipo, _clave, _rotulo, _fabrica in AVISOS]
+    + ["encuesta_fin"])
 
 _EVENTO_DE_TIPO = {
     "superchat": "superchat", "sticker": "superchat", "member": "miembro",
     "entrada": "entrada", "me_gusta": "me_gusta", "seguir": "seguir",
     "compartir": "compartir", "cofre": "cofre",
+    "encuesta": "encuesta", "encuesta_fin": "encuesta",
 }
 _CLAVE_EVENTO = {tipo: clave
                  for tipo, clave, _rotulo, _fabrica in AVISOS}

@@ -13,6 +13,7 @@ from bellbird.core.config import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
+from bellbird.core.tipos_mensaje import TIPO_ENCUESTA, TIPO_ENCUESTA_FIN
 
 
 class AutorFalso:
@@ -105,6 +106,13 @@ class TestSonidoDeMensaje(unittest.TestCase):
             self.assertEqual(
                 sonidos_eventos.sonido_de_mensaje(
                     tipo, sonidos_eventos.ROL_MODERADOR), tipo)
+
+    def test_las_encuestas_suenan_su_propio_evento(self):
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(TIPO_ENCUESTA, ""), "encuesta")
+        self.assertEqual(
+            sonidos_eventos.sonido_de_mensaje(TIPO_ENCUESTA_FIN, ""),
+            "encuesta_fin")
 
 
 class TestEsOrilla(unittest.TestCase):

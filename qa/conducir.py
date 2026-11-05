@@ -76,10 +76,10 @@ from escenarios_chat import (  # noqa: E402
     escenario_redactar, escenario_tiktok,
 )
 from escenarios_musica import (  # noqa: E402
-    aguja_grupo, agujas_unicas,  # noqa: F401
     escenario_musica, escenario_musica_real,
     escenario_reproductor, escenario_reproductor_en_marcha,
 )
+from musica_real import aguja_grupo, agujas_unicas  # noqa: E402, F401
 from escenarios_obs import (  # noqa: E402
     cerrar_obs_del_banco, debe_cerrar_obs_al_final, escenario_encuadre,
     escenario_escena, escenario_grabacion, escenario_microfono,

@@ -97,6 +97,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("seguir", "principal"),
         ("compartir", "principal"),
         ("cofre", "principal"),
+        ("encuesta", "principal"),
     ]),
     ("programados", [
         ("activo", "false"),
@@ -144,6 +145,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("desfase_directo", "true"),
         ("mensajes_leidos", "true"),
         ("aportes", "true"),
+        ("encuesta", "true"),
         ("en_cola", "false"),
         ("voz", "false"),
         ("lectura_silenciada", "true"),

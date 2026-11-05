@@ -19,6 +19,7 @@ from bellbird.core.config import (
     TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
+from bellbird.core.tipos_mensaje import TIPO_ENCUESTA, TIPO_ENCUESTA_FIN
 from bellbird.core.idioma import _, ngettext
 
 
@@ -109,6 +110,23 @@ def _texto_entrada(autor, monto, hora) -> str:
     return _("👋 {autor} entró, {hora}").format(autor=autor, hora=hora)
 
 
+def _texto_aviso(autor, msg, hora, tipo) -> str | None:
+    """Fila de un aviso del directo, o None si el tipo no es uno de ellos."""
+    if tipo == TIPO_SEGUIR:
+        # Traductores: fila de seguimiento; {autor} su nombre y {hora} la hora.
+        return _("{autor} sigue el canal, {hora}").format(autor=autor, hora=hora)
+    if tipo == TIPO_COMPARTIR:
+        # Traductores: fila de compartido; {autor} su nombre y {hora} la hora.
+        return _("{autor} compartió el directo, {hora}").format(autor=autor, hora=hora)
+    if tipo == TIPO_COFRE:
+        # Traductores: fila de cofre; {autor} su nombre y {hora} la hora.
+        return _("{autor} envió un cofre, {hora}").format(autor=autor, hora=hora)
+    if tipo in (TIPO_ENCUESTA, TIPO_ENCUESTA_FIN):
+        # Traductores: fila de encuesta; {mensaje} es la frase y {hora} la hora.
+        return _("{mensaje}, {hora}").format(mensaje=msg, hora=hora)
+    return None
+
+
 def texto_fila(autor, msg, hora, tipo, monto) -> str:
     """Texto de una fila del chat según su tipo, con los mismos emojis."""
     datos = {"monto": monto, "autor": autor, "mensaje": msg, "hora": hora}
@@ -123,15 +141,9 @@ def texto_fila(autor, msg, hora, tipo, monto) -> str:
         return _("⭐ Nuevo miembro: {autor}, {hora}").format(**datos)
     if tipo == TIPO_ENTRADA:
         return _texto_entrada(autor, monto, hora)
-    if tipo == TIPO_SEGUIR:
-        # Traductores: fila de seguimiento; {autor} su nombre y {hora} la hora.
-        return _("{autor} sigue el canal, {hora}").format(**datos)
-    if tipo == TIPO_COMPARTIR:
-        # Traductores: fila de compartido; {autor} su nombre y {hora} la hora.
-        return _("{autor} compartió el directo, {hora}").format(**datos)
-    if tipo == TIPO_COFRE:
-        # Traductores: fila de cofre; {autor} su nombre y {hora} la hora.
-        return _("{autor} envió un cofre, {hora}").format(**datos)
+    aviso = _texto_aviso(autor, msg, hora, tipo)
+    if aviso is not None:
+        return aviso
     if tipo == TIPO_ME_GUSTA:
         return _texto_me_gusta(autor, monto, hora)
     # Traductores: fila común; {autor} su nombre, {mensaje} el texto y {hora} la hora.

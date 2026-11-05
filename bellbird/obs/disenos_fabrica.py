@@ -48,6 +48,12 @@ FABRICA = (
                       tamano="mediana", chat="franja"),
         papeles={"principal": PAPEL_PRINCIPAL, "secundaria": PAPEL_CAMARA}),
     DisenoFabrica(
+        clave="camara_esquina",
+        nombre=N_("Cámara con la fuente principal en una esquina"),
+        diseno=Diseno(clase="imagen_en_imagen", esquina="inferior-derecha",
+                      tamano="mediana"),
+        papeles={"principal": PAPEL_CAMARA, "secundaria": PAPEL_PRINCIPAL}),
+    DisenoFabrica(
         clave="pantalla_juego",
         nombre=N_("Fuente principal a pantalla completa"),
         diseno=Diseno(clase="pantalla_completa"),

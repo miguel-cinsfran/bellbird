@@ -9,6 +9,7 @@ import unittest
 from unittest import mock
 
 from bellbird.capture import alias
+from bellbird.capture.filtro_autores import entra_en_grupo
 import main
 from main import (
     _mensaje_error_amigable, _es_error_permanente,
@@ -352,6 +353,25 @@ class TestFiltros(unittest.TestCase):
 
     def test_debe_leer_tts_normal(self):
         self.assertTrue(debe_leer_tts("Ana", self._cfg()))
+
+    def test_entra_en_grupo_normal(self):
+        self.assertTrue(entra_en_grupo("Ana", self._cfg()))
+
+    def test_entra_en_grupo_deja_afuera_al_silenciado(self):
+        self.assertFalse(entra_en_grupo(
+            "Beto", self._cfg(usuarios_silenciados=["beto"])))
+
+    def test_entra_en_grupo_deja_afuera_al_oculto(self):
+        self.assertFalse(entra_en_grupo(
+            "Ana", self._cfg(silenciados_ocultar={"ana"})))
+
+    def test_entra_en_grupo_deja_afuera_al_oculto_en_la_sesion(self):
+        self.assertFalse(entra_en_grupo(
+            "Ana", self._cfg(silenciados_runtime={"ana"})))
+
+    def test_entra_en_grupo_no_mira_el_silencio_global_de_lectura(self):
+        self.assertTrue(entra_en_grupo(
+            "Ana", self._cfg(silenciar_lectura=True)))
 
     def test_alias_se_lee_y_el_autor_real_llega_a_los_filtros_y_a_la_gui(self):
         autor = "xX_gamer_29384756_Xx"

@@ -84,7 +84,10 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
     ]),
     ("tiktok", [
         ("usuario", ""),
+        ("agrupar_me_gusta", "true"),
         ("segundos_me_gusta", "10"),
+        ("agrupar_entradas", "true"),
+        ("segundos_entradas", "10"),
     ]),
     ("eventos", [
         ("superchat", "principal"),

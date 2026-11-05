@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md d08c621ede33cff3501c9906be24dbf1e81f1bfd -->
+<!-- original: es/MANUAL.md 8175ebf94fa701368b7418036a2418fc7586df1c -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -87,11 +87,16 @@ streams* and *Treasure chests*. Each list chooses between *Main voice*,
 *Secondary voice* show it in the list, play its sound and read it; *Sound only*
 shows it and plays its sound without reading it; *List only* shows it in the
 list without reading it and without sound; *Off* does not show it. By default,
-joins and likes are set to *Sound only*, and the rest to *Main voice*. Below *Likes*
-there is a counter, *Group likes for, in seconds*, that decides how many
-seconds the likes of the same person are grouped before the total is
-announced. The secondary voice and its settings are chosen in *Preferences*,
-on the *Voices* category. If the streamer pauses the live stream, you hear
+joins and likes are set to *Sound only*, and the rest to *Main voice*. Below
+*Live joins* there is a checkbox, *Group joins*, and a counter, *Group joins
+for, in seconds*, that decide how many seconds joins are grouped before they
+are announced as a single row. Below *Likes* there is a checkbox, *Group
+likes*, and a counter, *Group likes for, in seconds*, that do the same with
+the likes of the same person before the total is announced. Both checkboxes
+come checked by default; when unchecked, every join and every like is
+announced as it arrives. The secondary voice and its settings are chosen in
+*Preferences*, on the *Voices* category. If the streamer pauses the live
+stream, you hear
 “The TikTok live stream is paused.”, and when it resumes, “The TikTok live
 stream continues.”, each one with its sound.
 

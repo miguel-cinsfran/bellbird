@@ -449,6 +449,16 @@ class TestTextosEntranteNuevos(unittest.TestCase):
                                on_message=lambda *a, **k: None)
         self.assertNotIn("importante", cola.get_nowait())
 
+    def test_entrada_agrupada_se_lee_con_entraron(self):
+        cola = queue.Queue()
+        main.procesar_entrante(
+            "Ana, Beto y Caro", "", TIPO_ENTRADA, "3", "", cola,
+            _config_minima(evento_entrada="principal"), main.Stats(),
+            on_message=lambda *a, **k: None)
+        self.assertEqual(
+            cola.get_nowait()["texto_tts"],
+            "Ana, Beto y Caro entraron")
+
     def test_me_gusta_avisa_a_la_gui_pero_no_se_lee(self):
         cola = queue.Queue()
         avisos = []

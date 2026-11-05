@@ -31,6 +31,12 @@ def opciones_tiktok(p) -> dict:
     """La sección [tiktok] como claves en memoria, en el mismo orden."""
     return {
         "tiktok_usuario": leer_texto(p, "tiktok", "usuario"),
+        "tiktok_agrupar_me_gusta": leer_booleano(
+            p, "tiktok", "agrupar_me_gusta"),
         "tiktok_segundos_me_gusta": leer_entero(
             p, "tiktok", "segundos_me_gusta", lo=1, hi=120),
+        "tiktok_agrupar_entradas": leer_booleano(
+            p, "tiktok", "agrupar_entradas"),
+        "tiktok_segundos_entradas": leer_entero(
+            p, "tiktok", "segundos_entradas", lo=1, hi=120),
     }

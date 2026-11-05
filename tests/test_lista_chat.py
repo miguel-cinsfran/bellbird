@@ -291,6 +291,12 @@ class TestTextoFila(unittest.TestCase):
             texto_fila("Ana", "hola", "12:00:00", TIPO_ENTRADA, ""),
             "👋 Ana entró, 12:00:00")
 
+    def test_entrada_agrupada_dice_entraron(self):
+        self.assertEqual(
+            texto_fila("Ana, Beto y Caro", "hola", "12:00:00", TIPO_ENTRADA,
+                       "3"),
+            "👋 Ana, Beto y Caro entraron, 12:00:00")
+
     def test_seguir(self):
         self.assertEqual(
             texto_fila("Ana", "hola", "12:00:00", TIPO_SEGUIR, ""),

@@ -97,6 +97,18 @@ def _texto_me_gusta(autor, monto, hora) -> str:
                         autor=autor, n=cuantos, hora=hora)
 
 
+def _texto_entrada(autor, monto, hora) -> str:
+    try:
+        varios = int(monto) > 1
+    except (TypeError, ValueError):
+        varios = False
+    if varios:
+        # Traductores: fila de entradas agrupadas; {autor} nombra a quienes entraron y {hora} la hora. El emoji del principio se conserva.
+        return _("👋 {autor} entraron, {hora}").format(autor=autor, hora=hora)
+    # Traductores: fila de entrada al directo; {autor} su nombre y {hora} la hora. El emoji del principio se conserva.
+    return _("👋 {autor} entró, {hora}").format(autor=autor, hora=hora)
+
+
 def texto_fila(autor, msg, hora, tipo, monto) -> str:
     """Texto de una fila del chat según su tipo, con los mismos emojis."""
     datos = {"monto": monto, "autor": autor, "mensaje": msg, "hora": hora}
@@ -110,8 +122,7 @@ def texto_fila(autor, msg, hora, tipo, monto) -> str:
         # Traductores: fila de miembro nuevo; {autor} su nombre y {hora} la hora. El emoji del principio se conserva.
         return _("⭐ Nuevo miembro: {autor}, {hora}").format(**datos)
     if tipo == TIPO_ENTRADA:
-        # Traductores: fila de entrada al directo; {autor} su nombre y {hora} la hora. El emoji del principio se conserva.
-        return _("👋 {autor} entró, {hora}").format(**datos)
+        return _texto_entrada(autor, monto, hora)
     if tipo == TIPO_SEGUIR:
         # Traductores: fila de seguimiento; {autor} su nombre y {hora} la hora.
         return _("{autor} sigue el canal, {hora}").format(**datos)

@@ -39,6 +39,12 @@ msgstr "{etiqueta} from {autor}: {monto}"
 msgid "Nuevo miembro: {autor}"
 msgstr "New member: {autor}"
 
+#. Traductores: {autor} es quien entró; en un grupo, varios nombres.
+#: main.py
+#, python-brace-format
+msgid "{autor} entraron"
+msgstr "{autor} joined"
+
 #: main.py
 #, python-brace-format
 msgid "{autor} entró"
@@ -681,6 +687,21 @@ msgstr "Main face centered."
 #: bellbird/camera/encuadre.py
 msgid "Rostro centrado."
 msgstr "Face centered."
+
+#: bellbird/capture/agrupar_entradas.py
+#, python-brace-format
+msgid "{a} y {b}"
+msgstr "{a} and {b}"
+
+#: bellbird/capture/agrupar_entradas.py
+#, python-brace-format
+msgid "{a}, {b} y {c}"
+msgstr "{a}, {b} and {c}"
+
+#: bellbird/capture/agrupar_entradas.py
+#, python-brace-format
+msgid "{a}, {b}, {c} y {n} más"
+msgstr "{a}, {b}, {c} and {n} more"
 
 #. Traductores: rótulo en Preferencias del componente de F2.
 #: bellbird/capture/componentes_estado.py
@@ -8353,6 +8374,20 @@ msgid_plural "{autor} dio {n} me gusta, {hora}"
 msgstr[0] "{autor} sent {n} like, {hora}"
 msgstr[1] "{autor} sent {n} likes, {hora}"
 
+#. Traductores: fila de entradas agrupadas; {autor} nombra a quienes entraron y
+#. {hora} la hora. El emoji del principio se conserva.
+#: bellbird/ui/lista_chat.py
+#, python-brace-format
+msgid "👋 {autor} entraron, {hora}"
+msgstr "👋 {autor} joined, {hora}"
+
+#. Traductores: fila de entrada al directo; {autor} su nombre y {hora} la hora.
+#. El emoji del principio se conserva.
+#: bellbird/ui/lista_chat.py
+#, python-brace-format
+msgid "👋 {autor} entró, {hora}"
+msgstr "👋 {autor} joined, {hora}"
+
 #. Traductores: fila de Super Chat; {monto} el importe ya formateado, {autor}
 #. su nombre, {mensaje} el texto y {hora} la hora. El emoji del principio se
 #. conserva.
@@ -8374,13 +8409,6 @@ msgstr "🎨 [{monto}] {autor}, {hora}"
 #, python-brace-format
 msgid "⭐ Nuevo miembro: {autor}, {hora}"
 msgstr "⭐ New member: {autor}, {hora}"
-
-#. Traductores: fila de entrada al directo; {autor} su nombre y {hora} la hora.
-#. El emoji del principio se conserva.
-#: bellbird/ui/lista_chat.py
-#, python-brace-format
-msgid "👋 {autor} entró, {hora}"
-msgstr "👋 {autor} joined, {hora}"
 
 #. Traductores: fila de seguimiento; {autor} su nombre y {hora} la hora.
 #: bellbird/ui/lista_chat.py
@@ -9423,6 +9451,22 @@ msgstr "Maximum message length"
 #: bellbird/ui/preferencias_lectura.py
 msgid "Eventos del directo"
 msgstr "Live events"
+
+#: bellbird/ui/preferencias_lectura.py
+msgid "Agrupar entradas"
+msgstr "Group joins"
+
+#: bellbird/ui/preferencias_lectura.py
+msgid "Agrupar entradas durante (segundos):"
+msgstr "Group joins for (seconds):"
+
+#: bellbird/ui/preferencias_lectura.py
+msgid "Agrupar entradas durante, en segundos"
+msgstr "Group joins for, in seconds"
+
+#: bellbird/ui/preferencias_lectura.py
+msgid "Agrupar me gusta"
+msgstr "Group likes"
 
 #: bellbird/ui/preferencias_lectura.py
 msgid "&Agrupar me gusta durante (segundos):"

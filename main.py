@@ -377,7 +377,13 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
     elif tipo == TIPO_MIEMBRO:
         tts_text = _("Nuevo miembro: {autor}").format(autor=autor_visible)
     elif tipo == TIPO_ENTRADA:
-        tts_text = _("{autor} entró").format(autor=autor_visible)
+        try:
+            varios = int(monto) > 1
+        except (TypeError, ValueError):
+            varios = False
+        # Traductores: {autor} es quien entró; en un grupo, varios nombres.
+        tts_text = (_("{autor} entraron") if varios
+                    else _("{autor} entró")).format(autor=autor_visible)
     elif tipo == TIPO_SEGUIR:
         tts_text = _("{autor} sigue el canal").format(autor=autor_visible)
     elif tipo == TIPO_COMPARTIR:

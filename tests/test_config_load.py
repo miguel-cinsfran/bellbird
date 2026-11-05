@@ -685,6 +685,28 @@ class TestCargarConfiguracion(unittest.TestCase):
                     f"[tiktok]\nsegundos_me_gusta = {escrito}\n")
                 self.assertEqual(cfg["tiktok_segundos_me_gusta"], esperado)
 
+    def test_agrupar_y_segundos_de_entradas_de_fabrica(self):
+        cfg = self._cargar_en("[tiktok]\nusuario = pepe\n")
+        self.assertTrue(cfg["tiktok_agrupar_me_gusta"])
+        self.assertTrue(cfg["tiktok_agrupar_entradas"])
+        self.assertEqual(cfg["tiktok_segundos_entradas"], 10)
+
+    def test_agrupar_y_segundos_de_entradas_se_leen(self):
+        cfg = self._cargar_en(
+            "[tiktok]\nagrupar_me_gusta = false\nagrupar_entradas = false\n"
+            "segundos_entradas = 42\n")
+        self.assertFalse(cfg["tiktok_agrupar_me_gusta"])
+        self.assertFalse(cfg["tiktok_agrupar_entradas"])
+        self.assertEqual(cfg["tiktok_segundos_entradas"], 42)
+
+    def test_segundos_de_entradas_fuera_de_rango_se_lleva_al_borde(self):
+        for escrito, esperado in (("3", 3), ("0", 1), ("-5", 1),
+                                  ("121", 120), ("999", 120)):
+            with self.subTest(escrito=escrito):
+                cfg = self._cargar_en(
+                    f"[tiktok]\nsegundos_entradas = {escrito}\n")
+                self.assertEqual(cfg["tiktok_segundos_entradas"], esperado)
+
     def test_migracion_eventos_con_multivoz(self):
         cfg = self._cargar_en(
             "[voz]\nmultivoz = true\nvoz_eventos = Voz B\n"

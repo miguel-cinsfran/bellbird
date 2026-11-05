@@ -50,8 +50,14 @@ OPCIONES_LECTURA = (
      str, "principal"),
     ("cho_evento_entrada", "eventos", "entrada", "evento_entrada",
      str, "mostrar"),
+    ("chk_agrupar_entradas", "tiktok", "agrupar_entradas",
+     "tiktok_agrupar_entradas", bool, True),
+    ("sp_segundos_entradas", "tiktok", "segundos_entradas",
+     "tiktok_segundos_entradas", int, 10),
     ("cho_evento_me_gusta", "eventos", "me_gusta", "evento_me_gusta",
      str, "mostrar"),
+    ("chk_agrupar_me_gusta", "tiktok", "agrupar_me_gusta",
+     "tiktok_agrupar_me_gusta", bool, True),
     ("sp_segundos_me_gusta", "tiktok", "segundos_me_gusta",
      "tiktok_segundos_me_gusta", int, 10),
     ("cho_evento_seguir", "eventos", "seguir", "evento_seguir",
@@ -127,17 +133,38 @@ class PaginaLectura:
             _tc(lista)
             setattr(self, "cho_evento_" + clave, lista)
             grilla.Add(lista, 0, wx.EXPAND)
+            if clave == "entrada":
+                self._agregar_agrupacion(
+                    grilla, padre, "agrupar_entradas",
+                    _("Agrupar entradas"), _("Agrupar entradas"),
+                    _("Agrupar entradas durante (segundos):"),
+                    _("Agrupar entradas durante, en segundos"),
+                    "sp_segundos_entradas")
             if clave == "me_gusta":
-                grilla.Add(self._fila_label(
-                    padre, _("&Agrupar me gusta durante (segundos):")), 0,
-                    wx.ALIGN_CENTER_VERTICAL)
-                self.sp_segundos_me_gusta = ContadorAccesible(
-                    padre, min=1, max=120,
-                    name=_("Agrupar me gusta durante, en segundos"))
-                _tc(self.sp_segundos_me_gusta)
-                grilla.Add(self.sp_segundos_me_gusta, 0)
+                self._agregar_agrupacion(
+                    grilla, padre, "agrupar_me_gusta",
+                    _("Agrupar me gusta"), _("Agrupar me gusta"),
+                    _("&Agrupar me gusta durante (segundos):"),
+                    _("Agrupar me gusta durante, en segundos"),
+                    "sp_segundos_me_gusta")
         box.Add(grilla, 1, wx.EXPAND | wx.ALL, 10)
         vs.Add(box, 0, wx.EXPAND | wx.ALL, 10)
+
+    def _agregar_agrupacion(self, grilla, padre, clave, etiqueta, nombre,
+                            etiqueta_contador, nombre_contador, atributo):
+        casilla = wx.CheckBox(padre, label=etiqueta, name=nombre)
+        casilla.SetForegroundColour(_T.text)
+        _tc(casilla)
+        setattr(self, "chk_" + clave, casilla)
+        grilla.Add((0, 0), 0)
+        grilla.Add(casilla, 0, wx.EXPAND)
+        grilla.Add(self._fila_label(padre, etiqueta_contador), 0,
+                   wx.ALIGN_CENTER_VERTICAL)
+        contador = ContadorAccesible(padre, min=1, max=120,
+                                     name=nombre_contador)
+        _tc(contador)
+        setattr(self, atributo, contador)
+        grilla.Add(contador, 0)
 
     def _construir_recientes(self, p, vs):
         vs.Add(self._fila_label(p, _("Leer los mensajes &recientes con:")),

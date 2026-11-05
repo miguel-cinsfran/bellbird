@@ -217,6 +217,9 @@ class TestEventosDelDirecto(unittest.TestCase):
         esperadas = []
         for atributo, _m, etiqueta, _n in EVENTOS_ESPERADOS:
             esperadas.append(etiqueta)
+            if atributo == "cho_evento_entrada":
+                esperadas.append(
+                    "Agrupar entradas durante (segundos):")
             if atributo == "cho_evento_me_gusta":
                 esperadas.append("&Agrupar me gusta durante (segundos):")
         self.assertEqual(etiquetas, esperadas)
@@ -236,6 +239,46 @@ class TestEventosDelDirecto(unittest.TestCase):
         indice = controles.index(dialogo.cho_evento_me_gusta)
         self.assertIs(controles[indice + 1], contador)
         self.assertIs(controles[indice + 2], dialogo.cho_evento_seguir)
+
+    def test_los_controles_de_agrupacion_de_entradas(self):
+        dialogo = self._dialogo()
+        casilla = dialogo.chk_agrupar_entradas
+        self.assertEqual(casilla.GetName(), "Agrupar entradas")
+        self.assertTrue(casilla.GetValue())
+        contador = dialogo.sp_segundos_entradas
+        self.assertEqual(
+            contador.GetName(), "Agrupar entradas durante, en segundos")
+        self.assertEqual((contador.GetMin(), contador.GetMax()), (1, 120))
+        self.assertEqual(contador.GetValue(), 10)
+        caja = self._caja_de_eventos(
+            next(p for p in dialogo._paginas()
+                 if p.GetName() == "PagLectura"))
+        controles = [h for h in caja.GetChildren()
+                     if isinstance(h, (gui.wx.Choice, gui.wx.SpinCtrl,
+                                       gui.wx.CheckBox))]
+        indice = controles.index(dialogo.cho_evento_entrada)
+        self.assertIs(controles[indice + 1],
+                      dialogo.chk_agrupar_entradas)
+        self.assertIs(controles[indice + 2],
+                      dialogo.sp_segundos_entradas)
+        self.assertIs(controles[indice + 3], dialogo.cho_evento_me_gusta)
+
+    def test_los_controles_de_agrupacion_de_me_gusta(self):
+        dialogo = self._dialogo()
+        self.assertEqual(
+            dialogo.chk_agrupar_me_gusta.GetName(), "Agrupar me gusta")
+        self.assertTrue(dialogo.chk_agrupar_me_gusta.GetValue())
+        caja = self._caja_de_eventos(
+            next(p for p in dialogo._paginas()
+                 if p.GetName() == "PagLectura"))
+        controles = [h for h in caja.GetChildren()
+                     if isinstance(h, (gui.wx.Choice, gui.wx.SpinCtrl,
+                                       gui.wx.CheckBox))]
+        indice = controles.index(dialogo.cho_evento_me_gusta)
+        self.assertIs(controles[indice + 1],
+                      dialogo.chk_agrupar_me_gusta)
+        self.assertIs(controles[indice + 2],
+                      dialogo.sp_segundos_me_gusta)
 
     def test_guardar_escribe_la_seccion_eventos(self):
         dialogo = self._dialogo()

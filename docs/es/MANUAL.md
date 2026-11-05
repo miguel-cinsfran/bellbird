@@ -87,9 +87,14 @@ y *Desactivado*.
 *Solo sonido* lo muestra y suena sin leerlo; *Solo en la lista* lo muestra en
 la lista sin leerlo y sin sonido; *Desactivado* no lo muestra. De
 fábrica, las entradas y los me gusta están en *Solo sonido*, y el resto en
-*Voz principal*. Debajo de *Me gusta* hay un contador, *Agrupar me gusta
-durante, en segundos*, que decide cuántos segundos se juntan los me gusta de
-una misma persona antes de avisar el total. La voz secundaria y sus ajustes
+*Voz principal*. Debajo de *Entradas al directo* hay una casilla, *Agrupar
+entradas*, y un contador, *Agrupar entradas durante, en segundos*, que
+deciden cuántos segundos se juntan las entradas antes de avisarlas en una
+sola fila. Debajo de *Me gusta* hay una casilla, *Agrupar me gusta*, y un
+contador, *Agrupar me gusta durante, en segundos*, que hacen lo mismo con
+los me gusta de una misma persona antes de avisar el total. Las dos
+casillas vienen marcadas de fábrica; si se desmarcan, cada entrada y cada
+me gusta salen al llegar. La voz secundaria y sus ajustes
 se eligen en *Preferencias*, categoría *Voces*. Si quien transmite pone el
 directo en pausa, se oye «El directo de TikTok está en pausa.», y al volver,
 «El directo de TikTok continúa.», cada uno con su sonido.

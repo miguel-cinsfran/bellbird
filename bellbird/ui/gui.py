@@ -39,7 +39,7 @@ from bellbird.youtube import credenciales
 from bellbird.youtube import youtube_api
 from bellbird.core import diagnostico
 from bellbird.core import apagado
-from bellbird.capture.montos import texto_importes
+from bellbird.capture.montos import sumar_monto, texto_importes
 from bellbird.obs import overlay_servidor
 from bellbird.capture import programados
 from bellbird.capture import descartes
@@ -1713,7 +1713,6 @@ class YTChatFrame(wx.Frame):
     # ── Acumulación de Super Chats ───────────────────────────────────────────
 
     def _sumar_superchat(self, monto: str) -> None:
-        from bellbird.capture.montos import sumar_monto
         sumar_monto(self._sc_totales, monto)
 
     def _formato_total_sc(self) -> str:

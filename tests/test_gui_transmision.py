@@ -10,6 +10,7 @@ from bellbird.obs import consultas_transmision
 from bellbird.obs import obs_cliente
 from bellbird.obs import obs_disposicion
 from bellbird.obs import obs_prevuelo
+from bellbird.obs.obs_escena import FilaFuente
 from bellbird.ui import confirmar_transmision as modulo_confirmar
 from bellbird.ui import control_grabacion
 from bellbird.ui import directo_panel
@@ -81,6 +82,10 @@ class GestorFalso:
         return {"Principal": tuple(fuente for fuente in ("Cámara", "Chat en el vídeo", "Juego")
                                     if fuente != "Chat en el vídeo" or self.tiene_panel),
                 "Juego": ("Captura",)}.get(escena, ())
+
+    def filas_escena(self, escena, parada=None):
+        return tuple(FilaFuente(nombre, nombre, True, False)
+                     for nombre in self.fuentes(escena))
     def asegurar_fuente(self, *args):
         self.llamadas.append(("asegurar_fuente",) + args)
         self.tiene_panel = True
@@ -387,7 +392,7 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(
             [ventana.nb.GetPageText(i)
              for i in range(ventana.nb.GetPageCount())],
-            ["General", "Escena", "Fuentes", "Agregar", "Transmisión",
+            ["General", "Escena", "Agregar", "Transmisión",
              "Audio", "Grabación"])
 
     def test_pasar_a_general_vuelve_a_leer_el_estado(self):

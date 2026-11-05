@@ -25,6 +25,7 @@ def _gestor():
     gestor.ventanas.return_value = (mock.sentinel.opciones,
                                     mock.sentinel.actual)
     gestor.descripcion_escena.return_value = mock.sentinel.descripcion
+    gestor.filas_escena.return_value = mock.sentinel.filas
     gestor.usar_ventana.return_value = mock.sentinel.frase
     return gestor
 
@@ -181,6 +182,7 @@ class TestLeerEscena(unittest.TestCase):
         self.assertIs(datos.opciones, mock.sentinel.opciones)
         self.assertIs(datos.actual, mock.sentinel.actual)
         self.assertIs(datos.descripcion, mock.sentinel.descripcion)
+        self.assertIs(datos.filas, mock.sentinel.filas)
 
     def test_pide_la_escena_dada_y_llama_en_orden(self):
         gestor = _gestor()
@@ -190,9 +192,43 @@ class TestLeerEscena(unittest.TestCase):
             "Juego", fuente="Chat en el vídeo")
         gestor.ventanas.assert_called_once_with("Juego")
         gestor.descripcion_escena.assert_called_once_with("Juego")
+        gestor.filas_escena.assert_called_once_with("Juego")
         self.assertEqual(
             [llamada[0] for llamada in gestor.mock_calls],
-            ["fuentes", "instantanea", "ventanas", "descripcion_escena"])
+            ["fuentes", "instantanea", "ventanas", "descripcion_escena",
+             "filas_escena"])
+
+    def test_leer_filas_pide_las_filas_de_la_escena(self):
+        gestor = _gestor()
+        self.assertIs(consultas_transmision.leer_filas(gestor, "Juego"),
+                      mock.sentinel.filas)
+        gestor.filas_escena.assert_called_once_with("Juego")
+
+
+class TestAplicarPosicionYTamano(unittest.TestCase):
+
+    def test_aplica_el_tamano_y_despues_el_lugar(self):
+        gestor = mock.Mock()
+        gestor.instantanea.side_effect = (mock.sentinel.tamano,
+                                          mock.sentinel.lugar)
+        registro = mock.Mock()
+        datos = consultas_transmision.aplicar_posicion_y_tamano(
+            gestor, registro, "Principal", "Chat en el vídeo", 800, 600,
+            "inferior-derecha")
+        self.assertEqual(datos, (mock.sentinel.lugar, True))
+        gestor.redimensionar.assert_called_once_with(
+            "Principal", 800, 600)
+        gestor.colocar.assert_called_once_with(
+            "Principal", "inferior-derecha", fuente="Chat en el vídeo")
+
+    def test_con_donde_esta_ahora_solo_aplica_el_tamano(self):
+        gestor = mock.Mock()
+        gestor.instantanea.return_value = mock.sentinel.tamano
+        registro = mock.Mock()
+        datos = consultas_transmision.aplicar_posicion_y_tamano(
+            gestor, registro, "Principal", "Chat en el vídeo", 800, 600, "")
+        self.assertEqual(datos, (mock.sentinel.tamano, True))
+        gestor.colocar.assert_not_called()
 
 
 if __name__ == "__main__":

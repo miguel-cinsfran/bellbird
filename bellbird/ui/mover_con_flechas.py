@@ -78,27 +78,31 @@ class MoverConFlechas:
     def _mover(self, dx, dy):
         self._ajuste.empezar_movimiento()
         escena, fuente = self._destino()
-        def mover():
-            try:
-                snap = consultas_transmision.mover(
-                    self._gestor, escena, dx, dy, fuente)
-            except obs_cliente.ObsError as error:
-                wx.CallAfter(self._fallo, str(error))
-            except Exception as error:
-                logger.warning("mover con flechas OBS: %r", error)
-                wx.CallAfter(self._fallo, obs_cliente.mensaje_de_fallo_obs(error))
-            else:
-                wx.CallAfter(self._terminado, snap)
-        diagnostico.crear_hilo(mover, "MoverConFlechasOBS").start()
+        diagnostico.crear_hilo(
+            lambda: self._trabajo_mover(escena, fuente, dx, dy),
+            "MoverConFlechasOBS").start()
 
-    def _terminado(self, snap):
+    def _trabajo_mover(self, escena, fuente, dx, dy):
+        try:
+            snap = consultas_transmision.mover(
+                self._gestor, escena, dx, dy, fuente)
+            filas = consultas_transmision.leer_filas(self._gestor, escena)
+        except obs_cliente.ObsError as error:
+            wx.CallAfter(self._fallo, str(error))
+        except Exception as error:
+            logger.warning("mover con flechas OBS: %r", error)
+            wx.CallAfter(self._fallo, obs_cliente.mensaje_de_fallo_obs(error))
+        else:
+            wx.CallAfter(self._terminado, snap, filas)
+
+    def _terminado(self, snap, filas=None):
         decision = self._ajuste.aterrizar()
         if self._operaciones.cerrando:
             return
         if decision == ajuste_fino.DESHACER:
             self._deshacer()
         elif decision == ajuste_fino.MOSTRAR:
-            self._al_mover(snap)
+            self._al_mover(snap, filas)
             self._anunciar(snap)
 
     def _fallo(self, mensaje):
@@ -140,8 +144,16 @@ class MoverConFlechas:
             return
         escena, fuente = self._destino()
         self._operaciones.en_hilo(
-            lambda: self._gestor.posicionar(
-                escena, transformacion["positionX"],
-                transformacion["positionY"], transformacion["alignment"],
-                fuente=fuente),
-            lambda resultado: anunciar(_("Movimiento deshecho")))
+            lambda: self._trabajo_deshacer(transformacion, escena, fuente),
+            self._deshacer_mostrado)
+
+    def _trabajo_deshacer(self, transformacion, escena, fuente):
+        self._gestor.posicionar(
+            escena, transformacion["positionX"],
+            transformacion["positionY"], transformacion["alignment"],
+            fuente=fuente)
+        return consultas_transmision.leer_filas(self._gestor, escena)
+
+    def _deshacer_mostrado(self, filas):
+        self._al_mover(None, filas)
+        anunciar(_("Movimiento deshecho"))

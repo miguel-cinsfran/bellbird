@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from bellbird.obs import (fuente_chat, obs_disposicion, obs_capas, obs_captura,
                         obs_cliente, obs_destinos, obs_entradas_audio,
-                        obs_escena, obs_grabacion)
+                        obs_escena, obs_grabacion, obs_prevuelo)
 from bellbird.obs.fuente_chat import (NOMBRE_FUENTE, TIPO_FUENTE,
                                       fuente_encima_del_panel)
 
@@ -40,18 +40,29 @@ class GestorPanelObs:
         datos = self._pedir("GetCurrentProgramScene", parada=parada)
         return datos.get("currentProgramSceneName", "")
 
-    def descripcion_escena(self, escena=None, parada=None) -> str:
-        from bellbird.obs import obs_prevuelo
+    def _datos_escena(self, escena, parada):
         actual = escena is None
         if actual:
             escena = self.escena_al_aire(parada)
         elementos = self.elementos(escena, parada)
         lienzo = self._pedir("GetVideoSettings", parada=parada)
         entradas = self._pedir("GetInputList", parada=parada).get("inputs", ())
+        return (actual, escena, elementos, lienzo,
+                obs_prevuelo.tipos_de_entradas(entradas))
+
+    def descripcion_escena(self, escena=None, parada=None) -> str:
+        actual, escena, elementos, lienzo, tipos = self._datos_escena(
+            escena, parada)
         return obs_escena.describir_escena(
             escena, elementos, lienzo.get("baseWidth", 0),
-            lienzo.get("baseHeight", 0),
-            obs_prevuelo.tipos_de_entradas(entradas), actual=actual)
+            lienzo.get("baseHeight", 0), tipos, actual=actual)
+
+    def filas_escena(self, escena=None, parada=None) -> tuple:
+        _actual, escena, elementos, lienzo, tipos = self._datos_escena(
+            escena, parada)
+        return obs_escena.filas_de_escena(
+            elementos, lienzo.get("baseWidth", 0),
+            lienzo.get("baseHeight", 0), tipos)
 
     def poner_escena_al_aire(self, escena, parada=None) -> str:
         self._pedir("SetCurrentProgramScene", {"sceneName": escena}, parada)
@@ -76,18 +87,8 @@ class GestorPanelObs:
         return obs_entradas_audio.dispositivo(self._cliente, fuente, predeterminado, parada)
 
     def estado_transmision(self, parada=None) -> dict:
-        datos = self._pedir("GetStreamStatus", parada=parada)
-        estado = {clave: datos.get(clave, 0) for clave in (
-            "outputActive", "outputDuration", "outputSkippedFrames", "outputTotalFrames")}
-        estado["outputReconnecting"] = bool(datos.get("outputReconnecting", False))
-        # obs-websocket da outputDuration en milisegundos; el resto de la app
-        # (obs_estado.frase_transmision, F2) lo trata en segundos. Sin esta
-        # conversión un minuto de directo se anunciaba como «16 h 40 min».
-        try:
-            estado["outputDuration"] = int(float(estado["outputDuration"]) / 1000)
-        except (TypeError, ValueError):
-            estado["outputDuration"] = 0
-        return estado
+        from bellbird.obs import consultas_transmision
+        return consultas_transmision.estado_transmision(self._pedir, parada)
 
     def estadisticas(self, parada=None) -> dict:
         """Cuadros perdidos al codificar y atrasados al dibujar, según GetStats.
@@ -136,7 +137,6 @@ class GestorPanelObs:
         return resultado
 
     def revisar(self, destino, parada=None):
-        from bellbird.obs import obs_grabacion, obs_prevuelo
         return obs_prevuelo.revisar(self._cliente, destino, parada, grabar=obs_grabacion.grabar_al_transmitir())
 
     def ventanas(self, escena, parada=None):
@@ -331,9 +331,7 @@ class GestorPanelObs:
     def fuentes(self, escena, parada=None) -> tuple:
         if escena not in self.escenas(parada):
             return ()
-        elementos = self.elementos(escena, parada)
-        return tuple(elemento.get("sourceName", "") for elemento in sorted(
-            elementos, key=lambda elemento: elemento.get("sceneItemIndex", 0), reverse=True))
+        return obs_escena.nombres_de_escena(self.elementos(escena, parada))
 
     def instantanea(self, escena, parada=None, *, fuente=NOMBRE_FUENTE) -> obs_disposicion.SnapshotPanel:
         elementos = self.elementos(escena, parada)

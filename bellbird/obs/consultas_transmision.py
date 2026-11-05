@@ -47,6 +47,26 @@ def _problemas(gestor, destino) -> tuple:
     return tuple(getattr(revision, "problemas", ()) or ())
 
 
+def estado_transmision(leer, parada=None) -> dict:
+    datos = leer("GetStreamStatus", parada=parada)
+    estado = {clave: datos.get(clave, 0) for clave in (
+        "outputActive", "outputDuration", "outputSkippedFrames", "outputTotalFrames")}
+    estado["outputReconnecting"] = bool(datos.get("outputReconnecting", False))
+    # obs-websocket da outputDuration en milisegundos; el resto de la app
+    # (obs_estado.frase_transmision, F2) lo trata en segundos. Sin esta
+    # conversión un minuto de directo se anunciaba como «16 h 40 min».
+    try:
+        estado["outputDuration"] = int(float(estado["outputDuration"]) / 1000)
+    except (TypeError, ValueError):
+        estado["outputDuration"] = 0
+    return estado
+
+
+def leer_filas(gestor, escena) -> tuple:
+    """Las filas de la lista de fuentes, releídas tras cada acción."""
+    return gestor.filas_escena(escena)
+
+
 def cargar_inicial(gestor, preferido="") -> CargaInicial:
     gestor.conectar()
     escenas = gestor.escenas()
@@ -124,6 +144,7 @@ class EscenaLeida:
     opciones: object
     actual: object
     descripcion: object
+    filas: object = ()
 
 
 def leer_escena(gestor, escena) -> EscenaLeida:
@@ -133,7 +154,8 @@ def leer_escena(gestor, escena) -> EscenaLeida:
     opciones, actual = gestor.ventanas(escena)
     return EscenaLeida(
         fuentes=fuentes, fuente=fuente, snap=snap, opciones=opciones,
-        actual=actual, descripcion=gestor.descripcion_escena(escena))
+        actual=actual, descripcion=gestor.descripcion_escena(escena),
+        filas=leer_filas(gestor, escena))
 
 
 def aplicar_tamano(gestor, registro, escena, fuente, ancho, alto):
@@ -144,6 +166,17 @@ def aplicar_tamano(gestor, registro, escena, fuente, ancho, alto):
     else:
         aplicado = bool(gestor.escalar(escena, ancho, alto, fuente=fuente))
     return gestor.instantanea(escena, fuente=fuente), aplicado
+
+
+def aplicar_posicion_y_tamano(gestor, registro, escena, fuente, ancho, alto,
+                              anclaje):
+    """Aplica primero el tamaño y después el lugar, si se eligió uno."""
+    snap, aplicado = aplicar_tamano(
+        gestor, registro, escena, fuente, ancho, alto)
+    if anclaje:
+        gestor.colocar(escena, anclaje, fuente=fuente)
+        snap = gestor.instantanea(escena, fuente=fuente)
+    return snap, aplicado
 
 
 def cambiar_y_leer(gestor, registro, escena, fuente, funcion, *argumentos):

@@ -8,6 +8,8 @@ wx ni red: la usan el atajo Ctrl+F2 y la ventana Transmisión.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 from bellbird.core.idioma import _, ngettext
 from bellbird.obs import obs_disposicion
 
@@ -145,7 +147,15 @@ def _quien_mas_tapa(rect, delanteros) -> tuple:
     return nombre, maximo
 
 
-def _frase_fuente(numero, elemento, rect, delanteros, lienzo_ancho,
+@dataclass(frozen=True)
+class FilaFuente:
+    nombre: str
+    texto: str
+    visible: bool
+    bloqueada: bool
+
+
+def _texto_fuente(elemento, rect, delanteros, lienzo_ancho,
                   lienzo_alto, tipos) -> str:
     nombre = str(elemento.get("sourceName") or _("sin nombre"))
     tipo = (tipos or {}).get(nombre, "")
@@ -175,14 +185,48 @@ def _frase_fuente(numero, elemento, rect, delanteros, lienzo_ancho,
         if fuera >= _UMBRAL_AVISO:
             # Traductores: {p} es un porcentaje.
             estado += _(" y un {p} por ciento queda fuera del vídeo").format(p=int(round(fuera)))
-    partes = [f"{numero}: {nombre}"]
+    partes = [nombre]
     if tipo:
         partes.append(str(tipo))
     partes += [posicion]
     if tamano:
         partes.append(tamano)
     partes.append(estado)
-    return ", ".join(partes) + "."
+    return ", ".join(partes)
+
+
+def _filas_base(elementos, lienzo_ancho, lienzo_alto, tipos) -> list:
+    ordenados = sorted(elementos or (),
+                       key=lambda elemento: elemento.get("sceneItemIndex", 0),
+                       reverse=True)
+    rects = [_rectangulo_de(elemento) for elemento in ordenados]
+    filas = []
+    delanteros = []
+    for elemento, rect in zip(ordenados, rects):
+        nombre = str(elemento.get("sourceName") or _("sin nombre"))
+        texto = _texto_fuente(elemento, rect, delanteros,
+                              lienzo_ancho, lienzo_alto, tipos)
+        visible = _visible(elemento)
+        bloqueada = bool(elemento.get("sceneItemLocked", False))
+        filas.append((nombre, texto, visible, bloqueada))
+        if visible and rect is not None:
+            delanteros.append((nombre, rect))
+    return filas
+
+
+def filas_de_escena(elementos, lienzo_ancho, lienzo_alto, tipos) -> tuple:
+    """Una fila por fuente, de adelante hacia atrás, con todo lo que se dice.
+
+    El texto es el de la descripción sin número ni punto; si la fuente está
+    bloqueada, se agrega «bloqueada» al final.
+    """
+    return tuple(
+        FilaFuente(
+            nombre=nombre,
+            texto=texto + (f", {_('bloqueada')}" if bloqueada else ""),
+            visible=visible, bloqueada=bloqueada)
+        for nombre, texto, visible, bloqueada
+        in _filas_base(elementos, lienzo_ancho, lienzo_alto, tipos))
 
 
 def describir_escena(escena, elementos, lienzo_ancho, lienzo_alto, tipos,
@@ -194,17 +238,15 @@ def describir_escena(escena, elementos, lienzo_ancho, lienzo_alto, tipos,
     nombre, tipo, posición, tamaño y estado, una por línea para que NVDA la
     recorra por partes.
     """
-    ordenados = sorted(elementos or (),
-                       key=lambda elemento: elemento.get("sceneItemIndex", 0),
-                       reverse=True)
-    if not ordenados:
+    filas = _filas_base(elementos, lienzo_ancho, lienzo_alto, tipos)
+    if not filas:
         if actual:
             return _("Escena actual: {escena}. No tiene fuentes.").format(
                 escena=escena)
         return _("Escena: {escena}. No tiene fuentes.").format(escena=escena)
     # Traductores: {n} es la cantidad de fuentes de la escena.
-    palabra = ngettext("1 fuente", "{n} fuentes", len(ordenados)).format(
-        n=len(ordenados))
+    palabra = ngettext("1 fuente", "{n} fuentes", len(filas)).format(
+        n=len(filas))
     if actual:
         primera = _("Escena actual: {escena}. {palabra}, "
                     "de adelante hacia atrás.").format(
@@ -214,11 +256,17 @@ def describir_escena(escena, elementos, lienzo_ancho, lienzo_alto, tipos,
                     "de adelante hacia atrás.").format(
                         escena=escena, palabra=palabra)
     lineas = [primera]
-    rects = [_rectangulo_de(elemento) for elemento in ordenados]
-    for numero, (elemento, rect) in enumerate(zip(ordenados, rects), 1):
-        delanteros = [(str(otro.get("sourceName") or _("sin nombre")), otro_rect)
-                      for otro, otro_rect in zip(ordenados[:numero - 1], rects[:numero - 1])
-                      if _visible(otro) and otro_rect is not None]
-        lineas.append(_frase_fuente(numero, elemento, rect, delanteros,
-                                    lienzo_ancho, lienzo_alto, tipos))
+    for numero, (_nombre, texto, _visible_fila, _bloqueada) in enumerate(
+            filas, 1):
+        lineas.append(f"{numero}: {texto}.")
     return "\n".join(lineas)
+
+
+def nombres_de_escena(elementos) -> tuple:
+    """Los nombres de las fuentes, de adelante hacia atrás."""
+    return tuple(
+        elemento.get("sourceName", "")
+        for elemento in sorted(
+            elementos or (),
+            key=lambda elemento: elemento.get("sceneItemIndex", 0),
+            reverse=True))

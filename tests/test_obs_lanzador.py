@@ -419,6 +419,9 @@ class CableadoPanelObsTest(unittest.TestCase):
             def descripcion_escena(self, parada=None):
                 return ""
 
+            def filas_escena(self, escena, parada=None):
+                return ()
+
         def asegurar_doble(probar_conexion, al_anunciar=None, parada=None):
             orden.append("asegurar")
             al_anunciar("Abriendo OBS en segundo plano, en el área de "

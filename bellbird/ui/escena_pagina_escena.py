@@ -1,4 +1,4 @@
-"""Pestaña Escena de la ventana Escena: elegir, cambiar la escena y guardar."""
+"""Pestaña Escena de la ventana Escena: elegir, fuentes y guardar."""
 
 from __future__ import annotations
 
@@ -7,26 +7,25 @@ import wx
 from bellbird.core.idioma import _
 from bellbird.obs import consultas_transmision
 from bellbird.obs import obs_estado
-from bellbird.ui.accesibilidad import anunciar, nombre_accesible
+from bellbird.ui.accesibilidad import anunciar
+from bellbird.ui.escena_pagina_fuentes import PaginaFuentes
 from bellbird.ui.preferencias_comun import (
-    boton, fila_campo, fila_grilla, grilla_campos, lista_con_nombre,
-    nombre_de_etiqueta)
+    boton, fila_grilla, grilla_campos, lista_con_nombre, nombre_de_etiqueta)
 
 
 class PaginaEscena(wx.Panel):
 
-    def __init__(self, parent, gestor, operaciones, al_elegir):
+    def __init__(self, parent, ventana, gestor, operaciones, registro,
+                 escena_elegida, al_elegir):
         super().__init__(parent, name="PaginaEscena")
         self._gestor = gestor
         self._operaciones = operaciones
         self._al_elegir = al_elegir
-        self._crear_controles()
-        self.acciones = (
-            self.cho_escena, self.btn_cambiar, self.txt_descripcion,
-            self.btn_imagen)
+        self._crear_controles(ventana, registro, escena_elegida)
+        self.acciones = (self.cho_escena, self.btn_cambiar, self.btn_imagen)
         self._enlazar_eventos()
 
-    def _crear_controles(self):
+    def _crear_controles(self, ventana, registro, escena_elegida):
         caja = wx.BoxSizer(wx.VERTICAL)
         grilla = grilla_campos()
         rotulo_escena = wx.StaticText(self, label=_("&Escena:"))
@@ -36,14 +35,10 @@ class PaginaEscena(wx.Panel):
             nombre_de_etiqueta(_("Cambiar e&scena")))
         fila_grilla(grilla, rotulo_escena, self.cho_escena, self.btn_cambiar)
         caja.Add(grilla, 0, wx.EXPAND | wx.ALL, 8)
-        rotulo_descripcion = wx.StaticText(
-            self, label=_("&Descripción de la escena:"))
-        self.txt_descripcion = wx.TextCtrl(
-            self, style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name=nombre_de_etiqueta(_("&Descripción de la escena:")))
-        nombre_accesible(self.txt_descripcion, self.txt_descripcion.GetName())
-        self.txt_descripcion.SetMinSize((-1, 120))
-        fila_campo(caja, rotulo_descripcion, self.txt_descripcion)
+        self.pagina_fuentes = PaginaFuentes(
+            self, ventana, self._gestor, self._operaciones, registro,
+            escena_elegida)
+        caja.Add(self.pagina_fuentes, 0, wx.EXPAND)
         self.btn_imagen = boton(
             self, _("Guardar &imagen…"),
             nombre_de_etiqueta(_("Guardar &imagen…")))
@@ -55,19 +50,13 @@ class PaginaEscena(wx.Panel):
         self.btn_cambiar.Bind(wx.EVT_BUTTON, self._cambiar_al_aire)
         self.btn_imagen.Bind(wx.EVT_BUTTON, self._guardar_imagen)
 
-    def cargar(self, escenas, escena, descripcion):
+    def cargar(self, escenas, escena, filas, fuente):
         self.cho_escena.Set(list(escenas))
         if escena in escenas:
             self.cho_escena.SetStringSelection(escena)
         elif escenas:
             self.cho_escena.SetSelection(0)
-        self.mostrar_descripcion(descripcion)
-
-    def mostrar_descripcion(self, descripcion):
-        self.txt_descripcion.SetValue(descripcion or "")
-
-    def mostrar_fallo(self, mensaje):
-        self.txt_descripcion.SetValue(mensaje)
+        self.pagina_fuentes.cargar(filas, fuente)
 
     def escena(self):
         return self.cho_escena.GetStringSelection()

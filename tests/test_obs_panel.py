@@ -269,6 +269,23 @@ class GestorPanelObsTest(unittest.TestCase):
         self.assertEqual(self.gestor(doble).fuentes("Escena"),
                          ("Cámara", "Chat en el vídeo", "Juego"))
 
+    def test_filas_escena_da_las_filas_de_la_escena_pedida(self):
+        doble = DobleObs(
+            [elemento(1, obs_panel.NOMBRE_FUENTE, 0, bloqueada=True),
+             elemento(2, "Juego", 1, x=800, y=450, ancho=1600, alto=900,
+                      alineacion=0)],
+            entradas=[{"inputName": obs_panel.NOMBRE_FUENTE,
+                       "inputKind": "browser_source"},
+                      {"inputName": "Juego", "inputKind": "game_capture"}])
+        filas = self.gestor(doble).filas_escena("Escena")
+        self.assertEqual([fila.nombre for fila in filas],
+                         ["Juego", obs_panel.NOMBRE_FUENTE])
+        self.assertEqual(
+            filas[0].texto,
+            "Juego, captura de juego, ocupa todo el vídeo, se ve")
+        self.assertTrue(filas[1].texto.endswith(", bloqueada"))
+        self.assertTrue(filas[1].bloqueada)
+
     def test_descripcion_escena_pide_escena_elementos_lienzo_y_entradas(self):
         doble = DobleObs(
             [elemento(1, obs_panel.NOMBRE_FUENTE, 0),

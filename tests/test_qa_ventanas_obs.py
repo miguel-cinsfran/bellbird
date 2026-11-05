@@ -62,42 +62,41 @@ class TestAbrirPanel(unittest.TestCase):
                          [(("o", ["ctrl", "shift"]),)])
         self.assertTrue(ventanas_obs._ir_a_pestana(
             app, res, ventanas_obs.PESTANA_GRABACION))
-        self.assertEqual(app.teclas_llamadas[-6:],
-                         [(("tab", ["ctrl"]),)] * 6)
+        self.assertEqual(app.teclas_llamadas[-5:],
+                         [(("tab", ["ctrl"]),)] * 5)
         self.assertEqual(app.actual, ventanas_obs.PESTANA_GRABACION)
         self.assertEqual(res.fallos, [])
 
 
 class TestDescuadreDePestanas(unittest.TestCase):
 
-    def test_las_siete_en_orden_no_descuidran(self):
+    def test_las_seis_en_orden_no_descuidran(self):
         self.assertIsNone(ventanas_obs.descuadre_de_pestanas(
-            ["General", "Escena", "Fuentes", "Agregar", "Transmisión",
+            ["General", "Escena", "Agregar", "Transmisión",
              "Audio", "Grabación"]))
 
     def test_una_pestana_de_mas_es_fallo_y_la_nombra(self):
         texto = ventanas_obs.descuadre_de_pestanas(
-            ["General", "Escena", "Fuentes", "Agregar", "Transmisión",
+            ["General", "Escena", "Agregar", "Transmisión",
              "Audio", "Grabación", "Filtros"])
         self.assertIsNotNone(texto)
         self.assertIn("Filtros", texto)
 
     def test_una_pestana_de_menos_es_fallo(self):
         texto = ventanas_obs.descuadre_de_pestanas(
-            ["General", "Escena", "Fuentes", "Agregar", "Transmisión",
-             "Audio"])
+            ["General", "Escena", "Agregar", "Transmisión", "Audio"])
         self.assertIsNotNone(texto)
 
     def test_el_orden_cambiado_es_fallo_y_lo_muestra(self):
         texto = ventanas_obs.descuadre_de_pestanas(
-            ["Escena", "General", "Fuentes", "Agregar", "Transmisión",
+            ["Escena", "General", "Agregar", "Transmisión",
              "Audio", "Grabación"])
         self.assertIsNotNone(texto)
         self.assertIn("Escena", texto)
 
     def test_ignora_mayusculas_y_espacios(self):
         self.assertIsNone(ventanas_obs.descuadre_de_pestanas(
-            [" general ", "Escena", "Fuentes", "agregar", "transmisión",
+            [" general ", "Escena", "agregar", "transmisión",
              "AUDIO", "Grabación"]))
 
 

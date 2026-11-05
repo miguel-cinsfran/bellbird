@@ -1,7 +1,7 @@
-"""Cuadro Tamaño de la fuente del Panel de OBS: pedir su parte del vídeo.
+"""Cuadro Posición y tamaño de la fuente del Panel de OBS.
 
-No habla con OBS: devuelve los porcentajes elegidos y la pestaña Fuentes
-los convierte a píxeles antes de aplicarlos.
+No habla con OBS: devuelve los porcentajes y el lugar elegidos, y la
+pestaña Escena los convierte a píxeles antes de aplicarlos.
 """
 
 from __future__ import annotations
@@ -9,7 +9,7 @@ from __future__ import annotations
 import wx
 
 from bellbird.core.idioma import _
-from bellbird.obs import tamano_relativo
+from bellbird.obs import obs_disposicion, tamano_relativo
 from bellbird.ui import paleta
 from bellbird.ui.accesibilidad import ContadorAccesible
 from bellbird.ui.preferencias_comun import (
@@ -17,12 +17,13 @@ from bellbird.ui.preferencias_comun import (
 
 
 class TamanoFuenteDialog(wx.Dialog):
-    """Pide el tamaño de una fuente como parte del vídeo, con el foco en Tamaño."""
+    """Pide el tamaño y el lugar de una fuente, con el foco en Tamaño."""
 
     def __init__(self, padre, porcentaje_ancho, porcentaje_alto):
-        super().__init__(padre, title=_("Tamaño de la fuente"),
+        super().__init__(padre, title=_("Posición y tamaño de la fuente"),
                          name="DialogoTamanoFuente")
         self._elegido = None
+        self._anclaje = ""
         self._crear_controles(porcentaje_ancho, porcentaje_alto)
         paleta.pintar_ventana(self)
         self.Centre()
@@ -38,10 +39,21 @@ class TamanoFuenteDialog(wx.Dialog):
         self._enlazar_eventos()
 
     def _crear_campos(self, vertical, porcentaje_ancho, porcentaje_alto):
+        self._crear_posicion(vertical)
         self._crear_tamano(vertical)
         self._crear_ancho(vertical, porcentaje_ancho)
         self._crear_proporcion(vertical)
         self._crear_alto(vertical, porcentaje_ancho, porcentaje_alto)
+
+    def _crear_posicion(self, vertical):
+        self.rotulo_posicion = wx.StaticText(self, label=_("&Posición:"))
+        self.cho_posicion = lista_con_nombre(
+            self, _("&Posición:"),
+            [_("Donde está ahora")]
+            + [_(obs_disposicion.etiqueta_anclaje(nombre))
+               for nombre in obs_disposicion.ANCLAJES])
+        self.cho_posicion.SetSelection(0)
+        fila_campo(vertical, self.rotulo_posicion, self.cho_posicion)
 
     def _crear_tamano(self, vertical):
         opciones = [_(nombre) for _clave, nombre, _fraccion
@@ -136,17 +148,27 @@ class TamanoFuenteDialog(wx.Dialog):
     def tamano_elegido(self):
         return self._elegido
 
+    def anclaje_elegido(self):
+        return self._anclaje
+
     def _al_aceptar(self, _event):
+        self._elegido = (self._porcentaje_ancho(), self._porcentaje_alto())
+        self._anclaje = self._lugar_elegido()
+        self.EndModal(wx.ID_OK)
+
+    def _porcentaje_ancho(self):
         indice = self.cho_tamano.GetSelection()
         if 0 <= indice < len(tamano_relativo.COMUNES):
-            porcentaje_ancho = int(round(
-                tamano_relativo.COMUNES[indice][2] * 100))
-        else:
-            porcentaje_ancho = self.sp_ancho.GetValue()
-        porcentaje_alto = (None if self.chk_proporcion.GetValue()
-                           else self.sp_alto.GetValue())
-        self._elegido = (porcentaje_ancho, porcentaje_alto)
-        self.EndModal(wx.ID_OK)
+            return int(round(tamano_relativo.COMUNES[indice][2] * 100))
+        return self.sp_ancho.GetValue()
+
+    def _porcentaje_alto(self):
+        return (None if self.chk_proporcion.GetValue()
+                else self.sp_alto.GetValue())
+
+    def _lugar_elegido(self):
+        lugar = self.cho_posicion.GetSelection()
+        return tuple(obs_disposicion.ANCLAJES)[lugar - 1] if lugar > 0 else ""
 
     def _al_cancelar(self, _event):
         self.EndModal(wx.ID_CANCEL)
@@ -159,11 +181,11 @@ class TamanoFuenteDialog(wx.Dialog):
 
 
 def pedir_tamano(padre, porcentaje_ancho, porcentaje_alto):
-    """Abre el cuadro y devuelve los porcentajes, o None si se cancela."""
+    """Abre el cuadro y devuelve porcentajes y lugar, o None si se cancela."""
     dialogo = TamanoFuenteDialog(padre, porcentaje_ancho, porcentaje_alto)
     try:
         if dialogo.ShowModal() == wx.ID_OK:
-            return dialogo.tamano_elegido()
+            return (*dialogo.tamano_elegido(), dialogo.anclaje_elegido())
         return None
     finally:
         dialogo.Destroy()

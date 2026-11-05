@@ -7,13 +7,14 @@ from bellbird.obs import obs_escena
 
 
 def elemento(identificador, nombre, indice, x=0, y=0, ancho=0, alto=0,
-              alineacion=0, visible=True, bounds=None):
+              alineacion=0, visible=True, bounds=None, bloqueada=False):
     transformacion = {"positionX": x, "positionY": y, "width": ancho,
                       "height": alto, "alignment": alineacion}
     if bounds is not None:
         transformacion.update(bounds)
     return {"sceneItemId": identificador, "sourceName": nombre,
             "sceneItemIndex": indice, "sceneItemEnabled": visible,
+            "sceneItemLocked": bloqueada,
             "sceneItemTransform": transformacion}
 
 
@@ -195,6 +196,59 @@ class DescribirEscenaTest(unittest.TestCase):
         self.assertEqual(len(frase.splitlines()), 3)
         for linea in frase.splitlines():
             self.assertTrue(linea.endswith("."))
+
+
+class FilasDeEscenaTest(unittest.TestCase):
+    def test_el_ejemplo_de_e3_sin_numero_ni_punto(self):
+        elementos = [
+            elemento(1, "Chat en el vídeo", 1, 1568, 882, 460, 620, 10,
+                     bloqueada=True),
+            elemento(2, "Cámara", 0, 800, 450, 1600, 900, 0),
+        ]
+        filas = obs_escena.filas_de_escena(
+            elementos, *LIENZO,
+            {"Chat en el vídeo": "navegador", "Cámara": "cámara"})
+        self.assertEqual(
+            [fila.texto for fila in filas],
+            ["Chat en el vídeo, navegador, abajo a la derecha, "
+             "460 por 620 píxeles, se ve, bloqueada",
+             "Cámara, cámara, ocupa todo el vídeo, se ve en parte: "
+             "Chat en el vídeo tapa el 20 por ciento"])
+        self.assertEqual([fila.nombre for fila in filas],
+                         ["Chat en el vídeo", "Cámara"])
+
+    def test_una_fuente_oculta_lo_dice(self):
+        filas = obs_escena.filas_de_escena(
+            [elemento(1, "Panel", 0, 32, 882, 460, 620, 9, visible=False)],
+            *LIENZO, {"Panel": "navegador"})
+        self.assertEqual(
+            filas[0].texto,
+            "Panel, navegador, abajo a la izquierda, 460 por 620 píxeles, "
+            "oculta en OBS")
+        self.assertFalse(filas[0].visible)
+
+    def test_una_bloqueada_termina_en_bloqueada(self):
+        filas = obs_escena.filas_de_escena(
+            [elemento(1, "Panel", 0, 32, 882, 460, 620, 9, bloqueada=True)],
+            *LIENZO, {"Panel": "navegador"})
+        self.assertTrue(filas[0].texto.endswith(", bloqueada"))
+        self.assertTrue(filas[0].bloqueada)
+
+    def test_cada_linea_de_la_descripcion_es_la_fila_sin_bloqueo(self):
+        elementos = [
+            elemento(1, "Panel", 0, 32, 882, 460, 620, 9),
+            elemento(2, "Captura", 1, 800, 450, 1600, 900, 0),
+            elemento(3, "Aviso", 2, 32, 262, 200, 100, 5, visible=False),
+        ]
+        tipos = {"Panel": "navegador", "Captura": "captura de pantalla",
+                 "Aviso": "texto"}
+        filas = obs_escena.filas_de_escena(elementos, *LIENZO, tipos)
+        lineas = obs_escena.describir_escena(
+            "Principal", elementos, *LIENZO, tipos).splitlines()
+        self.assertEqual(len(lineas), len(filas) + 1)
+        for numero, (linea, fila) in enumerate(zip(lineas[1:], filas), 1):
+            with self.subTest(numero=numero):
+                self.assertEqual(linea, f"{numero}: {fila.texto}.")
 
 
 class ZonaCercanaTest(unittest.TestCase):

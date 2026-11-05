@@ -8,7 +8,6 @@ from bellbird.core import diagnostico
 from bellbird.core.idioma import _
 from bellbird.obs import consultas_transmision
 from bellbird.obs import estado_panel
-from bellbird.obs import obs_disposicion
 from bellbird.obs import obs_general
 from bellbird.obs import obs_lanzador
 from bellbird.obs.obs_destinos import DESTINOS
@@ -19,7 +18,6 @@ from bellbird.ui.accesibilidad import anunciar, enlazar_anuncio_de_pestana
 from bellbird.ui.escena_pagina_agregar import PaginaAgregar
 from bellbird.ui.escena_pagina_audio import PaginaAudio
 from bellbird.ui.escena_pagina_escena import PaginaEscena
-from bellbird.ui.escena_pagina_fuentes import PaginaFuentes
 from bellbird.ui.gui_transmision import PaginaTransmision
 from bellbird.ui.obs_pagina_grabacion import PaginaGrabacion
 from bellbird.ui.obs_pagina_general import PaginaGeneral
@@ -30,11 +28,10 @@ logger = diagnostico.obtener_logger(__name__)
 
 PESTANA_GENERAL = 0
 PESTANA_ESCENA = 1
-PESTANA_FUENTES = 2
-PESTANA_AGREGAR = 3
-PESTANA_TRANSMISION = 4
-PESTANA_AUDIO = 5
-PESTANA_GRABACION = 6
+PESTANA_AGREGAR = 2
+PESTANA_TRANSMISION = 3
+PESTANA_AUDIO = 4
+PESTANA_GRABACION = 5
 
 
 class VentanaObs(wx.Dialog):
@@ -52,7 +49,7 @@ class VentanaObs(wx.Dialog):
             self, self._activar, self._escribir_fallo, self._enfocar_tras_fallo,
             self._tras_operacion)
         self._pestana_inicial = (
-            pestana if 0 <= pestana < 7 else PESTANA_ESCENA)
+            pestana if 0 <= pestana < 6 else PESTANA_ESCENA)
         self._crear_controles()
         self._en_hilo(self._cargar_inicial, self._inicial_cargada)
 
@@ -64,15 +61,14 @@ class VentanaObs(wx.Dialog):
             self.nb, self._principal, self._gestor, self._operaciones,
             self._refrescar_general)
         self._pagina_escena = PaginaEscena(
-            self.nb, self._gestor, self._operaciones, self._elegir_escena)
+            self.nb, self, self._gestor, self._operaciones,
+            self._restablecimiento, self._escena_elegida, self._elegir_escena)
+        self._pagina_fuentes = self._pagina_escena.pagina_fuentes
         self._pagina_audio = PaginaAudio(
             self.nb, self._principal, self._gestor, self._operaciones)
         self._pagina_grabacion = PaginaGrabacion(
             self.nb, self._principal, self._gestor, self._operaciones,
             self._refrescar_grabacion)
-        self._pagina_fuentes = PaginaFuentes(
-            self.nb, self, self._gestor, self._operaciones,
-            self._restablecimiento, self._escena_elegida)
         self._pagina_agregar = PaginaAgregar(
             self.nb, self, self._gestor, self._operaciones,
             self._escena_elegida, self._recargar_escena)
@@ -80,7 +76,6 @@ class VentanaObs(wx.Dialog):
             self.nb, self._actualizar_general, self._mostrar_obs)
         self.nb.AddPage(self._pagina_general, _("General"))
         self.nb.AddPage(self._pagina_escena, _("Escena"))
-        self.nb.AddPage(self._pagina_fuentes, _("Fuentes"))
         self.nb.AddPage(self._pagina_agregar, _("Agregar"))
         self.nb.AddPage(self._pagina_transmision, _("Transmisión"))
         self.nb.AddPage(self._pagina_audio, _("Audio"))
@@ -120,7 +115,6 @@ class VentanaObs(wx.Dialog):
     def _primer_control(self, indice):
         controles = {
             PESTANA_GENERAL: self._pagina_general.txt_estado,
-            PESTANA_FUENTES: self._pagina_fuentes.cho_fuente,
             PESTANA_AGREGAR: self._pagina_agregar.cho_ventana,
             PESTANA_AUDIO: self._pagina_audio.chk_silenciar}
         return controles.get(indice)
@@ -152,8 +146,7 @@ class VentanaObs(wx.Dialog):
 
     def _inicial_cargada(self, datos):
         escenas, escena, leida, estado, estadisticas = datos
-        self._pagina_escena.cargar(escenas, escena, leida.descripcion)
-        self._pagina_fuentes.cargar(leida.fuentes, leida.fuente, leida.snap)
+        self._pagina_escena.cargar(escenas, escena, leida.filas, leida.fuente)
         self._pagina_agregar.cargar_ventanas(leida.opciones, leida.actual)
         self._pagina_audio.fijar(estado.silenciado)
         self._pagina_grabacion.aplicar(estado)
@@ -183,11 +176,10 @@ class VentanaObs(wx.Dialog):
             self._escena_leida)
 
     def _escena_leida(self, leida):
-        self._pagina_escena.mostrar_descripcion(leida.descripcion)
-        self._pagina_fuentes.cargar(leida.fuentes, leida.fuente, leida.snap)
+        self._pagina_fuentes.cargar(leida.filas, leida.fuente)
         self._pagina_agregar.cargar_ventanas(leida.opciones, leida.actual)
-        if leida.fuentes:
-            self._pagina_fuentes.anunciar_snap(leida.snap)
+        if leida.descripcion:
+            anunciar(leida.descripcion.splitlines()[0])
 
     def _recargar_escena(self):
         if self._operaciones.en_vuelo:
@@ -252,12 +244,10 @@ class VentanaObs(wx.Dialog):
         self.btn_cerrar.Enable(activo)
 
     def _tras_operacion(self, resultado):
-        if isinstance(resultado, obs_disposicion.SnapshotPanel):
-            self._pagina_fuentes.mostrar_snap(resultado)
+        """La lista de fuentes se refresca en el callback de cada acción."""
 
     def _escribir_fallo(self, mensaje):
         self._pagina_general.mostrar([mensaje])
-        self._pagina_escena.mostrar_fallo(mensaje)
 
     def _enfocar_tras_fallo(self):
         """El foco se queda donde estaba: el fallo ya se anunció."""

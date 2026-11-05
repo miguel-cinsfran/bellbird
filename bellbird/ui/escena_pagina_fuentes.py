@@ -1,20 +1,18 @@
-"""Pestaña Fuentes de la ventana Escena: colocar y ajustar una fuente."""
+"""Fuentes de la pestaña Escena: la lista y las acciones sobre una fuente."""
 
 from __future__ import annotations
 
 import wx
 
-from bellbird.core.idioma import _, pgettext
+from bellbird.core.idioma import _
 from bellbird.obs import (
     aplicar_diseno, consultas_transmision, disenos_fabrica, disenos_guardados,
     obs_disposicion, tamano_relativo)
-from bellbird.ui import escena_disenos, escena_tamano
+from bellbird.ui import escena_disenos, escena_menu_fuente, escena_tamano
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
-from bellbird.ui.gui import caja_de_grupo
 from bellbird.ui.mover_con_flechas import MoverConFlechas
 from bellbird.ui.preferencias_comun import (
-    boton, fila_campo, fila_grilla, grilla_campos, lista_con_nombre,
-    nombre_de_etiqueta)
+    boton, fila_campo, nombre_de_etiqueta)
 
 
 class PaginaFuentes(wx.Panel):
@@ -26,15 +24,13 @@ class PaginaFuentes(wx.Panel):
         self._operaciones = operaciones
         self._registro = registro
         self._escena_elegida = escena_elegida
+        self._filas = ()
         self._crear_controles()
         self._mover = MoverConFlechas(
             ventana, self.btn_ajuste, gestor, operaciones, registro,
             self._destino, self._mostrar_snap)
         self.acciones = (
-            self.cho_fuente, self.cho_posicion, self.btn_colocar,
-            self.chk_mostrar, self.chk_fijar, self.btn_capa,
-            self.btn_tamano, self.btn_ajuste, self.btn_diseno,
-            self.btn_restaurar, self.txt_detalle)
+            self.btn_ajuste, self.btn_diseno, self.btn_restaurar)
         self._enlazar_eventos()
 
     @property
@@ -42,12 +38,24 @@ class PaginaFuentes(wx.Panel):
         return self._mover.en_curso
 
     def _crear_controles(self):
-        self._ancho, self._alto = 460, 620
-        self._lienzo_ancho, self._lienzo_alto = 0, 0
         caja = wx.BoxSizer(wx.VERTICAL)
-        sizer, padre = caja_de_grupo(self, _("Colocar fuente"))
-        self._crear_grupo_colocar(padre, sizer)
-        caja.Add(sizer, 0, wx.EXPAND | wx.ALL, 8)
+        self._crear_lista(caja)
+        self._crear_botones(caja)
+        self.SetSizer(caja)
+
+    def _crear_lista(self, caja):
+        rotulo_fuentes = wx.StaticText(self, label=_("&Fuentes:"))
+        self.lst_fuentes = wx.ListBox(
+            self, name=nombre_de_etiqueta(_("&Fuentes:")))
+        nombre_accesible(self.lst_fuentes, self.lst_fuentes.GetName())
+        self.lst_fuentes.SetMinSize((-1, 120))
+        fila_campo(caja, rotulo_fuentes, self.lst_fuentes)
+
+    def _crear_botones(self, caja):
+        self.btn_ajuste = boton(
+            self, _("Mover con flec&has"),
+            nombre_de_etiqueta(_("Mover con flec&has")))
+        caja.Add(self.btn_ajuste, 0, wx.ALL, 8)
         self.btn_diseno = boton(
             self, _("&Aplicar diseño…"),
             nombre_de_etiqueta(_("&Aplicar diseño…")))
@@ -56,279 +64,189 @@ class PaginaFuentes(wx.Panel):
             self, _("Deshacer cambi&os"),
             nombre_de_etiqueta(_("Deshacer cambi&os")))
         caja.Add(self.btn_restaurar, 0, wx.ALL, 8)
-        self.SetSizer(caja)
-
-    def _crear_grupo_colocar(self, padre, sizer):
-        grilla = grilla_campos()
-        rotulo_fuente = wx.StaticText(padre, label=_("&Fuente:"))
-        self.cho_fuente = lista_con_nombre(padre, _("&Fuente:"))
-        fila_grilla(grilla, rotulo_fuente, self.cho_fuente)
-        sizer.Add(grilla, 0, wx.EXPAND | wx.ALL, 6)
-        self._crear_detalle(padre, sizer)
-        self._crear_fila_posicion(padre, sizer)
-        self._crear_fila_controles(padre, sizer)
-
-    def _crear_fila_posicion(self, padre, sizer):
-        grilla = grilla_campos()
-        rotulo_posicion = wx.StaticText(padre, label=_("&Posición:"))
-        self.cho_posicion = lista_con_nombre(
-            padre, _("&Posición:"),
-            [_(obs_disposicion.etiqueta_anclaje(nombre))
-             for nombre in obs_disposicion.ANCLAJES])
-        self.btn_colocar = boton(
-            padre, _("&Mover fuente"), nombre_de_etiqueta(_("&Mover fuente")))
-        fila_grilla(grilla, rotulo_posicion, self.cho_posicion,
-                    self.btn_colocar)
-        sizer.Add(grilla, 0, wx.EXPAND | wx.ALL, 6)
-
-    def _crear_detalle(self, padre, sizer):
-        rotulo_detalle = wx.StaticText(
-            padre, label=_("&Detalle de la fuente:"))
-        self.txt_detalle = wx.TextCtrl(
-            padre, style=wx.TE_MULTILINE | wx.TE_READONLY,
-            name=nombre_de_etiqueta(_("&Detalle de la fuente:")))
-        nombre_accesible(self.txt_detalle, self.txt_detalle.GetName())
-        self.txt_detalle.SetMinSize((-1, 90))
-        fila_campo(sizer, rotulo_detalle, self.txt_detalle)
-
-    def _crear_fila_controles(self, padre, sizer):
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        self._crear_casillas(padre)
-        self.btn_capa = boton(
-            padre, _("Ord&enar"), nombre_de_etiqueta(_("Ord&enar")))
-        self.btn_tamano = boton(
-            padre, _("&Tamaño…"), nombre_de_etiqueta(_("&Tamaño…")))
-        self.btn_ajuste = boton(
-            padre, _("Mover con flec&has"),
-            nombre_de_etiqueta(_("Mover con flec&has")))
-        for control in (self.chk_mostrar, self.chk_fijar, self.btn_capa,
-                        self.btn_tamano, self.btn_ajuste):
-            fila.Add(control, 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 4)
-        sizer.Add(fila, 0, wx.EXPAND | wx.ALL, 6)
-
-    def _crear_casillas(self, padre):
-        self.chk_mostrar = wx.CheckBox(
-            padre, label=_("Mostrar en la esce&na"),
-            name=nombre_de_etiqueta(_("Mostrar en la esce&na")))
-        self.chk_fijar = wx.CheckBox(
-            padre, label=_("&Bloquear posición"),
-            name=nombre_de_etiqueta(_("&Bloquear posición")))
 
     def _enlazar_eventos(self):
-        self.cho_fuente.Bind(wx.EVT_CHOICE, self._cambiar_fuente)
-        self.cho_fuente.Bind(wx.EVT_KEY_DOWN, self._tecla_fuente)
-        self.cho_fuente.Bind(wx.EVT_CONTEXT_MENU,
-                             self._menu_contextual_fuente)
-        # Recorrer con flechas dispara EVT_CHOICE y esto no debe mover nada.
-        self.btn_colocar.Bind(wx.EVT_BUTTON, self._colocar)
-        self.btn_tamano.Bind(wx.EVT_BUTTON, self._tamano)
-        self.btn_capa.Bind(wx.EVT_BUTTON, self._capa)
-        self.chk_mostrar.Bind(wx.EVT_CHECKBOX, self._mostrar)
-        self.chk_fijar.Bind(wx.EVT_CHECKBOX, self._fijar)
+        self.lst_fuentes.Bind(wx.EVT_KEY_DOWN, self._tecla_fuente)
+        self.lst_fuentes.Bind(wx.EVT_CONTEXT_MENU, self._menu_contextual)
         self.btn_diseno.Bind(wx.EVT_BUTTON, self._aplicar_diseno)
         self.btn_restaurar.Bind(wx.EVT_BUTTON, self._restaurar)
 
-    def _capa(self, _event):
-        self._mostrar_menu_capa(self.btn_capa)
+    def cargar(self, filas, fuente):
+        self._filas = tuple(filas or ())
+        self.lst_fuentes.Set([fila.texto for fila in self._filas])
+        indice = next((i for i, fila in enumerate(self._filas)
+                       if fila.nombre == fuente), wx.NOT_FOUND)
+        self.lst_fuentes.SetSelection(indice)
+
+    def fuente(self):
+        indice = self.lst_fuentes.GetSelection()
+        if 0 <= indice < len(self._filas):
+            return self._filas[indice].nombre
+        return ""
+
+    def _fila(self):
+        indice = self.lst_fuentes.GetSelection()
+        if 0 <= indice < len(self._filas):
+            return self._filas[indice]
+        return None
+
+    def _escena(self):
+        return self._escena_elegida()
+
+    def _destino(self):
+        return self._escena(), self.fuente()
 
     def _tecla_fuente(self, event):
         tecla = event.GetKeyCode()
         if (tecla == wx.WXK_WINDOWS_MENU
                 or (tecla == wx.WXK_F10 and event.ShiftDown())):
-            self._mostrar_menu_capa(self.cho_fuente)
+            self._mostrar_menu_fuente(self.lst_fuentes)
             return
         event.Skip()
 
-    def _menu_contextual_fuente(self, _event):
-        self._mostrar_menu_capa(self.cho_fuente)
+    def _menu_contextual(self, _event):
+        self._mostrar_menu_fuente(self.lst_fuentes)
 
-    def _mostrar_menu_capa(self, ancla):
-        if not self._fuente():
+    def _mostrar_menu_fuente(self, ancla):
+        fila = self._fila()
+        if fila is None:
             anunciar(_("Sin selección"))
             return
-        menu = self._menu_de_capa()
+        menu = escena_menu_fuente.menu_de_fuente(
+            fila, self._mostrar, self._fijar, self._posicion_tamano,
+            self._ordenar)
         ancla.PopupMenu(menu)
         menu.Destroy()
 
-    def _menu_de_capa(self):
-        menu = wx.Menu()
-        for etiqueta, accion in (
-                (_("Mover a la &cima"), lambda: self._frente(None)),
-                (pgettext("orden de fuentes", "&Subir"),
-                 lambda: self._movimiento("adelante")),
-                (pgettext("orden de fuentes", "&Bajar"),
-                 lambda: self._movimiento("atras")),
-                (_("Mover al &fondo"),
-                 lambda: self._movimiento("fondo"))):
-            identificador = wx.NewIdRef()
-            menu.Append(identificador, etiqueta)
-            menu.Bind(wx.EVT_MENU,
-                      lambda _evento, funcion=accion: funcion(),
-                      id=identificador)
-        return menu
-
-    def cargar(self, fuentes, fuente, snap):
-        self.cho_fuente.Set(list(fuentes))
-        if fuente:
-            self.cho_fuente.SetStringSelection(fuente)
-        if not fuentes:
-            self.txt_detalle.SetValue(_("La escena no tiene fuentes."))
+    def _ordenar(self, movimiento):
+        if movimiento == "cima":
+            self._frente()
         else:
-            self._mostrar_snap(snap)
+            self._movimiento(movimiento)
 
-    def mostrar_snap(self, snap):
-        self._mostrar_snap(snap)
+    def _cambiar(self, escena, fuente, funcion, *argumentos):
+        snap = consultas_transmision.cambiar_y_leer(
+            self._gestor, self._registro, escena, fuente, funcion,
+            *argumentos)
+        return snap, consultas_transmision.leer_filas(self._gestor, escena)
 
-    def anunciar_snap(self, snap):
+    def _con_snap(self, datos, fuente):
+        snap, filas = datos
+        self.cargar(filas, fuente)
         self._anunciar_snap(snap)
 
-    def _escena(self):
-        return self._escena_elegida()
+    def _mostrar(self, visible):
+        escena, fuente = self._destino()
+        if not fuente or self._operaciones.en_vuelo:
+            return
+        self._operaciones.en_hilo(
+            lambda: self._cambiar(escena, fuente, self._gestor.mostrar,
+                                  visible),
+            lambda datos: self._con_snap(datos, fuente))
 
-    def _fuente(self):
-        return self.cho_fuente.GetStringSelection()
+    def _fijar(self, fijada):
+        escena, fuente = self._destino()
+        if not fuente or self._operaciones.en_vuelo:
+            return
+        self._operaciones.en_hilo(
+            lambda: self._cambiar(escena, fuente, self._gestor.fijar,
+                                  fijada),
+            lambda datos: self._con_snap(datos, fuente))
 
-    def _destino(self):
-        return self._escena(), self._fuente()
+    def _frente(self):
+        escena, fuente = self._destino()
+        if not fuente or self._operaciones.en_vuelo:
+            return
+        self._operaciones.en_hilo(
+            lambda: self._cambiar(escena, fuente, self._gestor.al_frente),
+            lambda datos: self._con_snap(datos, fuente))
 
-    def _mostrar_snap(self, snap):
-        self.txt_detalle.SetValue(consultas_transmision.descripcion_de_fuente(
-            "", self._fuente(), snap))
-        anclaje = obs_disposicion.anclaje_de(
-            (snap.izquierda, snap.arriba, snap.ancho, snap.alto),
-            snap.lienzo_ancho, snap.lienzo_alto)
-        self.cho_posicion.SetSelection(
-            tuple(obs_disposicion.ANCLAJES).index(anclaje)
-            if anclaje else wx.NOT_FOUND)
-        self._guardar_tamano(snap)
-        self.chk_mostrar.SetValue(snap.visible)
-        self.chk_fijar.SetValue(snap.bloqueada)
+    def _movimiento(self, movimiento):
+        escena, fuente = self._destino()
+        if not fuente or self._operaciones.en_vuelo:
+            return
+        datos = {}
 
-    def _guardar_tamano(self, snap):
-        if snap.ancho:
-            self._ancho = snap.ancho
-        if snap.alto:
-            self._alto = snap.alto
-        if snap.lienzo_ancho:
-            self._lienzo_ancho = snap.lienzo_ancho
-        if snap.lienzo_alto:
-            self._lienzo_alto = snap.lienzo_alto
+        def mover(escena, movimiento, fuente):
+            datos["movio"], datos["frase"] = self._gestor.mover_capa(
+                escena, movimiento, fuente=fuente)
+
+        self._operaciones.en_hilo(
+            lambda: self._cambiar(escena, fuente, mover, movimiento),
+            lambda datos_accion: self._movimiento_aplicado(
+                datos_accion, datos, fuente))
+
+    def _movimiento_aplicado(self, datos_accion, datos, fuente):
+        snap, filas = datos_accion
+        self.cargar(filas, fuente)
+        texto = datos["frase"]
+        if datos["movio"]:
+            texto = f"{texto} {self._descripcion_corta(snap)}"
+        anunciar(texto)
+
+    def _posicion_tamano(self):
+        escena, fuente = self._destino()
+        if not fuente:
+            anunciar(_("Sin selección"))
+            return
+        if self._operaciones.en_vuelo:
+            return
+        self._operaciones.en_hilo(
+            lambda: self._gestor.instantanea(escena, fuente=fuente),
+            lambda snap: self._abrir_posicion_tamano(escena, fuente, snap))
+
+    def _abrir_posicion_tamano(self, escena, fuente, snap):
+        elegido = self._pedir_tamano(snap, fuente)
+        if elegido is None:
+            return
+        ancho, alto, anclaje = elegido
+        self._operaciones.en_hilo(
+            lambda: self._aplicar_posicion_tamano(
+                escena, fuente, ancho, alto, anclaje),
+            lambda datos: self._tamano_aplicado(datos, fuente))
+
+    def _pedir_tamano(self, snap, fuente):
+        porcentajes = tamano_relativo.porcentajes(
+            snap.ancho, snap.alto, snap.lienzo_ancho, snap.lienzo_alto)
+        if not all(porcentajes):
+            anunciar(_("{fuente} todavía no informa su tamaño.").format(
+                fuente=fuente))
+            return None
+        elegido = escena_tamano.pedir_tamano(self, *porcentajes)
+        self.lst_fuentes.SetFocus()
+        if elegido is None:
+            return None
+        pancho, palto, anclaje = elegido
+        ancho, alto = tamano_relativo.a_pixeles(
+            pancho, palto, snap.lienzo_ancho, snap.lienzo_alto,
+            snap.ancho, snap.alto)
+        return ancho, alto, anclaje
+
+    def _aplicar_posicion_tamano(self, escena, fuente, ancho, alto, anclaje):
+        datos = consultas_transmision.aplicar_posicion_y_tamano(
+            self._gestor, self._registro, escena, fuente, ancho, alto,
+            anclaje)
+        return datos, consultas_transmision.leer_filas(self._gestor, escena)
+
+    def _tamano_aplicado(self, datos, fuente):
+        (snap, aplicado), filas = datos
+        self.cargar(filas, fuente)
+        if aplicado:
+            self._anunciar_snap(snap)
+        else:
+            anunciar(_("{fuente} todavía no informa su tamaño.").format(
+                fuente=fuente))
+
+    def _mostrar_snap(self, snap, filas=None):
+        if filas is not None:
+            self.cargar(filas, self.fuente())
 
     def _anunciar_snap(self, snap):
         anunciar(self._descripcion_corta(snap))
 
     def _descripcion_corta(self, snap):
         return obs_disposicion.describir_fuente(
-            self._fuente(), snap, obs_disposicion.ACTIVOS_DEFECTO)
-
-    def _cambiar_fuente(self, event):
-        if self._operaciones.en_vuelo:
-            return
-        escena, fuente = self._destino()
-        # Escena y fuente llegan como argumentos: los hilos de trabajo no deben
-        # leer controles de wx, eso solo es seguro desde el hilo principal.
-        self._operaciones.en_hilo(
-            lambda: self._gestor.instantanea(escena, fuente=fuente),
-            self._anunciar_snap)
-        event.Skip()
-
-    def _colocar(self, event):
-        anclaje = tuple(obs_disposicion.ANCLAJES)[self.cho_posicion.GetSelection()]
-        escena, fuente = self._destino()
-        self._operaciones.en_hilo(
-            lambda: consultas_transmision.cambiar_y_leer(
-                self._gestor, self._registro, escena, fuente,
-                self._gestor.colocar, anclaje),
-            self._anunciar_snap)
-        event.Skip()
-
-    def _tamano(self, event):
-        escena, fuente = self._destino()
-        if not fuente:
-            anunciar(_("Sin selección"))
-            return
-        ancho, alto = self._pedir_pixeles(fuente)
-        if ancho is None:
-            return
-        self._operaciones.en_hilo(
-            lambda: consultas_transmision.aplicar_tamano(
-                self._gestor, self._registro, escena, fuente, ancho, alto),
-            self._tamano_aplicado)
-
-    def _pedir_pixeles(self, fuente):
-        porcentajes = tamano_relativo.porcentajes(
-            self._ancho, self._alto, self._lienzo_ancho, self._lienzo_alto)
-        if not all(porcentajes):
-            anunciar(_("{fuente} todavía no informa su tamaño.").format(
-                fuente=fuente))
-            return None, None
-        tamano = escena_tamano.pedir_tamano(self, *porcentajes)
-        self.btn_tamano.SetFocus()
-        if tamano is None:
-            return None, None
-        return tamano_relativo.a_pixeles(
-            *tamano, self._lienzo_ancho, self._lienzo_alto,
-            self._ancho, self._alto)
-
-    def _tamano_aplicado(self, datos):
-        snap, aplicado = datos
-        self._mostrar_snap(snap)
-        if aplicado:
-            self._anunciar_snap(snap)
-        else:
-            anunciar(_("{fuente} todavía no informa su tamaño.").format(
-                fuente=self._fuente()))
-
-    def _mostrar(self, event):
-        visible = self.chk_mostrar.GetValue()
-        escena, fuente = self._destino()
-        self._operaciones.en_hilo(
-            lambda: consultas_transmision.cambiar_y_leer(
-                self._gestor, self._registro, escena, fuente,
-                self._gestor.mostrar, visible),
-            self._anunciar_snap)
-        event.Skip()
-
-    def _fijar(self, event):
-        fijada = self.chk_fijar.GetValue()
-        escena, fuente = self._destino()
-        self._operaciones.en_hilo(
-            lambda: consultas_transmision.cambiar_y_leer(
-                self._gestor, self._registro, escena, fuente,
-                self._gestor.fijar, fijada),
-            self._anunciar_snap)
-        event.Skip()
-
-    def _frente(self, event):
-        escena, fuente = self._destino()
-        self._operaciones.en_hilo(
-            lambda: consultas_transmision.cambiar_y_leer(
-                self._gestor, self._registro, escena, fuente,
-                self._gestor.al_frente),
-            self._anunciar_snap)
-
-    def _movimiento(self, movimiento):
-        escena, fuente = self._destino()
-        datos = {}
-
-        def mover(escena, movimiento, fuente):
-            datos["movio"], datos["frase"] = self._gestor.mover_capa(
-                escena, movimiento, fuente=fuente)
-            datos["fuentes"] = self._gestor.fuentes(escena)
-
-        self._operaciones.en_hilo(
-            lambda: consultas_transmision.cambiar_y_leer(
-                self._gestor, self._registro, escena, fuente, mover,
-                movimiento),
-            lambda snap: self._movimiento_aplicado(snap, datos, fuente))
-
-    def _movimiento_aplicado(self, snap, datos, fuente):
-        self.cho_fuente.Set(list(datos["fuentes"]))
-        self.cho_fuente.SetStringSelection(fuente)
-        texto = datos["frase"]
-        if datos["movio"]:
-            texto = f"{texto} {self._descripcion_corta(snap)}"
-        anunciar(texto)
+            self.fuente(), snap, obs_disposicion.ACTIVOS_DEFECTO)
 
     def _aplicar_diseno(self, event):
         escena = self._escena()
@@ -352,14 +270,35 @@ class PaginaFuentes(wx.Panel):
             return
         nombre, diseno = elegido
         self._operaciones.en_hilo(
-            lambda: aplicar_diseno.aplicar_diseno(
-                self._gestor, self._registro, escena, diseno),
-            lambda resultado: anunciar(disenos_fabrica.resumen(
-                nombre, resultado[0], sin_mover=resultado[1])))
+            lambda: self._aplicar_diseno_elegido(escena, diseno),
+            lambda datos: self._diseno_aplicado(nombre, datos))
+
+    def _aplicar_diseno_elegido(self, escena, diseno):
+        resultado = aplicar_diseno.aplicar_diseno(
+            self._gestor, self._registro, escena, diseno)
+        return resultado, consultas_transmision.leer_filas(
+            self._gestor, escena)
+
+    def _diseno_aplicado(self, nombre, datos):
+        resultado, filas = datos
+        self.cargar(filas, self.fuente())
+        anunciar(disenos_fabrica.resumen(
+            nombre, resultado[0], sin_mover=resultado[1]))
 
     def _restaurar(self, event):
         escena, fuente = self._destino()
+        if self._operaciones.en_vuelo:
+            return
         self._operaciones.en_hilo(
-            lambda: consultas_transmision.restaurar(
-                self._gestor, self._registro, escena, fuente),
-            lambda snap: anunciar(_("Cambios deshechos")))
+            lambda: self._restaurar_y_leer(escena, fuente),
+            lambda datos: self._restaurado(datos, fuente))
+
+    def _restaurar_y_leer(self, escena, fuente):
+        snap = consultas_transmision.restaurar(
+            self._gestor, self._registro, escena, fuente)
+        return snap, consultas_transmision.leer_filas(self._gestor, escena)
+
+    def _restaurado(self, datos, fuente):
+        _snap, filas = datos
+        self.cargar(filas, fuente)
+        anunciar(_("Cambios deshechos"))

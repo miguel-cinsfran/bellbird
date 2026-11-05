@@ -13,7 +13,6 @@ from bellbird.capture.tiktok_captura import (
     _clase_suscripcion,
     autor_de_evento,
 )
-from bellbird.core import avisos_tiktok
 from bellbird.core.idioma import _
 from bellbird.core.config import (
     TIPO_COFRE,
@@ -263,8 +262,5 @@ def registrar_manejadores(client, modulo_eventos, *, on_evento,
             client.on(clase)(fabrica(on_evento, descartar, agrupador))
         else:
             client.on(clase)(fabrica(on_evento, descartar))
-    if avisos_tiktok.modo_de(config or {}, TIPO_ENTRADA) != "ocultar":
-        # Quién entra al directo. Solo si el usuario lo pidió: en directos
-        # grandes son constantes y saturarían el TTS.
-        client.on(clase_entrada)(_al_entrar(on_evento, descartar))
+    client.on(clase_entrada)(_al_entrar(on_evento, descartar))
     client.on(clase_conteo)(_al_contar_espectadores(on_espectadores, agrupador, on_evento))

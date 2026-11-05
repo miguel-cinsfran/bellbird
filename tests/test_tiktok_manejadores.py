@@ -78,13 +78,12 @@ class TestRegistrarManejadores(unittest.TestCase):
         cliente, mod, _recibidos, _vistos, _estados = _registrar(nombres)
         self.assertIn(mod.SubNotifyEvent, cliente.manejadores)
 
-    def test_join_solo_si_el_evento_de_entrada_no_esta_desactivado(self):
-        cliente, mod, _rec, _vis, _est = _registrar(
-            _TODAS, evento_entrada="principal")
-        self.assertIn(mod.JoinEvent, cliente.manejadores)
-        cliente2, mod2, _r2, _v2, _e2 = _registrar(
-            _TODAS, evento_entrada="ocultar")
-        self.assertNotIn(mod2.JoinEvent, cliente2.manejadores)
+    def test_join_se_registra_aunque_el_evento_de_entrada_este_desactivado(self):
+        for modo in ("principal", "ocultar"):
+            with self.subTest(modo=modo):
+                cliente, mod, _rec, _vis, _est = _registrar(
+                    _TODAS, evento_entrada=modo)
+                self.assertIn(mod.JoinEvent, cliente.manejadores)
 
     def test_descartar_true_bloquea_el_comentario(self):
         cliente, mod, recibidos, _vistos, _estados = _registrar(

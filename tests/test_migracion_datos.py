@@ -177,8 +177,8 @@ def _pares_anteriores(tmp: Path, datos: Path):
     """Pares (viejo, nuevo) de la migración de nombres, en carpetas reales."""
     return (
         [(tmp / "local" / "YTChat TTS" / "yt-dlp.exe", datos / "yt-dlp.exe")],
-        [(datos / "ytchat-debug.log", datos / "bellbird-debug.log"),
-         (datos / "ytchat-fallos.log", datos / "bellbird-fallos.log")],
+        [(datos / "ytchat-debug.log", datos / "guyrapu-debug.log"),
+         (datos / "ytchat-fallos.log", datos / "guyrapu-fallos.log")],
     )
 
 
@@ -243,7 +243,7 @@ class TestNombresAnteriores(unittest.TestCase):
                 resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
             self.assertTrue(viejo.is_file())
             self.assertTrue(any("yt-dlp.exe" in error for error in resultado.errores))
-            self.assertEqual((datos / "bellbird-fallos.log").read_text(encoding="utf-8"),
+            self.assertEqual((datos / "guyrapu-fallos.log").read_text(encoding="utf-8"),
                              "fallos")
 
     def test_copia_con_otro_tamano_no_borra_el_viejo(self):
@@ -276,16 +276,16 @@ class TestNombresAnteriores(unittest.TestCase):
                 (datos / nombre).write_text(contenido, encoding="utf-8")
             resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
             for nombre, contenido in (
-                    ("bellbird-debug.log", "depura"),
-                    ("bellbird-debug.log.1", "depura uno"),
-                    ("bellbird-debug.log.2", "depura dos"),
-                    ("bellbird-fallos.log", "fallos")):
+                    ("guyrapu-debug.log", "depura"),
+                    ("guyrapu-debug.log.1", "depura uno"),
+                    ("guyrapu-debug.log.2", "depura dos"),
+                    ("guyrapu-fallos.log", "fallos")):
                 with self.subTest(archivo=nombre):
                     self.assertEqual((datos / nombre).read_text(encoding="utf-8"),
                                      contenido)
             self.assertFalse((datos / "ytchat-debug.log").exists())
             self.assertFalse((datos / "ytchat-fallos.log").exists())
-            self.assertIn("bellbird-debug.log", resultado.movidos)
+            self.assertIn("guyrapu-debug.log", resultado.movidos)
 
     def test_registro_nuevo_existente_no_se_pisa(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -293,12 +293,12 @@ class TestNombresAnteriores(unittest.TestCase):
             datos = inst / "data"
             datos.mkdir(parents=True)
             (datos / "ytchat-debug.log").write_text("viejo", encoding="utf-8")
-            (datos / "bellbird-debug.log").write_text("nuevo", encoding="utf-8")
+            (datos / "guyrapu-debug.log").write_text("nuevo", encoding="utf-8")
             resultado = self._migrar(inst, datos, _pares_anteriores(inst, datos))
-            self.assertEqual((datos / "bellbird-debug.log").read_text(encoding="utf-8"),
+            self.assertEqual((datos / "guyrapu-debug.log").read_text(encoding="utf-8"),
                              "nuevo")
             self.assertTrue((datos / "ytchat-debug.log").is_file())
-            self.assertIn("bellbird-debug.log", resultado.conflictos)
+            self.assertIn("guyrapu-debug.log", resultado.conflictos)
 
     def test_principal_y_rotados_se_renombran(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -312,13 +312,13 @@ class TestNombresAnteriores(unittest.TestCase):
             with mock.patch.object(paths, "carpeta_datos", return_value=datos):
                 pares = paths.pares_de_nombres_anteriores()
                 resultado = self._migrar(inst, datos, pares)
-            self.assertEqual((datos / "bellbird.log").read_text(encoding="utf-8"),
+            self.assertEqual((datos / "guyrapu.log").read_text(encoding="utf-8"),
                              "principal")
-            self.assertEqual((datos / "bellbird.log.1").read_text(encoding="utf-8"),
+            self.assertEqual((datos / "guyrapu.log.1").read_text(encoding="utf-8"),
                              "principal uno")
             self.assertFalse((datos / "ytchat.log").exists())
             self.assertFalse((datos / "ytchat.log.1").exists())
-            self.assertIn("bellbird.log", resultado.movidos)
+            self.assertIn("guyrapu.log", resultado.movidos)
 
     def test_principal_nuevo_existente_no_se_pisa(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -326,14 +326,14 @@ class TestNombresAnteriores(unittest.TestCase):
             datos = inst / "data"
             datos.mkdir(parents=True)
             (datos / "ytchat.log").write_text("viejo", encoding="utf-8")
-            (datos / "bellbird.log").write_text("nuevo", encoding="utf-8")
+            (datos / "guyrapu.log").write_text("nuevo", encoding="utf-8")
             with mock.patch.object(paths, "carpeta_datos", return_value=datos):
                 pares = paths.pares_de_nombres_anteriores()
                 resultado = self._migrar(inst, datos, pares)
-            self.assertEqual((datos / "bellbird.log").read_text(encoding="utf-8"),
+            self.assertEqual((datos / "guyrapu.log").read_text(encoding="utf-8"),
                              "nuevo")
             self.assertTrue((datos / "ytchat.log").is_file())
-            self.assertIn("bellbird.log", resultado.conflictos)
+            self.assertIn("guyrapu.log", resultado.conflictos)
 
     def test_fallo_al_renombrar_un_registro_no_corta(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -35,9 +35,10 @@ RUTAS_DE_DATOS = [
     ("estado_musica", "musica_estado.json"),
     ("cache_etiquetas_musica", "etiquetas_musica.json"),
     ("cache_sonoridad_musica", "sonoridad_musica.json"),
-    ("log_principal", "bellbird.log"),
-    ("log_detallado", "bellbird-debug.log"),
-    ("log_fallos", "bellbird-fallos.log"),
+    ("log_principal", "guyrapu.log"),
+    ("log_detallado", "guyrapu-debug.log"),
+    ("log_fallos", "guyrapu-fallos.log"),
+    ("marca_migracion_accesos", "migracion-accesos.ok"),
     ("ytdlp_actualizado", "yt-dlp.exe"),
     ("cache_audio", "cache-audio"),
     ("cache_video", "cache-video"),
@@ -272,9 +273,12 @@ class TestNombresAnteriores(unittest.TestCase):
                   datos / "yt-dlp.exe")])
             self.assertEqual(
                 registros,
-                [(datos / "ytchat-debug.log", datos / "bellbird-debug.log"),
-                 (datos / "ytchat-fallos.log", datos / "bellbird-fallos.log"),
-                 (datos / "ytchat.log", datos / "bellbird.log")])
+                [(datos / "bellbird-debug.log", datos / "guyrapu-debug.log"),
+                 (datos / "bellbird-fallos.log", datos / "guyrapu-fallos.log"),
+                 (datos / "bellbird.log", datos / "guyrapu.log"),
+                 (datos / "ytchat-debug.log", datos / "guyrapu-debug.log"),
+                 (datos / "ytchat-fallos.log", datos / "guyrapu-fallos.log"),
+                 (datos / "ytchat.log", datos / "guyrapu.log")])
 
 
 class TestOrdenDeLaApp(unittest.TestCase):
@@ -520,8 +524,8 @@ class TestGuardaRutas(unittest.TestCase):
     NOMBRES_DATOS = (
         "config.ini", "credenciales.json", "historial_lives.json",
         "historial_descargas.json", "alias.json", "mensajes_programados.json",
-        "fin_pendiente.json", "sounds.ini", "bellbird.log", "bellbird-debug.log",
-        "bellbird-fallos.log", "etiquetas_musica.json", "sonoridad_musica.json",
+        "fin_pendiente.json", "sounds.ini", "guyrapu.log", "guyrapu-debug.log",
+        "guyrapu-fallos.log", "etiquetas_musica.json", "sonoridad_musica.json",
     )
 
     # (archivo, fragmento permitido, motivo). Sin comodines.

@@ -61,7 +61,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         with redirigir_rutas(self._tmp.name):
             config.configurar_logging()
         manejador = next(manejador for manejador in self._root.handlers
-                          if getattr(manejador, "baseFilename", "").endswith("bellbird.log"))
+                          if getattr(manejador, "baseFilename", "").endswith("guyrapu.log"))
         self.addCleanup(manejador.close)
         self.assertEqual(manejador.level, logging.WARNING)
 
@@ -72,7 +72,7 @@ class TestCargarConfiguracion(unittest.TestCase):
             config.configurar_logging()
             cuantos = len(self._root.handlers)
             config.configurar_logging()
-        # Una segunda llamada duplicaba cada línea en consola y en bellbird.log.
+        # Una segunda llamada duplicaba cada línea en consola y en guyrapu.log.
         self.assertEqual(len(self._root.handlers), cuantos)
 
     def test_guardar_opcion_inserta_tras_la_ultima_clave_de_la_seccion(self):

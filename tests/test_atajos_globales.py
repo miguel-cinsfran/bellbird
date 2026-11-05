@@ -346,7 +346,7 @@ class TestFrasesGlobales(unittest.TestCase):
             "Atajos de música activos en cualquier aplicación")
         self.assertEqual(
             anuncios.TEXTO_ATAJOS_GLOBALES_SOLO,
-            "Atajos de música solo en Bellbird")
+            "Atajos de música solo en Guyrapu")
 
     def test_fallo_lista_las_combinaciones_y_suena_ocupado(self):
         aviso = anuncios.aviso_atajos_globales_fallo(

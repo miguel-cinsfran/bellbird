@@ -11,6 +11,7 @@ from banco_app import (
     mensaje_salir_es_de_chat, nombres_sin_daemon, pulsar_boton_nativo,
 )
 from banco_auditoria import auditar_dialogo, recorrer_tab, revisar_nombres
+from guyrapu.core.config import APP_NAME
 
 # ── Escenarios ───────────────────────────────────────────────────────────────
 
@@ -472,7 +473,7 @@ def _version_coherente(textos: list, res: Resultado) -> None:
     """
     mostrada = ""
     for x in textos:
-        m = re.search(r"v(\d+\.\d+\.\d+)", x)
+        m = re.search(rf"{re.escape(APP_NAME)}\s+(\d+\.\d+\.\d+)", x)
         if m:
             mostrada = m.group(1)
             break

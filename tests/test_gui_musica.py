@@ -1542,7 +1542,7 @@ class _GestorQueAbre:
 
 
 class TestCederAlReproductor(unittest.TestCase):
-    """Abrir un resultado en Bellbird deja la música fuera del camino."""
+    """Abrir un resultado en Guyrapu deja la música fuera del camino."""
 
     @staticmethod
     def _temas(*ids):

@@ -98,7 +98,7 @@ class TestAlternador(unittest.TestCase):
 
     def _alternador(self, gestor, intervalo=0.05):
         alternador = encuadre_imagenes.Alternador(
-            gestor, "Prueba Bellbird encuadre", self.variantes,
+            gestor, "Prueba Guyrapu encuadre", self.variantes,
             intervalo=intervalo)
         self.addCleanup(alternador.detener)
         return alternador

@@ -12,25 +12,25 @@ class FugasDelBancoTest(unittest.TestCase):
 
     def test_devuelve_las_visibles_que_no_son_la_principal(self):
         ventanas = [
-            self._ventana("Bellbird v3.0.0"),
+            self._ventana("Guyrapu 3.0.0 beta 2"),
             self._ventana("Directo sin imagen"),
             self._ventana("Preferencias"),
         ]
-        sobrantes = ventanas_sobrantes(ventanas, "Bellbird v3.0.0")
+        sobrantes = ventanas_sobrantes(ventanas, "Guyrapu 3.0.0 beta 2")
 
         self.assertEqual([v["titulo"] for v in sobrantes],
                          ["Directo sin imagen", "Preferencias"])
 
     def test_una_ventana_invisible_no_cuenta(self):
         ventanas = [
-            self._ventana("Bellbird v3.0.0"),
+            self._ventana("Guyrapu 3.0.0 beta 2"),
             self._ventana("Oculta", visible=False),
         ]
-        self.assertEqual(ventanas_sobrantes(ventanas, "Bellbird v3.0.0"), [])
+        self.assertEqual(ventanas_sobrantes(ventanas, "Guyrapu 3.0.0 beta 2"), [])
 
     def test_la_principal_no_cuenta(self):
-        ventanas = [self._ventana("Bellbird v3.0.0")]
-        self.assertEqual(ventanas_sobrantes(ventanas, "Bellbird v3.0.0"), [])
+        ventanas = [self._ventana("Guyrapu 3.0.0 beta 2")]
+        self.assertEqual(ventanas_sobrantes(ventanas, "Guyrapu 3.0.0 beta 2"), [])
 
 
 if __name__ == "__main__":

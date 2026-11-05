@@ -125,7 +125,7 @@ class TestFaltasDeOpciones(unittest.TestCase):
         return contenido
 
     def _snippet_ok(self, **cambios):
-        snippet = {"categoryId": "27", "tags": ["prueba", "bellbird"]}
+        snippet = {"categoryId": "27", "tags": ["prueba", "guyrapu"]}
         snippet.update(cambios)
         return snippet
 

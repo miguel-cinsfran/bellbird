@@ -127,13 +127,14 @@ class TestTodosCubreLosEscenarios(unittest.TestCase):
 class TestEsVentanaDeLaApp(unittest.TestCase):
 
     def test_acepta_los_dos_formatos_de_titulo(self):
-        self.assertTrue(conducir.es_ventana_de_la_app("Bellbird v2.5.1"))
+        self.assertTrue(conducir.es_ventana_de_la_app("Guyrapu 3.0.0 beta 2"))
         self.assertTrue(conducir.es_ventana_de_la_app(
-            "Un vídeo — Bellbird"))
+            "Un vídeo — Guyrapu"))
 
     def test_rechaza_lo_que_solo_menciona_la_app(self):
         for nombre in ("guyrapu",
-                       "miguel-cinsfran/bellbird - Google Chrome",
+                       "Ventana 3 de 4",
+                       "miguel-cinsfran/guyrapu - Google Chrome",
                        "YTChat TTS v2.5.1", ""):
             self.assertFalse(conducir.es_ventana_de_la_app(nombre))
 
@@ -148,7 +149,7 @@ class TestVersionCoherente(unittest.TestCase):
             with mock.patch.object(escenarios_app, "RAIZ", Path(base)):
                 res = conducir.Resultado()
                 conducir._version_coherente(
-                    ["Bellbird v%s" % mostrada], res)
+                    ["Guyrapu %s" % mostrada], res)
         return res
 
     def test_salta_la_entrada_sin_publicar(self):
@@ -369,7 +370,7 @@ class _AppConVentanas:
         self.proceso = _ProcesoVivo()
         self.se_cierra = se_cierra
         self.ventanas_actuales = [
-            {"titulo": "Bellbird v3.0.0", "visible": True},
+            {"titulo": "Guyrapu 3.0.0 beta 2", "visible": True},
             {"titulo": "Directo sin imagen", "visible": True},
             {"titulo": "Oculta", "visible": False},
         ]

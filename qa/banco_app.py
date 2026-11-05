@@ -382,7 +382,10 @@ def es_ventana_de_la_app(nombre: str) -> bool:
     """
     minusculas = (nombre or "").lower()
     app = APP_NAME.lower()
-    return minusculas.startswith(f"{app} v") or minusculas.endswith(f" — {app}")
+    resto = minusculas[len(app):]
+    return ((minusculas.startswith(app) and resto.startswith(" ")
+             and resto[1:2].isdigit())
+            or minusculas.endswith(f" — {app}"))
 
 
 def nombres_sin_daemon(hilos: list[dict]) -> list[str]:

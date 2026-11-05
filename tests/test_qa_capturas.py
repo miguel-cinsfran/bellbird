@@ -85,8 +85,8 @@ class TestIndice(unittest.TestCase):
 
     def test_renglon_ok_trae_todo(self):
         linea = capturas.linea_ok(3, "03_chat_principal.png", "chat",
-                                  "YTChat", "", (800, 600), (400, 300))
-        for pedazo in ("03", "03_chat_principal.png", "chat", "YTChat",
+                                  "Guyrapu", "", (800, 600), (400, 300))
+        for pedazo in ("03", "03_chat_principal.png", "chat", "Guyrapu",
                        "800x600", "400x300"):
             self.assertIn(pedazo, linea)
 

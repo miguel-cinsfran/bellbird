@@ -1704,7 +1704,7 @@ msgid ""
 "tarde."
 msgstr "Could not look up the video information. Try again later."
 
-#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_lectura.py
+#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_eventos.py
 msgid "&Entradas al directo:"
 msgstr "&Live joins:"
 
@@ -1720,11 +1720,11 @@ msgstr "&New followers:"
 msgid "Directo compar&tido:"
 msgstr "Shared l&ive streams:"
 
-#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_lectura.py
+#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_eventos.py
 msgid "Co&fres:"
 msgstr "&Treasure chests:"
 
-#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_lectura.py
+#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_eventos.py
 msgid "Encues&tas:"
 msgstr "P&olls:"
 
@@ -7943,6 +7943,10 @@ msgid "Lectura"
 msgstr "Reading"
 
 #: bellbird/ui/gui_preferencias.py
+msgid "Eventos del directo"
+msgstr "Live events"
+
+#: bellbird/ui/gui_preferencias.py
 msgid "Cola de lectura"
 msgstr "Reading queue"
 
@@ -9111,6 +9115,58 @@ msgstr "Nightly"
 msgid "Canal de actualización de yt-dlp"
 msgstr "yt-dlp update channel"
 
+#: bellbird/ui/preferencias_eventos.py
+msgid "&Super Chats y regalos:"
+msgstr "Super Chats and &gifts:"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "&Membresías:"
+msgstr "M&emberships:"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "Me g&usta:"
+msgstr "Li&kes:"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "Seguidores nue&vos:"
+msgstr "&New followers:"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "&Directo compartido:"
+msgstr "Shared l&ive streams:"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "Agrupar ent&radas"
+msgstr "Group &arrivals"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "Agrupar entradas"
+msgstr "Group joins"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "Agrupar entradas durante (segund&os):"
+msgstr "Group joins for (secon&ds):"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "Agrupar entradas durante, en segundos"
+msgstr "Group joins for, in seconds"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "Agru&par me gusta"
+msgstr "Gro&up likes"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "Agrupar me gusta"
+msgstr "Group likes"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "&Agrupar me gusta durante (segundos):"
+msgstr "Group likes &for (seconds):"
+
+#: bellbird/ui/preferencias_eventos.py
+msgid "Agrupar me gusta durante, en segundos"
+msgstr "Group likes for, in seconds"
+
 #: bellbird/ui/preferencias_general.py
 msgid "El idioma nuevo se aplica al reiniciar la aplicación."
 msgstr "The new language takes effect when the application restarts."
@@ -9376,26 +9432,6 @@ msgid "Eliminar clave"
 msgstr "Delete key"
 
 #: bellbird/ui/preferencias_lectura.py
-msgid "&Super Chats y regalos:"
-msgstr "Super Chats and &gifts:"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "&Membresías:"
-msgstr "M&emberships:"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "Me g&usta:"
-msgstr "Li&kes:"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "Seguidores nue&vos:"
-msgstr "&New followers:"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "&Directo compartido:"
-msgstr "Shared l&ive streams:"
-
-#: bellbird/ui/preferencias_lectura.py
 msgid "Nombre y mensaje"
 msgstr "Name and message"
 
@@ -9436,43 +9472,7 @@ msgid "Longitud máxima del mensaje"
 msgstr "Maximum message length"
 
 #: bellbird/ui/preferencias_lectura.py
-msgid "Eventos del directo"
-msgstr "Live events"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "Agrupar ent&radas"
-msgstr "Group &arrivals"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "Agrupar entradas"
-msgstr "Group joins"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "Agrupar entradas durante (segund&os):"
-msgstr "Group joins for (secon&ds):"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "Agrupar entradas durante, en segundos"
-msgstr "Group joins for, in seconds"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "Agru&par me gusta"
-msgstr "Gro&up likes"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "Agrupar me gusta"
-msgstr "Group likes"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "&Agrupar me gusta durante (segundos):"
-msgstr "Group likes &for (seconds):"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "Agrupar me gusta durante, en segundos"
-msgstr "Group likes for, in seconds"
-
-#: bellbird/ui/preferencias_lectura.py
-msgid "Leer los mensajes rec&ientes con:"
+msgid "Leer los mensajes &recientes con:"
 msgstr "Read recent messages &with:"
 
 #: bellbird/ui/preferencias_lectura.py

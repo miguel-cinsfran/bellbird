@@ -168,7 +168,7 @@ def escenario_preferencias(app: Aplicacion, args, res: Resultado):
 
 
 def escenario_preferencias_categorias(app: Aplicacion, args, res: Resultado):
-    """Las 13 categorías de Preferencias, una por una.
+    """Las 19 categorías de Preferencias, una por una.
 
     El escenario `preferencias` audita solo la categoría a la vista. Acá se
     recorre cada pestaña y se auditan sus controles visibles con Tab, sin
@@ -195,9 +195,9 @@ def escenario_preferencias_categorias(app: Aplicacion, args, res: Resultado):
         app.pedir("cerrar_ventana", ventana="Preferencias")
         return
     paginas = respuesta.get("datos", {}).get("paginas", [])
-    if len(paginas) < 13:
+    if len(paginas) < 19:
         res.fallo(f"preferencias_categorias: hay {len(paginas)} categorías, "
-                  f"se esperaban 13")
+                  f"se esperaban 19")
     if any(n.strip().lower() in ("diagnóstico", "diagnostico")
            for n in paginas):
         res.fallo("preferencias_categorias: existe la categoría "

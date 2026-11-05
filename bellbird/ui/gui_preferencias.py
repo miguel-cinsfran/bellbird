@@ -32,6 +32,7 @@ from bellbird.ui.preferencias_camara import PaginaCamara
 from bellbird.ui.preferencias_musica import OPCIONES_MUSICA, PaginaMusica
 from bellbird.ui.preferencias_descargas import PaginaDescargasPreferencias
 from bellbird.ui.preferencias_lectura import OPCIONES_LECTURA, PaginaLectura
+from bellbird.ui.preferencias_eventos import OPCIONES_EVENTOS, PaginaEventos
 from bellbird.ui.preferencias_ia import PaginaIA
 from bellbird.ui.preferencias_programados import PaginaProgramados
 from bellbird.ui.preferencias_sonidos import PaginaSonidos
@@ -58,7 +59,7 @@ _OPCIONES_SIMPLES = (
     ("chk_metadatos", "ui", "mostrar_metadatos", "mostrar_metadatos", bool, True),
     ("chk_botones_rep", "ui", "mostrar_botones_reproductor", "mostrar_botones_reproductor", bool, True),
     ("sp_cache_video", "ui", "cache_video_mb", "cache_video_mb", int, 1024),
-) + OPCIONES_GENERAL + OPCIONES_LECTURA + (
+) + OPCIONES_GENERAL + OPCIONES_LECTURA + OPCIONES_EVENTOS + (
     ("sp_cola_maxima", "cola", "tamanio_maximo", "tamanio_maximo", int, 15),
     ("sp_umbral_nombre", "cola", "umbral_solo_nombre", "umbral_solo_nombre", int, 0),
     ("chk_reconectar", "reconexion", "reconectar", "reconectar", bool, True),
@@ -113,7 +114,11 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_registro_detallado = self.pagina_general.chk_registro_detallado
         self.pagina_voz = PaginaVoz(self, self._config)
         self.nb.AddPage(self.pagina_voz.construir(self.nb), _("Voces"))
-        self.nb.AddPage(self._pag_lectura(self.nb), _("Lectura"))
+        self.pagina_lectura = self._pagina(
+            self.nb, _("Lectura"), PaginaLectura, OPCIONES_LECTURA)
+        self.rb_formato = self.pagina_lectura.rb_formato
+        self.pagina_eventos = self._pagina(
+            self.nb, _("Eventos del directo"), PaginaEventos, OPCIONES_EVENTOS)
         self.nb.AddPage(self._pag_cola(self.nb), _("Cola de lectura"))
         self.nb.AddPage(self._pag_interfaz(self.nb), _("Interfaz"))
         self.pagina_sonidos = PaginaSonidos()
@@ -302,16 +307,14 @@ class PreferenciasDialog(wx.Dialog):
         p.SetSizer(vs)
         return p
 
-    def _pag_lectura(self, parent):
-        # La página vive en PaginaLectura (composición); el diálogo conserva
+    def _pagina(self, parent, nombre, clase, tabla):
+        # La página vive en su módulo (composición); el diálogo conserva
         # los atributos públicos de los controles para las pruebas y la tabla.
-        self.pagina_lectura = PaginaLectura(
-            self._config, fila_label, crear_panel)
-        panel = self.pagina_lectura.construir(parent)
-        self.rb_formato = self.pagina_lectura.rb_formato
-        for fila in OPCIONES_LECTURA:
-            setattr(self, fila[0], getattr(self.pagina_lectura, fila[0]))
-        return panel
+        pagina = clase(self._config, fila_label, crear_panel)
+        self.nb.AddPage(pagina.construir(parent), nombre)
+        for fila in tabla:
+            setattr(self, fila[0], getattr(pagina, fila[0]))
+        return pagina
 
     def _pag_estado(self, parent):
         """Una casilla por componente del anuncio de estado (tecla F2). Sin

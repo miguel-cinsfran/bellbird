@@ -371,15 +371,17 @@ def _pares_de_cambio(nodo):
 
 def _pares_con_control():
     """Pares con control en Preferencias: tablas `_OPCIONES_SIMPLES`,
-    `OPCIONES_GENERAL`, `OPCIONES_MUSICA`, `OPCIONES_LECTURA` y
-    `OPCIONES_IA`, más llamadas literales `self._set(...)`, `fijar(...)`,
-    `guardar_opcion(...)` y las devoluciones de las páginas con `cambios()`."""
+    `OPCIONES_GENERAL`, `OPCIONES_MUSICA`, `OPCIONES_LECTURA`,
+    `OPCIONES_EVENTOS` y `OPCIONES_IA`, más llamadas literales
+    `self._set(...)`, `fijar(...)`, `guardar_opcion(...)` y las devoluciones
+    de las páginas con `cambios()`."""
     con_control = set()
     tablas = {}
     arboles = {rel: _arbol(rel) for rel in (
         "bellbird/ui/gui_preferencias.py", "bellbird/ui/preferencias_general.py",
         "bellbird/ui/preferencias_musica.py",
-        "bellbird/ui/preferencias_lectura.py", "bellbird/ui/preferencias_ia.py",
+        "bellbird/ui/preferencias_lectura.py",
+        "bellbird/ui/preferencias_eventos.py", "bellbird/ui/preferencias_ia.py",
         "bellbird/ui/preferencias_voz.py",
         "bellbird/ui/preferencias_voz_secundaria.py",
         "bellbird/ui/preferencias_transmision.py",
@@ -393,7 +395,7 @@ def _pares_con_control():
                 if isinstance(destino, ast.Name) and destino.id in (
                         "_OPCIONES_SIMPLES", "OPCIONES_GENERAL",
                         "OPCIONES_MUSICA",
-                        "OPCIONES_LECTURA", "OPCIONES_IA"):
+                        "OPCIONES_LECTURA", "OPCIONES_EVENTOS", "OPCIONES_IA"):
                     tablas[destino.id] = nodo.value
     for tabla in tablas.values():
         con_control.update(_filas_de_tabla(tabla, tablas))
@@ -448,7 +450,8 @@ class PruebaConfiguracion(unittest.TestCase):
             "Pares de fábrica sin control en Preferencias "
             "(bellbird/ui/gui_preferencias.py, bellbird/ui/preferencias_general.py, "
             "bellbird/ui/preferencias_musica.py, "
-            "bellbird/ui/preferencias_lectura.py, bellbird/ui/preferencias_ia.py, "
+            "bellbird/ui/preferencias_lectura.py, "
+            "bellbird/ui/preferencias_eventos.py, bellbird/ui/preferencias_ia.py, "
             "bellbird/ui/preferencias_voz.py, "
             "bellbird/ui/preferencias_voz_secundaria.py, "
             "bellbird/ui/preferencias_transmision.py, "

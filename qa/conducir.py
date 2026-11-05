@@ -194,6 +194,7 @@ SUPERFICIES = {
     "preferencias_ia_clave.py": "preferencias",
     "preferencias_ia_lista.py": "preferencias",
     "preferencias_lectura.py": "preferencias",
+    "preferencias_eventos.py": "preferencias",
     "preferencias_programados.py": "preferencias",
     "preferencias_transmision.py": "preferencias",
     "preferencias_camara.py": "preferencias",

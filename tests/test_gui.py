@@ -2024,11 +2024,12 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
 
     _buscar = staticmethod(TestCategoriasDePreferencias._buscar)
 
-    def test_tiene_dieciocho_categorias_en_el_orden_acordado(self):
+    def test_tiene_diecinueve_categorias_en_el_orden_acordado(self):
         dialogo = self.dialogo
         self.assertEqual(
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
-            ["General", "Voces", "Lectura", "Cola de lectura", "Interfaz",
+            ["General", "Voces", "Lectura", "Eventos del directo",
+             "Cola de lectura", "Interfaz",
              "Sonidos", "Reproductor", "Música", "Descargas", "Conexión", "Filtros",
              "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
              "OBS", "Cámara", "Inteligencia artificial"])
@@ -2089,8 +2090,6 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
         dialogo = self.dialogo
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
         esperados = ["Formato de lectura", "LimpiarEmojis", "EliminarURLs",
-                     "Entradas al directo", "Me gusta", "Seguidores nuevos",
-                     "Directo compartido", "Cofres",
                      "Longitud máxima del mensaje",
                      "Leer los mensajes recientes con",
                      "LecturaAtajosGlobales"]
@@ -2103,7 +2102,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
             pendientes.extend(reversed(actual.GetChildren()))
         self.assertEqual(orden, esperados)
 
-    def test_los_mnemonicos_de_lectura_no_se_repiten_y_la_i_es_del_control(self):
+    def test_los_mnemonicos_de_lectura_no_se_repiten_y_la_r_es_de_recientes(self):
         dialogo = self.dialogo
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
         letras = []
@@ -2115,7 +2114,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
             if "&" in etiqueta:
                 letras.append(etiqueta.split("&", 1)[1][:1].lower())
         self.assertEqual(len(letras), len(set(letras)), letras)
-        self.assertEqual(letras.count("i"), 1)
+        self.assertEqual(letras.count("r"), 1)
 
     def test_pagina_voces_tiene_los_controles_en_el_orden_de_tab(self):
         dialogo = self.dialogo

@@ -1,0 +1,278 @@
+"""Pruebas de la categoría Eventos del directo y de su guardado.
+
+Abren ventanas. Comprueban el sitio de la categoría, el orden de Tab de la
+página, que guardar escribe en `[eventos]` lo elegido y que Lectura ya no
+tiene listas de eventos.
+"""
+
+import tempfile
+import unittest
+from pathlib import Path
+from unittest import mock
+
+from bellbird.core import avisos_tiktok
+from bellbird.core import config
+from bellbird.ui import gui, gui_preferencias
+from bellbird.ui import preferencias_transmision
+from bellbird.voice import motores
+from tests.rutas_temporales import redirigir_rutas
+from tests.ventanas_prueba import app_de_prueba, destruir
+
+
+# Valores literales, no leídos de la página: así protegen el orden en vez
+# de repetirlo.
+EVENTOS_ESPERADOS = (
+    ("cho_evento_superchat", "evento_superchat", "&Super Chats y regalos:",
+     "Super Chats y regalos"),
+    ("cho_evento_miembro", "evento_miembro", "&Membresías:", "Membresías"),
+    ("cho_evento_entrada", "evento_entrada", "&Entradas al directo:",
+     "Entradas al directo"),
+    ("cho_evento_me_gusta", "evento_me_gusta", "Me g&usta:", "Me gusta"),
+    ("cho_evento_seguir", "evento_seguir", "Seguidores nue&vos:",
+     "Seguidores nuevos"),
+    ("cho_evento_compartir", "evento_compartir", "&Directo compartido:",
+     "Directo compartido"),
+    ("cho_evento_cofre", "evento_cofre", "Co&fres:", "Cofres"),
+    ("cho_evento_encuesta", "evento_encuesta", "Encues&tas:", "Encuestas"),
+)
+
+CONTROLES_EN_ORDEN = (
+    "cho_evento_superchat",
+    "cho_evento_miembro",
+    "cho_evento_entrada",
+    "chk_agrupar_entradas",
+    "sp_segundos_entradas",
+    "cho_evento_me_gusta",
+    "chk_agrupar_me_gusta",
+    "sp_segundos_me_gusta",
+    "cho_evento_seguir",
+    "cho_evento_compartir",
+    "cho_evento_cofre",
+    "cho_evento_encuesta",
+)
+
+
+def _letras_acceso(ventana):
+    letras = []
+    pendientes = [ventana]
+    while pendientes:
+        actual = pendientes.pop(0)
+        if isinstance(actual, (gui.wx.StaticText, gui.wx.Button,
+                               gui.wx.CheckBox, gui.wx.RadioButton)):
+            etiqueta = actual.GetLabel()
+            if "&" in etiqueta:
+                letras.append(etiqueta.split("&", 1)[1][:1].lower())
+        pendientes.extend(actual.GetChildren())
+    return letras
+
+
+class BaseEventos(unittest.TestCase):
+    def setUp(self):
+        self.app = app_de_prueba()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.ruta = Path(self.tmp.name)
+        (self.ruta / "config.ini").write_text(config._CONFIG_FALLBACK,
+                                              encoding="utf-8")
+        parche = redirigir_rutas(self.ruta)
+        parche.__enter__()
+        self.addCleanup(parche.__exit__, None, None, None)
+
+    def _dialogo(self, configuracion=None):
+        with mock.patch.object(motores, "listar_voces",
+                               return_value=["Voz de prueba"]):
+            dialogo = gui_preferencias.PreferenciasDialog(
+                None, configuracion or {})
+        self.addCleanup(destruir, dialogo)
+        return dialogo
+
+    def _pagina(self, dialogo, nombre):
+        return next(p for p in dialogo._paginas()
+                    if p.GetName() == nombre)
+
+
+class TestCategoriaEventos(BaseEventos):
+    def test_la_categoria_va_justo_despues_de_lectura(self):
+        dialogo = self._dialogo()
+        textos = [dialogo.nb.GetPageText(i)
+                  for i in range(dialogo.nb.GetPageCount())]
+        self.assertIn("Lectura", textos)
+        self.assertEqual(textos[textos.index("Lectura") + 1],
+                         "Eventos del directo")
+
+    def test_la_pagina_tiene_las_listas_y_agrupaciones_en_orden_de_tab(self):
+        dialogo = self._dialogo()
+        pagina = self._pagina(dialogo, "PagEventos")
+        por_control = {id(getattr(dialogo, atributo)): atributo
+                       for atributo in CONTROLES_EN_ORDEN}
+        nombres = []
+        pendientes = list(reversed(pagina.GetChildren()))
+        while pendientes:
+            actual = pendientes.pop()
+            if id(actual) in por_control:
+                nombres.append(por_control[id(actual)])
+            pendientes.extend(reversed(actual.GetChildren()))
+        self.assertEqual(nombres, list(CONTROLES_EN_ORDEN))
+
+
+class TestControlesEventos(BaseEventos):
+    def test_las_ocho_listas_tienen_su_nombre_y_su_valor(self):
+        dialogo = self._dialogo({"evento_superchat": "ocultar",
+                                 "evento_cofre": "secundaria"})
+        esperados = {"evento_superchat": "ocultar",
+                     "evento_miembro": "principal",
+                     "evento_entrada": "mostrar",
+                     "evento_me_gusta": "mostrar",
+                     "evento_seguir": "principal",
+                     "evento_compartir": "principal",
+                     "evento_cofre": "secundaria",
+                     "evento_encuesta": "principal"}
+        for atributo, en_memoria, _etiqueta, nombre in EVENTOS_ESPERADOS:
+            with self.subTest(atributo=atributo):
+                control = getattr(dialogo, atributo)
+                self.assertEqual(control.GetName(), nombre)
+                self.assertEqual(control.GetValue(), esperados[en_memoria])
+
+    def test_cada_lista_ofrece_los_cuatro_modos_en_orden(self):
+        dialogo = self._dialogo()
+        rotulos = [rotulo for _modo, rotulo in
+                   avisos_tiktok.MODOS_EVENTO]
+        for atributo, _en_memoria, _etiqueta, _nombre in EVENTOS_ESPERADOS:
+            with self.subTest(atributo=atributo):
+                control = getattr(dialogo, atributo)
+                self.assertEqual(
+                    [control.GetString(i) for i in range(control.GetCount())],
+                    rotulos)
+
+    def test_las_etiquetas_van_en_el_orden_pedido(self):
+        dialogo = self._dialogo()
+        pagina = self._pagina(dialogo, "PagEventos")
+        etiquetas = [h.GetLabel() for h in pagina.GetChildren()
+                     if isinstance(h, gui.wx.StaticText)]
+        esperadas = []
+        for atributo, _m, etiqueta, _n in EVENTOS_ESPERADOS:
+            esperadas.append(etiqueta)
+            if atributo == "cho_evento_entrada":
+                esperadas.append(
+                    "Agrupar entradas durante (segund&os):")
+            if atributo == "cho_evento_me_gusta":
+                esperadas.append("&Agrupar me gusta durante (segundos):")
+        self.assertEqual(etiquetas, esperadas)
+
+    def test_el_contador_de_me_gusta_va_despues_de_su_lista(self):
+        dialogo = self._dialogo()
+        contador = dialogo.sp_segundos_me_gusta
+        self.assertEqual(contador.GetName(),
+                         "Agrupar me gusta durante, en segundos")
+        self.assertEqual((contador.GetMin(), contador.GetMax()), (1, 120))
+        self.assertEqual(contador.GetValue(), 10)
+        pagina = self._pagina(dialogo, "PagEventos")
+        controles = [h for h in pagina.GetChildren()
+                     if isinstance(h, (gui.wx.Choice, gui.wx.SpinCtrl))]
+        indice = controles.index(dialogo.cho_evento_me_gusta)
+        self.assertIs(controles[indice + 1], contador)
+        self.assertIs(controles[indice + 2], dialogo.cho_evento_seguir)
+
+    def test_los_controles_de_agrupacion_de_entradas(self):
+        dialogo = self._dialogo()
+        casilla = dialogo.chk_agrupar_entradas
+        self.assertEqual(casilla.GetName(), "Agrupar entradas")
+        self.assertTrue(casilla.GetValue())
+        contador = dialogo.sp_segundos_entradas
+        self.assertEqual(
+            contador.GetName(), "Agrupar entradas durante, en segundos")
+        self.assertEqual((contador.GetMin(), contador.GetMax()), (1, 120))
+        self.assertEqual(contador.GetValue(), 10)
+        pagina = self._pagina(dialogo, "PagEventos")
+        controles = [h for h in pagina.GetChildren()
+                     if isinstance(h, (gui.wx.Choice, gui.wx.SpinCtrl,
+                                       gui.wx.CheckBox))]
+        indice = controles.index(dialogo.cho_evento_entrada)
+        self.assertIs(controles[indice + 1],
+                      dialogo.chk_agrupar_entradas)
+        self.assertIs(controles[indice + 2],
+                      dialogo.sp_segundos_entradas)
+        self.assertIs(controles[indice + 3], dialogo.cho_evento_me_gusta)
+
+    def test_los_controles_de_agrupacion_de_me_gusta(self):
+        dialogo = self._dialogo()
+        self.assertEqual(
+            dialogo.chk_agrupar_me_gusta.GetName(), "Agrupar me gusta")
+        self.assertTrue(dialogo.chk_agrupar_me_gusta.GetValue())
+        pagina = self._pagina(dialogo, "PagEventos")
+        controles = [h for h in pagina.GetChildren()
+                     if isinstance(h, (gui.wx.Choice, gui.wx.SpinCtrl,
+                                       gui.wx.CheckBox))]
+        indice = controles.index(dialogo.cho_evento_me_gusta)
+        self.assertIs(controles[indice + 1],
+                      dialogo.chk_agrupar_me_gusta)
+        self.assertIs(controles[indice + 2],
+                      dialogo.sp_segundos_me_gusta)
+
+    def test_no_quedan_las_listas_viejas_de_tiktok(self):
+        dialogo = self._dialogo()
+        for viejo in ("cho_aviso_entradas", "cho_aviso_me_gusta",
+                      "cho_aviso_seguidores", "cho_aviso_compartidos",
+                      "cho_aviso_cofres"):
+            with self.subTest(viejo=viejo):
+                self.assertFalse(hasattr(dialogo, viejo))
+
+    def test_la_grilla_va_directo_en_el_panel_sin_recuadro(self):
+        dialogo = self._dialogo()
+        pagina = self._pagina(dialogo, "PagEventos")
+        grillas = [it.GetSizer() for it in pagina.GetSizer().GetChildren()
+                   if isinstance(it.GetSizer(), gui.wx.FlexGridSizer)]
+        self.assertEqual(len(grillas), 1)
+        self.assertEqual(grillas[0].GetCols(), 2)
+        for _atributo, _en_memoria, _etiqueta, _nombre in EVENTOS_ESPERADOS:
+            with self.subTest(atributo=_atributo):
+                self.assertIs(getattr(dialogo, _atributo).GetParent(), pagina)
+
+    def test_los_mnemonicos_de_eventos_no_se_repiten(self):
+        dialogo = self._dialogo()
+        pagina = self._pagina(dialogo, "PagEventos")
+        letras = _letras_acceso(pagina)
+        self.assertEqual(len(letras), len(set(letras)), letras)
+
+
+class TestLecturaSinEventos(BaseEventos):
+    def test_la_pagina_lectura_ya_no_tiene_listas_de_eventos(self):
+        dialogo = self._dialogo()
+        pagina = self._pagina(dialogo, "PagLectura")
+        nombres = set()
+        pendientes = [pagina]
+        while pendientes:
+            actual = pendientes.pop()
+            nombres.add(actual.GetName())
+            pendientes.extend(actual.GetChildren())
+        for atributo, _en_memoria, _etiqueta, _nombre in EVENTOS_ESPERADOS:
+            with self.subTest(atributo=atributo):
+                self.assertNotIn(atributo, nombres)
+        recuadros = [h for h in pagina.GetChildren()
+                     if isinstance(h, gui.wx.StaticBox)]
+        self.assertFalse(any(c.GetLabel() == "Eventos del directo"
+                             for c in recuadros))
+
+
+class TestGuardarEventos(BaseEventos):
+    def test_guardar_encuestas_en_ocultar_escribe_la_seccion_eventos(self):
+        dialogo = self._dialogo()
+        dialogo.cho_evento_superchat.SetValue("ocultar")
+        dialogo.cho_evento_cofre.SetValue("secundaria")
+        dialogo.cho_evento_encuesta.SetValue("ocultar")
+        with mock.patch.object(gui_preferencias._snd, "reproducir"), \
+                mock.patch.object(preferencias_transmision, "anunciar"), \
+                mock.patch.object(dialogo, "EndModal"):
+            dialogo._on_guardar(None)
+        self.assertEqual(dialogo._config.get("evento_superchat"), "ocultar")
+        self.assertEqual(dialogo._config.get("evento_cofre"), "secundaria")
+        self.assertEqual(dialogo._config.get("evento_encuesta"), "ocultar")
+        parser = config._mk_parser()
+        parser.read(self.ruta / "config.ini", encoding="utf-8")
+        self.assertEqual(parser.get("eventos", "superchat"), "ocultar")
+        self.assertEqual(parser.get("eventos", "cofre"), "secundaria")
+        self.assertEqual(parser.get("eventos", "encuesta"), "ocultar")
+
+
+if __name__ == "__main__":
+    unittest.main()

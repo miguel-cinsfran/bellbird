@@ -22,13 +22,14 @@ warnings.filterwarnings("ignore", message=".*get_event_loop.*")
 
 from bellbird.core.config import (
     APP_NAME, APP_VERSION,
-    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
-    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
+    TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,  # noqa: F401 (tests leen main.TIPO_*)
+    TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,  # noqa: F401
     configurar_logging, cargar_configuracion, cargar_sonidos,
 )
 from bellbird.core import avisos_tiktok
 from bellbird.core import paths
 from bellbird.core import migracion_datos
+from bellbird.core.lectura_eventos import texto_evento
 from bellbird.core.instancia import verificar_instancia_unica as _verificar_instancia_unica
 
 from bellbird.voice.tts_worker import TTSWorker, sanitizar, construir_tts
@@ -374,30 +375,14 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
         tts_text = (_("{etiqueta} de {autor}: {monto}. {mensaje}") if ml
                     else _("{etiqueta} de {autor}: {monto}")).format(
             etiqueta=_(etiqueta_monto), autor=autor_visible, monto=monto, mensaje=ml)
-    elif tipo == TIPO_MIEMBRO:
-        tts_text = _("Nuevo miembro: {autor}").format(autor=autor_visible)
-    elif tipo == TIPO_ENTRADA:
-        try:
-            varios = int(monto) > 1
-        except (TypeError, ValueError):
-            varios = False
-        # Traductores: {autor} es quien entró; en un grupo, varios nombres.
-        tts_text = (_("{autor} entraron") if varios
-                    else _("{autor} entró")).format(autor=autor_visible)
-    elif tipo == TIPO_SEGUIR:
-        tts_text = _("{autor} sigue el canal").format(autor=autor_visible)
-    elif tipo == TIPO_COMPARTIR:
-        tts_text = _("{autor} compartió el directo").format(autor=autor_visible)
-    elif tipo == TIPO_COFRE:
-        tts_text = _("{autor} envió un cofre").format(autor=autor_visible)
-    elif tipo == TIPO_ME_GUSTA:
-        # Traductores: {n} es cuántos «me gusta» dieron.
-        tts_text = (_("{autor} dio {n} me gusta").format(autor=autor_visible, n=monto)
-                    if monto else _("{autor} dio me gusta").format(autor=autor_visible))
-    elif umbral > 0 and cola.qsize() >= umbral:
-        tts_text = sanitizar(autor_visible, config["limpiar_emojis"], False, 50) or _("Usuario")
     else:
-        tts_text = construir_tts(autor_visible, ml or mensaje, config)
+        texto_del_evento = texto_evento(tipo, autor_visible, monto)
+        if texto_del_evento is not None:
+            tts_text = texto_del_evento
+        elif umbral > 0 and cola.qsize() >= umbral:
+            tts_text = sanitizar(autor_visible, config["limpiar_emojis"], False, 50) or _("Usuario")
+        else:
+            tts_text = construir_tts(autor_visible, ml or mensaje, config)
 
     hora = datetime.now().strftime('%H:%M:%S')
     if on_message: on_message(autor, mensaje, hora, tipo, monto, canal_id, rol=rol)

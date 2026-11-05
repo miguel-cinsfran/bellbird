@@ -13,7 +13,7 @@ from unittest import mock
 
 import wx
 
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 from bellbird.music import anuncios
 from bellbird.ui import atajos_globales
 from bellbird.ui.atajos_captura import atajo_legible
@@ -245,7 +245,7 @@ class TestRegistroReal(unittest.TestCase):
     def setUpClass(cls):
         # Un objeto de wx en un atributo de clase se libera al cerrar
         # Python, con wx ya bajado, y el proceso se cae.
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
 
     @classmethod
     def tearDownClass(cls):

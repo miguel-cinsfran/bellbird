@@ -16,6 +16,7 @@ from unittest import mock
 from bellbird.core import config  # primero: abre la cadena sin circular
 from bellbird.core import historial
 from bellbird.ui import recientes_inicio
+from tests.ventanas_prueba import app_de_prueba
 
 
 def _entrada(plataforma, clave, fecha, url=None):
@@ -103,7 +104,7 @@ class TestRecientesVentana(unittest.TestCase):
     def setUp(self):
         import wx
         self.wx = wx
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
         self.ruta = Path(self.temporal.name) / "historial.json"
@@ -302,7 +303,7 @@ class TestOrdenTabDesconectada(unittest.TestCase):
     def setUp(self):
         import wx
         self.wx = wx
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _ventana(self):
         from bellbird.ui import gui

@@ -19,7 +19,7 @@ from bellbird.ui.preferencias_lectura import PaginaLectura
 from bellbird.voice import motores
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 # Valores literales, no leídos de la página: así protegen el orden en vez
@@ -34,7 +34,7 @@ FORMATOS_ESPERADOS = (
 
 class TestCambiosDeLectura(unittest.TestCase):
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)
@@ -94,7 +94,7 @@ class TestDisenoFormato(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)
@@ -162,7 +162,7 @@ class TestEventosDelDirecto(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)

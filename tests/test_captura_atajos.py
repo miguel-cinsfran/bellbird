@@ -6,7 +6,7 @@ esté instalado, como el resto de lo que toca GUI.
 
 import unittest
 
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 try:
     import wx  # noqa: F401
@@ -20,8 +20,7 @@ class TestCapturaAtajos(unittest.TestCase):
 
     def setUp(self):
         # wx.App necesaria para instanciar/usar helpers que tocan wx.
-        import wx
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         from bellbird.ui import gui_preferencias as gp
         from bellbird.ui import atajos_captura
         self.gp = gp

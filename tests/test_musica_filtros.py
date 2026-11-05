@@ -8,6 +8,7 @@ from unittest import mock
 
 from bellbird.music import filtros
 from bellbird.music.modelo import Tema
+from tests.ventanas_prueba import app_de_prueba
 
 try:
     import wx
@@ -244,7 +245,7 @@ class TestFiltrosPseudo(unittest.TestCase):
     PENDIENTES = ()
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.marco = None
 
     def tearDown(self):
@@ -267,7 +268,7 @@ class TestPseudoAvisosFiltros(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.marco = None
 
     def tearDown(self):
@@ -297,7 +298,7 @@ class TestCasillaFiltros(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.marco = None
 
     def tearDown(self):

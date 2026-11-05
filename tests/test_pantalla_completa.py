@@ -6,6 +6,7 @@ las constantes de wx y un `AccionesPantalla` de dobles.
 
 import unittest
 from unittest import mock
+from tests.ventanas_prueba import app_de_prueba
 
 try:
     import wx  # noqa: F401
@@ -127,12 +128,11 @@ class TestPseudoNombreAccesibleVentana(unittest.TestCase):
     """
 
     def test_nombre_del_video_sale_marcado(self):
-        import wx
         from tests.pseudo_prueba import con_pseudo
         from tests.ventanas_prueba import destruir
         from bellbird.player.pantalla_completa import (
             AccionesPantalla, PantallaCompleta)
-        app = wx.App.Get() or wx.App(False)
+        app_de_prueba()
         acciones = AccionesPantalla(
             salir=mock.Mock(), pausa=mock.Mock(),
             buscar_rel=mock.Mock(), volumen=mock.Mock(),

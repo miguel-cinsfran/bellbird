@@ -15,11 +15,12 @@ from bellbird.core.eventos_sonido import EVENTOS
 from bellbird.ui import preferencias_sonidos
 from bellbird.ui.preferencias_sonidos import PaginaSonidos
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
+from tests.ventanas_prueba import app_de_prueba
 
 
 class TestPaginaSonidos(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
         self.ruta = Path(self.temporal.name) / "sounds.ini"

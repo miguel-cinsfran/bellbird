@@ -15,6 +15,7 @@ from bellbird.core.idioma import _
 from bellbird.ui import atajos_globales, chat_recientes, gui
 from bellbird.ui.atajos_globales import AtajosGlobales, combinacion_ctrl_mayus
 from bellbird.voice.cola_tts import ColaTTS
+from tests.ventanas_prueba import app_de_prueba
 
 
 class _ListaFalsa:
@@ -196,7 +197,7 @@ class TestRegistroRealRecientes(unittest.TestCase):
     def setUp(self):
         import wx
         from tests.ventanas_prueba import destruir
-        self.app = wx.App(False) if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.frame = wx.Frame(None)
         self.addCleanup(destruir, self.frame)
         self.otro = wx.Frame(None)

@@ -8,6 +8,21 @@ el momento.
 """
 
 
+_APP = None
+
+
+def app_de_prueba():
+    """Devuelve una sola wx.App sostenida hasta el final del proceso.
+
+    unittest suelta cada prueba al terminarla y el App moría con ella.
+    """
+    global _APP
+    import wx
+    if _APP is None:
+        _APP = wx.App.Get() or wx.App(False)
+    return _APP
+
+
 def destruir(ventana) -> None:
     """Libera la ventana con Destroy y SafeYield; nunca lanza."""
     try:

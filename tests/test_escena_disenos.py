@@ -12,7 +12,7 @@ from bellbird.obs import disenos_escena, disenos_fabrica, disenos_guardados
 from bellbird.obs.fuente_chat import NOMBRE_FUENTE
 from bellbird.ui import escena_disenos
 from tests.rutas_temporales import redirigir_rutas
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 def _fuentes():
@@ -28,7 +28,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
     def setUp(self):
         idioma.instalar("es")
         self.addCleanup(idioma._reiniciar)
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
         parche = redirigir_rutas(Path(self.temporal.name))

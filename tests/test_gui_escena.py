@@ -21,7 +21,7 @@ from bellbird.ui import mover_con_flechas
 from bellbird.ui import operaciones_obs
 from tests.test_gui_transmision import (
     Evento, EventoTecla, GestorFalso, HiloInmediato)
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class PrincipalFalsa:
@@ -89,7 +89,7 @@ def _asegurar_obs(probar_conexion, al_anunciar=None, parada=None):
 class TestVentanaObs(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.anuncios = []
         self.categorias = []
 

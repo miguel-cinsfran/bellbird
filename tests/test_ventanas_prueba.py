@@ -6,6 +6,7 @@ cada diálogo dejaba unos 235 ocupados hasta cortar Windows en 10.000).
 Abren ventanas.
 """
 
+import gc
 import sys
 import unittest
 from pathlib import Path
@@ -20,7 +21,7 @@ except Exception:
     _HAY_WX = False
 
 from tests.rutas_temporales import redirigir_rutas
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 _SOLO_WINDOWS = _HAY_WX and sys.platform == "win32"
 
@@ -41,7 +42,7 @@ def _objetos_usuario():
 class TestVentanasSinFugas(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.ruta = Path.cwd()
         self.parche_ruta = redirigir_rutas(self.ruta)
         self.parche_ruta.__enter__()
@@ -80,6 +81,16 @@ class TestVentanasSinFugas(unittest.TestCase):
         vivos = [ventana for ventana in wx.GetTopLevelWindows()
                  if ventana.GetTitle() == _TITULO_GENERICO]
         self.assertEqual(vivos, [])
+
+    def test_app_de_prueba_se_reutiliza_y_sigue_vivo(self):
+        app = app_de_prueba()
+        self.assertIs(app_de_prueba(), app)
+        identidad = id(app)
+        del app
+        gc.collect()
+        vivo = wx.App.Get()
+        self.assertIsNotNone(vivo)
+        self.assertEqual(id(vivo), identidad)
 
 
 if __name__ == "__main__":

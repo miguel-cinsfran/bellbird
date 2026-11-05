@@ -14,6 +14,7 @@ from bellbird.music.listas import ErrorListas
 from bellbird.music.modelo import Tema
 from bellbird.ui import musica_menus
 from bellbird.ui.musica_listas_propias import ListasPropiasMusica
+from tests.ventanas_prueba import app_de_prueba
 
 try:
     import wx
@@ -211,7 +212,7 @@ class TestEditorPseudo(unittest.TestCase):
     """Ningún texto visible del editor sin pasar por gettext."""
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.dialogo = None
 
     def tearDown(self):

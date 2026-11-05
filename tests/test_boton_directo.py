@@ -18,7 +18,7 @@ except Exception:
 
 from bellbird.ui import gui
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class TestGuardarDestino(unittest.TestCase):
@@ -282,7 +282,7 @@ class TestAlPulsarDeteniendoSinVentana(unittest.TestCase):
 class TestBotonDirectoVentana(unittest.TestCase):
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
 
     def _ventana(self, **config_extra):
         configuracion = {
@@ -364,7 +364,7 @@ PENDIENTES_BOTON_DIRECTO = ()
 class TestPseudoBotonDirectoVentana(unittest.TestCase):
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
 
     def test_no_queda_ningun_texto_propio_sin_envolver(self):
         from bellbird.ui import boton_directo

@@ -16,7 +16,7 @@ except Exception:
 
 from bellbird.ui import gui_directo_youtube as directo
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 from bellbird.youtube.emision import (
     ETIQUETAS_PRIVACIDAD,
     PRIVACIDADES,
@@ -104,7 +104,7 @@ class TestDialogoDirectoVentana(unittest.TestCase):
     # Con ventana: las corre el dueño. No correr aquí.
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _dialogo(self, **kwargs):
         dialogo = directo.DialogoDirectoYoutube(None, **kwargs)
@@ -521,7 +521,7 @@ class TestPseudoDirectoYoutubeVentana(unittest.TestCase):
     # Abre ventanas.
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_no_queda_ningun_texto_visible_sin_envolver(self):
         with con_pseudo():

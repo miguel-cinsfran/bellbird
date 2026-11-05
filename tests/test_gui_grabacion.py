@@ -14,7 +14,7 @@ from bellbird.ui import gui_transmitir
 from bellbird.ui import obs_ventana
 from bellbird.ui import operaciones_obs
 from tests.test_gui_transmision import GestorFalso, HiloInmediato
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class PrincipalFalsa:
@@ -51,7 +51,7 @@ def setUpModule():
     # Mantiene viva la aplicación para las pruebas que comparten el proceso:
     # al terminar este módulo, otras no crean una propia.
     global _APP
-    _APP = wx.App.Get() or wx.App()
+    _APP = app_de_prueba()
 
 
 def _asegurar_obs(probar_conexion, al_anunciar=None, parada=None):
@@ -69,7 +69,7 @@ class Evento:
 class TestPanelObsEnGrabacion(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.anuncios = []
 
         def anunciar(texto, categoria=""):

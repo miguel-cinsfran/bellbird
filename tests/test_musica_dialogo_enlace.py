@@ -4,6 +4,7 @@ Abren ventanas.
 """
 
 import unittest
+from tests.ventanas_prueba import app_de_prueba
 
 try:
     import wx
@@ -22,7 +23,7 @@ class TestDialogoEnlacePseudo(unittest.TestCase):
     """Ningún texto visible del cuadro sin pasar por gettext."""
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.dialogo = None
 
     def tearDown(self):

@@ -18,7 +18,7 @@ from bellbird.ui.buscador_acciones import AccionesResultado, opciones_de
 from bellbird.ui import buscador_contenido
 from bellbird.ui import buscador_tandas
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 try:
     import wx
@@ -201,7 +201,7 @@ class TestNombrarSelectorCarpeta(unittest.TestCase):
 class TestPaginaUnica(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         gui_descargas._registrados.clear()
 
     def tearDown(self):
@@ -714,7 +714,7 @@ class _CorreYa:
 class TestBuscador(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         gui_descargas._registrados.clear()
 
     def tearDown(self):
@@ -1294,7 +1294,7 @@ def _respuesta_contenido(ids=("a", "b"), titulo="Una lista", total=2):
 class TestMenuYVistaBuscador(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         gui_descargas._registrados.clear()
 
     def tearDown(self):
@@ -1961,7 +1961,7 @@ class TestEscuchaPrevia(TestMenuYVistaBuscador):
 class TestLetrasMenuBuscador(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
 
     def _casos(self):
         video = _resultado_busqueda("v")
@@ -2471,7 +2471,7 @@ class TestBarraProgresoEnLista(unittest.TestCase):
     """La columna Progreso dibuja la barra junto al texto, sin cambiarlo."""
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         gui_descargas._registrados.clear()
 
     def tearDown(self):
@@ -2571,7 +2571,7 @@ class TestPseudoVentana(unittest.TestCase):
     """Pseudotraducción de la ventana."""
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
 
     def test_no_queda_ningun_texto_visible_sin_envolver(self):
         cargar = mock.patch.object(descargas_listas.historial_descargas, "cargar", return_value=[])
@@ -2597,7 +2597,7 @@ class TestPseudoAvisos(unittest.TestCase):
     """Anuncios y cuadros propios salen marcados."""
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
 
     def _dialogo(self):
         cargar = mock.patch.object(descargas_listas.historial_descargas, "cargar", return_value=[])

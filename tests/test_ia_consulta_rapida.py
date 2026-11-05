@@ -20,7 +20,7 @@ from bellbird.ai import consulta
 from bellbird.ai import protocolos
 from bellbird.ui import ia_consulta_rapida as rapida
 from tests.pseudo_prueba import con_pseudo
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 def _hilo_directo(target, nombre, **kwargs):
@@ -340,7 +340,7 @@ class TestAbrirVentanaTomaConversacion(unittest.TestCase):
 class TestConsultaRapidaVentana(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.marco = wx.Frame(None)
         self.addCleanup(destruir, self.marco)
         llamada = mock.patch.object(

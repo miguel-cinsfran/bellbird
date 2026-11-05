@@ -10,14 +10,14 @@ import wx
 
 from bellbird.ui.preferencias_comun import (
     fijar_zona, fila_botones, opciones_con_elegida)
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class TestFilaBotones(unittest.TestCase):
     # Con ventana: los botones necesitan un padre real.
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _botones(self, cantidad=3):
         marco = wx.Frame(None)
@@ -52,7 +52,7 @@ class TestFilaBotones(unittest.TestCase):
 class TestFijarZona(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.marco = wx.Frame(None)
         self.addCleanup(destruir, self.marco)
         self.zona = wx.ScrolledWindow(self.marco)

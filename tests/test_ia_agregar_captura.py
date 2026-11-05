@@ -16,7 +16,7 @@ except Exception:
 from bellbird.ui import ia_agregar_captura as agregar
 from bellbird.obs import obs_captura_ia
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 _IMAGEN_FALSA = base64.b64encode(b"falso-jpeg-para-la-doble").decode("ascii")
@@ -57,7 +57,7 @@ class TestDialogoAgregarCapturaVentana(unittest.TestCase):
     # Con ventana: las corre el dueño. No correr aquí.
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         parche_hilo = mock.patch.object(
             agregar.diagnostico, "crear_hilo", side_effect=_hilo_directo)
         parche_hilo.start()

@@ -14,7 +14,7 @@ from unittest import mock
 from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.core import idioma
-from bellbird.ui import gui, gui_preferencias
+from bellbird.ui import gui_preferencias
 from bellbird.ui import preferencias_ia
 from bellbird.ui import preferencias_ia_clave
 from bellbird.ui import preferencias_transmision
@@ -26,7 +26,7 @@ from tests.test_preferencias_musica import (
     PENDIENTES_OTROS_MODULOS as PENDIENTES_MUSICA)
 from tests.test_preferencias_voz import (
     PENDIENTES_OTROS_MODULOS as PENDIENTES_VOZ)
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 # Textos que arma otro módulo y aparecen en el recorrido del diálogo
@@ -42,7 +42,7 @@ def _normalizar(texto): return " ".join(texto.split())
 
 class TestDialogoSinTextosSinEnvolver(unittest.TestCase):
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)
@@ -89,7 +89,7 @@ class TestDialogoSinTextosSinEnvolver(unittest.TestCase):
 
 class TestPaginaObsClips(unittest.TestCase):
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)
@@ -169,7 +169,7 @@ class TestPaginaObsClips(unittest.TestCase):
 
 class TestPaginaDescargas(unittest.TestCase):
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)

@@ -20,7 +20,7 @@ except Exception:
 from bellbird.player import motor_vlc
 from bellbird.player import reproductor
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 _MONOTONIC_REAL = time.monotonic
@@ -1779,7 +1779,7 @@ PENDIENTES_REPRODUCTOR = ()
 class TestPseudoReproductorVentana(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App(False) if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
 
     def _panel(self):
         marco = wx.Frame(None)
@@ -1805,7 +1805,7 @@ class TestFilaVolumenInterruptor(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = wx.App(False) if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
 
     def _panel(self):
         marco = wx.Frame(None)

@@ -9,7 +9,7 @@ import wx
 
 from bellbird.obs import grabaciones
 from bellbird.ui import gui_grabaciones
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class Evento:
@@ -31,7 +31,7 @@ class Evento:
 class TestPanelGrabaciones(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
         self.carpeta = Path(self.temporal.name)

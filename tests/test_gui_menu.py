@@ -18,7 +18,7 @@ import wx
 
 from tests.letras_acceso import ingles
 from tests.pseudo_prueba import con_pseudo
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 from bellbird.ui import gui
 
 
@@ -379,7 +379,7 @@ class TestRegistroDeComandos(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
 
     @classmethod
     def tearDownClass(cls):
@@ -579,7 +579,7 @@ class TestCableadoRestream(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
 
     @classmethod
     def tearDownClass(cls):
@@ -691,7 +691,7 @@ class TestCableadoPanelObs(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
 
     @classmethod
     def tearDownClass(cls):
@@ -733,7 +733,7 @@ class TestCableadoMostrarObs(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
 
     @classmethod
     def tearDownClass(cls):
@@ -805,7 +805,7 @@ class TestCableadoComandosGrabacion(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
 
     @classmethod
     def tearDownClass(cls):
@@ -870,7 +870,7 @@ class TestPseudoMenu(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
 
     @classmethod
     def tearDownClass(cls):

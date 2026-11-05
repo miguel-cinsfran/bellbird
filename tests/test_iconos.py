@@ -1,13 +1,13 @@
 import unittest
 
 from bellbird.ui import iconos
+from tests.ventanas_prueba import app_de_prueba
 
 
 class PruebasIconos(unittest.TestCase):
 
     def setUp(self):
-        self.app = (iconos.wx.App(False) if not iconos.wx.App.Get()
-                    else iconos.wx.App.Get())
+        self.app = app_de_prueba()
 
     def test_cada_dibujo_devuelve_un_bitmap_valido(self):
         for nombre in iconos._DIBUJOS:

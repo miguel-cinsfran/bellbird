@@ -8,9 +8,8 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-import wx
-
 from bellbird.ui import aviso_progreso
+from tests.ventanas_prueba import app_de_prueba
 
 
 def _item(ident, progreso, nombre=""):
@@ -21,7 +20,7 @@ def _item(ident, progreso, nombre=""):
 
 class PruebasAvisoProgreso(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         aviso_progreso._temporizador = None
         aviso_progreso._anunciador = None
         self.addCleanup(self._parar)

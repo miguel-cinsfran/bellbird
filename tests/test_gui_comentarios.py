@@ -9,7 +9,7 @@ import wx
 from bellbird.ui import gui_comentarios
 from bellbird.youtube import youtube_api
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class DialogoFalso:
@@ -30,7 +30,7 @@ class TestComentariosPanel(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
         cls.frame = wx.Frame(None)
 
     @classmethod
@@ -169,7 +169,7 @@ class TestOrillaComentarios(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
         cls.frame = wx.Frame(None)
 
     @classmethod
@@ -240,7 +240,7 @@ class TestPseudoVentana(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
         cls.frame = wx.Frame(None)
 
     @classmethod
@@ -265,7 +265,7 @@ class TestPseudoAvisos(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
         cls.frame = wx.Frame(None)
 
     @classmethod
@@ -317,7 +317,7 @@ class TestColumnasPseudo(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
         cls.frame = wx.Frame(None)
 
     @classmethod

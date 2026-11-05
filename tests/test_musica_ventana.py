@@ -22,7 +22,7 @@ from bellbird.ui import (musica_dialogo_enlace, musica_editor_lista,
                        musica_ventana_igualando)
 from bellbird.ui.tema import ALTO_CONTRASTE, _T
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 try:
     import wx
@@ -243,7 +243,7 @@ def _estado(*titulos, posicion=0):
 class TestVentanaMusica(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.carpeta_listas = str(Path(self.tmp.name) / "listas")
         self.anuncios = []
@@ -259,8 +259,6 @@ class TestVentanaMusica(unittest.TestCase):
             destruir(self.ventana)
         self._parche.stop()
         self.tmp.cleanup()
-        # La App no sobrevive al módulo: viva, wx.GetApp() cambia caminos.
-        del self.app
 
     def _abrir(self, control, abrir_listas=False):
         self.ventana = musica_ventana.VentanaMusica(
@@ -1295,7 +1293,7 @@ class TestVentanaIgualando(unittest.TestCase):
     """Campo y barra del progreso de la igualación, sin correr nada."""
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.control = ControlFalso(biblioteca=_biblioteca_de("Rock"))
         self.ventana = musica_ventana.VentanaMusica(None, self.control)
 
@@ -1342,7 +1340,7 @@ class TestVentanaBotonIgualar(unittest.TestCase):
     """El botón que pide o detiene la igualación, y su rotulado."""
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.control = None
         self.ventana = None
         self.anuncios = []
@@ -1363,8 +1361,6 @@ class TestVentanaBotonIgualar(unittest.TestCase):
             self.ventana._cancelar_temporizador()
             self.ventana._parar_igualando()
             destruir(self.ventana)
-        # La App no sobrevive al módulo: viva, wx.GetApp() cambia caminos.
-        del self.app
 
     def _abrir(self, control):
         self.control = control
@@ -1486,7 +1482,7 @@ class TestVentanaPreguntaIgualar(unittest.TestCase):
     """La pregunta que sale al recibir la biblioteca de la carpeta."""
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.control = None
         self.ventana = None
         self.anuncios = []
@@ -1507,8 +1503,6 @@ class TestVentanaPreguntaIgualar(unittest.TestCase):
             self.ventana._cancelar_temporizador()
             self.ventana._parar_igualando()
             destruir(self.ventana)
-        # La App no sobrevive al módulo: viva, wx.GetApp() cambia caminos.
-        del self.app
 
     def _abrir(self, control, responder_pedidos=False):
         self.control = control
@@ -1604,7 +1598,7 @@ class TestVentanaPreguntaIgualar(unittest.TestCase):
 class TestDialogoEnlace(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.dialogo = None
 
     def tearDown(self):
@@ -1668,7 +1662,7 @@ class TestDialogoEnlace(unittest.TestCase):
 class TestDialogoEditorLista(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.dialogo = None
 
     def tearDown(self):
@@ -1711,7 +1705,7 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
     """El aviso del vigía y el botón Actualizar carpeta."""
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.carpeta_listas = str(Path(self.tmp.name) / "listas")
         self.anuncios = []
@@ -1727,8 +1721,6 @@ class TestVentanaVigiaYExaminar(unittest.TestCase):
             destruir(self.ventana)
         self._parche.stop()
         self.tmp.cleanup()
-        # La App no sobrevive al módulo: viva, wx.GetApp() cambia caminos.
-        del self.app
 
     def _abrir(self, control, abrir_listas=False):
         self.ventana = musica_ventana.VentanaMusica(
@@ -1867,7 +1859,7 @@ class TestCambiarEstadoTraducido(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.ventana = None
 
     def tearDown(self):
@@ -1905,7 +1897,7 @@ class TestVentanaPseudo(unittest.TestCase):
     PENDIENTES = ()
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.ventana = None
 
     def tearDown(self):
@@ -1930,7 +1922,7 @@ class TestPseudoAnunciosVentana(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.anuncios = []
         self._parche = mock.patch.object(
             musica_ventana, "anunciar",
@@ -1944,8 +1936,6 @@ class TestPseudoAnunciosVentana(unittest.TestCase):
             self.ventana._parar_igualando()
             destruir(self.ventana)
         self._parche.stop()
-        # La App no sobrevive al módulo: viva, wx.GetApp() cambia caminos.
-        del self.app
 
     def _abrir(self, control):
         self.ventana = musica_ventana.VentanaMusica(None, control)

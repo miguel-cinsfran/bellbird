@@ -17,7 +17,7 @@ except Exception:
 from bellbird.ui import paleta
 from bellbird.ui import tema
 from bellbird.ui.tema import _T
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 def _relacion(color_a, color_b) -> float:
@@ -84,7 +84,7 @@ def _hilo_directo(target, nombre, **kwargs):
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestPintarVentana(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _dialogo(self):
         dialogo = wx.Dialog(None, title="Prueba", name="DialogoPrueba")
@@ -136,7 +136,7 @@ class TestPintarVentana(unittest.TestCase):
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoActualizacion(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_fondo_es_el_de_la_principal(self):
         from bellbird.ui import gui_actualizacion as actualizacion
@@ -149,7 +149,7 @@ class TestFondoActualizacion(unittest.TestCase):
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoElegirDestino(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_fondo_es_el_de_la_principal(self):
         from bellbird.ui import gui_elegir_destino as elegir
@@ -162,7 +162,7 @@ class TestFondoElegirDestino(unittest.TestCase):
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoDirectoYoutube(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_fondo_es_el_de_la_principal(self):
         from bellbird.ui import gui_directo_youtube as directo
@@ -174,7 +174,7 @@ class TestFondoDirectoYoutube(unittest.TestCase):
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoAgregarCaptura(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         from bellbird.ui import ia_agregar_captura as agregar
         parche_hilo = mock.patch.object(
             agregar.diagnostico, "crear_hilo", side_effect=_hilo_directo)
@@ -199,7 +199,7 @@ class TestFondoAgregarCaptura(unittest.TestCase):
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoVentanaIA(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_mensaje_fondo_es_el_de_la_principal(self):
         from bellbird.ui import ia_ventana as ventana
@@ -217,7 +217,7 @@ class TestFondoVentanaIA(unittest.TestCase):
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestFondoPreferencias(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _dialogo(self):
         from bellbird.ui import gui_preferencias as preferencias
@@ -245,7 +245,7 @@ class TestPintarVentanaPapeles(unittest.TestCase):
     """Lo pintado a mano con papel propio no lo pisa la paleta."""
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _dialogo(self):
         from bellbird.ui.tema import _pintar

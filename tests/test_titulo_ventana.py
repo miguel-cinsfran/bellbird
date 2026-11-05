@@ -12,7 +12,7 @@ from bellbird.core.config import APP_NAME, APP_VERSION
 from bellbird.obs.obs_vigilante import EstadoObs
 from bellbird.ui import gui
 from bellbird.ui import titulo_ventana
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 try:
     import wx
@@ -123,7 +123,7 @@ class AplicarTest(unittest.TestCase):
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class CableadoTest(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_el_temporizador_llega_a_aplicar(self):
         marco = wx.Frame(None)

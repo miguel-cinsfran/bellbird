@@ -15,7 +15,7 @@ from bellbird.core import config_predeterminada as pred
 from bellbird.core import idioma
 from bellbird.core import musica_decir
 from tests.rutas_temporales import redirigir_rutas
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 from pathlib import Path
 
 
@@ -84,7 +84,7 @@ VALORES_SPIN = {
 class TestTablaOpcionesSimples(unittest.TestCase):
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.ruta = Path.cwd()
         self.parche_ruta = redirigir_rutas(self.ruta)
         self.parche_ruta.__enter__()
@@ -234,7 +234,7 @@ class TestIdiomaEnPreferencias(unittest.TestCase):
     """
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.ruta = Path.cwd()
         self.parche_ruta = redirigir_rutas(self.ruta)
         self.parche_ruta.__enter__()

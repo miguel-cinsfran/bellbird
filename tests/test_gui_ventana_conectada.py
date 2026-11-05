@@ -12,13 +12,13 @@ from unittest import mock
 
 from bellbird.player import reproductor
 from bellbird.ui import gui
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class TestVentanaConectadaFabrica(unittest.TestCase):
 
     def setUp(self):
-        self.app = gui.wx.App.Get() or gui.wx.App(False)
+        self.app = app_de_prueba()
 
     def _ventana(self):
         configuracion = {

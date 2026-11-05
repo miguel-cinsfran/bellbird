@@ -7,7 +7,7 @@ from unittest import mock
 from bellbird.ui import gui_historial
 from bellbird.core import historial
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 def entrada(plataforma, clave, url):
@@ -25,8 +25,7 @@ def entrada(plataforma, clave, url):
 class PruebasHistorialDialog(unittest.TestCase):
 
     def setUp(self):
-        self.app = (gui_historial.wx.App(False) if not gui_historial.wx.App.Get()
-                    else gui_historial.wx.App.Get())
+        self.app = app_de_prueba()
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
         self.ruta = Path(self.temporal.name) / "historial.json"
@@ -217,8 +216,7 @@ class PruebasHistorialDialog(unittest.TestCase):
 class PruebasOrillaHistorial(unittest.TestCase):
 
     def setUp(self):
-        self.app = (gui_historial.wx.App(False) if not gui_historial.wx.App.Get()
-                    else gui_historial.wx.App.Get())
+        self.app = app_de_prueba()
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
         self.ruta = Path(self.temporal.name) / "historial.json"

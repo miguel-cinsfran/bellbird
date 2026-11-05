@@ -37,7 +37,7 @@ from bellbird.youtube.emision import (
 from tests.letras_acceso import (
     _letra_de_acceso, letras_repetidas, repetidas_con_lo_de_fuera)
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class CuentaFalsa:
@@ -113,7 +113,7 @@ class _DialogoFalso:
 class PruebaVentanaRestream(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
         self.ruta = Path(self.temporal.name) / "perfiles_restream.json"
@@ -806,7 +806,7 @@ class PruebaVentanaRestream(unittest.TestCase):
 class PruebaPaginaEventos(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     @staticmethod
     def _evento(estado="upcoming", destinos=None, **cambios):
@@ -1043,7 +1043,7 @@ class PruebaPaginaEventos(unittest.TestCase):
 class PruebaVisibilidadYoutube(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_p7_privacidad_y_latencia_solo_con_youtube_marcado(self):
         dialogo = restream_perfil.DialogoPerfilRestream(
@@ -1070,7 +1070,7 @@ class PruebaVisibilidadYoutube(unittest.TestCase):
 class PruebaDialogoPerfil(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.canales = _canales()
 
     def _dialogo(self, perfil=None, canales=None, existentes=None):

@@ -26,7 +26,7 @@ from bellbird.ui import obs_ventana
 from bellbird.ui import operaciones_obs
 from bellbird.ui import tema
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 try:
     import wx
@@ -274,7 +274,7 @@ class OperacionesFalsas:
 class TestPanelTransmision(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.anuncios = []
         self.categorias = []
         def anunciar(texto, categoria=""):
@@ -732,7 +732,7 @@ class TestPanelTransmision(unittest.TestCase):
 class TestPseudoTransmisionVentana(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.parches = [
             mock.patch.object(threading, "Thread", HiloInmediato),
             mock.patch.object(gui_transmision.wx, "CallAfter",
@@ -784,7 +784,7 @@ class TestPanelSinConsultasDeFuente(unittest.TestCase):
 class TestEnfocarInicialDeLaPagina(unittest.TestCase):
 
     def test_enfocar_inicial_anuncia_solo_el_titular(self):
-        app = wx.App() if not wx.App.Get() else wx.App.Get()
+        app = app_de_prueba()
         marco = wx.Frame(None)
         self.addCleanup(destruir, marco)
         with mock.patch.object(gui_transmision, "anunciar") as anunciar, \

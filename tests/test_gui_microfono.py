@@ -16,7 +16,7 @@ except Exception:
 
 from bellbird.ui import gui_microfono
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 FUENTES = ("Mic/Aux", "Audio USB")
 PARES = (("Predeterminado", "default"), ("Micrófono (USB)", "{usb}"))
@@ -157,7 +157,7 @@ class TestMicrofonoObsDialogVentana(unittest.TestCase):
     # Con ventana: las corre el dueño. No correr aquí.
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _padre(self):
         padre = wx.Frame(None)
@@ -425,7 +425,7 @@ class TestPseudoMicrofonoObs(unittest.TestCase):
     # Pseudotraducción de la ventana: abre ventanas.
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _dialogo(self, **kwargs):
         padre = wx.Frame(None)

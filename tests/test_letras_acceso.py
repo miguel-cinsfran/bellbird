@@ -20,7 +20,7 @@ from tests.letras_acceso import (
 from tests.test_gui_microfono import FUENTES, PARES
 from tests.test_gui_transmision import (
     GestorFalso, HiloInmediato, OperacionesFalsas, PrincipalFalsa)
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.downloads import descargas, formatos_reales
@@ -44,7 +44,7 @@ from tests.rutas_temporales import redirigir_rutas
 
 class TestAyudanteLetrasAcceso(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _panel(self):
         marco = wx.Frame(None)
@@ -77,7 +77,7 @@ class TestAyudanteLetrasAcceso(unittest.TestCase):
 
 class TestLetrasAccesoPreferencias(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)
@@ -114,7 +114,7 @@ class TestLetrasAccesoPreferencias(unittest.TestCase):
 
 class TestLetrasAccesoMicrofono(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_cuadro_sin_letras_repetidas(self):
         padre = wx.Frame(None)
@@ -128,7 +128,7 @@ class TestLetrasAccesoMicrofono(unittest.TestCase):
 
 class TestLetrasAccesoDirectoYoutube(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_cuadro_sin_letras_repetidas(self):
         dialogo = gui_directo_youtube.DialogoDirectoYoutube(None, titulo="Hola")
@@ -138,7 +138,7 @@ class TestLetrasAccesoDirectoYoutube(unittest.TestCase):
 
 class TestLetrasAccesoHistorial(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
         self.ruta = Path(self.temporal.name) / "historial.json"
@@ -155,7 +155,7 @@ class TestLetrasAccesoHistorial(unittest.TestCase):
 
 class TestLetrasAccesoGrabaciones(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
         self.ruta = Path(self.temporal.name) / "grabaciones.json"
@@ -175,7 +175,7 @@ class TestLetrasAccesoGrabaciones(unittest.TestCase):
 
 class TestLetrasAccesoComentarios(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_cuadro_sin_letras_repetidas(self):
         marco = wx.Frame(None)
@@ -202,7 +202,7 @@ def _opciones_formato_ejemplo():
 
 class TestLetrasAccesoElegirFormato(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_cuadro_sin_letras_repetidas(self):
         dialogo = elegir_formato.DialogoFormato(
@@ -213,7 +213,7 @@ class TestLetrasAccesoElegirFormato(unittest.TestCase):
 
 class TestLetrasAccesoDescargas(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _dialogo(self):
         cargar = mock.patch.object(descargas_listas.historial_descargas, "cargar",
@@ -239,7 +239,7 @@ class TestLetrasAccesoDescargas(unittest.TestCase):
 
 class TestLetrasAccesoTransmision(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.parches = [
             mock.patch.object(threading, "Thread",
                               HiloInmediato),
@@ -278,7 +278,7 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
 
 class TestLetrasAccesoPanelObs(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.parches = [
             mock.patch.object(threading, "Thread", HiloInmediato),
             mock.patch.object(obs_ventana.wx, "CallAfter",
@@ -342,7 +342,7 @@ class TestLetrasAccesoPanelObs(unittest.TestCase):
 
 class TestLetrasAccesoTamano(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_cuadro_sin_letras_repetidas(self):
         dialogo = escena_tamano.TamanoFuenteDialog(None, 29, 69)
@@ -352,7 +352,7 @@ class TestLetrasAccesoTamano(unittest.TestCase):
 
 class TestLetrasAccesoDisenos(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_cuadro_sin_letras_repetidas(self):
         fuentes = [
@@ -367,7 +367,7 @@ class TestLetrasAccesoDisenos(unittest.TestCase):
 
 class TestLetrasAccesoFiltros(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_cuadro_sin_letras_repetidas(self):
         dialogo = escena_filtros.FiltrosMicrofonoDialog(
@@ -382,7 +382,7 @@ class TestLetrasAccesoRestream(unittest.TestCase):
             return False
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.temporal = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporal.cleanup)
         self.ruta = Path(self.temporal.name) / "perfiles_restream.json"
@@ -399,7 +399,7 @@ class TestLetrasAccesoRestream(unittest.TestCase):
 
 class TestLetrasAccesoPrincipal(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _ventana(self):
         configuracion = {

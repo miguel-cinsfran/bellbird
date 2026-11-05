@@ -9,7 +9,7 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 from bellbird.ui import gui_actualizar_ytdlp as ventana_ytdlp
 
 try:
@@ -154,7 +154,7 @@ class TestPseudoVentanaYtdlp(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
 
     @classmethod
     def tearDownClass(cls):

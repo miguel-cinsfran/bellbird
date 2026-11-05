@@ -7,7 +7,7 @@ import unittest
 from unittest import mock
 
 from bellbird.music.modelo import Tema
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 try:
     import wx
@@ -37,7 +37,7 @@ class Evento:
 class TestEnterEnLaLista(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.dialogo = None
 
     def tearDown(self):

@@ -6,7 +6,7 @@ import wx
 from bellbird.core.idioma import _
 from bellbird.ui import gui_redactar
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class EventoTeclado:
@@ -28,7 +28,7 @@ class EventoTeclado:
 class TestPanelRedactar(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
         cls.frame = wx.Frame(None)
 
     @classmethod
@@ -117,7 +117,7 @@ class TestPanelRedactar(unittest.TestCase):
 class TestDialogoRedactar(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
         cls.frame = wx.Frame(None)
 
     @classmethod
@@ -167,7 +167,7 @@ class TestPseudoRedactar(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        cls.app = app_de_prueba()
         cls.frame = wx.Frame(None)
 
     @classmethod

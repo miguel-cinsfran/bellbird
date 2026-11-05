@@ -45,7 +45,7 @@ from bellbird.ui.lista_chat import MensajeChat, ListaChat
 from bellbird.ui.sesion_conectada import SesionConectada
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
 from tests.rutas_temporales import redirigir_rutas
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class TestInicioGui(unittest.TestCase):
@@ -398,7 +398,7 @@ class TestEnterEnListas(unittest.TestCase):
 class TestComentariosPanel(unittest.TestCase):
 
     def _panel_sin_api_key(self):
-        self.app = gui_comentarios.wx.App.Get() or gui_comentarios.wx.App(False)
+        self.app = app_de_prueba()
         frame = gui_comentarios.wx.Frame(None)
         self.addCleanup(destruir, frame)
         hay_lectura = self.enterContext(mock.patch.object(gui_comentarios.credenciales, "hay_lectura", return_value=False))
@@ -638,7 +638,7 @@ class TestVentanaReal(unittest.TestCase):
     """Comprobaciones que necesitan la ventana de verdad (tamaños, Wrap)."""
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
 
     def _ventana(self, cola=None, **worker_extra):
         configuracion = {
@@ -778,7 +778,7 @@ class TestConfigurarTiktokReconexionVentana(unittest.TestCase):
              "?expire=1761247356&sign=bbbb")
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
 
     def _ventana(self, autoplay=True):
         configuracion = {
@@ -1573,7 +1573,7 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
         anunciar.assert_called_once_with("Elige primero un mensaje de la lista")
 
     def test_instala_busqueda_por_tecleo_en_la_lista(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         with tempfile.TemporaryDirectory() as temporal, \
                 redirigir_rutas(temporal), \
                 mock.patch.object(motores, "listar_voces",
@@ -1592,7 +1592,7 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
                          list(pagina.lista_programados.GetStrings()))
 
     def _dialogo_real(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         with mock.patch.object(motores, "listar_voces",
                                return_value=["Voz de prueba"]):
             dialogo = gui_preferencias.PreferenciasDialog(None, {})
@@ -1686,7 +1686,7 @@ class TestProgramadosEnPreferencias(unittest.TestCase):
 class TestCategoriasDePreferencias(unittest.TestCase):
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.ruta = Path.cwd()
         self.parche_ruta = redirigir_rutas(self.ruta)
         self.parche_ruta.__enter__()
@@ -1977,7 +1977,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
     # sola vez en vez de una por prueba.
     @classmethod
     def setUpClass(cls):
-        cls.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        cls.app = app_de_prueba()
         cls.ruta = Path.cwd()
         cls.parche_ruta = redirigir_rutas(cls.ruta)
         cls.parche_ruta.__enter__()
@@ -2218,7 +2218,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
     CLAVE_GEMINI = "AIza" + "a" * 35
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.parche_ruta = redirigir_rutas(Path(self.tmp.name))
@@ -2987,7 +2987,7 @@ class TestPaginaInteligenciaArtificialSoloLectura(unittest.TestCase):
     # sola vez en vez de una por prueba.
     @classmethod
     def setUpClass(cls):
-        cls.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        cls.app = app_de_prueba()
         cls.tmp = tempfile.TemporaryDirectory()
         cls.parche_ruta = redirigir_rutas(Path(cls.tmp.name))
         cls.parche_ruta.__enter__()
@@ -3069,7 +3069,7 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
     """La página «Voces» configura ElevenLabs sin editar archivos."""
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)
@@ -3281,7 +3281,7 @@ class TestAplicarPreferenciasMotor(unittest.TestCase):
     """Aplicación en caliente del motor y la voz tras cerrar Preferencias."""
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
 
     def _frame(self, configuracion):
         frame = gui.YTChatFrame.__new__(gui.YTChatFrame)
@@ -3353,7 +3353,7 @@ class TestAplicarPreferenciasMotor(unittest.TestCase):
 
 class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)
@@ -3591,7 +3591,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
     """Los cuatro botones de General. Abre ventanas: NO correr en esta máquina."""
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)
@@ -5073,7 +5073,7 @@ class TestSinDireccionRecordada(unittest.TestCase):
     aunque el config traiga una guardada, y conectar no la escribe."""
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
 
     def test_la_ventana_nace_vacia_y_no_guarda_al_conectar(self):
         from types import SimpleNamespace
@@ -6335,7 +6335,7 @@ class TestTextosSinMarcarExcluir(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        cls.app = app_de_prueba()
 
     @classmethod
     def tearDownClass(cls):
@@ -6358,7 +6358,7 @@ class TestPseudoVentanaPrincipal(unittest.TestCase):
     # Abre ventanas.
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
 
     def _ventana(self):
         from types import SimpleNamespace
@@ -6398,7 +6398,7 @@ class TestPseudoIrRegion(unittest.TestCase):
     # Abre ventanas.
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
 
     def _ventana(self):
         from types import SimpleNamespace

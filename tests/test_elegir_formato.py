@@ -11,7 +11,7 @@ from unittest import mock
 from bellbird.downloads import formatos_reales, opciones_formato
 from bellbird.downloads.busqueda_youtube import Resultado
 from bellbird.ui import buscador_acciones
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 try:
     import wx
@@ -113,7 +113,7 @@ def _opciones_dobles():
 class TestDialogoFormato(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.opciones = _opciones_dobles()
         self.dialogo = elegir_formato.DialogoFormato(None, self.opciones)
         self.addCleanup(destruir, self.dialogo)
@@ -164,7 +164,7 @@ class _HiloYa:
 class TestConsultaFormatos(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.resultado = _res()
         self.opciones = _opciones_dobles()[:2]
 

@@ -12,7 +12,7 @@ from bellbird.ui import gui_preferencias
 from bellbird.ui import preferencias_camara
 from bellbird.voice import motores
 from tests.rutas_temporales import redirigir_rutas
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 from pathlib import Path
 
 
@@ -35,8 +35,7 @@ class TestPaginaCamara(unittest.TestCase):
     # Con ventana: los controles necesitan un padre real.
 
     def setUp(self):
-        import wx
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.ruta = Path.cwd()
         self.parche_ruta = redirigir_rutas(self.ruta)
         self.parche_ruta.__enter__()

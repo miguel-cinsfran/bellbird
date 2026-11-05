@@ -15,14 +15,14 @@ except Exception:
 
 from bellbird.ui import gui_actualizacion as actualizacion
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 @unittest.skipUnless(_HAY_WX, "wxPython no está instalado")
 class TestDialogoActualizacion(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _dialogo(self, titulo="Actualizar algo"):
         dialogo = actualizacion.DialogoActualizacion(None, titulo)
@@ -125,7 +125,7 @@ class TestPseudoVentanaPropia(unittest.TestCase):
     # Pseudotraducción de los textos propios.
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_no_queda_ningun_texto_visible_sin_envolver(self):
         titulo = "Título de ejemplo"
@@ -141,7 +141,7 @@ class TestReajuste(unittest.TestCase):
     """Reajuste a su contenido: abren ventanas."""
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def _dialogo(self, titulo="Actualizar algo"):
         dialogo = actualizacion.DialogoActualizacion(None, titulo)

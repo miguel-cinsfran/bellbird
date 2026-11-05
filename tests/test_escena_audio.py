@@ -13,7 +13,7 @@ from bellbird.obs import escucha_microfono, nivel_microfono
 from bellbird.obs.filtros_microfono import Estado
 from bellbird.obs.obs_cliente import ObsError
 from bellbird.ui import escena_pagina_audio
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 TEXTO_INICIO = "Prueba del micrófono iniciada. Habla como en un directo."
 TEXTO_SILENCIADO = ("El micrófono está silenciado en OBS. Desmarca "
@@ -58,7 +58,7 @@ class HiloInmediato:
 
 class TestPaginaAudioPrueba(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.marco = wx.Frame(None)
         self.addCleanup(destruir, self.marco)
         self.principal = SimpleNamespace(_config={"obs_microfono": "Mic/Aux"})
@@ -179,7 +179,7 @@ class TestPaginaAudioPrueba(unittest.TestCase):
 
 class TestPaginaAudioFiltros(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.marco = wx.Frame(None)
         self.addCleanup(destruir, self.marco)
         self.principal = SimpleNamespace(_config={"obs_microfono": "Mic/Aux"})
@@ -245,7 +245,7 @@ class TestPaginaAudioFiltros(unittest.TestCase):
 
 class TestPaginaAudioEscucha(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.marco = wx.Frame(None)
         self.addCleanup(destruir, self.marco)
         self.principal = SimpleNamespace(_config={"obs_microfono": "Mic/Aux"})

@@ -10,13 +10,13 @@ import wx
 
 from bellbird.obs.filtros_microfono import Estado
 from bellbird.ui import escena_filtros
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class TestEscenaFiltros(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.dialogo = escena_filtros.FiltrosMicrofonoDialog(
             None, "Mic/Aux", Estado(True, False, 6))
         self.addCleanup(destruir, self.dialogo)

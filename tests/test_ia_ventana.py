@@ -19,7 +19,7 @@ from bellbird.ai import protocolos
 from bellbird.ai import ventana_ia
 from bellbird.ui import ia_ventana as ventana
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 def _hilo_directo(target, nombre, **kwargs):
@@ -58,7 +58,7 @@ class PortapapelesDoble:
 class TestVentanaIAVentana(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         parche_hilo = mock.patch.object(
             ventana.diagnostico, "crear_hilo", side_effect=_hilo_directo)
         parche_hilo.start()

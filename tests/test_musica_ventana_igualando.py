@@ -5,6 +5,7 @@ Abren ventanas.
 
 import unittest
 from unittest import mock
+from tests.ventanas_prueba import app_de_prueba
 
 try:
     import wx
@@ -88,7 +89,7 @@ class TestIgualandoPseudo(unittest.TestCase):
     PENDIENTES = ()
 
     def setUp(self):
-        self.app = wx.App() if not wx.App.Get() else wx.App.Get()
+        self.app = app_de_prueba()
         self.control = None
         self.ventana = None
 

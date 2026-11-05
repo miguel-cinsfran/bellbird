@@ -13,7 +13,7 @@ from unittest import mock
 from bellbird.ui import gui
 from bellbird.player import motor_vlc
 from bellbird.player import reproductor
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class _CazadorWx(gui.wx.Log):
@@ -28,7 +28,7 @@ class _CazadorWx(gui.wx.Log):
 class TestAvisosStaticBox(unittest.TestCase):
 
     def setUp(self):
-        self.app = gui.wx.App(False) if not gui.wx.App.Get() else gui.wx.App.Get()
+        self.app = app_de_prueba()
         self.cazador = _CazadorWx()
         anterior = gui.wx.Log.SetActiveTarget(self.cazador)
         self.addCleanup(gui.wx.Log.SetActiveTarget, anterior)

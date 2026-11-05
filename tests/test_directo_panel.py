@@ -12,7 +12,7 @@ except Exception:
 
 from bellbird.obs import transmision_directa
 from bellbird.ui import directo_panel
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class OperacionesInmediatas:
@@ -35,7 +35,7 @@ def _preparacion(revision=mock.sentinel.revision):
 class TestDirectoPanel(unittest.TestCase):
 
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.ventana = wx.Dialog(None, name="DialogoPruebaDirecto")
         self.addCleanup(destruir, self.ventana)
         self.boton = wx.Button(self.ventana, label="Botón")

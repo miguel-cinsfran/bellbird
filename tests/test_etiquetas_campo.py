@@ -11,7 +11,7 @@ from unittest import mock
 import wx
 
 from tests.etiquetas_campo import etiquetas_sin_dos_puntos
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 from bellbird.ai import catalogo
 from bellbird.core import config
 from bellbird.ui import gui_preferencias
@@ -23,7 +23,7 @@ from tests.rutas_temporales import redirigir_rutas
 
 class TestAyudanteEtiquetasCampo(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
 
     def test_una_con_dos_puntos_pasa_y_otra_sin_ellos_falla(self):
         marco = wx.Frame(None)
@@ -38,7 +38,7 @@ class TestAyudanteEtiquetasCampo(unittest.TestCase):
 
 class TestEtiquetasCampoPreferencias(unittest.TestCase):
     def setUp(self):
-        self.app = wx.App.Get() or wx.App(False)
+        self.app = app_de_prueba()
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.ruta = Path(self.tmp.name)

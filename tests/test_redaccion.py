@@ -6,7 +6,7 @@ from bellbird.ui import gui
 from bellbird.ui import gui_redactar
 from bellbird.capture import redaccion
 from bellbird.ui.sesion_conectada import SesionConectada
-from tests.ventanas_prueba import destruir
+from tests.ventanas_prueba import app_de_prueba, destruir
 
 
 class TestRedaccion(unittest.TestCase):
@@ -71,7 +71,7 @@ class TestRedaccion(unittest.TestCase):
                 self.assertNotEqual(motivo, "Este vídeo no tiene chat")
 
     def test_motivo_chat_llega_al_panel_en_directo_sin_sesion(self):
-        self.app = gui.wx.App.Get() or gui.wx.App(False)
+        self.app = app_de_prueba()
         ventana = gui.wx.Frame(None)
         self.addCleanup(destruir, ventana)
         panel = gui_redactar.PanelRedactar(ventana, "Mensaje", 200, lambda texto: None)

@@ -8,7 +8,9 @@ from bellbird.core.idioma import _
 from bellbird.obs import (
     aplicar_diseno, consultas_transmision, disenos_fabrica, disenos_guardados,
     obs_disposicion, tamano_relativo)
-from bellbird.ui import escena_disenos, escena_menu_fuente, escena_tamano
+from bellbird.ui import (
+    agregar_camara, escena_captura_ventana, escena_disenos, escena_menu_fuente,
+    escena_tamano)
 from bellbird.ui.accesibilidad import anunciar, nombre_accesible
 from bellbird.ui.mover_con_flechas import MoverConFlechas
 from bellbird.ui.preferencias_comun import (
@@ -20,6 +22,7 @@ class PaginaFuentes(wx.Panel):
     def __init__(self, parent, ventana, gestor, operaciones, registro,
                  escena_elegida):
         super().__init__(parent, name="PaginaFuentes")
+        self._ventana = ventana
         self._gestor = gestor
         self._operaciones = operaciones
         self._registro = registro
@@ -30,7 +33,8 @@ class PaginaFuentes(wx.Panel):
             ventana, self.btn_ajuste, gestor, operaciones, registro,
             self._destino, self._mostrar_snap)
         self.acciones = (
-            self.btn_ajuste, self.btn_diseno, self.btn_restaurar)
+            self.btn_ajuste, self.btn_diseno, self.btn_agregar,
+            self.btn_restaurar)
         self._enlazar_eventos()
 
     @property
@@ -60,6 +64,10 @@ class PaginaFuentes(wx.Panel):
             self, _("&Aplicar diseño…"),
             nombre_de_etiqueta(_("&Aplicar diseño…")))
         caja.Add(self.btn_diseno, 0, wx.ALL, 8)
+        self.btn_agregar = boton(
+            self, _("Agregar f&uente…"),
+            nombre_de_etiqueta(_("Agregar f&uente…")))
+        caja.Add(self.btn_agregar, 0, wx.ALL, 8)
         self.btn_restaurar = boton(
             self, _("Deshacer cambi&os"),
             nombre_de_etiqueta(_("Deshacer cambi&os")))
@@ -69,6 +77,7 @@ class PaginaFuentes(wx.Panel):
         self.lst_fuentes.Bind(wx.EVT_KEY_DOWN, self._tecla_fuente)
         self.lst_fuentes.Bind(wx.EVT_CONTEXT_MENU, self._menu_contextual)
         self.btn_diseno.Bind(wx.EVT_BUTTON, self._aplicar_diseno)
+        self.btn_agregar.Bind(wx.EVT_BUTTON, self._agregar_fuente)
         self.btn_restaurar.Bind(wx.EVT_BUTTON, self._restaurar)
 
     def cargar(self, filas, fuente):
@@ -284,6 +293,55 @@ class PaginaFuentes(wx.Panel):
         self.cargar(filas, self.fuente())
         anunciar(disenos_fabrica.resumen(
             nombre, resultado[0], sin_mover=resultado[1]))
+
+    def _agregar_fuente(self, _event):
+        menu = wx.Menu()
+        captura = wx.NewIdRef()
+        menu.Append(captura, _("Captura de &ventana…"))
+        menu.Bind(wx.EVT_MENU, lambda _evento: self._capturar_ventana(),
+                  id=captura)
+        camara = wx.NewIdRef()
+        menu.Append(camara, _("&Cámara…"))
+        menu.Bind(wx.EVT_MENU, lambda _evento: self._agregar_camara(),
+                  id=camara)
+        self.btn_agregar.PopupMenu(menu)
+        menu.Destroy()
+
+    def _capturar_ventana(self):
+        escena = self._escena()
+        if not escena:
+            anunciar(_("Sin selección"))
+            return
+        if self._operaciones.en_vuelo:
+            return
+        escena_captura_ventana.pedir_ventana(
+            self._ventana, self._gestor, self._operaciones, escena,
+            lambda datos: self._ventana_aplicada(escena, datos),
+            self.lst_fuentes.SetFocus)
+
+    def _ventana_aplicada(self, escena, datos):
+        anunciar(datos.frase)
+        self._releer_filas(escena, datos.fuente)
+
+    def _agregar_camara(self):
+        agregar_camara.agregar(self._ventana, self._camara_agregada)
+
+    def _camara_agregada(self, _fuentes):
+        escena = self._escena()
+        if escena:
+            self._releer_filas(escena, "")
+
+    def _releer_filas(self, escena, fuente):
+        self._operaciones.en_hilo(
+            lambda: consultas_transmision.leer_filas(self._gestor, escena),
+            lambda filas: self._cargar_filas(filas, fuente))
+
+    def _cargar_filas(self, filas, fuente):
+        nombres = [fila.nombre for fila in filas]
+        if fuente in nombres:
+            self.cargar(filas, fuente)
+        else:
+            self.cargar(filas, nombres[0] if nombres else "")
 
     def _restaurar(self, event):
         escena, fuente = self._destino()

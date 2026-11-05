@@ -5558,9 +5558,9 @@ msgid "Antes de transmitir"
 msgstr "Before broadcasting"
 
 #. Traductores: botón para cerrar sin publicar.
-#: bellbird/ui/confirmar_transmision.py bellbird/ui/escena_filtros.py
-#: bellbird/ui/escena_tamano.py bellbird/ui/gui_preferencias.py
-#: bellbird/ui/gui_redactar.py
+#: bellbird/ui/confirmar_transmision.py bellbird/ui/escena_captura_ventana.py
+#: bellbird/ui/escena_filtros.py bellbird/ui/escena_tamano.py
+#: bellbird/ui/gui_preferencias.py bellbird/ui/gui_redactar.py
 msgid "&Cancelar"
 msgstr "&Cancel"
 
@@ -5943,6 +5943,23 @@ msgstr "Framing warnings on"
 msgid "Avisos de encuadre desactivados"
 msgstr "Framing warnings off"
 
+#: bellbird/ui/escena_captura_ventana.py
+msgid "Capturar ventana"
+msgstr "Capture window"
+
+#: bellbird/ui/escena_captura_ventana.py bellbird/ui/escena_pagina_agregar.py
+msgid "&Ventana:"
+msgstr "&Window:"
+
+#: bellbird/ui/escena_captura_ventana.py bellbird/ui/escena_disenos.py
+#: bellbird/ui/escena_filtros.py bellbird/ui/escena_tamano.py
+msgid "&Aceptar"
+msgstr "&Accept"
+
+#: bellbird/ui/escena_captura_ventana.py bellbird/ui/escena_pagina_agregar.py
+msgid "Elige primero una ventana en Ventana."
+msgstr "First choose a window in Window."
+
 #: bellbird/ui/escena_disenos.py
 msgid "Automático"
 msgstr "Automatic"
@@ -6051,11 +6068,6 @@ msgstr "C&hat:"
 msgid "Esquina del c&hat:"
 msgstr "Chat co&rner:"
 
-#: bellbird/ui/escena_disenos.py bellbird/ui/escena_filtros.py
-#: bellbird/ui/escena_tamano.py
-msgid "&Aceptar"
-msgstr "&Accept"
-
 #: bellbird/ui/escena_disenos.py
 msgid "&Guardar como…"
 msgstr "Sa&ve as…"
@@ -6150,20 +6162,12 @@ msgid "Ventana capturada"
 msgstr "Captured window"
 
 #: bellbird/ui/escena_pagina_agregar.py
-msgid "&Ventana:"
-msgstr "&Window:"
-
-#: bellbird/ui/escena_pagina_agregar.py
 msgid "&Capturar ventana"
 msgstr "&Capture window"
 
 #: bellbird/ui/escena_pagina_agregar.py
 msgid "Agregar cá&mara…"
 msgstr "Add ca&mera…"
-
-#: bellbird/ui/escena_pagina_agregar.py
-msgid "Elige primero una ventana en Ventana."
-msgstr "First choose a window in Window."
 
 #: bellbird/ui/escena_pagina_audio.py
 msgid "Si&lenciar micrófono"
@@ -6241,6 +6245,10 @@ msgid "&Aplicar diseño…"
 msgstr "Appl&y layout…"
 
 #: bellbird/ui/escena_pagina_fuentes.py
+msgid "Agregar f&uente…"
+msgstr "A&dd source…"
+
+#: bellbird/ui/escena_pagina_fuentes.py
 msgid "Deshacer cambi&os"
 msgstr "&Undo changes"
 
@@ -6258,6 +6266,14 @@ msgstr "{fuente} does not report its size yet."
 #: bellbird/ui/escena_pagina_fuentes.py
 msgid "La escena no tiene fuentes para un diseño."
 msgstr "The scene does not have sources for a layout."
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "Captura de &ventana…"
+msgstr "&Window capture…"
+
+#: bellbird/ui/escena_pagina_fuentes.py
+msgid "&Cámara…"
+msgstr "&Camera…"
 
 #: bellbird/ui/escena_pagina_fuentes.py
 msgid "Cambios deshechos"
@@ -8816,10 +8832,6 @@ msgstr "OBS panel"
 #: bellbird/ui/obs_ventana.py
 msgid "Escena"
 msgstr "Scene"
-
-#: bellbird/ui/obs_ventana.py
-msgid "Agregar"
-msgstr "Add"
 
 #: bellbird/ui/obs_ventana.py
 msgid "Transmisión"

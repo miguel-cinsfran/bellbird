@@ -29,7 +29,7 @@ from bellbird.obs.filtros_microfono import Estado
 from bellbird.ui import descargas_listas, operaciones_obs, elegir_formato, gui, gui_comentarios, gui_descargas, gui_directo_youtube, gui_grabaciones, gui_historial, gui_microfono, gui_transmision, gui_preferencias, control_grabacion, mover_con_flechas
 from bellbird.ui import escena_disenos
 from bellbird.ui import escena_filtros
-from bellbird.ui import escena_pagina_agregar
+from bellbird.ui import escena_captura_ventana
 from bellbird.ui import escena_pagina_audio
 from bellbird.ui import escena_pagina_escena
 from bellbird.ui import escena_pagina_fuentes
@@ -292,7 +292,7 @@ class TestLetrasAccesoPanelObs(unittest.TestCase):
                               lambda *args, **kwargs: None),
             mock.patch.object(escena_pagina_fuentes, "anunciar",
                               lambda *args, **kwargs: None),
-            mock.patch.object(escena_pagina_agregar, "anunciar",
+            mock.patch.object(escena_captura_ventana, "anunciar",
                               lambda *args, **kwargs: None),
             mock.patch.object(gui_microfono, "anunciar",
                               lambda *args, **kwargs: None),

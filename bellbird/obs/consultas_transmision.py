@@ -141,8 +141,6 @@ class EscenaLeida:
     fuentes: object
     fuente: str
     snap: object
-    opciones: object
-    actual: object
     descripcion: object
     filas: object = ()
 
@@ -151,10 +149,9 @@ def leer_escena(gestor, escena) -> EscenaLeida:
     fuentes = gestor.fuentes(escena)
     fuente = elegir_fuente(fuentes)
     snap = gestor.instantanea(escena, fuente=fuente)
-    opciones, actual = gestor.ventanas(escena)
     return EscenaLeida(
-        fuentes=fuentes, fuente=fuente, snap=snap, opciones=opciones,
-        actual=actual, descripcion=gestor.descripcion_escena(escena),
+        fuentes=fuentes, fuente=fuente, snap=snap,
+        descripcion=gestor.descripcion_escena(escena),
         filas=leer_filas(gestor, escena))
 
 

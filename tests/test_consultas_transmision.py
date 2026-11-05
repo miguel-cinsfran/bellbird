@@ -179,8 +179,6 @@ class TestLeerEscena(unittest.TestCase):
         self.assertEqual(datos.fuentes, ("Cámara", "Chat en el vídeo"))
         self.assertEqual(datos.fuente, "Chat en el vídeo")
         self.assertIs(datos.snap, mock.sentinel.snap)
-        self.assertIs(datos.opciones, mock.sentinel.opciones)
-        self.assertIs(datos.actual, mock.sentinel.actual)
         self.assertIs(datos.descripcion, mock.sentinel.descripcion)
         self.assertIs(datos.filas, mock.sentinel.filas)
 
@@ -190,13 +188,12 @@ class TestLeerEscena(unittest.TestCase):
         gestor.fuentes.assert_called_once_with("Juego")
         gestor.instantanea.assert_called_once_with(
             "Juego", fuente="Chat en el vídeo")
-        gestor.ventanas.assert_called_once_with("Juego")
+        gestor.ventanas.assert_not_called()
         gestor.descripcion_escena.assert_called_once_with("Juego")
         gestor.filas_escena.assert_called_once_with("Juego")
         self.assertEqual(
             [llamada[0] for llamada in gestor.mock_calls],
-            ["fuentes", "instantanea", "ventanas", "descripcion_escena",
-             "filas_escena"])
+            ["fuentes", "instantanea", "descripcion_escena", "filas_escena"])
 
     def test_leer_filas_pide_las_filas_de_la_escena(self):
         gestor = _gestor()

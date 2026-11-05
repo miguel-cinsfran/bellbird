@@ -16,13 +16,12 @@ SEGUNDOS_CARGA_OBS = 90.0
 
 TITULO_VENTANA = "Panel de OBS"
 
-PESTANAS_OBS = ("General", "Escena", "Agregar", "Transmisión",
-                "Audio", "Grabación")
+PESTANAS_OBS = ("General", "Escena", "Transmisión", "Audio", "Grabación")
 
 PESTANA_GENERAL = 0
 PESTANA_ESCENA = 1
-PESTANA_TRANSMISION = 3
-PESTANA_GRABACION = 5
+PESTANA_TRANSMISION = 2
+PESTANA_GRABACION = 4
 
 ESPERADOS_EN_TODAS = ("Cerrar",)
 
@@ -34,11 +33,11 @@ ESPERADOS_POR_PESTANA = {
     "General": ("Estado", "Actualizar estado", "Mostrar OBS"),
     "Transmisión": ("Transmitir a", "Transmitir en directo", "Restream…"),
     "Escena": ("Escena", "Cambiar escena", "Fuentes", "Mover con flechas",
-               "Aplicar diseño", "Deshacer cambios", "Guardar imagen"),
+               "Aplicar diseño", "Agregar fuente", "Deshacer cambios",
+               "Guardar imagen"),
     "Audio": ("Silenciar micrófono", "Elegir micrófono"),
     "Grabación": ("Iniciar grabación", "Grabar también al transmitir",
                   "Grabaciones y clips"),
-    "Agregar": ("Ventana", "Capturar ventana", "Agregar cámara"),
 }
 
 

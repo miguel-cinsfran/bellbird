@@ -14,7 +14,7 @@ from bellbird.obs.obs_escena import FilaFuente
 from bellbird.ui import confirmar_transmision as modulo_confirmar
 from bellbird.ui import control_grabacion
 from bellbird.ui import directo_panel
-from bellbird.ui import escena_pagina_agregar
+from bellbird.ui import escena_captura_ventana
 from bellbird.ui import escena_pagina_escena
 from bellbird.ui import escena_pagina_fuentes
 from bellbird.ui import gui_grabaciones
@@ -297,7 +297,7 @@ class TestPanelTransmision(unittest.TestCase):
             mock.patch.object(gui_microfono, "anunciar", anunciar),
             mock.patch.object(escena_pagina_escena, "anunciar", anunciar),
             mock.patch.object(escena_pagina_fuentes, "anunciar", anunciar),
-            mock.patch.object(escena_pagina_agregar, "anunciar", anunciar),
+            mock.patch.object(escena_captura_ventana, "anunciar", anunciar),
             mock.patch.object(mover_con_flechas, "anunciar", anunciar),
             mock.patch.object(directo_panel, "anunciar", anunciar),
             mock.patch.object(operaciones_obs.sound_player, "reproducir"),
@@ -392,8 +392,7 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(
             [ventana.nb.GetPageText(i)
              for i in range(ventana.nb.GetPageCount())],
-            ["General", "Escena", "Agregar", "Transmisión",
-             "Audio", "Grabación"])
+            ["General", "Escena", "Transmisión", "Audio", "Grabación"])
 
     def test_pasar_a_general_vuelve_a_leer_el_estado(self):
         self.gestor.grabando = True

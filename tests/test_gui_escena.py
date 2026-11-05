@@ -11,7 +11,7 @@ from bellbird.obs import (
 from bellbird.obs.obs_escena import FilaFuente
 from bellbird.ui import escena_disenos
 from bellbird.ui import escena_menu_fuente
-from bellbird.ui import escena_pagina_agregar
+from bellbird.ui import escena_captura_ventana
 from bellbird.ui import escena_pagina_audio
 from bellbird.ui import escena_pagina_escena
 from bellbird.ui import escena_pagina_fuentes
@@ -118,7 +118,7 @@ class TestVentanaObs(unittest.TestCase):
             mock.patch.object(obs_ventana, "anunciar", anunciar),
             mock.patch.object(escena_pagina_escena, "anunciar", anunciar),
             mock.patch.object(escena_pagina_fuentes, "anunciar", anunciar),
-            mock.patch.object(escena_pagina_agregar, "anunciar", anunciar),
+            mock.patch.object(escena_captura_ventana, "anunciar", anunciar),
             mock.patch.object(gui_microfono, "anunciar", anunciar),
             mock.patch.object(mover_con_flechas, "anunciar", anunciar),
             mock.patch.object(operaciones_obs, "anunciar", anunciar),
@@ -182,6 +182,28 @@ class TestVentanaObs(unittest.TestCase):
             pagina._mostrar_menu_fuente(pagina.lst_fuentes)
         return etiquetas
 
+    def _abrir_menu_agregar(self, pagina, al_elegir=None):
+        etiquetas = []
+
+        def falso_popup(menu):
+            for item in _items_del_menu(menu):
+                etiqueta = item.GetItemLabelText()
+                etiquetas.append(etiqueta)
+                if etiqueta == al_elegir:
+                    item.GetMenu().ProcessEvent(
+                        wx.CommandEvent(wx.EVT_MENU.typeId, item.GetId()))
+
+        with mock.patch.object(pagina.btn_agregar, "PopupMenu", falso_popup):
+            self._pulsar(pagina.btn_agregar)
+        return etiquetas
+
+    @staticmethod
+    def _modal_con_seleccion(indice):
+        def mostrar(dialogo):
+            dialogo.cho_ventana.SetSelection(indice)
+            return wx.ID_OK
+        return mostrar
+
     def _cuadro_tamano(self, porcentaje_ancho=29, porcentaje_alto=69):
         dialogo = escena_tamano.TamanoFuenteDialog(
             self.dialogo, porcentaje_ancho, porcentaje_alto)
@@ -202,8 +224,7 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(
             [self.dialogo.nb.GetPageText(i)
              for i in range(self.dialogo.nb.GetPageCount())],
-            ["General", "Escena", "Agregar", "Transmisión",
-             "Audio", "Grabación"])
+            ["General", "Escena", "Transmisión", "Audio", "Grabación"])
 
     def test_al_abrir_la_escena_al_aire_la_lista_de_fuentes(self):
         self.anuncios.clear()
@@ -587,32 +608,114 @@ class TestVentanaObs(unittest.TestCase):
             len([llamada for llamada in self.gestor.llamadas
                  if llamada[0] == "transformar"]), 3)
 
-    def test_capturar_ventana_recarga_la_escena(self):
-        pagina = self.dialogo._pagina_agregar
-        pagina.cho_ventana.SetSelection(0)
+    def test_agregar_fuente_abre_un_menu_con_captura_y_camara(self):
+        pagina = self.dialogo._pagina_fuentes
+        self.assertEqual(
+            self._abrir_menu_agregar(pagina),
+            ["Captura de ventana…", "Cámara…"])
+
+    def test_capturar_ventana_pide_las_ventanas_y_aplica_la_elegida(self):
+        pagina = self.dialogo._pagina_fuentes
+        filas = (
+            FilaFuente("Captura de ventana", "Captura de ventana", True, False),
+            FilaFuente("Chat en el vídeo", "Chat en el vídeo", True, False))
+        elegida = self.gestor.opciones_ventana[1][1]
         with mock.patch.object(
-                self.gestor, "descripcion_escena",
-                wraps=self.gestor.descripcion_escena) as descripcion:
-            self._pulsar(pagina.btn_usar_ventana)
+                escena_captura_ventana.DialogoCapturarVentana, "ShowModal",
+                self._modal_con_seleccion(1)), \
+                mock.patch.object(self.gestor, "filas_escena",
+                                  return_value=filas) as releer, \
+                mock.patch.object(pagina.lst_fuentes, "SetFocus") as foco:
+            self._abrir_menu_agregar(pagina, "Captura de ventana…")
+        self.assertIn(("ventanas", "Principal"), self.gestor.llamadas)
+        self.assertIn(
+            ("usar_ventana", "Principal", elegida), self.gestor.llamadas)
         self.assertIn("Ahora se captura Champions, de juego.exe.",
                       self.anuncios)
-        descripcion.assert_called()
+        self.assertEqual(pagina.lst_fuentes.GetStrings(),
+                         [fila.texto for fila in filas])
+        self.assertEqual(pagina.fuente(), "Chat en el vídeo")
+        releer.assert_called_once_with("Principal")
+        foco.assert_called()
 
-    def test_agregar_camara_recarga_la_escena(self):
-        pagina = self.dialogo._pagina_agregar
+    def test_capturar_ventana_si_la_fuente_no_esta_elige_la_primera(self):
+        pagina = self.dialogo._pagina_fuentes
+        filas = (FilaFuente("Nueva", "Nueva", True, False),)
+        with mock.patch.object(
+                escena_captura_ventana.DialogoCapturarVentana, "ShowModal",
+                self._modal_con_seleccion(0)), \
+                mock.patch.object(self.gestor, "filas_escena",
+                                  return_value=filas), \
+                mock.patch.object(pagina.lst_fuentes, "SetFocus"):
+            self._abrir_menu_agregar(pagina, "Captura de ventana…")
+        self.assertEqual(pagina.fuente(), "Nueva")
 
-        def agregar(dialogo, al_agregar):
+    def test_capturar_ventana_sin_ventana_elegida_dice_lo_de_siempre(self):
+        dialogo = escena_captura_ventana.DialogoCapturarVentana(
+            self.dialogo, (("Charla, de otro.exe", "charla"),), "")
+        self.addCleanup(destruir, dialogo)
+        dialogo.EndModal = mock.Mock()
+        dialogo._al_aceptar(None)
+        dialogo.EndModal.assert_not_called()
+        self.assertIn("Elige primero una ventana en Ventana.", self.anuncios)
+
+    def test_el_cuadro_capturar_ventana_abre_con_la_capturada_elegida(self):
+        dialogo = escena_captura_ventana.DialogoCapturarVentana(
+            self.dialogo, self.gestor.opciones_ventana,
+            self.gestor.actual_ventana)
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(dialogo.GetTitle(), "Capturar ventana")
+        self.assertEqual(dialogo.cho_ventana.GetName(), "Ventana")
+        self.assertEqual(dialogo.rotulo_ventana.GetLabel(), "&Ventana:")
+        self.assertEqual(
+            dialogo.cho_ventana.GetStrings(),
+            ["Champions, de juego.exe", "Charla, de otro.exe"])
+        self.assertEqual(dialogo.cho_ventana.GetStringSelection(),
+                         "Champions, de juego.exe")
+        self.assertIs(dialogo.FindFocus(), dialogo.cho_ventana)
+        self.assertEqual(dialogo.btn_aceptar.GetLabel(), "&Aceptar")
+        self.assertEqual(dialogo.btn_cancelar.GetLabel(), "&Cancelar")
+
+    def test_escape_cancela_el_cuadro_de_ventana(self):
+        dialogo = escena_captura_ventana.DialogoCapturarVentana(
+            self.dialogo, self.gestor.opciones_ventana,
+            self.gestor.actual_ventana)
+        self.addCleanup(destruir, dialogo)
+        dialogo.EndModal = mock.Mock()
+        evento = wx.KeyEvent(wx.wxEVT_CHAR_HOOK)
+        evento.KeyCode = wx.WXK_ESCAPE
+        dialogo.ProcessEvent(evento)
+        dialogo.EndModal.assert_called_once_with(wx.ID_CANCEL)
+
+    def test_al_cerrar_el_cuadro_el_foco_vuelve_a_fuentes(self):
+        pagina = self.dialogo._pagina_fuentes
+        with mock.patch.object(
+                escena_captura_ventana.DialogoCapturarVentana, "ShowModal",
+                return_value=wx.ID_CANCEL), \
+                mock.patch.object(pagina.lst_fuentes, "SetFocus") as foco:
+            self._abrir_menu_agregar(pagina, "Captura de ventana…")
+        foco.assert_called_once_with()
+
+    def test_camara_llama_a_agregar_camara_y_relee_elegiendo_la_primera(self):
+        pagina = self.dialogo._pagina_fuentes
+        filas = (FilaFuente("Cámara", "Cámara", True, False),
+                 FilaFuente("Chat en el vídeo", "Chat en el vídeo", True,
+                            False))
+
+        def agregar(ventana, al_agregar):
             al_agregar(("Cámara",))
 
-        with mock.patch.object(escena_pagina_agregar.agregar_camara,
+        with mock.patch.object(escena_pagina_fuentes.agregar_camara,
                                "agregar", side_effect=agregar) as llamada, \
-                mock.patch.object(
-                    self.gestor, "descripcion_escena",
-                    wraps=self.gestor.descripcion_escena) as descripcion:
-            self._pulsar(pagina.btn_camara)
+                mock.patch.object(self.gestor, "filas_escena",
+                                  return_value=filas) as releer:
+            self._abrir_menu_agregar(pagina, "Cámara…")
         self.assertIs(llamada.call_args.args[0], self.dialogo)
         self.assertTrue(callable(llamada.call_args.args[1]))
-        descripcion.assert_called()
+        self.assertEqual(pagina.lst_fuentes.GetStrings(),
+                         [fila.texto for fila in filas])
+        self.assertEqual(pagina.fuente(), "Cámara")
+        releer.assert_called_once_with("Principal")
 
     def test_silenciar_usa_el_preferido_del_principal(self):
         with mock.patch.object(
@@ -662,11 +765,8 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(fuentes.lst_fuentes.GetName(), "Fuentes")
         self.assertEqual(fuentes.btn_ajuste.GetName(), "Mover con flechas")
         self.assertEqual(fuentes.btn_diseno.GetName(), "Aplicar diseño…")
+        self.assertEqual(fuentes.btn_agregar.GetName(), "Agregar fuente…")
         self.assertEqual(fuentes.btn_restaurar.GetName(), "Deshacer cambios")
-        agregar = self.dialogo._pagina_agregar
-        self.assertEqual(agregar.cho_ventana.GetName(), "Ventana")
-        self.assertEqual(agregar.btn_usar_ventana.GetName(), "Capturar ventana")
-        self.assertEqual(agregar.btn_camara.GetName(), "Agregar cámara…")
         audio = self.dialogo._pagina_audio
         self.assertEqual(audio.chk_silenciar.GetName(), "Silenciar micrófono")
         self.assertEqual(audio.chk_escuchar.GetName(), "Escuchar micrófono")
@@ -677,9 +777,8 @@ class TestVentanaObs(unittest.TestCase):
     def test_orden_de_tab_de_cada_pestana(self):
         self.assertEqual(self._nombres(self.dialogo._pagina_escena), [
             "Escena", "Cambiar escena", "Fuentes", "Mover con flechas",
-            "Aplicar diseño…", "Deshacer cambios", "Guardar imagen…"])
-        self.assertEqual(self._nombres(self.dialogo._pagina_agregar), [
-            "Ventana", "Capturar ventana", "Agregar cámara…"])
+            "Aplicar diseño…", "Agregar fuente…", "Deshacer cambios",
+            "Guardar imagen…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_audio), [
             "Silenciar micrófono", "Elegir micrófono…", "Probar micrófono",
             "Filtros del micrófono…", "Escuchar micrófono"])

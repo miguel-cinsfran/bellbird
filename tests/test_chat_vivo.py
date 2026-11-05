@@ -20,7 +20,7 @@ def _registro(tipo=TIPO_TEXTO, autor="Ana", texto="hola", monto=""):
 
 
 def _controlador(lista=None, maximo=500, activo=True, filtro="__filtro__",
-                 oculto=False):
+                 oculto=False, config=None):
     if lista is None:
         lista = mock.Mock()
         lista.GetCount.return_value = 1
@@ -29,7 +29,7 @@ def _controlador(lista=None, maximo=500, activo=True, filtro="__filtro__",
         activo=(lambda: activo) if isinstance(activo, bool) else activo,
         autor_oculto=lambda autor: oculto,
         formatear=lambda autor, texto, hora, tipo, monto: f"{autor}: {texto}, {hora}",
-        al_superchat=mock.Mock())
+        al_superchat=mock.Mock(), config=config)
     if filtro != "__filtro__":
         control.filtro = filtro
     return control
@@ -181,6 +181,27 @@ class TestControladorChat(unittest.TestCase):
             control.reconstruir()
         control.lista.Clear.assert_called_once_with()
         control.lista.Append.assert_called_once_with("Ana: visto, 12:00")
+
+    def test_evento_en_lista_entra_a_la_lista_sin_sonar(self):
+        control = _controlador(config={"evento_entrada": "lista"})
+        with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir:
+            visible = control._procesar(_registro(tipo=TIPO_ENTRADA))
+        self.assertTrue(visible)
+        reproducir.assert_not_called()
+        control.lista.Append.assert_called_once()
+
+    def test_evento_en_mostrar_suena(self):
+        control = _controlador(config={"evento_entrada": "mostrar"})
+        with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir:
+            control._procesar(_registro(tipo=TIPO_ENTRADA))
+        reproducir.assert_called_once_with("entrada")
+
+    def test_regalo_en_lista_suma_al_total_sin_sonar(self):
+        control = _controlador(config={"evento_superchat": "lista"})
+        with mock.patch.object(chat_vivo._snd, "reproducir") as reproducir:
+            control._procesar(_registro(tipo=TIPO_SUPERCHAT, monto="$5"))
+        reproducir.assert_not_called()
+        control._al_superchat.assert_called_once_with("$5")
 
     def test_filtro_avisos_deja_solo_los_avisos_en_la_lista(self):
         control = _controlador(filtro=TIPOS_AVISO)

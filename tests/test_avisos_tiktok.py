@@ -91,10 +91,11 @@ class TestEventos(unittest.TestCase):
 
     def test_modos_y_rotulos(self):
         self.assertEqual([modo for modo, _rotulo in avisos_tiktok.MODOS_EVENTO],
-                         ["principal", "secundaria", "mostrar", "ocultar"])
+                         ["principal", "secundaria", "mostrar", "lista",
+                          "ocultar"])
         self.assertEqual([rotulo for _modo, rotulo in avisos_tiktok.MODOS_EVENTO],
                          ["Voz principal", "Voz secundaria", "Solo sonido",
-                          "Desactivado"])
+                          "Solo en la lista", "Desactivado"])
 
     def test_modo_guardado(self):
         config = {"evento_superchat": "mostrar"}
@@ -125,6 +126,14 @@ class TestEventos(unittest.TestCase):
         self.assertEqual(opciones["evento_superchat"], "mostrar")
         self.assertEqual(opciones["evento_miembro"], "principal")
         self.assertEqual(opciones["evento_entrada"], "mostrar")
+
+    def test_lista_se_acepta_en_la_config_y_se_devuelve(self):
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.read_string("[eventos]\nentrada = lista\n")
+        opciones = avisos_tiktok.opciones_eventos(parser)
+        self.assertEqual(opciones["evento_entrada"], "lista")
+        self.assertEqual(
+            avisos_tiktok.modo_de(opciones, cfg.TIPO_ENTRADA), "lista")
 
 
 class TestPasaFiltro(unittest.TestCase):

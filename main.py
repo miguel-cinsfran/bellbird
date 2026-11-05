@@ -404,8 +404,8 @@ def procesar_entrante(autor, mensaje, tipo, monto, canal_id, cola, config, stats
     hora = datetime.now().strftime('%H:%M:%S')
     if on_message: on_message(autor, mensaje, hora, tipo, monto, canal_id, rol=rol)
 
-    if modo == "mostrar":
-        return  # en la lista con su sonido, sin leer
+    if modo in ("mostrar", "lista"):
+        return  # en la lista, sin leer
 
     if debe_leer_tts(autor, config) and (sesion_activa is None or sesion_activa()):
         item = {"texto_tts": tts_text, "autor": autor_visible}

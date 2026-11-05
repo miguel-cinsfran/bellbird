@@ -81,9 +81,11 @@ En TikTok también se leen los stickers y las preguntas del directo. En
 *Preferencias*, categoría *Lectura*, el grupo *Eventos del directo* tiene una
 lista por evento: *Super Chats y regalos*, *Membresías*, *Entradas al directo*,
 *Me gusta*, *Seguidores nuevos*, *Directo compartido* y *Cofres*. Cada lista
-elige entre *Voz principal*, *Voz secundaria*, *Solo sonido* y *Desactivado*.
+elige entre *Voz principal*, *Voz secundaria*, *Solo sonido*, *Solo en la lista*
+y *Desactivado*.
 *Voz principal* y *Voz secundaria* lo muestran en la lista, suenan y lo leen;
-*Solo sonido* lo muestra y suena sin leerlo; *Desactivado* no lo muestra. De
+*Solo sonido* lo muestra y suena sin leerlo; *Solo en la lista* lo muestra en
+la lista sin leerlo y sin sonido; *Desactivado* no lo muestra. De
 fábrica, las entradas y los me gusta están en *Solo sonido*, y el resto en
 *Voz principal*. Debajo de *Me gusta* hay un contador, *Agrupar me gusta
 durante, en segundos*, que decide cuántos segundos se juntan los me gusta de

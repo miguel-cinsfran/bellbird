@@ -206,13 +206,12 @@ class TestManejadoresNuevos(unittest.TestCase):
         self.assertEqual(len(recibidos), 1)
         self.assertEqual(recibidos[0][2], TIPO_ME_GUSTA)
 
-    def test_entradas_solo_se_piden_si_el_evento_no_esta_desactivado(self):
-        for modo, registra in (("ocultar", False), ("principal", True)):
+    def test_entradas_se_piden_tambien_si_el_evento_esta_desactivado(self):
+        for modo in ("ocultar", "principal"):
             with self.subTest(modo=modo):
                 cliente, mod_eventos = self._sesion(
                     [], {"evento_entrada": modo})
-                self.assertEqual(
-                    mod_eventos.JoinEvent in cliente.manejadores, registra)
+                self.assertIn(mod_eventos.JoinEvent, cliente.manejadores)
 
 
 class TestEnvoltorioHistoricoReal(unittest.TestCase):
@@ -408,6 +407,16 @@ class TestTextosEntranteNuevos(unittest.TestCase):
         main.procesar_entrante(
             "Ana", "", TIPO_SEGUIR, "", "canal", cola,
             _config_minima(evento_seguir="mostrar"), main.Stats(),
+            on_message=lambda *a, **k: avisos.append(a))
+        self.assertEqual(len(avisos), 1)
+        self.assertTrue(cola.empty())
+
+    def test_evento_en_lista_avisa_pero_no_lee(self):
+        cola = queue.Queue()
+        avisos = []
+        main.procesar_entrante(
+            "Ana", "", TIPO_SEGUIR, "", "canal", cola,
+            _config_minima(evento_seguir="lista"), main.Stats(),
             on_message=lambda *a, **k: avisos.append(a))
         self.assertEqual(len(avisos), 1)
         self.assertTrue(cola.empty())

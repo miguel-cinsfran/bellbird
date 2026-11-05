@@ -758,6 +758,31 @@ class TestVentanaReal(unittest.TestCase):
                          {"texto_tts": "Ana: hola mundo", "autor": ""})
         self.assertEqual(cola.get()["texto_tts"], "en espera")
 
+    def test_el_chat_usa_el_modo_de_evento_de_la_config_de_la_ventana(self):
+        frame = self._ventana()
+        frame._conectado = True
+        registro = MensajeChat(
+            plataforma="tiktok", autor="Ana", identificador="C",
+            texto="", hora="12:00", tipo=config.TIPO_ENTRADA,
+            monto="", rol="")
+
+        frame._config["evento_entrada"] = "lista"
+        with mock.patch.object(gui._snd, "reproducir") as reproducir:
+            frame.chat_vivo.encolar(registro)
+            frame.chat_vivo.volcar()
+            gui.wx.Yield()
+        self.assertEqual(frame.lb_chat.GetCount(), 1)
+        reproducir.assert_not_called()
+
+        frame.lb_chat.Clear()
+        frame._config["evento_entrada"] = "mostrar"
+        with mock.patch.object(gui._snd, "reproducir") as reproducir:
+            frame.chat_vivo.encolar(registro)
+            frame.chat_vivo.volcar()
+            gui.wx.Yield()
+        self.assertEqual(frame.lb_chat.GetCount(), 1)
+        reproducir.assert_called_once_with("entrada")
+
     def test_pestana_y_lista_del_chat_llevan_el_nombre_del_glosario(self):
         frame = self._ventana()
         self.assertEqual(frame.nb.GetPageText(gui.PAG_CHAT), "Chat del directo")

@@ -1,4 +1,4 @@
-"""Modos por evento: voz principal, voz secundaria, sonido o nada.
+"""Modos por evento: voz principal, voz secundaria, sonido, solo en la lista o nada.
 
 Cada evento de la app guarda su modo en `[eventos]`. La app los consulta
 antes de leer, mostrar o descartar. Las claves `tiktok_aviso_*` de las
@@ -22,6 +22,7 @@ AVISOS = (("entrada", "aviso_entradas", N_("&Entradas al directo:"),
 MODOS_EVENTO = (("principal", N_("Voz principal")),
                 ("secundaria", N_("Voz secundaria")),
                 ("mostrar", N_("Solo sonido")),
+                ("lista", N_("Solo en la lista")),
                 ("ocultar", N_("Desactivado")))
 
 EVENTOS = (("superchat", "principal"),
@@ -48,7 +49,7 @@ _VALIDOS_EVENTO = frozenset(modo for modo, _rotulo in MODOS_EVENTO)
 def modo_de(config, tipo) -> str | None:
     """Modo de lectura del aviso según el evento.
 
-    Los dos modos con voz leen. Los otros dos conservan su nombre. `None`
+    Los dos modos con voz leen. Los demás conservan su nombre. `None`
     para un tipo que no es un aviso de la captura.
     """
     modo = modo_evento(config, tipo)

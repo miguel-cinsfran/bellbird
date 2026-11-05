@@ -14,7 +14,7 @@ from bellbird.capture.tiktok_captura import debe_pasar_me_gusta
 from bellbird.core import comando_clip
 from bellbird.core import diagnostico
 from bellbird.core import sonidos_eventos
-from bellbird.core.avisos_tiktok import pasa_filtro
+from bellbird.core.avisos_tiktok import modo_evento, pasa_filtro
 from bellbird.core.config import (
     TIPO_ME_GUSTA, TIPO_MIEMBRO, TIPO_STICKER, TIPO_SUPERCHAT,
 )
@@ -36,9 +36,10 @@ class ControladorChat:
     """Estado y volcado del chat en vivo, separado de la ventana principal."""
 
     def __init__(self, lista, maximo, *, activo, autor_oculto,
-                 formatear, al_superchat, ajustes_clip=None,
+                 formatear, al_superchat, config=None, ajustes_clip=None,
                  guardar_clip=None, reloj=time.monotonic):
         self.lista = lista
+        self._config = config
         self.modelo = ListaChat(maximo)
         self.filtro = None
         self._pendientes: list[MensajeChat] = []
@@ -104,11 +105,24 @@ class ControladorChat:
         for _sin_uso in range(borrar):
             self.lista.Delete(0)
 
+        en_lista = (self._config is not None
+                    and modo_evento(self._config, registro.tipo) == "lista")
+        if registro.tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
+            self._al_superchat(registro.monto)
+        if not en_lista:
+            self._reproducir(registro)
+
+        if visible:
+            self.lista.Append(self._formatear(
+                registro.autor, registro.texto, registro.hora, registro.tipo, registro.monto))
+        return visible
+
+    def _reproducir(self, registro: MensajeChat) -> None:
+        """Suena el registro según su tipo, con el mismo aviso de siempre."""
         if registro.tipo in (TIPO_SUPERCHAT, TIPO_STICKER):
             _snd.reproducir(sonidos_eventos.sonido_de_mensaje(
                 registro.tipo, registro.rol, registro.monto,
                 registro.plataforma))
-            self._al_superchat(registro.monto)
         elif registro.tipo == TIPO_MIEMBRO:
             _snd.reproducir("nuevo_miembro")
         elif registro.tipo == TIPO_ME_GUSTA:
@@ -122,11 +136,6 @@ class ControladorChat:
         else:
             _snd.reproducir(sonidos_eventos.sonido_de_mensaje(registro.tipo,
                                                               registro.rol))
-
-        if visible:
-            self.lista.Append(self._formatear(
-                registro.autor, registro.texto, registro.hora, registro.tipo, registro.monto))
-        return visible
 
     def volcar(self) -> None:
         """Procesa TODOS los mensajes en espera de una vez: modelo y vista se

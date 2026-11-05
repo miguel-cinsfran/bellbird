@@ -411,7 +411,8 @@ class YTChatFrame(wx.Frame):
             activo=lambda: self._alive and self._conectado,
             autor_oculto=self._autor_esta_oculto,
             formatear=self._format_display,
-            al_superchat=self._sumar_superchat)
+            al_superchat=self._sumar_superchat,
+            config=self._config)
         vs.Add(self.lb_chat, 1, wx.EXPAND | wx.ALL, 8)
 
         self._panel_redactar = PanelRedactar(

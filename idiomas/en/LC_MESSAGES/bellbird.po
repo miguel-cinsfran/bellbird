@@ -1676,6 +1676,10 @@ msgid "Solo sonido"
 msgstr "Sound only"
 
 #: bellbird/core/avisos_tiktok.py
+msgid "Solo en la lista"
+msgstr "List only"
+
+#: bellbird/core/avisos_tiktok.py
 msgid "Desactivado"
 msgstr "Off"
 

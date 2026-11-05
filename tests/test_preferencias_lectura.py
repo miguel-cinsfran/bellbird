@@ -219,7 +219,7 @@ class TestEventosDelDirecto(unittest.TestCase):
             esperadas.append(etiqueta)
             if atributo == "cho_evento_entrada":
                 esperadas.append(
-                    "Agrupar entradas durante (segundos):")
+                    "Agrupar entradas durante (segund&os):")
             if atributo == "cho_evento_me_gusta":
                 esperadas.append("&Agrupar me gusta durante (segundos):")
         self.assertEqual(etiquetas, esperadas)

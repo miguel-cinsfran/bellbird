@@ -9453,16 +9453,24 @@ msgid "Eventos del directo"
 msgstr "Live events"
 
 #: bellbird/ui/preferencias_lectura.py
+msgid "Agrupar en&tradas"
+msgstr "Gr&oup joins"
+
+#: bellbird/ui/preferencias_lectura.py
 msgid "Agrupar entradas"
 msgstr "Group joins"
 
 #: bellbird/ui/preferencias_lectura.py
-msgid "Agrupar entradas durante (segundos):"
-msgstr "Group joins for (seconds):"
+msgid "Agrupar entradas durante (segund&os):"
+msgstr "Group joins for (secon&ds):"
 
 #: bellbird/ui/preferencias_lectura.py
 msgid "Agrupar entradas durante, en segundos"
 msgstr "Group joins for, in seconds"
+
+#: bellbird/ui/preferencias_lectura.py
+msgid "Agru&par me gusta"
+msgstr "Gro&up likes"
 
 #: bellbird/ui/preferencias_lectura.py
 msgid "Agrupar me gusta"
@@ -9493,7 +9501,7 @@ msgid "Leer los mensajes recientes con"
 msgstr "Read recent messages with"
 
 #: bellbird/ui/preferencias_lectura.py
-msgid "Leer mensajes recientes en cualquier a&plicación"
+msgid "Leer mensajes recientes en cual&quier aplicación"
 msgstr "Read recent messages in any a&pplication"
 
 #: bellbird/ui/preferencias_musica.py

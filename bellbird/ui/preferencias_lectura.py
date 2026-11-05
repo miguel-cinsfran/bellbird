@@ -136,14 +136,14 @@ class PaginaLectura:
             if clave == "entrada":
                 self._agregar_agrupacion(
                     grilla, padre, "agrupar_entradas",
-                    _("Agrupar entradas"), _("Agrupar entradas"),
-                    _("Agrupar entradas durante (segundos):"),
+                    _("Agrupar en&tradas"), _("Agrupar entradas"),
+                    _("Agrupar entradas durante (segund&os):"),
                     _("Agrupar entradas durante, en segundos"),
                     "sp_segundos_entradas")
             if clave == "me_gusta":
                 self._agregar_agrupacion(
                     grilla, padre, "agrupar_me_gusta",
-                    _("Agrupar me gusta"), _("Agrupar me gusta"),
+                    _("Agru&par me gusta"), _("Agrupar me gusta"),
                     _("&Agrupar me gusta durante (segundos):"),
                     _("Agrupar me gusta durante, en segundos"),
                     "sp_segundos_me_gusta")
@@ -178,7 +178,7 @@ class PaginaLectura:
                wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
         self.chk_lectura_atajos_globales = wx.CheckBox(
-            p, label=_("Leer mensajes recientes en cualquier a&plicación"),
+            p, label=_("Leer mensajes recientes en cual&quier aplicación"),
             name="LecturaAtajosGlobales")
         self.chk_lectura_atajos_globales.SetForegroundColour(_T.text)
         vs.Add(self.chk_lectura_atajos_globales, 0,

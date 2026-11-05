@@ -1,7 +1,7 @@
 """Qué autores y mensajes deja pasar el chat.
 
 Única responsabilidad: aplicar los filtros por autor y por palabra. Lo usan
-el pipeline de cada mensaje y el agrupador de entradas de TikTok antes de
+el procesamiento de cada mensaje y el agrupador de entradas de TikTok antes de
 sumar a una persona.
 """
 
@@ -20,7 +20,7 @@ def permitido(autor: str, mensaje: str, config: dict) -> bool:
 def entra_en_grupo(autor: str, config: dict) -> bool:
     """Si la persona puede figurar en una fila agrupada de entradas.
 
-    Además del filtro del chat, deja afuera a quien se ocultó durante la
+    Además del filtro del chat, deja fuera a quien se ocultó durante la
     sesión, que es lo mismo que le impide hablar en la lectura.
     """
     completo = {

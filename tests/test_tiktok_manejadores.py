@@ -296,6 +296,18 @@ class TestEntradasAgrupadas(unittest.TestCase):
         self.assertEqual(recibidos[0][0], "Ana y Caro")
         self.assertEqual(recibidos[0][3], "2")
 
+    def test_la_ventana_de_entradas_no_usa_los_segundos_de_me_gusta(self):
+        cliente, mod, recibidos, _vistos, _est = _registrar(
+            _TODAS_NUEVAS,
+            config={"tiktok_segundos_entradas": 1,
+                    "tiktok_segundos_me_gusta": 60})
+        for indice, nombre in enumerate(("Ana", "Beto")):
+            self._entrar(cliente, mod, nombre, str(indice + 1), 1000.0)
+        _vaciar_con_conteo(cliente, mod, 1002.0)
+        self.assertEqual(len(recibidos), 1)
+        self.assertEqual(recibidos[0][0], "Ana y Beto")
+        self.assertEqual(recibidos[0][3], "2")
+
     def test_una_sola_persona_conserva_la_fila_y_su_autor(self):
         cliente, mod, recibidos, _vistos, _est = _registrar(_TODAS_NUEVAS)
         self._entrar(cliente, mod, "Ana", "1", 1000.0)

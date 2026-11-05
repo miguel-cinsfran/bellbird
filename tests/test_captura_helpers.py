@@ -357,15 +357,15 @@ class TestFiltros(unittest.TestCase):
     def test_entra_en_grupo_normal(self):
         self.assertTrue(entra_en_grupo("Ana", self._cfg()))
 
-    def test_entra_en_grupo_deja_afuera_al_silenciado(self):
+    def test_entra_en_grupo_deja_fuera_al_silenciado(self):
         self.assertFalse(entra_en_grupo(
             "Beto", self._cfg(usuarios_silenciados=["beto"])))
 
-    def test_entra_en_grupo_deja_afuera_al_oculto(self):
+    def test_entra_en_grupo_deja_fuera_al_oculto(self):
         self.assertFalse(entra_en_grupo(
             "Ana", self._cfg(silenciados_ocultar={"ana"})))
 
-    def test_entra_en_grupo_deja_afuera_al_oculto_en_la_sesion(self):
+    def test_entra_en_grupo_deja_fuera_al_oculto_en_la_sesion(self):
         self.assertFalse(entra_en_grupo(
             "Ana", self._cfg(silenciados_runtime={"ana"})))
 

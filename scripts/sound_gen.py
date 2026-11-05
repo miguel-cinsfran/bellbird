@@ -702,6 +702,31 @@ def gen_descarga_quieta():
         _concat(nota, _silencio(0.06), nota, _silencio(0.02)), 0.55)
 
 
+def gen_meta():
+    # Celebración ascendente y brillante: E5-G5-B5-E6 con cuerpo. Distinta
+    # del arpegio C5-E5-G5-C6 de al_aire y de la cola de descargas.
+    notas = [_perc(_detune(f, d, 0.34), 0.003, t)
+             for f, d, t in ((E5, 0.08, 0.06), (G5, 0.08, 0.06),
+                             (B5, 0.08, 0.07), (E6, 0.20, 0.16))]
+    return _normalizar(_concat(*notas), 0.78)
+
+
+def gen_batalla():
+    # Llamada de comienzo: dos toques firmes A4 y una subida a D5.
+    toque = _perc(_triangular(A4, 0.09, 0.36), 0.003, 0.07)
+    subida = _perc(_detune(D5, 0.18, 0.38), 0.003, 0.14)
+    return _normalizar(
+        _concat(toque, _silencio(0.05), toque, subida), 0.72)
+
+
+def gen_batalla_fin():
+    # Remate de cierre: F5-D5 y una nota final A4 que asienta.
+    n1 = _perc(_detune(F5, 0.10, 0.34), 0.003, 0.08)
+    n2 = _perc(_detune(D5, 0.10, 0.34), 0.003, 0.08)
+    n3 = _perc(_detune(A4, 0.22, 0.38), 0.003, 0.16)
+    return _normalizar(_concat(n1, n2, n3), 0.72)
+
+
 # ── Tema "suave": senos cálidos con decaimiento tipo marimba/madera ───────────
 # Más redondo, bajo y mate que el tema por defecto: nada de aristas brillantes
 # ni regusto a videojuego. Mismo lenguaje de gestos (ascendente = abrir, etc.).
@@ -1142,6 +1167,28 @@ def s_descarga_quieta():
         _concat(nota, _silencio(0.06), nota, _silencio(0.02)), 0.55)
 
 
+def s_meta():
+    # La misma celebración ascendente en madera: E5-G5-B5-E6.
+    return _seq(_madera(E5, 0.08, 0.34, 0.06),
+                _madera(G5, 0.08, 0.34, 0.06),
+                _madera(B5, 0.08, 0.36, 0.06),
+                _madera(E6, 0.20, 0.38, 0.16))
+
+
+def s_batalla():
+    # La misma llamada de comienzo en madera: dos toques A4 y D5.
+    toque = _madera(A4, 0.09, 0.36, 0.07)
+    return _seq(toque, _silencio(0.05), toque,
+                _madera(D5, 0.18, 0.38, 0.14))
+
+
+def s_batalla_fin():
+    # El mismo remate en madera: F5-D5 y A4 final.
+    return _seq(_madera(F5, 0.10, 0.34, 0.08),
+                _madera(D5, 0.10, 0.34, 0.08),
+                _madera(A4, 0.22, 0.36, 0.16))
+
+
 # ── Reemplazos del tema suave ──────────────────────────────────
 # Generadores propios para los que eran copia de otro dentro del tema.
 # Cada uno conserva el gesto del evento con notas o duraciones distintas.
@@ -1315,6 +1362,9 @@ TEMAS = {
         "descarga_quieta.wav":         gen_descarga_quieta,
         "encuesta.wav":                lambda: _normalizar(_concat(gen_miembro(), gen_conectado()), 0.7),
         "encuesta_fin.wav":            lambda: _normalizar(_concat(gen_desconectado(), gen_pausa()), 0.7),
+        "meta.wav":                    gen_meta,
+        "batalla.wav":                 gen_batalla,
+        "batalla_fin.wav":             gen_batalla_fin,
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -1412,6 +1462,9 @@ TEMAS = {
         "descarga_quieta.wav":         s_descarga_quieta,
         "encuesta.wav":                lambda: _normalizar(_concat(s_entrada(), s_conectado()), 0.7),
         "encuesta_fin.wav":            lambda: _normalizar(_concat(s_desconectado(), s_pausa()), 0.7),
+        "meta.wav":                    s_meta,
+        "batalla.wav":                 s_batalla,
+        "batalla_fin.wav":             s_batalla_fin,
     },
 }
 

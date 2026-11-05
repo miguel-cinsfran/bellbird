@@ -646,7 +646,8 @@ msgstr "Main face centered."
 msgid "Rostro centrado."
 msgstr "Face centered."
 
-#: bellbird/capture/agrupar_entradas.py bellbird/capture/encuestas.py
+#: bellbird/capture/agrupar_entradas.py bellbird/capture/batallas.py
+#: bellbird/capture/encuestas.py
 #, python-brace-format
 msgid "{a} y {b}"
 msgstr "{a} and {b}"
@@ -660,6 +661,67 @@ msgstr "{a}, {b} and {c}"
 #, python-brace-format
 msgid "{a}, {b}, {c} y {n} más"
 msgstr "{a}, {b}, {c} and {n} more"
+
+#: bellbird/capture/batallas.py bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "{primeros} y {ultimo}"
+msgstr "{primeros} and {ultimo}"
+
+#: bellbird/capture/batallas.py
+#, python-brace-format
+msgid "{n} punto"
+msgid_plural "{n} puntos"
+msgstr[0] "{n} point"
+msgstr[1] "{n} points"
+
+#: bellbird/capture/batallas.py
+msgid "Batalla"
+msgstr "Battle"
+
+#: bellbird/capture/batallas.py
+#, python-brace-format
+msgid "Batalla: {nombre}"
+msgstr "Battle: {nombre}"
+
+#. Traductores: {primero} y {segundo} son los dos anfitriones.
+#: bellbird/capture/batallas.py
+#, python-brace-format
+msgid "Batalla: {primero} contra {segundo}"
+msgstr "Battle: {primero} versus {segundo}"
+
+#. Traductores: {nombres} es la lista de anfitriones.
+#: bellbird/capture/batallas.py
+#, python-brace-format
+msgid "Batalla: {nombres}"
+msgstr "Battle: {nombres}"
+
+#: bellbird/capture/batallas.py
+msgid "Batalla terminada"
+msgstr "Battle ended"
+
+#. Traductores: {nombre} es el anfitrión y {puntos} su puntaje.
+#: bellbird/capture/batallas.py
+#, python-brace-format
+msgid "{nombre} con {puntos}"
+msgstr "{nombre} with {puntos}"
+
+#. Traductores: {lista} son los anfitriones con sus puntajes.
+#: bellbird/capture/batallas.py
+#, python-brace-format
+msgid "Batalla terminada: {lista}"
+msgstr "Battle ended: {lista}"
+
+#. Traductores: {nombre} es el anfitrión y {puntos} su puntaje.
+#: bellbird/capture/batallas.py
+#, python-brace-format
+msgid "{nombre} {puntos}"
+msgstr "{nombre} {puntos}"
+
+#. Traductores: {lista} son los anfitriones con sus puntajes.
+#: bellbird/capture/batallas.py
+#, python-brace-format
+msgid "Batalla en curso: {lista}"
+msgstr "Battle in progress: {lista}"
 
 #. Traductores: rótulo en Preferencias del componente de F2.
 #: bellbird/capture/componentes_estado.py
@@ -705,6 +767,16 @@ msgstr "Super Chats / gifts"
 #: bellbird/capture/componentes_estado.py
 msgid "Encuesta en curso"
 msgstr "Poll in progress"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py
+msgid "Batalla en curso"
+msgstr "Battle in progress"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py
+msgid "Meta"
+msgstr "Goal"
 
 #. Traductores: rótulo en Preferencias del componente de F2.
 #: bellbird/capture/componentes_estado.py
@@ -804,11 +876,6 @@ msgstr ""
 #, python-brace-format
 msgid "Mensajes descartados: {descartados}"
 msgstr "Discarded messages: {descartados}"
-
-#: bellbird/capture/encuestas.py
-#, python-brace-format
-msgid "{primeros} y {ultimo}"
-msgstr "{primeros} and {ultimo}"
 
 #: bellbird/capture/encuestas.py
 #, python-brace-format
@@ -1217,6 +1284,28 @@ msgstr "Published: {fecha}"
 #, python-brace-format
 msgid "Duración: {duracion}"
 msgstr "Duration: {duracion}"
+
+#: bellbird/capture/metas.py
+#, python-brace-format
+msgid "Meta cumplida: {descripcion}"
+msgstr "Goal reached: {descripcion}"
+
+#: bellbird/capture/metas.py
+msgid "Meta cumplida"
+msgstr "Goal reached"
+
+#. Traductores: {descripcion} es la meta, {progreso} lo logrado y
+#. {objetivo} lo que falta para cumplirla.
+#: bellbird/capture/metas.py
+#, python-brace-format
+msgid "Meta: {descripcion}, {progreso} de {objetivo}"
+msgstr "Goal: {descripcion}, {progreso} of {objetivo}"
+
+#. Traductores: {progreso} es lo logrado y {objetivo} la meta.
+#: bellbird/capture/metas.py
+#, python-brace-format
+msgid "Meta: {progreso} de {objetivo}"
+msgstr "Goal: {progreso} of {objetivo}"
 
 #. Traductores: validación de mensajes programados (error).
 #: bellbird/capture/programados.py
@@ -1727,6 +1816,14 @@ msgstr "&Treasure chests:"
 #: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_eventos.py
 msgid "Encues&tas:"
 msgstr "P&olls:"
+
+#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_eventos.py
+msgid "&Metas:"
+msgstr "Ta&rgets:"
+
+#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_eventos.py
+msgid "Batal&las:"
+msgstr "Battl&es:"
 
 #: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_voz.py
 msgid "Voz principal"
@@ -8485,7 +8582,8 @@ msgstr "{autor} shared the live stream, {hora}"
 msgid "{autor} envió un cofre, {hora}"
 msgstr "{autor} sent a treasure chest, {hora}"
 
-#. Traductores: fila de encuesta; {mensaje} es la frase y {hora} la hora.
+#. Traductores: fila de encuesta o aviso del directo; {mensaje} es la
+#. frase y {hora} la hora.
 #: bellbird/ui/lista_chat.py
 #, python-brace-format
 msgid "{mensaje}, {hora}"
@@ -9134,8 +9232,8 @@ msgid "&Super Chats y regalos:"
 msgstr "Super Chats and &gifts:"
 
 #: bellbird/ui/preferencias_eventos.py
-msgid "&Membresías:"
-msgstr "M&emberships:"
+msgid "Mem&bresías:"
+msgstr "&Memberships:"
 
 #: bellbird/ui/preferencias_eventos.py
 msgid "Me g&usta:"

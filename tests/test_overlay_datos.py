@@ -16,7 +16,8 @@ from bellbird.obs.overlay_datos import (
 from bellbird.core.tipos_mensaje import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
-    TIPO_ENCUESTA, TIPO_ENCUESTA_FIN,
+    TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,
+    TIPO_BATALLA_FIN,
 )
 
 
@@ -69,6 +70,7 @@ class OverlayDatosTests(unittest.TestCase):
     def test_los_avisos_del_directo_no_van_al_chat_en_el_video(self):
         for tipo in (TIPO_MIEMBRO, TIPO_ENTRADA, TIPO_SEGUIR,
                      TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
-                     TIPO_ENCUESTA, TIPO_ENCUESTA_FIN):
+                     TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META,
+                     TIPO_BATALLA, TIPO_BATALLA_FIN):
             with self.subTest(tipo=tipo):
                 self.assertFalse(va_al_chat_en_el_video(tipo))

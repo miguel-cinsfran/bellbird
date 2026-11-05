@@ -9,7 +9,8 @@ from bellbird.core.lectura_eventos import texto_evento
 from bellbird.core.tipos_mensaje import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
-    TIPO_ENCUESTA, TIPO_ENCUESTA_FIN,
+    TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,
+    TIPO_BATALLA_FIN,
 )
 
 
@@ -65,6 +66,14 @@ class TextoDeEventoTests(unittest.TestCase):
     def test_las_encuestas_dicen_el_mensaje_tal_cual(self):
         frase = "Encuesta: ¿Qué almorzamos? Opciones: pizza y sushi"
         for tipo in (TIPO_ENCUESTA, TIPO_ENCUESTA_FIN):
+            with self.subTest(tipo=tipo):
+                self.assertEqual(
+                    texto_evento(tipo, "", "", frase), frase)
+                self.assertEqual(texto_evento(tipo, "", ""), "")
+
+    def test_las_metas_y_batallas_dicen_el_mensaje_tal_cual(self):
+        frase = "Batalla: Ana contra Fulano"
+        for tipo in (TIPO_META, TIPO_BATALLA, TIPO_BATALLA_FIN):
             with self.subTest(tipo=tipo):
                 self.assertEqual(
                     texto_evento(tipo, "", "", frase), frase)

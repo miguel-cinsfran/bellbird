@@ -24,7 +24,7 @@ from tests.ventanas_prueba import app_de_prueba, destruir
 EVENTOS_ESPERADOS = (
     ("cho_evento_superchat", "evento_superchat", "&Super Chats y regalos:",
      "Super Chats y regalos"),
-    ("cho_evento_miembro", "evento_miembro", "&Membresías:", "Membresías"),
+    ("cho_evento_miembro", "evento_miembro", "Mem&bresías:", "Membresías"),
     ("cho_evento_entrada", "evento_entrada", "&Entradas al directo:",
      "Entradas al directo"),
     ("cho_evento_me_gusta", "evento_me_gusta", "Me g&usta:", "Me gusta"),
@@ -34,6 +34,8 @@ EVENTOS_ESPERADOS = (
      "Directo compartido"),
     ("cho_evento_cofre", "evento_cofre", "Co&fres:", "Cofres"),
     ("cho_evento_encuesta", "evento_encuesta", "Encues&tas:", "Encuestas"),
+    ("cho_evento_meta", "evento_meta", "&Metas:", "Metas"),
+    ("cho_evento_batalla", "evento_batalla", "Batal&las:", "Batallas"),
 )
 
 CONTROLES_EN_ORDEN = (
@@ -49,6 +51,8 @@ CONTROLES_EN_ORDEN = (
     "cho_evento_compartir",
     "cho_evento_cofre",
     "cho_evento_encuesta",
+    "cho_evento_meta",
+    "cho_evento_batalla",
 )
 
 
@@ -116,7 +120,7 @@ class TestCategoriaEventos(BaseEventos):
 
 
 class TestControlesEventos(BaseEventos):
-    def test_las_ocho_listas_tienen_su_nombre_y_su_valor(self):
+    def test_las_diez_listas_tienen_su_nombre_y_su_valor(self):
         dialogo = self._dialogo({"evento_superchat": "ocultar",
                                  "evento_cofre": "secundaria"})
         esperados = {"evento_superchat": "ocultar",
@@ -126,7 +130,9 @@ class TestControlesEventos(BaseEventos):
                      "evento_seguir": "principal",
                      "evento_compartir": "principal",
                      "evento_cofre": "secundaria",
-                     "evento_encuesta": "principal"}
+                     "evento_encuesta": "principal",
+                     "evento_meta": "principal",
+                     "evento_batalla": "principal"}
         for atributo, en_memoria, _etiqueta, nombre in EVENTOS_ESPERADOS:
             with self.subTest(atributo=atributo):
                 control = getattr(dialogo, atributo)
@@ -260,6 +266,8 @@ class TestGuardarEventos(BaseEventos):
         dialogo.cho_evento_superchat.SetValue("ocultar")
         dialogo.cho_evento_cofre.SetValue("secundaria")
         dialogo.cho_evento_encuesta.SetValue("ocultar")
+        dialogo.cho_evento_meta.SetValue("secundaria")
+        dialogo.cho_evento_batalla.SetValue("mostrar")
         with mock.patch.object(gui_preferencias._snd, "reproducir"), \
                 mock.patch.object(preferencias_transmision, "anunciar"), \
                 mock.patch.object(dialogo, "EndModal"):
@@ -267,11 +275,15 @@ class TestGuardarEventos(BaseEventos):
         self.assertEqual(dialogo._config.get("evento_superchat"), "ocultar")
         self.assertEqual(dialogo._config.get("evento_cofre"), "secundaria")
         self.assertEqual(dialogo._config.get("evento_encuesta"), "ocultar")
+        self.assertEqual(dialogo._config.get("evento_meta"), "secundaria")
+        self.assertEqual(dialogo._config.get("evento_batalla"), "mostrar")
         parser = config._mk_parser()
         parser.read(self.ruta / "config.ini", encoding="utf-8")
         self.assertEqual(parser.get("eventos", "superchat"), "ocultar")
         self.assertEqual(parser.get("eventos", "cofre"), "secundaria")
         self.assertEqual(parser.get("eventos", "encuesta"), "ocultar")
+        self.assertEqual(parser.get("eventos", "meta"), "secundaria")
+        self.assertEqual(parser.get("eventos", "batalla"), "mostrar")
 
 
 if __name__ == "__main__":

@@ -21,6 +21,8 @@ COMPONENTES: tuple[str, ...] = (
     "mensajes_leidos",
     "aportes",
     "encuesta",
+    "batalla",
+    "meta",
     "en_cola",
     "voz",
     "lectura_silenciada",
@@ -66,6 +68,10 @@ ETIQUETAS = {
     "aportes": N_("Super Chats / regalos"),
     # Traductores: rótulo en Preferencias del componente de F2.
     "encuesta": N_("Encuesta en curso"),
+    # Traductores: rótulo en Preferencias del componente de F2.
+    "batalla": N_("Batalla en curso"),
+    # Traductores: rótulo en Preferencias del componente de F2.
+    "meta": N_("Meta"),
     # Traductores: rótulo en Preferencias del componente de F2.
     "en_cola": N_("Mensajes en cola de lectura"),
     # Traductores: rótulo en Preferencias del componente de F2.

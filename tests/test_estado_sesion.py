@@ -160,8 +160,33 @@ class TestEncuesta(unittest.TestCase):
             formatear_estado(SnapshotSesion(encuesta=""), {"encuesta"}), "")
 
 
-class TestModoLargo(unittest.TestCase):
+class TestBatallaYMeta(unittest.TestCase):
 
+    def test_componentes_despues_de_encuesta_y_activos_de_fabrica(self):
+        self.assertLess(COMPONENTES.index("encuesta"),
+                        COMPONENTES.index("batalla"))
+        self.assertLess(COMPONENTES.index("batalla"),
+                        COMPONENTES.index("meta"))
+        self.assertIn("batalla", ACTIVOS_DEFECTO)
+        self.assertIn("meta", ACTIVOS_DEFECTO)
+        self.assertEqual(ETIQUETAS["batalla"], "Batalla en curso")
+        self.assertEqual(ETIQUETAS["meta"], "Meta")
+
+    def test_se_dicen_con_una_batalla_y_una_meta(self):
+        s = SnapshotSesion(
+            batalla="Batalla en curso: Ana 1200 puntos, Fulano 900 puntos",
+            meta="Meta: 100 rosas para el viaje, 340 de 500")
+        self.assertEqual(
+            formatear_estado(s, {"batalla", "meta"}),
+            "Batalla en curso: Ana 1200 puntos, Fulano 900 puntos; "
+            "Meta: 100 rosas para el viaje, 340 de 500.")
+
+    def test_sin_dato_no_dicen_nada(self):
+        s = SnapshotSesion(batalla="", meta="")
+        self.assertEqual(formatear_estado(s, {"batalla", "meta"}), "")
+
+
+class TestModoLargo(unittest.TestCase):
     def test_largo_es_multilinea_con_etiquetas(self):
         s = SnapshotSesion(conectado=True, tipo="live_tiktok", titulo="T",
                            espectadores=50)

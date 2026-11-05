@@ -20,13 +20,15 @@ from bellbird.ui.preferencias_comun import EleccionTexto
 
 _EVENTOS = {
     "superchat": N_("&Super Chats y regalos:"),
-    "miembro": N_("&Membresías:"),
+    "miembro": N_("Mem&bresías:"),
     "entrada": N_("&Entradas al directo:"),
     "me_gusta": N_("Me g&usta:"),
     "seguir": N_("Seguidores nue&vos:"),
     "compartir": N_("&Directo compartido:"),
     "cofre": N_("Co&fres:"),
     "encuesta": N_("Encues&tas:"),
+    "meta": N_("&Metas:"),
+    "batalla": N_("Batal&las:"),
 }
 
 
@@ -54,6 +56,10 @@ OPCIONES_EVENTOS = (
     ("cho_evento_cofre", "eventos", "cofre", "evento_cofre",
      str, "principal"),
     ("cho_evento_encuesta", "eventos", "encuesta", "evento_encuesta",
+     str, "principal"),
+    ("cho_evento_meta", "eventos", "meta", "evento_meta",
+     str, "principal"),
+    ("cho_evento_batalla", "eventos", "batalla", "evento_batalla",
      str, "principal"),
 )
 

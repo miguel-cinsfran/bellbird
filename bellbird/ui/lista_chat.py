@@ -19,7 +19,10 @@ from bellbird.core.config import (
     TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
-from bellbird.core.tipos_mensaje import TIPO_ENCUESTA, TIPO_ENCUESTA_FIN
+from bellbird.core.tipos_mensaje import (
+    TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,
+    TIPO_BATALLA_FIN,
+)
 from bellbird.core.idioma import _, ngettext
 
 
@@ -121,8 +124,10 @@ def _texto_aviso(autor, msg, hora, tipo) -> str | None:
     if tipo == TIPO_COFRE:
         # Traductores: fila de cofre; {autor} su nombre y {hora} la hora.
         return _("{autor} envió un cofre, {hora}").format(autor=autor, hora=hora)
-    if tipo in (TIPO_ENCUESTA, TIPO_ENCUESTA_FIN):
-        # Traductores: fila de encuesta; {mensaje} es la frase y {hora} la hora.
+    if tipo in (TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META,
+                TIPO_BATALLA, TIPO_BATALLA_FIN):
+        # Traductores: fila de encuesta o aviso del directo; {mensaje} es la
+        # frase y {hora} la hora.
         return _("{mensaje}, {hora}").format(mensaje=msg, hora=hora)
     return None
 

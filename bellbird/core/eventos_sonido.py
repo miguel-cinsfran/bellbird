@@ -64,6 +64,8 @@ EVENTOS = [
     "descarga_avance", "descarga_quieta",
     # Encuestas del directo de TikTok: apertura y cierre.
     "encuesta", "encuesta_fin",
+    # Metas y batallas del directo de TikTok.
+    "meta", "batalla", "batalla_fin",
 ]
 
 # Nombre llano de cada evento para la página Sonidos de Preferencias.
@@ -155,4 +157,7 @@ NOMBRES = {
     "descarga_quieta": "Descarga quieta",
     "encuesta": "Encuesta abierta",
     "encuesta_fin": "Encuesta terminada",
+    "meta": "Meta cumplida",
+    "batalla": "Batalla iniciada",
+    "batalla_fin": "Batalla terminada",
 }

@@ -22,6 +22,8 @@ from datetime import datetime
 
 from bellbird.capture.montos import texto_importes
 from bellbird.capture import encuestas
+from bellbird.capture import batallas
+from bellbird.capture import metas
 from bellbird.core.doble_pulsacion import DoblePulsacion
 from bellbird.core.idioma import _
 
@@ -109,6 +111,8 @@ def snapshot_sesion(frame):
         aportes=_seguro(lambda: frame._stats.superchats, 0),
         total_aportes=frame._total_aportes_texto(),
         encuesta=_seguro(lambda: encuestas.registro.en_curso(), ""),
+        batalla=_seguro(lambda: batallas.registro.en_curso(), ""),
+        meta=_seguro(lambda: metas.registro.en_curso(), ""),
         en_cola=_seguro(lambda: frame._cola.qsize(), 0),
         voz_velocidad=_seguro(lambda: frame._worker.get_rate(), 0),
         voz_volumen=_seguro(lambda: frame._worker.get_volume(), 0),

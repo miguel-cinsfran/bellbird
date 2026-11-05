@@ -1945,6 +1945,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("eventos", "entrada"), ("eventos", "me_gusta"),
             ("eventos", "seguir"), ("eventos", "compartir"),
             ("eventos", "cofre"), ("eventos", "encuesta"),
+            ("eventos", "meta"), ("eventos", "batalla"),
             ("tiktok", "agrupar_entradas"),
             ("tiktok", "segundos_entradas"),
             ("tiktok", "agrupar_me_gusta"),

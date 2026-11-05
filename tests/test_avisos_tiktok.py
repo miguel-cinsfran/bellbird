@@ -10,7 +10,10 @@ import unittest
 
 from bellbird.core import avisos_tiktok
 from bellbird.core import config as cfg
-from bellbird.core.tipos_mensaje import TIPO_ENCUESTA, TIPO_ENCUESTA_FIN
+from bellbird.core.tipos_mensaje import (
+    TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,
+    TIPO_BATALLA_FIN,
+)
 
 
 def _config(**extras):
@@ -67,10 +70,11 @@ class TestModoDe(unittest.TestCase):
         tipos = [aviso[0] for aviso in avisos_tiktok.AVISOS]
         self.assertEqual(
             tipos, [cfg.TIPO_ENTRADA, cfg.TIPO_ME_GUSTA, cfg.TIPO_SEGUIR,
-                    cfg.TIPO_COMPARTIR, cfg.TIPO_COFRE, TIPO_ENCUESTA])
+                    cfg.TIPO_COMPARTIR, cfg.TIPO_COFRE, TIPO_ENCUESTA,
+                    TIPO_META, TIPO_BATALLA])
         self.assertEqual(
             avisos_tiktok.TIPOS_AVISO,
-            frozenset(tipos + [TIPO_ENCUESTA_FIN]))
+            frozenset(tipos + [TIPO_ENCUESTA_FIN, TIPO_BATALLA_FIN]))
         self.assertNotIn(cfg.TIPO_SUPERCHAT, avisos_tiktok.TIPOS_AVISO)
         self.assertNotIn(cfg.TIPO_MIEMBRO, avisos_tiktok.TIPOS_AVISO)
 
@@ -87,6 +91,8 @@ class TestEventos(unittest.TestCase):
             cfg.TIPO_ME_GUSTA: "me_gusta", cfg.TIPO_SEGUIR: "seguir",
             cfg.TIPO_COMPARTIR: "compartir", cfg.TIPO_COFRE: "cofre",
             TIPO_ENCUESTA: "encuesta", TIPO_ENCUESTA_FIN: "encuesta",
+            TIPO_META: "meta", TIPO_BATALLA: "batalla",
+            TIPO_BATALLA_FIN: "batalla",
         }
         for tipo, evento in esperado.items():
             with self.subTest(tipo=tipo):
@@ -98,6 +104,12 @@ class TestEventos(unittest.TestCase):
             avisos_tiktok.modo_evento({}, TIPO_ENCUESTA), "principal")
         self.assertEqual(
             avisos_tiktok.modo_evento({}, TIPO_ENCUESTA_FIN), "principal")
+
+    def test_las_metas_y_batallas_van_de_fabrica_en_voz_principal(self):
+        for tipo in (TIPO_META, TIPO_BATALLA, TIPO_BATALLA_FIN):
+            with self.subTest(tipo=tipo):
+                self.assertEqual(
+                    avisos_tiktok.modo_evento({}, tipo), "principal")
 
     def test_modos_y_rotulos(self):
         self.assertEqual([modo for modo, _rotulo in avisos_tiktok.MODOS_EVENTO],

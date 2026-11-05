@@ -42,6 +42,7 @@ EVENTOS_NUEVOS = [
     "reconectando_directo", "directo_con_cortes",
     "descarga_avance", "descarga_quieta",
     "encuesta", "encuesta_fin",
+    "meta", "batalla", "batalla_fin",
 ]
 
 # Tope de duración por evento: la espera de la IA lleva una figura melódica

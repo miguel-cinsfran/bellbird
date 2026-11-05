@@ -6,6 +6,8 @@ from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
 from bellbird.capture import encuestas
+from bellbird.capture import batallas
+from bellbird.capture import metas
 from bellbird.core.doble_pulsacion import DoblePulsacion
 from bellbird.ui import dialogo_estado
 from bellbird.ui import gui
@@ -98,8 +100,31 @@ class TestSnapshotEncuesta(unittest.TestCase):
             "sin votos")
 
 
-class TestSnapshotCuotaYoutube(unittest.TestCase):
+class TestSnapshotBatallaYMeta(unittest.TestCase):
 
+    def setUp(self):
+        batallas.registro.reiniciar()
+        metas.registro.reiniciar()
+
+    def test_sin_batalla_ni_meta_quedan_vacias(self):
+        snap = gui_estado.snapshot_sesion(_marco_falso({}))
+        self.assertEqual(snap.batalla, "")
+        self.assertEqual(snap.meta, "")
+
+    def test_con_batalla_en_curso_y_meta_sin_cumplir_lleva_sus_frases(self):
+        batallas.registro.abrir("b1", [("1", "Ana"), ("2", "Fulano")],
+                                {"1": 1200, "2": 900})
+        metas.registro.actualizar(
+            "g1", "100 rosas para el viaje", [(340, 500)])
+        snap = gui_estado.snapshot_sesion(_marco_falso({}))
+        self.assertEqual(
+            snap.batalla,
+            "Batalla en curso: Ana 1200 puntos, Fulano 900 puntos")
+        self.assertEqual(snap.meta,
+                         "Meta: 100 rosas para el viaje, 340 de 500")
+
+
+class TestSnapshotCuotaYoutube(unittest.TestCase):
     def test_con_sesion_lleva_las_unidades_usadas(self):
         with mock.patch("bellbird.youtube.credenciales.hay_sesion",
                         return_value=True), \

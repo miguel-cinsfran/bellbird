@@ -16,7 +16,10 @@ from bellbird.core.config import (
     TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
-from bellbird.core.tipos_mensaje import TIPO_ENCUESTA, TIPO_ENCUESTA_FIN
+from bellbird.core.tipos_mensaje import (
+    TIPO_ENCUESTA, TIPO_ENCUESTA_FIN, TIPO_META, TIPO_BATALLA,
+    TIPO_BATALLA_FIN,
+)
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -71,6 +74,9 @@ _SONIDO_POR_TIPO = {
     TIPO_ENTRADA: "entrada",
     TIPO_ENCUESTA: "encuesta",
     TIPO_ENCUESTA_FIN: "encuesta_fin",
+    TIPO_META: "meta",
+    TIPO_BATALLA: "batalla",
+    TIPO_BATALLA_FIN: "batalla_fin",
 }
 
 

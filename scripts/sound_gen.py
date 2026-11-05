@@ -1242,8 +1242,7 @@ TEMAS = {
         "comentario.wav":    gen_comentario,
         "moderacion.wav":    gen_moderacion,
         "cola_vaciada.wav":  gen_cola_vaciada,
-        # Sonidos provisorios de eventos de TikTok hasta que el dueño elija
-        # los definitivos: reutilizan otros generadores, nunca el común.
+        # Provisorios: reutilizan otros generadores, nunca el común.
         "seguir.wav":         gen_miembro,
         "compartir.wav":      gen_enviado,
         "cofre.wav":          gen_superchat,
@@ -1252,9 +1251,7 @@ TEMAS = {
         "regalo_mediano.wav": gen_conectado,
         "regalo_grande.wav":  gen_app_inicio,
         "entrada.wav":        gen_reanudar,
-        # Provisorios hasta que el dueño elija los definitivos (los WAV ya
-        # existen y no se pisan): la orilla es un tic breve, el fin del
-        # directo un gesto de cierre como el de desconexión.
+        # La orilla es un tic breve y el fin del directo un gesto de cierre.
         "orilla.wav":         gen_copiar,
         "fin_directo.wav":    gen_desconectado,
         # Avisos con sonido propio.
@@ -1316,6 +1313,8 @@ TEMAS = {
         "encuadre_dentro.wav":         gen_encuadre_dentro,
         "descarga_avance.wav":         gen_descarga_avance,
         "descarga_quieta.wav":         gen_descarga_quieta,
+        "encuesta.wav":                lambda: _normalizar(_concat(gen_miembro(), gen_conectado()), 0.7),
+        "encuesta_fin.wav":            lambda: _normalizar(_concat(gen_desconectado(), gen_pausa()), 0.7),
     },
     "suave": {
         "app_inicio.wav":    s_app_inicio,
@@ -1340,8 +1339,7 @@ TEMAS = {
         "comentario.wav":    s_comentario,
         "moderacion.wav":    s_moderacion,
         "cola_vaciada.wav":  s_cola_vaciada,
-        # Sonidos provisorios de eventos de TikTok hasta que el dueño elija
-        # los definitivos: reutilizan otros generadores, nunca el común.
+        # Provisorios: reutilizan otros generadores, nunca el común.
         "seguir.wav":         s_seguir,
         "compartir.wav":      s_enviado,
         "cofre.wav":          s_cofre,
@@ -1350,8 +1348,7 @@ TEMAS = {
         "regalo_mediano.wav": s_regalo_mediano,
         "regalo_grande.wav":  s_regalo_grande,
         "entrada.wav":        s_entrada,
-        # La orilla y el fin del directo ya tienen generador propio; el resto
-        # de los provisorios sigue reutilizando otros generadores.
+        # La orilla y el fin del directo tienen generador propio.
         "orilla.wav":         s_orilla,
         "fin_directo.wav":    s_fin_directo,
         # Avisos con sonido propio.
@@ -1413,6 +1410,8 @@ TEMAS = {
         "encuadre_dentro.wav":         s_encuadre_dentro,
         "descarga_avance.wav":         s_descarga_avance,
         "descarga_quieta.wav":         s_descarga_quieta,
+        "encuesta.wav":                lambda: _normalizar(_concat(s_entrada(), s_conectado()), 0.7),
+        "encuesta_fin.wav":            lambda: _normalizar(_concat(s_desconectado(), s_pausa()), 0.7),
     },
 }
 

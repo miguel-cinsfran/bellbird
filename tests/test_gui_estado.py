@@ -5,6 +5,7 @@ import unittest
 from unittest import mock
 
 from tests.pseudo_prueba import con_pseudo
+from bellbird.capture import encuestas
 from bellbird.core.doble_pulsacion import DoblePulsacion
 from bellbird.ui import dialogo_estado
 from bellbird.ui import gui
@@ -77,6 +78,24 @@ class TestSnapshotEspectadores(unittest.TestCase):
         snap = gui_estado.snapshot_sesion(
             _marco_falso({"vistas": 3, "vistas_total": "muchos"}))
         self.assertEqual(snap.espectadores_total, None)
+
+
+class TestSnapshotEncuesta(unittest.TestCase):
+
+    def setUp(self):
+        encuestas.registro.reiniciar()
+
+    def test_sin_encuesta_queda_vacia(self):
+        self.assertEqual(gui_estado.snapshot_sesion(
+            _marco_falso({})).encuesta, "")
+
+    def test_con_encuesta_abierta_lleva_la_frase_del_registro(self):
+        encuestas.registro.abrir(
+            "1", "¿Qué almorzamos?", [("Pizza", 5), ("sushi", 0)])
+        self.assertEqual(
+            gui_estado.snapshot_sesion(_marco_falso({})).encuesta,
+            "Encuesta en curso: ¿Qué almorzamos? Pizza con 5 votos y sushi "
+            "sin votos")
 
 
 class TestSnapshotCuotaYoutube(unittest.TestCase):

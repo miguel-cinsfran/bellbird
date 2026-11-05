@@ -43,6 +43,7 @@ OPCIONES_ESPERADAS = [
     ("cho_evento_seguir", "eventos", "seguir", "evento_seguir", str),
     ("cho_evento_compartir", "eventos", "compartir", "evento_compartir", str),
     ("cho_evento_cofre", "eventos", "cofre", "evento_cofre", str),
+    ("cho_evento_encuesta", "eventos", "encuesta", "evento_encuesta", str),
     ("sp_long", "texto", "max_longitud_mensaje", "max_longitud_mensaje", int),
     ("cho_lectura_recientes", "lectura", "recientes", "lectura_recientes", str),
     ("chk_lectura_atajos_globales", "lectura", "atajos_globales", "lectura_atajos_globales", bool),
@@ -118,17 +119,18 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                                       "evento_me_gusta": "secundaria",
                                       "evento_seguir": "ocultar",
                                       "evento_compartir": "ocultar",
-                                      "evento_cofre": "secundaria"}.get(
+                                      "evento_cofre": "secundaria",
+                                      "evento_encuesta": "secundaria"}.get(
                                           en_memoria, "tema")
             else:
                 config[en_memoria] = por_defecto + 1
         return config
 
-    def test_tabla_tiene_48_filas_sin_repetir_y_cada_atributo_existe(self):
+    def test_tabla_tiene_49_filas_sin_repetir_y_cada_atributo_existe(self):
         tabla = gui_preferencias._OPCIONES_SIMPLES
-        self.assertEqual(len(tabla), 48)
+        self.assertEqual(len(tabla), 49)
         atributos = [fila[0] for fila in tabla]
-        self.assertEqual(len(set(atributos)), 48)
+        self.assertEqual(len(set(atributos)), 49)
         dialogo = self._dialogo()
         for atributo in atributos:
             with self.subTest(atributo=atributo):
@@ -180,7 +182,8 @@ class TestTablaOpcionesSimples(unittest.TestCase):
                                   "evento_me_gusta": "secundaria",
                                   "evento_seguir": "ocultar",
                                   "evento_compartir": "ocultar",
-                                  "evento_cofre": "secundaria"}.get(
+                                  "evento_cofre": "secundaria",
+                                  "evento_encuesta": "secundaria"}.get(
                                       en_memoria, "tema"))
                 valor = control.GetValue()
                 esperados[(seccion, clave)] = (valor, en_memoria, valor)
@@ -313,7 +316,7 @@ class TestPorDefectoContraFabrica(unittest.TestCase):
             if clave == "idioma":
                 return texto
             if clave in ("superchat", "miembro", "entrada", "me_gusta",
-                         "seguir", "compartir", "cofre"):
+                         "seguir", "compartir", "cofre", "encuesta"):
                 return texto
             return gui_preferencias.cfg.normalizar_repetir(texto)
         return tipo(texto)

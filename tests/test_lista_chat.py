@@ -11,6 +11,7 @@ from bellbird.core.config import (
     TIPO_TEXTO, TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
+from bellbird.core.tipos_mensaje import TIPO_ENCUESTA, TIPO_ENCUESTA_FIN
 from bellbird.ui.lista_chat import ListaChat, MensajeChat, texto_fila, texto_reciente
 from tests.pseudo_prueba import con_pseudo
 
@@ -324,6 +325,14 @@ class TestTextoFila(unittest.TestCase):
         self.assertEqual(
             texto_fila("Ana", "", "12:00:00", TIPO_ME_GUSTA, ""),
             "Ana dio 1 me gusta, 12:00:00")
+
+    def test_encuesta_con_la_hora_al_final(self):
+        frase = "Encuesta: ¿Qué almorzamos? Opciones: pizza y sushi"
+        for tipo in (TIPO_ENCUESTA, TIPO_ENCUESTA_FIN):
+            with self.subTest(tipo=tipo):
+                self.assertEqual(
+                    texto_fila("", frase, "12:05", tipo, ""),
+                    f"{frase}, 12:05")
 
     def test_texto_comun(self):
         self.assertEqual(

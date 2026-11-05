@@ -21,6 +21,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from bellbird.capture.montos import texto_importes
+from bellbird.capture import encuestas
 from bellbird.core.doble_pulsacion import DoblePulsacion
 from bellbird.core.idioma import _
 
@@ -31,6 +32,12 @@ def _entero_en(meta, clave):
     valor = meta.get(clave)
     try:    return int(valor) if valor is not None else None
     except (TypeError, ValueError): return None
+
+
+def _seguro(fn, defecto):
+    """El valor de `fn()`, o `defecto` si el dato de la sesión falla."""
+    try:    return fn()
+    except Exception: return defecto
 
 
 def _texto_camara(frame):
@@ -78,9 +85,6 @@ def snapshot_sesion(frame):
     meta = frame._metadatos or {}
     espectadores = _entero_en(meta, "vistas")
     espectadores_total = _entero_en(meta, "vistas_total")
-    def _seguro(fn, defecto):
-        try:    return fn()
-        except Exception: return defecto
     def _texto_atajo_directo():
         at = (frame._atajos or {}).get("rep_directo")
         return at.texto if at is not None else ""
@@ -104,6 +108,7 @@ def snapshot_sesion(frame):
         mensajes_leidos=_seguro(lambda: frame._stats.leidos, 0),
         aportes=_seguro(lambda: frame._stats.superchats, 0),
         total_aportes=frame._total_aportes_texto(),
+        encuesta=_seguro(lambda: encuestas.registro.en_curso(), ""),
         en_cola=_seguro(lambda: frame._cola.qsize(), 0),
         voz_velocidad=_seguro(lambda: frame._worker.get_rate(), 0),
         voz_volumen=_seguro(lambda: frame._worker.get_volume(), 0),

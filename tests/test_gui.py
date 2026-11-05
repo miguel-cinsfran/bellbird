@@ -1944,7 +1944,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("eventos", "superchat"), ("eventos", "miembro"),
             ("eventos", "entrada"), ("eventos", "me_gusta"),
             ("eventos", "seguir"), ("eventos", "compartir"),
-            ("eventos", "cofre"),
+            ("eventos", "cofre"), ("eventos", "encuesta"),
             ("tiktok", "agrupar_entradas"),
             ("tiktok", "segundos_entradas"),
             ("tiktok", "agrupar_me_gusta"),
@@ -2103,7 +2103,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
             pendientes.extend(reversed(actual.GetChildren()))
         self.assertEqual(orden, esperados)
 
-    def test_los_mnemonicos_de_lectura_no_se_repiten_y_la_r_es_del_control(self):
+    def test_los_mnemonicos_de_lectura_no_se_repiten_y_la_i_es_del_control(self):
         dialogo = self.dialogo
         pagina = next(p for p in dialogo._paginas() if p.GetName() == "PagLectura")
         letras = []
@@ -2115,7 +2115,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
             if "&" in etiqueta:
                 letras.append(etiqueta.split("&", 1)[1][:1].lower())
         self.assertEqual(len(letras), len(set(letras)), letras)
-        self.assertEqual(letras.count("r"), 1)
+        self.assertEqual(letras.count("i"), 1)
 
     def test_pagina_voces_tiene_los_controles_en_el_orden_de_tab(self):
         dialogo = self.dialogo

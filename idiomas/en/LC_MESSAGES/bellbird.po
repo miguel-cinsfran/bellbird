@@ -646,7 +646,7 @@ msgstr "Main face centered."
 msgid "Rostro centrado."
 msgstr "Face centered."
 
-#: bellbird/capture/agrupar_entradas.py
+#: bellbird/capture/agrupar_entradas.py bellbird/capture/encuestas.py
 #, python-brace-format
 msgid "{a} y {b}"
 msgstr "{a} and {b}"
@@ -700,6 +700,11 @@ msgstr "Read messages"
 #: bellbird/capture/componentes_estado.py
 msgid "Super Chats / regalos"
 msgstr "Super Chats / gifts"
+
+#. Traductores: rótulo en Preferencias del componente de F2.
+#: bellbird/capture/componentes_estado.py
+msgid "Encuesta en curso"
+msgstr "Poll in progress"
 
 #. Traductores: rótulo en Preferencias del componente de F2.
 #: bellbird/capture/componentes_estado.py
@@ -799,6 +804,83 @@ msgstr ""
 #, python-brace-format
 msgid "Mensajes descartados: {descartados}"
 msgstr "Discarded messages: {descartados}"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "{primeros} y {ultimo}"
+msgstr "{primeros} and {ultimo}"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "{opcion} sin votos"
+msgstr "{opcion} without votes"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "{opcion} con {votos}"
+msgstr "{opcion} with {votos}"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "{n} voto"
+msgid_plural "{n} votos"
+msgstr[0] "{n} vote"
+msgstr[1] "{n} votes"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "Encuesta terminada: {titulo}"
+msgstr "Poll ended: {titulo}"
+
+#: bellbird/capture/encuestas.py
+msgid "Encuesta terminada."
+msgstr "Poll ended."
+
+#. Traductores: {titulo} es la pregunta y {opciones} la lista de opciones.
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "Encuesta: {titulo} Opciones: {opciones}"
+msgstr "Poll: {titulo} Options: {opciones}"
+
+#. Traductores: {opciones} es la lista de opciones de la encuesta.
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "Encuesta abierta. Opciones: {opciones}"
+msgstr "Poll opened. Options: {opciones}"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "Ganó {opcion} con {votos}"
+msgstr "Won by {opcion} with {votos}"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "Empate entre {opciones} con {votos}"
+msgstr "Tie between {opciones} with {votos}"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "{principal}, {resto}"
+msgstr "{principal}, {resto}"
+
+#: bellbird/capture/encuestas.py
+msgid "Sin votos"
+msgstr "No votes"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "{cabecera} {resultado}"
+msgstr "{cabecera} {resultado}"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "Encuesta en curso: {titulo} {opciones}"
+msgstr "Poll in progress: {titulo} {opciones}"
+
+#: bellbird/capture/encuestas.py
+#, python-brace-format
+msgid "Encuesta en curso. {opciones}"
+msgstr "Poll in progress. {opciones}"
 
 #. Traductores: parte del estado F2 (tipo de conexión).
 #: bellbird/capture/estado_sesion.py bellbird/ui/gui_directo_youtube.py
@@ -1641,6 +1723,10 @@ msgstr "Shared l&ive streams:"
 #: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_lectura.py
 msgid "Co&fres:"
 msgstr "&Treasure chests:"
+
+#: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_lectura.py
+msgid "Encues&tas:"
+msgstr "P&olls:"
 
 #: bellbird/core/avisos_tiktok.py bellbird/ui/preferencias_voz.py
 msgid "Voz principal"
@@ -8371,6 +8457,30 @@ msgstr "👋 {autor} joined, {hora}"
 msgid "👋 {autor} entró, {hora}"
 msgstr "👋 {autor} joined, {hora}"
 
+#. Traductores: fila de seguimiento; {autor} su nombre y {hora} la hora.
+#: bellbird/ui/lista_chat.py
+#, python-brace-format
+msgid "{autor} sigue el canal, {hora}"
+msgstr "{autor} followed the channel, {hora}"
+
+#. Traductores: fila de compartido; {autor} su nombre y {hora} la hora.
+#: bellbird/ui/lista_chat.py
+#, python-brace-format
+msgid "{autor} compartió el directo, {hora}"
+msgstr "{autor} shared the live stream, {hora}"
+
+#. Traductores: fila de cofre; {autor} su nombre y {hora} la hora.
+#: bellbird/ui/lista_chat.py
+#, python-brace-format
+msgid "{autor} envió un cofre, {hora}"
+msgstr "{autor} sent a treasure chest, {hora}"
+
+#. Traductores: fila de encuesta; {mensaje} es la frase y {hora} la hora.
+#: bellbird/ui/lista_chat.py
+#, python-brace-format
+msgid "{mensaje}, {hora}"
+msgstr "{mensaje}, {hora}"
+
 #. Traductores: fila de Super Chat; {monto} el importe ya formateado, {autor}
 #. su nombre, {mensaje} el texto y {hora} la hora. El emoji del principio se
 #. conserva.
@@ -8392,24 +8502,6 @@ msgstr "🎨 [{monto}] {autor}, {hora}"
 #, python-brace-format
 msgid "⭐ Nuevo miembro: {autor}, {hora}"
 msgstr "⭐ New member: {autor}, {hora}"
-
-#. Traductores: fila de seguimiento; {autor} su nombre y {hora} la hora.
-#: bellbird/ui/lista_chat.py
-#, python-brace-format
-msgid "{autor} sigue el canal, {hora}"
-msgstr "{autor} followed the channel, {hora}"
-
-#. Traductores: fila de compartido; {autor} su nombre y {hora} la hora.
-#: bellbird/ui/lista_chat.py
-#, python-brace-format
-msgid "{autor} compartió el directo, {hora}"
-msgstr "{autor} shared the live stream, {hora}"
-
-#. Traductores: fila de cofre; {autor} su nombre y {hora} la hora.
-#: bellbird/ui/lista_chat.py
-#, python-brace-format
-msgid "{autor} envió un cofre, {hora}"
-msgstr "{autor} sent a treasure chest, {hora}"
 
 #. Traductores: fila común; {autor} su nombre, {mensaje} el texto y {hora} la
 #. hora.
@@ -9364,8 +9456,8 @@ msgid "Eventos del directo"
 msgstr "Live events"
 
 #: bellbird/ui/preferencias_lectura.py
-msgid "Agrupar en&tradas"
-msgstr "Gr&oup joins"
+msgid "Agrupar ent&radas"
+msgstr "Group &arrivals"
 
 #: bellbird/ui/preferencias_lectura.py
 msgid "Agrupar entradas"
@@ -9396,7 +9488,7 @@ msgid "Agrupar me gusta durante, en segundos"
 msgstr "Group likes for, in seconds"
 
 #: bellbird/ui/preferencias_lectura.py
-msgid "Leer los mensajes &recientes con:"
+msgid "Leer los mensajes rec&ientes con:"
 msgstr "Read recent messages &with:"
 
 #: bellbird/ui/preferencias_lectura.py

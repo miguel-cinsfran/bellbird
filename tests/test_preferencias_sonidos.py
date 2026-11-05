@@ -46,10 +46,10 @@ class TestPaginaSonidos(unittest.TestCase):
             pagina.construir(libro)
         return pagina
 
-    def test_lista_con_83_filas_marcadas(self):
-        self.assertEqual(self.pagina._lista.GetItemCount(), 83)
+    def test_lista_con_85_filas_marcadas(self):
+        self.assertEqual(self.pagina._lista.GetItemCount(), 85)
         self.assertEqual(self.pagina._lista.GetItemCount(), len(EVENTOS))
-        for indice in range(83):
+        for indice in range(85):
             self.assertTrue(self.pagina._lista.IsItemChecked(indice))
 
     def test_destildar_y_guardar_escribe_la_linea_vacia_y_recarga(self):

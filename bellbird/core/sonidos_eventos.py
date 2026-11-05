@@ -16,6 +16,7 @@ from bellbird.core.config import (
     TIPO_SUPERCHAT, TIPO_STICKER, TIPO_MIEMBRO, TIPO_ENTRADA,
     TIPO_SEGUIR, TIPO_COMPARTIR, TIPO_COFRE, TIPO_ME_GUSTA,
 )
+from bellbird.core.tipos_mensaje import TIPO_ENCUESTA, TIPO_ENCUESTA_FIN
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -61,6 +62,17 @@ _SONIDO_POR_ROL = {
     ROL_MIEMBRO: "mensaje_miembro",
 }
 
+_SONIDO_POR_TIPO = {
+    TIPO_MIEMBRO: "nuevo_miembro",
+    TIPO_SEGUIR: "seguir",
+    TIPO_COMPARTIR: "compartir",
+    TIPO_COFRE: "cofre",
+    TIPO_ME_GUSTA: "me_gusta",
+    TIPO_ENTRADA: "entrada",
+    TIPO_ENCUESTA: "encuesta",
+    TIPO_ENCUESTA_FIN: "encuesta_fin",
+}
+
 
 def rol_de_autor(autor) -> str:
     """Un rol por precedencia: propietario, moderador, verificado, miembro.
@@ -93,18 +105,9 @@ def sonido_de_mensaje(tipo: str, rol: str = "", monto: str = "",
         if (plataforma or "").lower() == "tiktok" and tipo == TIPO_SUPERCHAT:
             return tramo_regalo(_diamantes_de_monto(monto))
         return "superchat"
-    if tipo == TIPO_MIEMBRO:
-        return "nuevo_miembro"
-    if tipo == TIPO_SEGUIR:
-        return "seguir"
-    if tipo == TIPO_COMPARTIR:
-        return "compartir"
-    if tipo == TIPO_COFRE:
-        return "cofre"
-    if tipo == TIPO_ME_GUSTA:
-        return "me_gusta"
-    if tipo == TIPO_ENTRADA:
-        return "entrada"
+    sonido = _SONIDO_POR_TIPO.get(tipo)
+    if sonido is not None:
+        return sonido
     return _SONIDO_POR_ROL.get(rol or "", "mensaje_nuevo")
 
 

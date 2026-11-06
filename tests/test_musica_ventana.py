@@ -1529,7 +1529,7 @@ class TestVentanaPreguntaIgualar(unittest.TestCase):
             resultado_igualacion=ResultadoIgualacion(
                 sonoridad.INICIO, 3))
         self._abrir(control)
-        clase, dialogo = self._dialogo(wx.ID_YES, True)
+        clase, dialogo = self._dialogo(wx.ID_OK, True)
         self.ventana._al_pendientes_pregunta(pendientes, total)
         texto, titulo = clase.call_args.args[1:3]
         self.assertEqual(texto, pregunta_igualar.texto_pregunta(3, total))
@@ -2019,6 +2019,9 @@ class TestPseudoAnunciosVentana(unittest.TestCase):
             def FindWindow(self, ident):
                 return None
 
+            def SetOKCancelLabels(self, si, no):
+                capturados["etiquetas"] = (si, no)
+
             def ShowModal(self):
                 return wx.ID_NO
 
@@ -2027,7 +2030,8 @@ class TestPseudoAnunciosVentana(unittest.TestCase):
 
         with mock.patch.object(self.ventana, "_coleccion_elegida",
                                return_value="Rock"), \
-                mock.patch("wx.MessageDialog", Dialogo):
+                mock.patch.object(musica_ventana_acciones.confirmar,
+                                  "MessageDialog", Dialogo):
             with con_pseudo():
                 self.ventana._borrar_lista()
         self.assertTrue(capturados["mensaje"].startswith("[¡"),

@@ -5,6 +5,7 @@ diálogo nativo, leen el texto de sus botones y lo cierran con Escape.
 """
 
 import ctypes
+import os
 import sys
 import unittest
 from types import SimpleNamespace
@@ -12,6 +13,7 @@ from unittest import mock
 
 import wx
 
+from tests import cuadros_reales_permitidos
 from tests.ventanas_prueba import app_de_prueba
 from guyrapu.core.idioma import _
 from guyrapu.ui import confirmar
@@ -444,6 +446,7 @@ class TestCuadrosReales(unittest.TestCase):
 
     def setUp(self):
         self.app = app_de_prueba()
+        self.enterContext(cuadros_reales_permitidos())
 
     def _abrir_y_leer(self, titulo, accion):
         capturado = {}
@@ -484,6 +487,24 @@ class TestCuadrosReales(unittest.TestCase):
         self.assertIsNone(resultado)
         self.assertEqual(capturado["textos"], ["&Aceptar"])
         self._exigir_escape(capturado)
+
+
+@unittest.skipUnless(sys.platform == "win32", "solo Windows")
+class TestGuardaDeCuadros(unittest.TestCase):
+
+    def setUp(self):
+        self.app = app_de_prueba()
+
+    def test_sin_permiso_preguntar_lanza_con_el_titulo(self):
+        titulo = "Prueba de guarda de cuadros"
+        with mock.patch.dict(os.environ):
+            os.environ.pop("GUYRAPU_PRUEBAS_CON_CUADROS", None)
+            with self.assertRaisesRegex(
+                    AssertionError,
+                    "Una prueba abrió un cuadro de Windows real: "
+                    + titulo):
+                confirmar.preguntar(None, "¿Seguir?", titulo,
+                                    "&Sí", "&No")
 
 
 if __name__ == "__main__":

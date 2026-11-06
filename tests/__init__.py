@@ -3,6 +3,7 @@
 import errno
 import os
 import socket
+from contextlib import contextmanager
 
 os.environ.setdefault("GUYRAPU_IDIOMA", "es")
 
@@ -36,3 +37,46 @@ if os.environ.get("GUYRAPU_PRUEBAS_CON_RED") != "1":
     # create_connection llama a connect, así que parchear connect alcanza.
     socket.socket.connect = _con_bloqueo(socket.socket.connect)
     socket.socket.connect_ex = _con_bloqueo(socket.socket.connect_ex)
+
+
+def _instalar_guarda_de_cuadros():
+    try:
+        import wx
+    except Exception:
+        return
+    for nombre in ("MessageDialog", "RichMessageDialog"):
+        clase = getattr(wx, nombre, None)
+        if clase is None:
+            continue
+        original = clase.ShowModal
+
+        def _show_modal(dialogo, *args, __original=original, **kwargs):
+            if os.environ.get("GUYRAPU_PRUEBAS_CON_CUADROS") == "1":
+                return __original(dialogo, *args, **kwargs)
+            try:
+                titulo = dialogo.GetTitle()
+            except Exception:
+                titulo = ""
+            raise AssertionError(
+                "Una prueba abrió un cuadro de Windows real: "
+                f"{titulo}")
+
+        clase.ShowModal = _show_modal
+
+
+@contextmanager
+def cuadros_reales_permitidos():
+    """Deja abrir cuadros nativos de verdad mientras dura el contexto."""
+    anterior = os.environ.get("GUYRAPU_PRUEBAS_CON_CUADROS")
+    os.environ["GUYRAPU_PRUEBAS_CON_CUADROS"] = "1"
+    try:
+        yield
+    finally:
+        if anterior is None:
+            os.environ.pop("GUYRAPU_PRUEBAS_CON_CUADROS", None)
+        else:
+            os.environ["GUYRAPU_PRUEBAS_CON_CUADROS"] = anterior
+
+
+if os.environ.get("GUYRAPU_PRUEBAS_CON_CUADROS") != "1":
+    _instalar_guarda_de_cuadros()

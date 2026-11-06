@@ -32,6 +32,15 @@ def destruir(ventana) -> None:
         if isinstance(ventana, wx.App):
             ventana.Destroy()
             return
+        for nombre in ("_timer", "_diagnostico_timer"):
+            temporizador = getattr(ventana, nombre, None)
+            if temporizador is not None:
+                try:
+                    temporizador.Stop()
+                except Exception:
+                    pass
+        if hasattr(ventana, "_alive"):
+            ventana._alive = False
         ventana.Destroy()
         wx.SafeYield()
     except Exception:

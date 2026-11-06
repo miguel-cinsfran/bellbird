@@ -7,7 +7,7 @@ from unittest import mock
 import wx
 
 from guyrapu.obs import (
-    disenos_escena, disenos_guardados, fuentes_obs, obs_capas,
+    disenos_escena, disenos_guardados, fuentes_obs, obs_capas, obs_cliente,
     obs_disposicion)
 from guyrapu.obs.obs_escena import FilaFuente
 from guyrapu.ui import escena_acciones_fuente
@@ -70,11 +70,77 @@ class GestorConCapas(GestorFalso):
     def __init__(self):
         super().__init__()
         self.orden = ["Cámara", "Chat en el vídeo", "Juego"]
+        self.escenas_por_nombre = {
+            "Principal": self.orden,
+            "Juego": ["Captura"],
+        }
+        self.peticiones = []
+        self.fallo_peticion = None
+
+    def escenas(self):
+        return tuple(self.escenas_por_nombre)
+
+    def escena_al_aire(self):
+        return self.escena_resultante
+
+    def poner_escena_al_aire(self, escena, parada=None):
+        self.llamadas.append(("poner_escena_al_aire", escena))
+        self.escena_resultante = escena
+        return escena
 
     def fuentes(self, escena):
-        if escena == "Principal":
-            return tuple(self.orden)
-        return super().fuentes(escena)
+        return tuple(self.escenas_por_nombre.get(escena, ()))
+
+    def elementos(self, escena, parada=None):
+        return [{"sceneItemId": indice + 1, "sourceName": nombre,
+                 "sceneItemIndex": indice, "sceneItemEnabled": True,
+                 "sceneItemTransform": {
+                     "positionX": 32, "positionY": 18, "alignment": 5,
+                     "scaleX": 1, "scaleY": 1}}
+                for indice, nombre in enumerate(self.fuentes(escena))]
+
+    def _pedir(self, tipo, datos=None, parada=None):
+        if self.fallo_peticion is not None:
+            raise self.fallo_peticion
+        datos = datos or {}
+        self.peticiones.append((tipo, dict(datos)))
+        if tipo == "CreateScene":
+            self.escenas_por_nombre.setdefault(datos["sceneName"], [])
+            return {}
+        if tipo == "SetSceneName":
+            return self._pedir_set_scene_name(datos)
+        if tipo == "RemoveScene":
+            return self._pedir_remove_scene(datos)
+        if tipo == "GetSceneItemList":
+            return {"sceneItems": self.elementos(datos["sceneName"], parada)}
+        if tipo == "DuplicateSceneItem":
+            return self._pedir_duplicate(datos)
+        return {}
+
+    def _pedir_set_scene_name(self, datos):
+        antes = datos["sceneName"]
+        nombre = datos["newSceneName"]
+        self.escenas_por_nombre[nombre] = self.escenas_por_nombre.pop(antes)
+        if self.escena_resultante == antes:
+            self.escena_resultante = nombre
+        return {}
+
+    def _pedir_remove_scene(self, datos):
+        nombre = datos["sceneName"]
+        self.escenas_por_nombre.pop(nombre, None)
+        if self.escena_resultante == nombre and self.escenas_por_nombre:
+            self.escena_resultante = next(iter(self.escenas_por_nombre))
+        return {}
+
+    def _pedir_duplicate(self, datos):
+        origen = self.escenas_por_nombre.get(datos["sceneName"], [])
+        destino = self.escenas_por_nombre.setdefault(
+            datos["destinationSceneName"], [])
+        indice = datos["sceneItemId"] - 1
+        if not 0 <= indice < len(origen):
+            return {}
+        destino.append(origen[indice])
+        return {"sceneItemId": len(destino)}
 
     def mover_capa(self, escena, movimiento, parada=None, *, fuente=""):
         self._llamar("mover_capa", (escena, movimiento), {"fuente": fuente})
@@ -159,6 +225,14 @@ class TestVentanaObs(unittest.TestCase):
         lista.GetEventHandler().ProcessEvent(
             wx.CommandEvent(wx.EVT_CHOICE.typeId, lista.GetId()))
 
+    def _elegir_escena(self, pagina, nombre):
+        indice = next(i for i, (escena, _cantidad)
+                      in enumerate(pagina._escenas) if escena == nombre)
+        pagina.lst_escenas.SetSelection(indice)
+        pagina.lst_escenas.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_LISTBOX.typeId,
+                            pagina.lst_escenas.GetId()))
+
     def _marcar(self, casilla, valor):
         casilla.SetValue(valor)
         casilla.GetEventHandler().ProcessEvent(
@@ -186,6 +260,47 @@ class TestVentanaObs(unittest.TestCase):
         with mock.patch.object(pagina.lst_fuentes, "PopupMenu", falso_popup):
             pagina._mostrar_menu_fuente(pagina.lst_fuentes)
         return etiquetas
+
+    def _menu_de_escena(self, pagina, al_elegir=None):
+        etiquetas = []
+        teclas = []
+
+        def falso_popup(menu):
+            for item in _items_del_menu(menu):
+                etiquetas.append(item.GetItemLabelText())
+                accel = item.GetAccel()
+                teclas.append((accel.GetFlags(), accel.GetKeyCode())
+                              if accel else None)
+                if item.GetItemLabelText() == al_elegir:
+                    item.GetMenu().ProcessEvent(
+                        wx.CommandEvent(wx.EVT_MENU.typeId, item.GetId()))
+
+        with mock.patch.object(pagina.lst_escenas, "PopupMenu", falso_popup):
+            pagina._mostrar_menu(pagina.lst_escenas)
+        return etiquetas, teclas
+
+    def _dialogo_de_nombre(self, valores):
+        creados = []
+
+        class Dialogo:
+
+            def __init__(self, padre, mensaje, titulo, value=""):
+                self.mensaje = mensaje
+                self.titulo = titulo
+                self.value = value
+                creados.append(self)
+
+            def ShowModal(self):
+                return wx.ID_OK
+
+            def GetValue(self):
+                return valores.pop(0)
+
+            def Destroy(self):
+                pass
+
+        return mock.patch.object(
+            escena_pagina_escena.wx, "TextEntryDialog", Dialogo), creados
 
     def _abrir_menu_agregar(self, pagina, al_elegir=None):
         etiquetas = []
@@ -235,19 +350,21 @@ class TestVentanaObs(unittest.TestCase):
         self.anuncios.clear()
         dialogo = self._crear()
         pagina = dialogo._pagina_escena
-        self.assertEqual(pagina.cho_escena.GetStringSelection(), "Principal")
+        self.assertEqual(pagina.escena(), "Principal")
         self.assertFalse(hasattr(pagina, "txt_descripcion"))
+        self.assertEqual(
+            pagina.lst_escenas.GetStrings(),
+            ["Principal, escena actual, 3 fuentes", "Juego, 1 fuente"])
         self.assertEqual(dialogo._pagina_fuentes.lst_fuentes.GetStrings(),
                          ["Cámara", "Chat en el vídeo", "Juego"])
         self.assertTrue(any(a.startswith("Escena: Principal.")
                             for a in self.anuncios))
-        self.assertIs(dialogo.FindFocus(), pagina.cho_escena)
+        self.assertIs(dialogo.FindFocus(), pagina.lst_escenas)
 
     def test_la_escena_al_aire_es_la_elegida(self):
         self.gestor.escena_resultante = "Juego"
         dialogo = self._crear()
-        self.assertEqual(dialogo._pagina_escena.cho_escena.GetStringSelection(),
-                         "Juego")
+        self.assertEqual(dialogo._pagina_escena.escena(), "Juego")
         self.assertEqual(dialogo._pagina_fuentes.lst_fuentes.GetStrings(),
                          ["Captura"])
         self.assertEqual(dialogo._pagina_fuentes.fuente(), "Captura")
@@ -276,15 +393,13 @@ class TestVentanaObs(unittest.TestCase):
             dialogo = self._crear(gestor=gestor)
         asegurar.assert_called_once()
         self.assertEqual(gestor.veces_conectar, 0)
-        self.assertEqual(dialogo._pagina_escena.cho_escena.GetStringSelection(),
-                         "Principal")
+        self.assertEqual(dialogo._pagina_escena.escena(), "Principal")
 
     def test_elegir_otra_escena_recarga_sin_cambiarla_al_aire(self):
         self.gestor.poner_escena_al_aire = mock.Mock()
         self.anuncios.clear()
         pagina = self.dialogo._pagina_escena
-        pagina.cho_escena.SetStringSelection("Juego")
-        self._elegir(pagina.cho_escena)
+        self._elegir_escena(pagina, "Juego")
         self.gestor.poner_escena_al_aire.assert_not_called()
         self.assertEqual(
             self.dialogo._pagina_fuentes.lst_fuentes.GetStrings(),
@@ -294,13 +409,256 @@ class TestVentanaObs(unittest.TestCase):
             ["Escena: Juego. 1 fuente, de adelante hacia atrás."])
 
     def test_cambiar_escena_la_cambia_al_aire_y_anuncia(self):
-        self.gestor.escena_resultante = "Juego"
         pagina = self.dialogo._pagina_escena
-        pagina.cho_escena.SetStringSelection("Juego")
+        self._elegir_escena(pagina, "Juego")
         self._pulsar(pagina.btn_cambiar)
         self.assertIn(("poner_escena_al_aire", "Juego"),
                       self.gestor.llamadas)
         self.assertIn("Escena actual: Juego", self.anuncios)
+        self.assertEqual(
+            pagina.lst_escenas.GetStrings(),
+            ["Principal, 3 fuentes", "Juego, escena actual, 1 fuente"])
+
+    def test_cambiar_escena_a_la_actual_avisa_y_no_hace_nada(self):
+        pagina = self.dialogo._pagina_escena
+        self._elegir_escena(pagina, "Principal")
+        self._pulsar(pagina.btn_cambiar)
+        self.assertNotIn(
+            ("poner_escena_al_aire", "Principal"), self.gestor.llamadas)
+        self.assertIn(
+            "Principal ya es la escena actual.", self.anuncios)
+
+    def test_agregar_escena_pide_el_nombre_y_la_deja_elegida(self):
+        pagina = self.dialogo._pagina_escena
+        with mock.patch.object(pagina, "_pedir_nombre",
+                               return_value="Charla"):
+            self._pulsar(pagina.btn_agregar)
+        self.assertIn(("CreateScene", {"sceneName": "Charla"}),
+                      self.gestor.peticiones)
+        self.assertIn("Escena Charla agregada.", self.anuncios)
+        self.assertEqual(pagina.escena(), "Charla")
+        self.assertIn("Charla, sin fuentes", pagina.lst_escenas.GetStrings())
+        self.assertEqual(self.gestor.escena_resultante, "Principal")
+        self.assertIs(self.dialogo.FindFocus(), pagina.lst_escenas)
+
+    def test_agregar_escena_propone_el_primer_numero_libre(self):
+        pagina = self.dialogo._pagina_escena
+        parche, creados = self._dialogo_de_nombre(["Escena 1"])
+        with parche:
+            self._pulsar(pagina.btn_agregar)
+        self.assertEqual(creados[0].mensaje, "Nombre de la escena:")
+        self.assertEqual(creados[0].titulo, "Agregar escena")
+        self.assertEqual(creados[0].value, "Escena 1")
+
+    def test_cambiar_nombre_relee_con_la_escena_elegida(self):
+        pagina = self.dialogo._pagina_escena
+        self._elegir_escena(pagina, "Juego")
+        with mock.patch.object(pagina, "_pedir_nombre",
+                               return_value="Charla"):
+            pagina._cambiar_nombre()
+        self.assertIn(("SetSceneName", {"sceneName": "Juego",
+                                        "newSceneName": "Charla"}),
+                      self.gestor.peticiones)
+        self.assertIn("Escena Juego cambiada a Charla.", self.anuncios)
+        self.assertEqual(pagina.escena(), "Charla")
+        self.assertIn("Charla, 1 fuente", pagina.lst_escenas.GetStrings())
+        self.assertIs(self.dialogo.FindFocus(), pagina.lst_escenas)
+
+    def test_cambiar_nombre_abre_con_el_nombre_actual(self):
+        pagina = self.dialogo._pagina_escena
+        self._elegir_escena(pagina, "Juego")
+        parche, creados = self._dialogo_de_nombre(["Juego"])
+        with parche:
+            pagina._cambiar_nombre()
+        self.assertEqual(creados[0].mensaje, "Nombre de la escena:")
+        self.assertEqual(creados[0].titulo, "Cambiar nombre")
+        self.assertEqual(creados[0].value, "Juego")
+
+    def test_duplicar_crea_la_copia_con_las_mismas_fuentes(self):
+        pagina = self.dialogo._pagina_escena
+        self._elegir_escena(pagina, "Principal")
+        pagina._duplicar()
+        self.assertEqual(
+            self.gestor.escenas_por_nombre["Principal - copia"],
+            ["Cámara", "Chat en el vídeo", "Juego"])
+        self.assertEqual(pagina.escena(), "Principal - copia")
+        self.assertIn("Escena Principal - copia agregada.", self.anuncios)
+        self.assertIn("Principal - copia, 3 fuentes",
+                      pagina.lst_escenas.GetStrings())
+
+    def test_eliminar_pregunta_y_deja_la_siguiente_elegida(self):
+        pagina = self.dialogo._pagina_escena
+        self._elegir_escena(pagina, "Juego")
+        with mock.patch.object(pagina, "_confirmar_eliminar",
+                               return_value=True):
+            pagina._eliminar()
+        self.assertIn(("RemoveScene", {"sceneName": "Juego"}),
+                      self.gestor.peticiones)
+        self.assertNotIn("Juego", self.gestor.escenas_por_nombre)
+        self.assertEqual(pagina.escena(), "Principal")
+        self.assertIn("Escena Juego eliminada.", self.anuncios)
+
+    def test_eliminar_la_unica_escena_avisa_sin_preguntar(self):
+        self.gestor.escenas_por_nombre = {"Principal": self.gestor.orden}
+        self.gestor.escena_resultante = "Principal"
+        dialogo = self._crear()
+        pagina = dialogo._pagina_escena
+        self.anuncios.clear()
+        with mock.patch.object(pagina, "_confirmar_eliminar") as confirmar:
+            pagina._eliminar()
+        confirmar.assert_not_called()
+        self.assertIn("No se puede eliminar la única escena.", self.anuncios)
+
+    def test_eliminar_pregunta_con_si_y_no(self):
+        pagina = self.dialogo._pagina_escena
+        creados = []
+
+        class Dialogo:
+
+            def __init__(self, padre, mensaje, titulo, estilo):
+                self.mensaje = mensaje
+                self.titulo = titulo
+                self.etiquetas = None
+                creados.append(self)
+
+            def SetYesNoLabels(self, si, no):
+                self.etiquetas = (si, no)
+
+            def ShowModal(self):
+                return wx.ID_NO
+
+            def Destroy(self):
+                pass
+
+        with mock.patch.object(
+                escena_pagina_escena.wx, "MessageDialog", Dialogo):
+            self.assertFalse(pagina._confirmar_eliminar("Juego"))
+        self.assertEqual(creados[0].mensaje, "¿Eliminar la escena Juego?")
+        self.assertEqual(creados[0].titulo, "Eliminar escena")
+        self.assertEqual(creados[0].etiquetas, ("&Sí", "&No"))
+
+    def test_un_nombre_vacio_no_crea_nada(self):
+        pagina = self.dialogo._pagina_escena
+        parche, _creados = self._dialogo_de_nombre([""])
+        with parche:
+            pagina._agregar()
+        self.assertNotIn("CreateScene",
+                         [tipo for tipo, _datos in self.gestor.peticiones])
+        self.assertEqual(len(self.gestor.escenas_por_nombre), 2)
+
+    def test_un_nombre_repetido_avisa_y_vuelve_a_pedirlo(self):
+        pagina = self.dialogo._pagina_escena
+        parche, creados = self._dialogo_de_nombre(["Juego", "Charla"])
+        with parche:
+            self.assertEqual(
+                pagina._pedir_nombre("Agregar escena", "Escena 3"),
+                "Charla")
+        self.assertEqual(len(creados), 2)
+        self.assertIn("Ya hay una escena con ese nombre.", self.anuncios)
+
+    def test_el_menu_de_la_escena_tiene_sus_acciones_en_orden(self):
+        pagina = self.dialogo._pagina_escena
+        self._elegir_escena(pagina, "Principal")
+        etiquetas, teclas = self._menu_de_escena(pagina)
+        self.assertEqual(
+            etiquetas,
+            ["Cambiar escena", "Cambiar nombre…", "Duplicar", "Eliminar",
+             "Guardar imagen…"])
+        self.assertEqual(
+            teclas[:4],
+            [(wx.ACCEL_NORMAL, wx.WXK_RETURN),
+             (wx.ACCEL_NORMAL, wx.WXK_F2),
+             (wx.ACCEL_CTRL, ord("D")),
+             (wx.ACCEL_NORMAL, wx.WXK_DELETE)])
+        self.assertIsNone(teclas[4])
+
+    def test_cada_entrada_del_menu_de_la_escena_llama_a_su_accion(self):
+        pagina = self.dialogo._pagina_escena
+        self._elegir_escena(pagina, "Principal")
+        for etiqueta, accion in (
+                ("Cambiar escena", "_cambiar_al_aire"),
+                ("Cambiar nombre…", "_cambiar_nombre"),
+                ("Duplicar", "_duplicar"),
+                ("Eliminar", "_eliminar"),
+                ("Guardar imagen…", "_guardar_imagen")):
+            with mock.patch.object(pagina, accion) as llamada:
+                self._menu_de_escena(pagina, etiqueta)
+            llamada.assert_called_once_with()
+
+    def test_las_teclas_de_la_lista_ejecutan_las_acciones(self):
+        pagina = self.dialogo._pagina_escena
+        for tecla, accion, control in (
+                (wx.WXK_RETURN, "cambiar", False),
+                (wx.WXK_F2, "renombrar", False),
+                (ord("D"), "duplicar", True),
+                (wx.WXK_DELETE, "eliminar", False)):
+            llamada = mock.Mock()
+            with mock.patch.dict(pagina._acciones, {accion: llamada}):
+                evento = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
+                evento.KeyCode = tecla
+                evento.SetControlDown(control)
+                pagina.lst_escenas.ProcessEvent(evento)
+            llamada.assert_called_once_with()
+
+    def test_la_tecla_aplicaciones_abre_el_menu_de_la_escena(self):
+        pagina = self.dialogo._pagina_escena
+        evento = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
+        evento.KeyCode = wx.WXK_WINDOWS_MENU
+        with mock.patch.object(pagina, "_mostrar_menu") as mostrar:
+            pagina.lst_escenas.ProcessEvent(evento)
+        mostrar.assert_called_once_with(pagina.lst_escenas)
+
+    def test_mayus_f10_abre_el_mismo_menu_de_la_escena(self):
+        pagina = self.dialogo._pagina_escena
+        evento = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
+        evento.KeyCode = wx.WXK_F10
+        evento.SetShiftDown(True)
+        with mock.patch.object(pagina, "_mostrar_menu") as mostrar:
+            pagina.lst_escenas.ProcessEvent(evento)
+        mostrar.assert_called_once_with(pagina.lst_escenas)
+
+    def test_guardar_imagen_sale_de_la_pestana_y_usa_la_escena_elegida(self):
+        pagina = self.dialogo._pagina_escena
+        self.assertFalse(hasattr(pagina, "btn_imagen"))
+        self._elegir_escena(pagina, "Juego")
+
+        class Dialogo:
+
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def ShowModal(self):
+                return wx.ID_OK
+
+            def GetPath(self):
+                return "C:/temporal/escena.png"
+
+        with mock.patch.object(
+                escena_pagina_escena.wx, "FileDialog", Dialogo), \
+                mock.patch.object(
+                    escena_pagina_escena.consultas_transmision,
+                    "capturar") as capturar:
+            pagina._guardar_imagen()
+        capturar.assert_called_once_with(
+            self.gestor, "Juego", "", "C:/temporal/escena.png")
+        self.assertIn("Imagen guardada", self.anuncios)
+
+    def test_un_fallo_de_obs_avisa_con_su_sonido_y_no_cambia_la_lista(self):
+        pagina = self.dialogo._pagina_escena
+        antes = pagina.lst_escenas.GetStrings()
+        self.gestor.fallo_peticion = obs_cliente.ObsError("OBS no respondió")
+        with mock.patch.object(pagina, "_pedir_nombre",
+                               return_value="Charla"):
+            self._pulsar(pagina.btn_agregar)
+        self.assertEqual(pagina.lst_escenas.GetStrings(), antes)
+        self.assertIn("OBS no respondió", self.anuncios)
+        operaciones_obs.sound_player.reproducir.assert_any_call("error")
 
     def test_cada_accion_de_fuentes_llama_al_gestor(self):
         pagina = self.dialogo._pagina_fuentes
@@ -773,9 +1131,9 @@ class TestVentanaObs(unittest.TestCase):
 
     def test_nombres_accesibles(self):
         escena = self.dialogo._pagina_escena
-        self.assertEqual(escena.cho_escena.GetName(), "Escena")
+        self.assertEqual(escena.lst_escenas.GetName(), "Escenas")
         self.assertEqual(escena.btn_cambiar.GetName(), "Cambiar escena")
-        self.assertEqual(escena.btn_imagen.GetName(), "Guardar imagen…")
+        self.assertEqual(escena.btn_agregar.GetName(), "Agregar escena…")
         fuentes = self.dialogo._pagina_fuentes
         self.assertEqual(fuentes.lst_fuentes.GetName(), "Fuentes")
         self.assertEqual(fuentes.btn_diseno.GetName(), "Aplicar diseño…")
@@ -793,9 +1151,9 @@ class TestVentanaObs(unittest.TestCase):
 
     def test_orden_de_tab_de_cada_pestana(self):
         self.assertEqual(self._nombres(self.dialogo._pagina_escena), [
-            "Escena", "Cambiar escena", "Fuentes",
+            "Escenas", "Cambiar escena", "Agregar escena…", "Fuentes",
             "Aplicar diseño…", "Agregar fuente…",
-            "Deshacer todos los cambios", "Guardar imagen…"])
+            "Deshacer todos los cambios"])
         self.assertEqual(self._nombres(self.dialogo._pagina_audio), [
             "Fuentes de audio", "Silenciar", "Elegir micrófono…",
             "Probar nivel", "Filtros…", "Escuchar"])

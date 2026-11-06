@@ -6414,16 +6414,8 @@ msgid "{fuente}: {resumen}"
 msgstr "{fuente}: {resumen}"
 
 #: guyrapu/ui/escena_pagina_escena.py
-msgid "&Escena:"
-msgstr "&Scene:"
-
-#: guyrapu/ui/escena_pagina_escena.py
 msgid "Cambiar e&scena"
 msgstr "Chan&ge scene"
-
-#: guyrapu/ui/escena_pagina_escena.py
-msgid "Guardar &imagen…"
-msgstr "Save &image…"
 
 #. Traductores: traduce solo «Imagen PNG»; no cambies «(*.png)|*.png».
 #: guyrapu/ui/escena_pagina_escena.py
@@ -11135,4 +11127,107 @@ msgstr "Send &backward"
 #: guyrapu/ui/escena_menu_fuente.py
 msgid "Enviar al fo&ndo"
 msgstr "Send to bac&k"
+
+#: guyrapu/obs/nombres_escena.py
+msgid "escena actual"
+msgstr "current scene"
+
+#: guyrapu/obs/nombres_escena.py
+#, python-brace-format
+msgid "{n} fuente"
+msgid_plural "{n} fuentes"
+msgstr[0] "{n} source"
+msgstr[1] "{n} sources"
+
+#: guyrapu/obs/nombres_escena.py
+msgid "sin fuentes"
+msgstr "no sources"
+
+#: guyrapu/obs/nombres_escena.py
+#, python-brace-format
+msgid "Escena {n}"
+msgstr "Scene {n}"
+
+#: guyrapu/obs/nombres_escena.py
+#, python-brace-format
+msgid "{nombre} - copia"
+msgstr "{nombre} - copy"
+
+#: guyrapu/obs/nombres_escena.py
+#, python-brace-format
+msgid "{nombre} - copia {n}"
+msgstr "{nombre} - copy {n}"
+
+#: guyrapu/ui/escena_menu_escena.py
+msgid "Cambiar escena"
+msgstr "Change scene"
+
+#: guyrapu/ui/escena_menu_escena.py
+msgid "Cambiar nombre…"
+msgstr "Rename…"
+
+#: guyrapu/ui/escena_menu_escena.py
+msgid "Guardar imagen…"
+msgstr "Save image…"
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "&Escenas:"
+msgstr "&Scenes:"
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "A&gregar escena…"
+msgstr "Add sc&ene…"
+
+#: guyrapu/ui/escena_pagina_escena.py
+#, python-brace-format
+msgid "{escena} ya es la escena actual."
+msgstr "{escena} is already the current scene."
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "Agregar escena"
+msgstr "Add scene"
+
+#: guyrapu/ui/escena_pagina_escena.py
+#, python-brace-format
+msgid "Escena {nombre} agregada."
+msgstr "Scene {nombre} added."
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "Ya hay una escena con ese nombre."
+msgstr "A scene with that name already exists."
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "Nombre de la escena:"
+msgstr "Scene name:"
+
+#: guyrapu/ui/escena_pagina_escena.py
+#, python-brace-format
+msgid "Escena {antes} cambiada a {nombre}."
+msgstr "Scene {antes} renamed to {nombre}."
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "No se puede eliminar la única escena."
+msgstr "The only scene cannot be deleted."
+
+#: guyrapu/ui/escena_pagina_escena.py
+#, python-brace-format
+msgid "¿Eliminar la escena {escena}?"
+msgstr "Delete the scene {escena}?"
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "Eliminar escena"
+msgstr "Delete scene"
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "&Sí"
+msgstr "&Yes"
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "&No"
+msgstr "&No"
+
+#: guyrapu/ui/escena_pagina_escena.py
+#, python-brace-format
+msgid "Escena {escena} eliminada."
+msgstr "Scene {escena} deleted."
 

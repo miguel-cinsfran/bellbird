@@ -7,6 +7,7 @@ import wx
 from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.obs import consultas_transmision
+from guyrapu.obs import escenas_obs
 from guyrapu.obs import estado_panel
 from guyrapu.obs import obs_general
 from guyrapu.obs import obs_lanzador
@@ -129,17 +130,19 @@ class VentanaObs(wx.Dialog):
         escenas = self._gestor.escenas()
         al_aire = self._gestor.escena_al_aire()
         escena = al_aire if al_aire in escenas else (escenas[0] if escenas else "")
+        inventario = escenas_obs.inventario(self._gestor, escenas)
         leida = consultas_transmision.leer_escena(self._gestor, escena)
         perfil = self._gestor.perfil_actual()
         destino = perfil if perfil in DESTINOS else ""
         estado = consultas_transmision.leer_estado(
             self._gestor, destino, self._preferido())
         estadisticas = self._gestor.estadisticas()
-        return escenas, escena, leida, estado, estadisticas
+        return inventario, escena, al_aire, leida, estado, estadisticas
 
     def _inicial_cargada(self, datos):
-        escenas, escena, leida, estado, estadisticas = datos
-        self._pagina_escena.cargar(escenas, escena, leida.filas, leida.fuente)
+        inventario, escena, al_aire, leida, estado, estadisticas = datos
+        self._pagina_escena.cargar(
+            inventario, escena, al_aire, leida.filas, leida.fuente)
         self._pagina_audio.fijar(estado.silenciado)
         self._pagina_grabacion.aplicar(estado)
         self._pagina_transmision.cargar(estado)
@@ -153,7 +156,7 @@ class VentanaObs(wx.Dialog):
         elif self._pestana_inicial == PESTANA_ESCENA:
             if leida.descripcion:
                 anunciar(leida.descripcion)
-            self._pagina_escena.cho_escena.SetFocus()
+            self._pagina_escena.lst_escenas.SetFocus()
         else:
             self._enfocar_pestana(self._pestana_inicial)
 

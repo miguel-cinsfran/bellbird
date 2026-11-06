@@ -383,6 +383,9 @@ class CableadoPanelObsTest(unittest.TestCase):
             def fuentes(self, escena):
                 return ("Chat en el vídeo",)
 
+            def elementos(self, escena, parada=None):
+                return ()
+
             def ventanas(self, escena, parada=None):
                 return ((), "")
 

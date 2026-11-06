@@ -149,6 +149,36 @@ class TransformacionesTest(unittest.TestCase):
         self.assertAlmostEqual(esperado[1], obtenido[1])
 
 
+class LimpiarTransformacionTest(unittest.TestCase):
+
+    REAL = {
+        "alignment": 5, "boundsAlignment": 0, "boundsHeight": 0.0,
+        "boundsType": "OBS_BOUNDS_NONE", "boundsWidth": 0.0,
+        "cropBottom": 0, "cropLeft": 0, "cropRight": 0,
+        "cropToBounds": False, "cropTop": 0, "height": 200.0,
+        "positionX": 0.0, "positionY": 0.0, "rotation": 0.0,
+        "scaleX": 1.0, "scaleY": 1.0, "sourceHeight": 200.0,
+        "sourceWidth": 400.0, "width": 400.0,
+    }
+
+    def test_voltear_girar_y_centrar_no_dejan_claves_de_solo_lectura(self):
+        for calculo, argumentos in (
+                (transformar_fuente.voltear_horizontal, ()),
+                (transformar_fuente.girar, (90,)),
+                (transformar_fuente.centrar, (1600, 900))):
+            with self.subTest(calculo=calculo.__name__):
+                limpia = transformar_fuente.limpiar_transformacion(
+                    calculo(self.REAL, *argumentos))
+                self.assertNotIn("width", limpia)
+                self.assertNotIn("height", limpia)
+                self.assertNotIn("sourceWidth", limpia)
+                self.assertNotIn("sourceHeight", limpia)
+                self.assertNotIn("cropToBounds", limpia)
+                self.assertNotIn("boundsWidth", limpia)
+                self.assertNotIn("boundsHeight", limpia)
+                self.assertNotIn("boundsAlignment", limpia)
+
+
 class FraseDeAccionTest(unittest.TestCase):
 
     def test_nombra_la_accion_y_repite_donde_quedo(self):

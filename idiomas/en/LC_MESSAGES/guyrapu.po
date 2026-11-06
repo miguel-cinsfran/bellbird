@@ -11061,22 +11061,6 @@ msgid "&Transformar"
 msgstr "&Transform"
 
 #: guyrapu/ui/escena_menu_fuente.py
-msgid "&Mostrar en la escena\tEspacio"
-msgstr "&Show in scene\tEspacio"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Cambiar nombre…\tF2"
-msgstr "&Rename…\tF2"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Duplicar\tCtrl+D"
-msgstr "&Duplicate\tCtrl+D"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "E&liminar\tSupr"
-msgstr "De&lete\tSupr"
-
-#: guyrapu/ui/escena_menu_fuente.py
 msgid "&Tamaño y posición…"
 msgstr "&Size and position…"
 
@@ -11116,22 +11100,6 @@ msgstr "Rotate &right"
 msgid "Girar a la &izquierda"
 msgstr "Rotate &left"
 
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Traer al &frente\tCtrl+Inicio"
-msgstr "Bring to &front\tCtrl+Inicio"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Traer a&delante\tCtrl+Flecha arriba"
-msgstr "Bring for&ward\tCtrl+Flecha arriba"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Enviar a&trás\tCtrl+Flecha abajo"
-msgstr "Send &backward\tCtrl+Flecha abajo"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Enviar al fo&ndo\tCtrl+Fin"
-msgstr "Send to bac&k\tCtrl+Fin"
-
 #: guyrapu/ui/escena_pagina_fuentes.py
 msgid "Deshacer todos los cambi&os"
 msgstr "&Undo all changes"
@@ -11139,4 +11107,32 @@ msgstr "&Undo all changes"
 #: guyrapu/ui/escena_tamano.py
 msgid "Tamaño y posición de la fuente"
 msgstr "Source size and position"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Mostrar en la escena"
+msgstr "&Show in scene"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Cambiar nombre…"
+msgstr "&Rename…"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Duplicar"
+msgstr "&Duplicate"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Traer al &frente"
+msgstr "Bring to &front"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Traer a&delante"
+msgstr "Bring for&ward"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Enviar a&trás"
+msgstr "Send &backward"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Enviar al fo&ndo"
+msgstr "Send to bac&k"
 

@@ -1100,14 +1100,41 @@ class TestVentanaObs(unittest.TestCase):
         etiquetas = {
             item.GetItemLabelText(): item.GetItemLabel()
             for item in _items_del_menu(menu)}
-        self.assertIn("\tEspacio", etiquetas["Mostrar en la escena"])
+        self.assertIn("\tSpace", etiquetas["Mostrar en la escena"])
         self.assertIn("\tF2", etiquetas["Cambiar nombre…"])
         self.assertIn("\tCtrl+D", etiquetas["Duplicar"])
-        self.assertIn("\tSupr", etiquetas["Eliminar"])
-        self.assertIn("\tCtrl+Inicio", etiquetas["Traer al frente"])
-        self.assertIn("\tCtrl+Flecha arriba", etiquetas["Traer adelante"])
-        self.assertIn("\tCtrl+Flecha abajo", etiquetas["Enviar atrás"])
-        self.assertIn("\tCtrl+Fin", etiquetas["Enviar al fondo"])
+        self.assertIn("\tDel", etiquetas["Eliminar"])
+        self.assertIn("\tCtrl+Home", etiquetas["Traer al frente"])
+        self.assertIn("\tCtrl+Up", etiquetas["Traer adelante"])
+        self.assertIn("\tCtrl+Down", etiquetas["Enviar atrás"])
+        self.assertIn("\tCtrl+End", etiquetas["Enviar al fondo"])
+        self.assertEqual(etiquetas["Eliminar"], "E&liminar\tDel")
+        self.assertEqual(etiquetas["Traer adelante"],
+                         "Traer a&delante\tCtrl+Up")
+
+    def test_el_submenu_transformar_tiene_tres_separadores(self):
+        fila = FilaFuente("Juego", "Juego", True, False)
+        menu = escena_menu_fuente.menu_de_fuente(fila, mock.Mock())
+        self.addCleanup(menu.Destroy)
+        transformar = next(
+            item.GetSubMenu() for item in menu.GetMenuItems()
+            if item.GetItemLabelText() == "Transformar")
+        separadores = sum(
+            1 for item in transformar.GetMenuItems() if item.IsSeparator())
+        self.assertEqual(separadores, 3)
+
+    def test_renombrar_el_chat_avisa_y_no_pide_nombre_ni_toca_obs(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Chat en el vídeo")
+        with mock.patch.object(
+                pagina.acciones_fuente._edicion, "_pedir_nombre") as pedir, \
+                mock.patch.object(fuentes_obs, "renombrar") as renombrar:
+            pagina._tecla_fuente(EventoTecla(wx.WXK_F2))
+        pedir.assert_not_called()
+        renombrar.assert_not_called()
+        self.assertIn(
+            "Chat en el vídeo no se puede cambiar de nombre: Guyrapu lo "
+            "reconoce por él.", self.anuncios)
 
     def test_escape_cierra(self):
         self.dialogo.EndModal = mock.Mock()

@@ -38,6 +38,22 @@ def nombre_de_copia(ocupados, base) -> str:
     return candidato
 
 
+def limpiar_transformacion(transformacion) -> dict:
+    """Deja solo lo que OBS acepta al escribir una transformación.
+
+    La lectura trae claves de solo lectura y, sin cuadro, bounds en cero.
+    Mandarlas de vuelta hace que OBS rechace la operación.
+    """
+    from guyrapu.obs.restablecimiento import CLAVES_TRANSFORMACION
+    limpia = {
+        clave: valor for clave, valor in (transformacion or {}).items()
+        if clave in CLAVES_TRANSFORMACION}
+    if _sin_cuadro(limpia):
+        for clave in ("boundsAlignment", "boundsWidth", "boundsHeight"):
+            limpia.pop(clave, None)
+    return limpia
+
+
 def centro_de(transformacion) -> tuple:
     """El centro visible de la fuente, ya con el giro aplicado."""
     ancho, alto = _ancho_alto(transformacion)
@@ -185,6 +201,16 @@ def _ancho_alto(transformacion):
 def _tiene_cuadro(transformacion):
     tipo = str(transformacion.get("boundsType") or "").upper()
     return tipo not in ("", "NONE", "OBS_BOUNDS_NONE")
+
+
+def _sin_cuadro(transformacion):
+    if not _tiene_cuadro(transformacion):
+        return True
+    try:
+        return (float(transformacion.get("boundsWidth") or 0) < 1
+                or float(transformacion.get("boundsHeight") or 0) < 1)
+    except (TypeError, ValueError):
+        return True
 
 
 def _escala(valor):

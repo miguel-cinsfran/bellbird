@@ -2,8 +2,19 @@
 
 import unittest
 
-from guyrapu.obs import fuentes_obs, obs_cliente
+from guyrapu.obs import fuentes_obs, obs_cliente, transformar_fuente
 from guyrapu.obs.obs_panel import NOMBRE_FUENTE
+
+
+TRANSFORMACION_REAL = {
+    "alignment": 5, "boundsAlignment": 0, "boundsHeight": 0.0,
+    "boundsType": "OBS_BOUNDS_NONE", "boundsWidth": 0.0,
+    "cropBottom": 0, "cropLeft": 0, "cropRight": 0,
+    "cropToBounds": False, "cropTop": 0, "height": 200.0,
+    "positionX": 0.0, "positionY": 0.0, "rotation": 0.0,
+    "scaleX": 1.0, "scaleY": 1.0, "sourceHeight": 200.0,
+    "sourceWidth": 400.0, "width": 400.0,
+}
 
 
 def elemento(nombre, identificador, indice, visible=True):
@@ -129,10 +140,22 @@ class DuplicarTest(unittest.TestCase):
         self.assertEqual(transformar["sceneItemId"], 99)
         self.assertEqual(
             transformar["sceneItemTransform"],
-            original["sceneItemTransform"])
+            transformar_fuente.limpiar_transformacion(
+                original["sceneItemTransform"]))
         indice = cliente.peticiones[4][1]
         self.assertEqual(indice["sceneItemId"], 99)
         self.assertEqual(indice["sceneItemIndex"], 1)
+
+    def test_la_copia_no_manda_bounds_en_cero(self):
+        cliente = ClienteFalso(_respuestas_duplicado())
+        original = elemento("Panel", 7, 0)
+        original["sceneItemTransform"] = dict(TRANSFORMACION_REAL)
+        gestor = GestorFalso(cliente, [original])
+        fuentes_obs.duplicar(gestor, "Principal", "Panel", tipo="navegador")
+        copiada = cliente.peticiones[3][1]["sceneItemTransform"]
+        self.assertNotIn("boundsWidth", copiada)
+        self.assertNotIn("boundsHeight", copiada)
+        self.assertNotIn("width", copiada)
 
     def test_si_ya_hay_una_copia_usa_el_numero_siguiente(self):
         respuestas = _respuestas_duplicado()
@@ -189,6 +212,20 @@ class AplicarTransformacionTest(unittest.TestCase):
         self.assertEqual(
             gestor.transformadas,
             [("Principal", nueva, "Panel")])
+
+    def test_no_manda_bounds_en_cero_al_transformar(self):
+        cliente = ClienteFalso(
+            {"GetVideoSettings": {"baseWidth": 1600, "baseHeight": 900}})
+        original = elemento("Panel", 7, 0)
+        original["sceneItemTransform"] = dict(TRANSFORMACION_REAL)
+        gestor = GestorFalso(cliente, [original])
+        fuentes_obs.aplicar_transformacion(
+            gestor, "Principal", "Panel", transformar_fuente.centrar)
+        enviada = gestor.transformadas[0][1]
+        self.assertNotIn("boundsWidth", enviada)
+        self.assertNotIn("boundsHeight", enviada)
+        self.assertNotIn("width", enviada)
+        self.assertNotIn("sourceWidth", enviada)
 
     def test_sin_fuente_falla_antes_de_calcular(self):
         cliente = ClienteFalso()

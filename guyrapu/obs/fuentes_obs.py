@@ -5,7 +5,8 @@ from __future__ import annotations
 from guyrapu.core.idioma import _
 from guyrapu.obs import obs_cliente
 from guyrapu.obs.obs_panel import NOMBRE_FUENTE
-from guyrapu.obs.transformar_fuente import nombre_de_copia
+from guyrapu.obs.transformar_fuente import (
+    limpiar_transformacion, nombre_de_copia)
 
 
 class NoSePuedeDuplicar(obs_cliente.ObsError):
@@ -75,12 +76,13 @@ def aplicar_transformacion(gestor, escena, fuente, calculo, parada=None):
     lienzo = _datos(gestor, "GetVideoSettings", parada=parada)
     nueva = calculo(elemento.get("sceneItemTransform", {}),
                     lienzo.get("baseWidth", 0), lienzo.get("baseHeight", 0))
+    nueva = limpiar_transformacion(nueva)
     gestor.transformar(escena, nueva, parada=parada, fuente=fuente)
     return nueva
 
 
 def _copiar_forma(gestor, escena, identificador, elemento, parada):
-    forma = elemento.get("sceneItemTransform", {})
+    forma = limpiar_transformacion(elemento.get("sceneItemTransform", {}))
     if forma:
         _datos(gestor, "SetSceneItemTransform", {
             "sceneName": escena, "sceneItemId": identificador,

@@ -18,7 +18,7 @@ def menu_de_fuente(fila, acciones):
 
 
 def _casillas(menu, fila, acciones):
-    _casilla(menu, _("&Mostrar en la escena\tEspacio"), fila.visible,
+    _casilla(menu, _("&Mostrar en la escena") + "\tSpace", fila.visible,
              acciones.mostrar)
     _casilla(menu, _("&Bloquear posición"), fila.bloqueada,
              acciones.bloquear)
@@ -26,9 +26,9 @@ def _casillas(menu, fila, acciones):
 
 def _edicion(menu, acciones):
     menu.AppendSeparator()
-    _accion(menu, _("&Cambiar nombre…\tF2"), acciones.renombrar)
-    _accion(menu, _("&Duplicar\tCtrl+D"), acciones.duplicar)
-    _accion(menu, _("E&liminar\tSupr"), acciones.eliminar)
+    _accion(menu, _("&Cambiar nombre…") + "\tF2", acciones.renombrar)
+    _accion(menu, _("&Duplicar") + "\tCtrl+D", acciones.duplicar)
+    _accion(menu, _("E&liminar") + "\tDel", acciones.eliminar)
 
 
 def _menu_transformar(acciones):
@@ -45,20 +45,22 @@ def _menu_transformar_forma(menu, acciones):
     _accion(menu, _("&Centrar en el vídeo"), acciones.centrar)
     _accion(menu, _("&Ajustar al vídeo"), acciones.ajustar)
     _accion(menu, _("&Llenar el vídeo"), acciones.llenar)
+    menu.AppendSeparator()
     _accion(menu, _("Voltear &horizontalmente"), acciones.voltear_horizontal)
     _accion(menu, _("Voltear &verticalmente"), acciones.voltear_vertical)
     _accion(menu, _("Girar a la &derecha"), acciones.girar_derecha)
     _accion(menu, _("Girar a la &izquierda"), acciones.girar_izquierda)
+    menu.AppendSeparator()
 
 
 def _menu_ordenar(acciones):
     menu = wx.Menu()
-    for etiqueta, movimiento in (
-            (_("Traer al &frente\tCtrl+Inicio"), "frente"),
-            (_("Traer a&delante\tCtrl+Flecha arriba"), "adelante"),
-            (_("Enviar a&trás\tCtrl+Flecha abajo"), "atras"),
-            (_("Enviar al fo&ndo\tCtrl+Fin"), "fondo")):
-        _accion(menu, etiqueta,
+    for etiqueta, tecla, movimiento in (
+            (_("Traer al &frente"), "\tCtrl+Home", "frente"),
+            (_("Traer a&delante"), "\tCtrl+Up", "adelante"),
+            (_("Enviar a&trás"), "\tCtrl+Down", "atras"),
+            (_("Enviar al fo&ndo"), "\tCtrl+End", "fondo")):
+        _accion(menu, etiqueta + tecla,
                 lambda movimiento=movimiento: acciones.ordenar(movimiento))
     return menu
 

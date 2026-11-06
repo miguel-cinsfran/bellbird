@@ -127,6 +127,72 @@ class TestTransmitirSinVentana(unittest.TestCase):
         marco._supervisar_transmision.assert_called_once_with(
             "iniciar", "YouTube", "", revision=revision)
 
+    def test_restream_sin_cuenta_avisa_y_no_revisa(self):
+        from guyrapu.ui import boton_directo
+        boton, marco = self._boton()
+        with mock.patch(
+                "guyrapu.ui.gui_elegir_destino.pedir_destino",
+                return_value=("restream:Uno", "")), \
+                mock.patch.object(boton_directo.ganchos,
+                                  "cuenta_conectada",
+                                  return_value=False), \
+                mock.patch.object(boton_directo, "anunciar") as anunciar, \
+                mock.patch.object(boton_directo._snd,
+                                  "reproducir") as sonido, \
+                mock.patch.object(boton_directo.diagnostico,
+                                  "crear_hilo") as hilos:
+            boton._transmitir()
+        anunciar.assert_called_once_with(
+            "Para transmitir con un perfil de Restream hace falta conectar "
+            "la cuenta, en el cuadro Restream, pestaña Cuenta.")
+        sonido.assert_called_once_with("transmision_problema")
+        hilos.assert_not_called()
+        marco._guardar_destino_transmision.assert_called_once_with(
+            "restream:Uno")
+
+    def test_restream_prepara_obs_y_supervisa_la_opcion(self):
+        from guyrapu.restream.perfiles import Perfil
+        from guyrapu.ui import boton_directo
+        boton, marco = self._boton()
+        preparacion = SimpleNamespace(ya_transmitiendo=False,
+                                      revision=mock.sentinel.revision)
+        perfil = Perfil(nombre="Vertical", canales=(1,),
+                        orientacion="vertical")
+
+        class Hilo:
+            def __init__(self, target, *args, **kwargs):
+                self.target = target
+
+            def start(self):
+                self.target()
+
+        with mock.patch(
+                "guyrapu.ui.gui_elegir_destino.pedir_destino",
+                return_value=("restream:Vertical", "")), \
+                mock.patch.object(boton_directo.ganchos,
+                                  "cuenta_conectada", return_value=True), \
+                mock.patch.object(boton_directo.ganchos,
+                                  "cargar_perfiles",
+                                  return_value=[perfil]), \
+                mock.patch.object(boton_directo.diagnostico,
+                                  "crear_hilo",
+                                  side_effect=lambda f, n: Hilo(f)), \
+                mock.patch.object(boton_directo.transmision_directa,
+                                  "preparar",
+                                  return_value=preparacion) as preparar, \
+                mock.patch.object(boton_directo, "anunciar"), \
+                mock.patch.object(boton_directo._snd, "reproducir"), \
+                mock.patch.object(boton_directo.wx, "CallAfter",
+                                  side_effect=lambda f, *a: f(*a)):
+            boton._transmitir()
+        args, _ = preparar.call_args
+        self.assertEqual(args[1], "TikTok")
+        marco._guardar_destino_transmision.assert_called_once_with(
+            "restream:Vertical")
+        marco._guardar_usuario_tiktok.assert_not_called()
+        marco._supervisar_transmision.assert_called_once_with(
+            "iniciar", "restream:Vertical", "")
+
     def test_tiktok_guarda_usuario_y_revisa(self):
         from guyrapu.ui import boton_directo
         boton, marco = self._boton()
@@ -186,7 +252,7 @@ class TestRevisionListaSinVentana(unittest.TestCase):
                                       revision=revision)
         with mock.patch(
                 "guyrapu.ui.boton_directo.confirmar_transmision") as confirmar:
-            boton._revision_lista(preparacion, "YouTube", "")
+            boton._revision_lista(preparacion, "YouTube", "YouTube", "")
         confirmar.assert_not_called()
         marco._supervisar_transmision.assert_called_once_with(
             "iniciar", "YouTube", "", revision=revision)
@@ -199,7 +265,7 @@ class TestRevisionListaSinVentana(unittest.TestCase):
         with mock.patch(
                 "guyrapu.ui.boton_directo.confirmar_transmision",
                 return_value=True) as confirmar:
-            boton._revision_lista(preparacion, "TikTok", "usuario")
+            boton._revision_lista(preparacion, "TikTok", "TikTok", "usuario")
         confirmar.assert_called_once_with(marco, preparacion.revision)
         marco._supervisar_transmision.assert_called_once_with(
             "iniciar", "TikTok", "usuario")
@@ -213,7 +279,7 @@ class TestRevisionListaSinVentana(unittest.TestCase):
                 "guyrapu.ui.boton_directo.confirmar_transmision",
                 return_value=False), \
                 mock.patch.object(boton_directo, "anunciar") as anunciar:
-            boton._revision_lista(preparacion, "TikTok", "usuario")
+            boton._revision_lista(preparacion, "TikTok", "TikTok", "usuario")
         anunciar.assert_called_once_with("No se transmitió.")
         marco._supervisar_transmision.assert_not_called()
 
@@ -589,7 +655,7 @@ class TestPseudoAnunciosBotonDirecto(unittest.TestCase):
         boton, _marco = self._boton()
         preparacion = SimpleNamespace(ya_transmitiendo=True,
                                       revision=mock.sentinel.revision)
-        boton._revision_lista(preparacion, "YouTube", "")
+        boton._revision_lista(preparacion, "YouTube", "YouTube", "")
         self._exigir_marcados(1)
 
     def test_revision_tiktok_cancelado_avisa_marcado(self):
@@ -599,7 +665,7 @@ class TestPseudoAnunciosBotonDirecto(unittest.TestCase):
         with mock.patch(
                 "guyrapu.ui.boton_directo.confirmar_transmision",
                 return_value=False):
-            boton._revision_lista(preparacion, "TikTok", "usuario")
+            boton._revision_lista(preparacion, "TikTok", "TikTok", "usuario")
         marco._supervisar_transmision.assert_not_called()
         self._exigir_marcados(1)
 

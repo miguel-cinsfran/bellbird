@@ -30,6 +30,16 @@ class TestDestinoInicial(unittest.TestCase):
         self.assertEqual(elegir.destino_inicial("Twitch"), "TikTok")
         self.assertEqual(elegir.destino_inicial(None), "TikTok")
 
+    def test_un_perfil_de_restream_guardado_se_respeta(self):
+        opciones = ("TikTok", "YouTube", "restream:Uno")
+        self.assertEqual(elegir.destino_inicial("restream:Uno", opciones),
+                         "restream:Uno")
+
+    def test_un_perfil_que_ya_no_existe_cae_al_primero(self):
+        opciones = ("TikTok", "YouTube")
+        self.assertEqual(elegir.destino_inicial("restream:Viejo", opciones),
+                         "TikTok")
+
 
 class TestValidarEleccion(unittest.TestCase):
 
@@ -53,6 +63,12 @@ class TestValidarEleccion(unittest.TestCase):
         self.assertEqual(elegir.validar_eleccion("YouTube", "algo"),
                          ("YouTube", ""))
 
+    def test_un_perfil_de_restream_no_pide_usuario(self):
+        opciones = ("TikTok", "YouTube", "restream:Uno")
+        self.assertEqual(elegir.validar_eleccion("restream:Uno", "algo",
+                                                 opciones),
+                         ("restream:Uno", ""))
+
     def test_destino_invalido_cae_al_primero(self):
         destino, _ = elegir.validar_eleccion("Twitch", "amigo")
         self.assertEqual(destino, "TikTok")
@@ -64,11 +80,34 @@ class TestDialogoElegirDestinoVentana(unittest.TestCase):
 
     def setUp(self):
         self.app = app_de_prueba()
+        parche = mock.patch.object(elegir, "_perfiles_guardados",
+                                   return_value=[])
+        parche.start()
+        self.addCleanup(parche.stop)
 
     def _dialogo(self, **kwargs):
         dialogo = elegir.DialogoElegirDestino(None, **kwargs)
         self.addCleanup(destruir, dialogo)
         return dialogo
+
+    def _perfil(self, nombre="Uno", orientacion="vertical"):
+        from guyrapu.restream.perfiles import Perfil
+        return Perfil(nombre=nombre, canales=(1,),
+                      orientacion=orientacion)
+
+    def test_los_perfiles_se_suman_a_los_destinos(self):
+        dialogo = self._dialogo(perfiles=[self._perfil()])
+        self.assertEqual(dialogo.cho_destino.GetStrings(),
+                         ["TikTok", "YouTube", "Restream: Uno"])
+
+    def test_perfil_oculta_el_campo_de_usuario(self):
+        dialogo = self._dialogo(perfiles=[self._perfil()])
+        dialogo.cho_destino.SetStringSelection("Restream: Uno")
+        dialogo.cho_destino.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_CHOICE.typeId,
+                            dialogo.cho_destino.GetId()))
+        self.assertFalse(dialogo.txt_usuario.IsShown())
+        self.assertFalse(dialogo.rotulo_usuario.IsShown())
 
     def test_nombres_accesibles_y_destinos(self):
         dialogo = self._dialogo(destino="YouTube", usuario="amigo")
@@ -155,6 +194,10 @@ class TestPseudoElegirDestino(unittest.TestCase):
 
     def setUp(self):
         self.app = app_de_prueba()
+        parche = mock.patch.object(elegir, "_perfiles_guardados",
+                                   return_value=[])
+        parche.start()
+        self.addCleanup(parche.stop)
 
     def _dialogo(self, **kwargs):
         dialogo = elegir.DialogoElegirDestino(None, **kwargs)

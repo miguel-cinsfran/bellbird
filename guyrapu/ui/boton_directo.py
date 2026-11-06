@@ -17,6 +17,7 @@ from guyrapu.obs import obs_cliente
 from guyrapu.obs import obs_lanzador
 from guyrapu.obs import transmision_directa
 from guyrapu.obs.obs_panel import GestorPanelObs
+from guyrapu.restream import ganchos, transmitir
 from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.ui.confirmar_transmision import (
     confirmar_finalizar, confirmar_transmision)
@@ -100,20 +101,27 @@ class BotonDirecto:
                 usuario = marco._guardar_usuario_tiktok(usuario)
             except Exception as error:
                 logger.warning("no se pudo guardar el usuario de TikTok: %s", error)
+        if transmitir.es_restream(destino):
+            if not ganchos.cuenta_conectada():
+                _snd.reproducir("transmision_problema")
+                anunciar(_(ganchos.MENSAJE_SIN_CUENTA))
+                return
         _snd.reproducir("conectando")
         anunciar(_("Revisando OBS antes de transmitir."))
         self.boton.Disable()
 
         def _revisar():
+            destino_obs = (ganchos.destino_de_opcion(destino)
+                           if transmitir.es_restream(destino) else destino)
             try:
                 preparacion = transmision_directa.preparar(
-                    GestorPanelObs(), destino, obs_lanzador.asegurar_obs,
+                    GestorPanelObs(), destino_obs, obs_lanzador.asegurar_obs,
                     lambda frase: wx.CallAfter(anunciar, frase))
             except Exception as error:
                 wx.CallAfter(self._revision_fallida, error)
             else:
                 wx.CallAfter(self._revision_lista, preparacion, destino,
-                             usuario)
+                             destino_obs, usuario)
 
         diagnostico.crear_hilo(_revisar, "BotonDirectoRevisar").start()
 
@@ -124,7 +132,7 @@ class BotonDirecto:
         _snd.reproducir("error")
         anunciar(obs_cliente.mensaje_de_fallo_obs(error))
 
-    def _revision_lista(self, preparacion, destino, usuario):
+    def _revision_lista(self, preparacion, destino, destino_obs, usuario):
         marco = self._marco
         if not marco._alive:
             return
@@ -135,7 +143,11 @@ class BotonDirecto:
                       "puedes finalizar el directo."))
             marco._actualizar_boton_directo()
             return
-        if destino == "YouTube":
+        if transmitir.es_restream(destino):
+            marco._supervisar_transmision("iniciar", destino, "")
+            marco._actualizar_boton_directo()
+            return
+        if destino_obs == "YouTube":
             marco._supervisar_transmision(
                 "iniciar", destino, usuario,
                 revision=preparacion.revision)

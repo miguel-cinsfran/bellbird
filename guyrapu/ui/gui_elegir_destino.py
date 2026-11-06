@@ -9,29 +9,45 @@ from __future__ import annotations
 
 import wx
 
+from guyrapu.core import paths
 from guyrapu.obs.obs_destinos import DESTINOS
 from guyrapu.core.idioma import _
+from guyrapu.restream import perfiles as perfiles_restream
+from guyrapu.restream import transmitir
 from guyrapu.ui import paleta
 from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
 
 
-def destino_inicial(destino_guardado) -> str:
+def _perfiles_guardados():
+    return perfiles_restream.cargar(paths.perfiles_restream())
+
+
+def destino_inicial(destino_guardado, opciones=None) -> str:
     """Destino con el que arranca la lista: el guardado o el primero."""
-    if destino_guardado in DESTINOS:
+    opciones = tuple(opciones or DESTINOS)
+    if destino_guardado in opciones:
         return destino_guardado
-    return DESTINOS[0]
+    return opciones[0]
 
 
-def validar_eleccion(destino, usuario) -> tuple:
+def _opcion_elegida(seleccion, opciones) -> str:
+    if seleccion is None or seleccion < 0 or seleccion >= len(opciones):
+        return ""
+    return opciones[seleccion]
+
+
+def validar_eleccion(destino, usuario, opciones=None) -> tuple:
     """Valida lo elegido y devuelve (destino, usuario).
 
     Pura y sin ventanas: la usan el diálogo y las pruebas. Con TikTok
     y usuario vacío lanza ValueError con «Falta el usuario de TikTok.».
-    Para YouTube el usuario no hace falta y se devuelve vacío.
+    Para YouTube y los perfiles de Restream el usuario no hace falta y se
+    devuelve vacío.
     """
     from guyrapu.capture import tiktok_vivo
-    if destino not in DESTINOS:
-        destino = DESTINOS[0]
+    opciones = tuple(opciones or DESTINOS)
+    if destino not in opciones:
+        destino = opciones[0]
     if destino == "TikTok":
         usuario = tiktok_vivo.usuario_tiktok(usuario or "")
         if not usuario:
@@ -41,21 +57,39 @@ def validar_eleccion(destino, usuario) -> tuple:
 
 
 class DialogoElegirDestino(wx.Dialog):
-    def __init__(self, padre, destino="", usuario=""):
+    def __init__(self, padre, destino="", usuario="", perfiles=None):
         super().__init__(padre, title=_("Transmitir a"),
                          name="DialogoElegirDestino")
-        destino = destino_inicial(destino)
+        perfiles = (_perfiles_guardados() if perfiles is None
+                    else list(perfiles))
+        self._opciones = transmitir.opciones(perfiles)
+        destino = destino_inicial(destino, self._opciones)
         self._datos = None
 
         vs = wx.BoxSizer(wx.VERTICAL)
+        self._crear_destino(vs, destino)
+        self._crear_usuario(vs, usuario)
+        self._crear_botones(vs)
+
+        self.SetSizerAndFit(vs)
+        self.cho_destino.Bind(wx.EVT_CHOICE, self._al_destino)
+        self.btn_continuar.Bind(wx.EVT_BUTTON, self._al_continuar)
+        self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
+        self._mostrar_usuario()
+        self.cho_destino.SetFocus()
+
+    def _crear_destino(self, vs, destino):
         self.rotulo_destino = wx.StaticText(self, label=_("Transmitir a:"))
         vs.Add(self.rotulo_destino, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.cho_destino = wx.Choice(
-            self, choices=list(DESTINOS), name=_("Transmitir a"))
-        self.cho_destino.SetStringSelection(destino)
+            self, choices=[transmitir.texto(opcion)
+                           for opcion in self._opciones],
+            name=_("Transmitir a"))
+        self.cho_destino.SetSelection(self._opciones.index(destino))
         nombre_accesible(self.cho_destino, _("Transmitir a"))
         vs.Add(self.cho_destino, 0, wx.EXPAND | wx.ALL, 10)
 
+    def _crear_usuario(self, vs, usuario):
         self.rotulo_usuario = wx.StaticText(
             self, label=_("Usuario de TikTok:"))
         vs.Add(self.rotulo_usuario, 0, wx.LEFT | wx.RIGHT, 10)
@@ -64,6 +98,7 @@ class DialogoElegirDestino(wx.Dialog):
         nombre_accesible(self.txt_usuario, _("Usuario de TikTok"))
         vs.Add(self.txt_usuario, 0, wx.EXPAND | wx.ALL, 10)
 
+    def _crear_botones(self, vs):
         fila = wx.BoxSizer(wx.HORIZONTAL)
         # Traductores: botón para seguir con la transmisión.
         self.btn_continuar = wx.Button(self, wx.ID_OK, _("&Continuar"))
@@ -74,19 +109,16 @@ class DialogoElegirDestino(wx.Dialog):
         fila.Add(self.btn_cancelar, 0)
         vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
 
-        self.SetSizerAndFit(vs)
-        self.cho_destino.Bind(wx.EVT_CHOICE, self._al_destino)
-        self.btn_continuar.Bind(wx.EVT_BUTTON, self._al_continuar)
-        self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
-        self._mostrar_usuario()
-        self.cho_destino.SetFocus()
-
     @property
     def datos(self):
         return self._datos
 
+    def _opcion_elegida(self):
+        return _opcion_elegida(self.cho_destino.GetSelection(),
+                               self._opciones)
+
     def _mostrar_usuario(self):
-        visible = self.cho_destino.GetStringSelection() == "TikTok"
+        visible = self._opcion_elegida() == "TikTok"
         self.rotulo_usuario.Show(visible)
         self.txt_usuario.Show(visible)
         self.Layout()
@@ -98,8 +130,9 @@ class DialogoElegirDestino(wx.Dialog):
     def _al_continuar(self, _event) -> None:
         try:
             self._datos = validar_eleccion(
-                self.cho_destino.GetStringSelection(),
-                self.txt_usuario.GetValue())
+                self._opcion_elegida(),
+                self.txt_usuario.GetValue(),
+                self._opciones)
         except ValueError as exc:
             anunciar(str(exc))
             self.txt_usuario.Show()

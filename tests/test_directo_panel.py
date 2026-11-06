@@ -45,7 +45,7 @@ class TestDirectoPanel(unittest.TestCase):
         self.guardar_usuario = mock.Mock()
         self.guardar_destino = mock.Mock()
         self.al_cambiar = mock.Mock()
-        self.datos = ("YouTube", "")
+        self.datos = ("YouTube", "YouTube", "")
         self.panel = directo_panel.DirectoPanel(
             self.ventana, self.boton, OperacionesInmediatas(), self.gestor,
             self.supervisar, self.guardar_usuario, self.guardar_destino,
@@ -74,7 +74,7 @@ class TestDirectoPanel(unittest.TestCase):
         self.assertEqual(self.boton.GetLabel(), "&Finalizar directo")
 
     def test_tiktok_pasa_por_confirmar_transmision(self):
-        self.datos = ("TikTok", "usuario")
+        self.datos = ("TikTok", "TikTok", "usuario")
         with mock.patch.object(transmision_directa, "preparar",
                                return_value=_preparacion()), \
                 mock.patch.object(directo_panel, "confirmar_transmision",
@@ -85,7 +85,7 @@ class TestDirectoPanel(unittest.TestCase):
         self.supervisar.assert_any_call("iniciar", "TikTok", "usuario")
 
     def test_tiktok_cancelar_no_inicia(self):
-        self.datos = ("TikTok", "usuario")
+        self.datos = ("TikTok", "TikTok", "usuario")
         with mock.patch.object(transmision_directa, "preparar",
                                return_value=_preparacion()), \
                 mock.patch.object(directo_panel, "confirmar_transmision",
@@ -95,6 +95,19 @@ class TestDirectoPanel(unittest.TestCase):
         self.assertNotIn(mock.call("iniciar", mock.ANY, mock.ANY),
                          self.supervisar.call_args_list)
         self.assertEqual(anunciar.call_args.args[0], "No se transmitió.")
+
+    def test_restream_no_confirma_ni_guarda_usuario(self):
+        self.datos = ("restream:Uno", "TikTok", "")
+        with mock.patch.object(directo_panel.ganchos, "cuenta_conectada",
+                               return_value=True), \
+                mock.patch.object(transmision_directa, "preparar",
+                                  return_value=_preparacion()), \
+                mock.patch.object(directo_panel,
+                                  "confirmar_transmision") as confirmar:
+            self._pulsar()
+        confirmar.assert_not_called()
+        self.guardar_usuario.assert_not_called()
+        self.supervisar.assert_any_call("iniciar", "restream:Uno", "")
 
     def test_si_obs_ya_transmite_pasa_a_finalizar(self):
         with mock.patch.object(

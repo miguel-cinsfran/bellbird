@@ -223,6 +223,11 @@ def _revision(problemas=()):
         (), (), None, tuple(problemas))
 
 
+def _perfil_restream(nombre="Uno", orientacion="vertical", canales=(1,)):
+    from guyrapu.restream.perfiles import Perfil
+    return Perfil(nombre=nombre, canales=canales, orientacion=orientacion)
+
+
 class PrincipalFalsa:
 
     def __init__(self, config=None):
@@ -292,6 +297,8 @@ class TestPanelTransmision(unittest.TestCase):
                               lambda funcion, *args: funcion(*args)),
             mock.patch.object(obs_ventana, "anunciar", anunciar),
             mock.patch.object(gui_transmision, "anunciar", anunciar),
+            mock.patch.object(gui_transmision, "_perfiles_guardados",
+                              return_value=[]),
             mock.patch.object(operaciones_obs, "anunciar", anunciar),
             mock.patch.object(control_grabacion, "anunciar", anunciar),
             mock.patch.object(gui_microfono, "anunciar", anunciar),
@@ -730,6 +737,107 @@ class TestPanelTransmision(unittest.TestCase):
             ventana._pagina_transmision.txt_usuario_tiktok.GetValue(),
             "amigo")
 
+    def _con_perfiles(self, *perfiles):
+        return mock.patch.object(gui_transmision, "_perfiles_guardados",
+                                 return_value=list(perfiles))
+
+    def _elegir_en(self, pagina, texto):
+        pagina.cho_destino.SetStringSelection(texto)
+        pagina.cho_destino.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_CHOICE.typeId, pagina.cho_destino.GetId()))
+
+    def _enfocar_destino(self, pagina):
+        pagina.cho_destino.GetEventHandler().ProcessEvent(
+            wx.FocusEvent(wx.EVT_SET_FOCUS.typeId,
+                          pagina.cho_destino.GetId()))
+
+    def test_los_perfiles_aparecen_despues_de_youtube_y_tiktok(self):
+        with self._con_perfiles(_perfil_restream()):
+            ventana = self._crear()
+        self.assertEqual(
+            ventana._pagina_transmision.cho_destino.GetStrings(),
+            ["TikTok", "YouTube", "Restream: Uno"])
+
+    def test_al_recibir_foco_relee_perfiles_y_conserva_la_seleccion(self):
+        pagina = self.dialogo
+        self._elegir_en(pagina, "YouTube")
+        with self._con_perfiles(_perfil_restream()), \
+                mock.patch.object(wx.Choice, "SetFocus") as foco:
+            self._enfocar_destino(pagina)
+        self.assertIn("Restream: Uno", pagina.cho_destino.GetStrings())
+        self.assertEqual(pagina.cho_destino.GetStringSelection(), "YouTube")
+        foco.assert_not_called()
+
+    def test_si_los_perfiles_no_cambiaron_no_toca_el_control(self):
+        pagina = self.dialogo
+        with mock.patch.object(pagina, "_poner_opciones") as poner:
+            self._enfocar_destino(pagina)
+        poner.assert_not_called()
+
+    def test_perfil_guardado_se_recupera_al_abrir(self):
+        self.principal._config["transmision_destino"] = "restream:Uno"
+        with self._con_perfiles(_perfil_restream()):
+            ventana = self._crear()
+        self.assertEqual(
+            ventana._pagina_transmision.cho_destino.GetStringSelection(),
+            "Restream: Uno")
+
+    def test_perfil_guardado_que_ya_no_existe_cae_al_perfil_de_obs(self):
+        self.principal._config["transmision_destino"] = "restream:Viejo"
+        self.gestor.perfil = "YouTube"
+        with self._con_perfiles():
+            ventana = self._crear()
+        self.assertEqual(
+            ventana._pagina_transmision.cho_destino.GetStringSelection(),
+            "YouTube")
+
+    def test_cambiar_a_un_perfil_guarda_la_opcion(self):
+        with self._con_perfiles(_perfil_restream()):
+            ventana = self._crear()
+        pagina = ventana._pagina_transmision
+        self._elegir_en(pagina, "Restream: Uno")
+        self.principal.guardar_destino.assert_called_once_with(
+            "restream:Uno")
+
+    def test_el_perfil_oculta_el_usuario_y_sin_cuenta_no_transmite(self):
+        with self._con_perfiles(_perfil_restream()):
+            ventana = self._crear()
+        pagina = ventana._pagina_transmision
+        self._elegir_en(pagina, "Restream: Uno")
+        self.assertFalse(pagina.txt_usuario_tiktok.IsShown())
+        self.anuncios.clear()
+        with mock.patch.object(directo_panel.ganchos, "cuenta_conectada",
+                               return_value=False), \
+                mock.patch.object(directo_panel.sound_player,
+                                  "reproducir") as sonido:
+            self._pulsar(pagina.btn_directo)
+        self.assertIn(
+            "Para transmitir con un perfil de Restream hace falta conectar "
+            "la cuenta, en el cuadro Restream, pestaña Cuenta.",
+            self.anuncios)
+        sonido.assert_called_once_with("transmision_problema")
+        self.principal.supervisar.assert_not_called()
+
+    def test_elegir_restream_prepara_obs_y_supervisa_los_ganchos(self):
+        with self._con_perfiles(_perfil_restream("Vertical", "vertical")):
+            ventana = self._crear()
+        pagina = ventana._pagina_transmision
+        self._elegir_en(pagina, "Restream: Vertical")
+        preparacion = SimpleNamespace(ya_transmitiendo=False,
+                                      revision=mock.sentinel.revision)
+        with mock.patch.object(directo_panel.ganchos, "cuenta_conectada",
+                               return_value=True), \
+                mock.patch.object(directo_panel.transmision_directa,
+                                  "preparar",
+                                  return_value=preparacion) as preparar:
+            self._pulsar(pagina.btn_directo)
+        args, _ = preparar.call_args
+        self.assertEqual(args[1], "TikTok")
+        self.principal.supervisar.assert_any_call(
+            "iniciar", "restream:Vertical", "")
+        self.principal.guardar_destino.assert_called_with("restream:Vertical")
+        self.principal.guardar_usuario.assert_not_called()
+
     def test_cerrar_no_anuncia_ni_depende_del_error_de_obs(self):
         with mock.patch.object(obs_ventana, "GestorPanelObs",
                                return_value=self.gestor):
@@ -779,6 +887,8 @@ class TestPseudoTransmisionVentana(unittest.TestCase):
             mock.patch.object(directo_panel, "anunciar",
                               lambda *args, **kwargs: None),
             mock.patch.object(directo_panel.sound_player, "reproducir"),
+            mock.patch.object(gui_transmision, "_perfiles_guardados",
+                              return_value=[]),
         ]
         for parche in self.parches:
             parche.start()
@@ -821,6 +931,8 @@ class TestEnfocarInicialDeLaPagina(unittest.TestCase):
         marco = wx.Frame(None)
         self.addCleanup(destruir, marco)
         with mock.patch.object(gui_transmision, "anunciar") as anunciar, \
+                mock.patch.object(gui_transmision, "_perfiles_guardados",
+                                  return_value=[]), \
                 mock.patch.object(gui_transmision.overlay_servidor,
                                   "esta_encendido", return_value=False):
             pagina = gui_transmision.PaginaTransmision(

@@ -10872,3 +10872,25 @@ msgstr "Signed in. You can go back to the application."
 msgid "Sin título"
 msgstr "Untitled"
 
+#: guyrapu/restream/ganchos.py
+msgid ""
+"Para transmitir con un perfil de Restream hace falta conectar la cuenta, en"
+" el cuadro Restream, pestaña Cuenta."
+msgstr ""
+"To broadcast with a Restream profile you need to connect the account, in "
+"the Restream window, Account tab."
+
+#: guyrapu/restream/ganchos.py
+#, python-brace-format
+msgid "Preparando Restream para {nombre}."
+msgstr "Preparing Restream for {nombre}."
+
+#: guyrapu/restream/ganchos.py
+msgid "Directo iniciado con Restream. Conecta el chat manualmente."
+msgstr "Live stream started with Restream. Connect the chat manually."
+
+#: guyrapu/restream/transmitir.py
+#, python-brace-format
+msgid "Restream: {nombre}"
+msgstr "Restream: {nombre}"
+

@@ -13,6 +13,7 @@ from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.obs import obs_estado
 from guyrapu.obs import transmision_directa
+from guyrapu.restream import ganchos, transmitir
 from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.ui.confirmar_transmision import (
     confirmar_finalizar, confirmar_transmision)
@@ -84,22 +85,33 @@ class DirectoPanel:
         from guyrapu.capture import tiktok_vivo
         return tiktok_vivo.usuario_tiktok(usuario or "")
 
-    def _transmitir(self) -> None:
-        destino, usuario = self._datos_directo()
-        usuario = self._normalizar_usuario(destino, usuario)
+    def _usuario_para(self, opcion, usuario):
+        if not transmitir.es_restream(opcion):
+            return self._normalizar_usuario(opcion, usuario)
+        if not ganchos.cuenta_conectada():
+            sound_player.reproducir("transmision_problema")
+            anunciar(_(ganchos.MENSAJE_SIN_CUENTA))
+            return None
+        return ""
 
-        def _preguntar(accion):
-            try:
-                return bool(self._supervisar(accion))
-            except Exception:
-                return False
+    def _preguntar_supervisor(self, accion):
+        try:
+            return bool(self._supervisar(accion))
+        except Exception:
+            return False
+
+    def _transmitir(self) -> None:
+        opcion, destino, usuario = self._datos_directo()
+        usuario = self._usuario_para(opcion, usuario)
+        if usuario is None:
+            return
 
         decision = transmision_directa.decidir_transmision(
             hay_supervisor=self._supervisar is not None,
-            deteniendo=lambda: _preguntar("deteniendo"),
-            con_supervisor=lambda: _preguntar("activo"),
+            deteniendo=lambda: self._preguntar_supervisor("deteniendo"),
+            con_supervisor=lambda: self._preguntar_supervisor("activo"),
             transmitiendo=self._transmitiendo,
-            destino=destino, usuario_tiktok=lambda: usuario)
+            destino=opcion, usuario_tiktok=lambda: usuario)
         if decision == transmision_directa.ALTERNAR:
             self._operaciones.en_hilo(
                 self._gestor.alternar_transmision,
@@ -128,7 +140,7 @@ class DirectoPanel:
         self._operaciones.en_hilo(
             lambda: self._preparar(destino),
             lambda preparacion: self._revision_lista(
-                preparacion, destino, usuario))
+                preparacion, opcion, destino, usuario))
 
     def _preparar(self, destino):
         return transmision_directa.preparar(
@@ -155,16 +167,21 @@ class DirectoPanel:
         except Exception as error:
             logger.warning("no se pudo guardar el destino de transmisión: %s", error)
 
-    def _revision_lista(self, preparacion, destino, usuario) -> None:
+    def _revision_lista(self, preparacion, opcion, destino, usuario) -> None:
         if preparacion.ya_transmitiendo:
-            self._recordar_destino(destino)
+            self._recordar_destino(opcion)
             self._mostrar_transmision(True)
             anunciar(_("OBS ya está transmitiendo. Con este mismo botón "
                        "puedes finalizar el directo."))
             return
+        if transmitir.es_restream(opcion):
+            self._recordar_destino(opcion)
+            self._supervisar("iniciar", opcion, "")
+            self._mostrar_transmision(True)
+            return
         if destino == "YouTube":
-            self._recordar_destino(destino)
-            self._supervisar("iniciar", destino, usuario,
+            self._recordar_destino(opcion)
+            self._supervisar("iniciar", opcion, usuario,
                              revision=preparacion.revision)
             self._mostrar_transmision(True)
             return
@@ -172,8 +189,8 @@ class DirectoPanel:
             anunciar(_("No se transmitió."))
             return
         self._guardar_usuario_tiktok(usuario)
-        self._recordar_destino(destino)
-        self._supervisar("iniciar", destino, usuario)
+        self._recordar_destino(opcion)
+        self._supervisar("iniciar", opcion, usuario)
         self._mostrar_transmision(True)
 
     def _mostrar_transmision(self, activa) -> None:

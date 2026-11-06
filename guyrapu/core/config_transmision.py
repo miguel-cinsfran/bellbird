@@ -38,9 +38,9 @@ def leer_ajustes_clips_chat(ruta=None) -> AjustesClipsChat:
 
 def opciones_transmision(p) -> dict:
     """La sección [transmision] como claves en memoria, en el mismo orden."""
-    from guyrapu.obs import obs_destinos as _destinos
+    from guyrapu.restream import transmitir as _transmitir
     destino = leer_texto(p, "transmision", "destino")
-    if destino not in _destinos.DESTINOS:
+    if not _transmitir.es_opcion_valida(destino):
         destino = ""
     clips_chat = ajustes_clips_chat(p)
 

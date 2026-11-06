@@ -17,6 +17,7 @@ por el módulo en el momento de la llamada, nunca con un `from` directo.
 from __future__ import annotations
 
 from guyrapu.core.idioma import _
+from guyrapu.restream import transmitir
 
 
 def cambiar_overlay(frame, encender):
@@ -58,8 +59,7 @@ def guardar_usuario_tiktok(frame, usuario):
 
 def guardar_destino_transmision(frame, destino):
     from guyrapu.ui import gui as _gui
-    from guyrapu.obs.obs_destinos import DESTINOS
-    destino = destino if destino in DESTINOS else ""
+    destino = destino if transmitir.es_opcion_valida(destino) else ""
     frame._config["transmision_destino"] = destino
     _gui.guardar_opcion(_gui.RUTA_CONFIG, "transmision", "destino", destino)
     return destino
@@ -230,6 +230,25 @@ def _parametros_supervisor(frame, al_anunciar):
     }
 
 
+def _rechazar_si_hay_transmision(frame) -> bool:
+    from guyrapu.ui import gui as _gui
+    supervisor = getattr(frame, "_supervisor", None)
+    if supervisor is not None and _deteniendo(supervisor):
+        _gui.anunciar(
+            _("Deteniendo la transmisión. Esperando a que OBS confirme."))
+        return True
+    if supervisor is not None and supervisor.activo:
+        _gui.anunciar(_("Ya hay una transmisión en curso."))
+        return True
+    return False
+
+
+def _iniciar_restream(frame, destino, revision):
+    from guyrapu.restream import ganchos as restream_ganchos
+    return restream_ganchos.supervisar_restream(
+        frame, destino, revision=revision)
+
+
 def supervisar_transmision(frame, accion, destino="", usuario="",
                            revision=None):
     from guyrapu.ui import gui as _gui
@@ -241,14 +260,10 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
         supervisor = getattr(frame, "_supervisor", None)
         return bool(supervisor is not None and _deteniendo(supervisor))
     if accion == "iniciar":
-        supervisor = getattr(frame, "_supervisor", None)
-        if supervisor is not None and _deteniendo(supervisor):
-            _gui.anunciar(
-                _("Deteniendo la transmisión. Esperando a que OBS confirme."))
+        if _rechazar_si_hay_transmision(frame):
             return
-        if supervisor is not None and supervisor.activo:
-            _gui.anunciar(_("Ya hay una transmisión en curso."))
-            return
+        if transmitir.es_restream(destino):
+            return _iniciar_restream(frame, destino, revision)
         ganchos = {}
         if destino == "YouTube":
             from datetime import datetime, timezone

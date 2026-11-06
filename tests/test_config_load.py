@@ -761,7 +761,7 @@ class TestCargarConfiguracion(unittest.TestCase):
         self.assertEqual(cfg["evento_superchat"], "secundaria")
 
     def test_destino_de_transmision_valido_se_conserva(self):
-        for destino in ("TikTok", "YouTube"):
+        for destino in ("TikTok", "YouTube", "restream:Uno"):
             cfg = self._cargar_en(f"[transmision]\ndestino = {destino}\n")
             self.assertEqual(cfg["transmision_destino"], destino)
 

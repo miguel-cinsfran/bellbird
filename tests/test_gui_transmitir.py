@@ -149,6 +149,17 @@ class TestGuardarDestinoTransmision(unittest.TestCase):
         guardar.assert_called_once_with(
             gui.RUTA_CONFIG, "transmision", "destino", "")
 
+    def test_un_perfil_de_restream_se_guarda(self):
+        frame = SimpleNamespace(_config={})
+        with mock.patch.object(gui, "guardar_opcion") as guardar:
+            resultado = gui_transmitir.guardar_destino_transmision(
+                frame, "restream:Uno")
+        self.assertEqual(resultado, "restream:Uno")
+        self.assertEqual(frame._config["transmision_destino"],
+                         "restream:Uno")
+        guardar.assert_called_once_with(
+            gui.RUTA_CONFIG, "transmision", "destino", "restream:Uno")
+
 
 class TestGuardarDatosDirectoYoutube(unittest.TestCase):
 
@@ -347,6 +358,16 @@ class TestSupervisarTransmision(unittest.TestCase):
         self.assertEqual(args[1], "alguien")
         self.assertEqual(kwargs["al_terminar"],
                          frame._al_terminar_supervisor)
+
+    def test_iniciar_restream_delega_en_los_ganchos(self):
+        frame = SimpleNamespace(_supervisor=None)
+        with mock.patch(
+                "guyrapu.restream.ganchos.supervisar_restream") as supervisar:
+            gui_transmitir.supervisar_transmision(
+                frame, "iniciar", "restream:Uno", "", revision="rev")
+        supervisar.assert_called_once_with(frame, "restream:Uno",
+                                           revision="rev")
+        self.assertIsNone(frame._supervisor)
 
     def test_iniciar_youtube_pasa_la_ruta_de_fin_pendiente(self):
         frame = SimpleNamespace(

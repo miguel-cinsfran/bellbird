@@ -19,6 +19,7 @@ from guyrapu.core.idioma import _
 from guyrapu.restream import canal_youtube
 from guyrapu.restream.api import ErrorApi
 from guyrapu.ui import paleta
+from guyrapu.ui import restream_acciones_destino
 from guyrapu.ui.accesibilidad import anunciar, enlazar_anuncio_de_pestana, nombre_accesible
 from guyrapu.ui.restream_pagina_cuenta import PaginaCuenta
 from guyrapu.ui.restream_pagina_destinos import PaginaDestinos
@@ -118,7 +119,10 @@ class VentanaRestream(wx.Dialog):
             self.nb, self._ruta, lambda: self._canales_leidos)
         self._pagina_destinos = PaginaDestinos(
             self.nb, self._agregar_destino, self._eliminar_destino,
-            self._leer_canales)
+            self._leer_canales,
+            lambda: restream_acciones_destino.alternar(self),
+            lambda: restream_acciones_destino.cambiar_titulo(self),
+            lambda: restream_acciones_destino.agregar_manual(self))
         self._pagina_eventos = PaginaEventos(
             self.nb, self._funcion_eventos, self._funcion_estadisticas,
             self._nombres_destinos, self._cuenta.conectada)

@@ -6118,7 +6118,8 @@ msgstr "Download"
 
 #: guyrapu/ui/elegir_formato.py guyrapu/ui/gui_redactar.py
 #: guyrapu/ui/ia_agregar_captura.py guyrapu/ui/musica_dialogo_enlace.py
-#: guyrapu/ui/musica_editor_lista.py guyrapu/ui/restream_perfil.py
+#: guyrapu/ui/musica_editor_lista.py guyrapu/ui/restream_dialogos_destino.py
+#: guyrapu/ui/restream_perfil.py
 msgid "Cancelar"
 msgstr "Cancel"
 
@@ -6147,6 +6148,7 @@ msgstr "&Window:"
 
 #: guyrapu/ui/escena_captura_ventana.py guyrapu/ui/escena_disenos.py
 #: guyrapu/ui/escena_filtros.py guyrapu/ui/escena_tamano.py
+#: guyrapu/ui/restream_dialogos_destino.py
 msgid "&Aceptar"
 msgstr "&Accept"
 
@@ -8903,7 +8905,8 @@ msgstr "Edit playlist"
 msgid "El nombre no puede tener más de 60 caracteres"
 msgstr "The name cannot be more than 60 characters"
 
-#: guyrapu/ui/musica_editor_lista.py guyrapu/ui/restream_perfil.py
+#: guyrapu/ui/musica_editor_lista.py guyrapu/ui/restream_dialogos_destino.py
+#: guyrapu/ui/restream_perfil.py
 msgid "&Nombre:"
 msgstr "&Name:"
 
@@ -10200,6 +10203,68 @@ msgstr "&Delete from history"
 msgid "Abrir &historial completo"
 msgstr "Open full &history"
 
+#: guyrapu/ui/restream_acciones_destino.py
+msgid "No se pudo completar la acción con Restream. Vuelve a intentarlo."
+msgstr "Could not complete the action in Restream. Try again."
+
+#: guyrapu/ui/restream_acciones_destino.py
+#, python-brace-format
+msgid "{destino} activado"
+msgstr "{destino} activated"
+
+#: guyrapu/ui/restream_acciones_destino.py
+#, python-brace-format
+msgid "{destino} desactivado"
+msgstr "{destino} deactivated"
+
+#: guyrapu/ui/restream_acciones_destino.py
+msgid "Título cambiado."
+msgstr "Title changed."
+
+#: guyrapu/ui/restream_acciones_destino.py
+msgid "Destino agregado."
+msgstr "Destination added."
+
+#: guyrapu/ui/restream_dialogos_destino.py guyrapu/ui/restream_pagina_destinos.py
+msgid "Cambiar título"
+msgstr "Change title"
+
+#: guyrapu/ui/restream_dialogos_destino.py guyrapu/ui/restream_perfil.py
+msgid "&Título:"
+msgstr "&Title:"
+
+#: guyrapu/ui/restream_dialogos_destino.py
+msgid "&Descripción:"
+msgstr "&Description:"
+
+#: guyrapu/ui/restream_dialogos_destino.py guyrapu/ui/restream_pagina_destinos.py
+msgid "Agregar destino manual"
+msgstr "Add manual destination"
+
+#: guyrapu/ui/restream_dialogos_destino.py
+msgid "&Plataforma:"
+msgstr "&Platform:"
+
+#: guyrapu/ui/restream_dialogos_destino.py
+msgid "&Servidor:"
+msgstr "&Server:"
+
+#: guyrapu/ui/restream_dialogos_destino.py
+msgid "&Clave de transmisión:"
+msgstr "Stream &key:"
+
+#: guyrapu/ui/restream_dialogos_destino.py
+msgid "Falta la plataforma."
+msgstr "The platform is missing."
+
+#: guyrapu/ui/restream_dialogos_destino.py
+msgid "Falta el servidor."
+msgstr "The server is missing."
+
+#: guyrapu/ui/restream_dialogos_destino.py
+msgid "Falta la clave de transmisión."
+msgstr "The stream key is missing."
+
 #: guyrapu/ui/restream_pagina_cuenta.py
 msgid "Estado de la cuenta"
 msgstr "Account status"
@@ -10249,6 +10314,22 @@ msgid "Agregar destino"
 msgstr "Add destination"
 
 #: guyrapu/ui/restream_pagina_destinos.py
+msgid "Agregar destino &manual…"
+msgstr "Add &manual destination…"
+
+#: guyrapu/ui/restream_pagina_destinos.py
+msgid "Ac&tivar destino"
+msgstr "Ac&tivate destination"
+
+#: guyrapu/ui/restream_pagina_destinos.py
+msgid "Activar destino"
+msgstr "Activate destination"
+
+#: guyrapu/ui/restream_pagina_destinos.py
+msgid "Cambiar tít&ulo…"
+msgstr "Change t&itle…"
+
+#: guyrapu/ui/restream_pagina_destinos.py
 msgid "&Eliminar destino"
 msgstr "&Delete destination"
 
@@ -10263,6 +10344,14 @@ msgstr "&Refresh"
 #: guyrapu/ui/restream_pagina_destinos.py guyrapu/ui/restream_pagina_eventos.py
 msgid "Actualizar"
 msgstr "Refresh"
+
+#: guyrapu/ui/restream_pagina_destinos.py
+msgid "Desac&tivar destino"
+msgstr "Deac&tivate destination"
+
+#: guyrapu/ui/restream_pagina_destinos.py
+msgid "Desactivar destino"
+msgstr "Deactivate destination"
 
 #: guyrapu/ui/restream_pagina_destinos.py
 #, python-brace-format
@@ -10436,10 +10525,6 @@ msgstr[0] ""
 msgstr[1] ""
 "There are {n} destinations in the Restream profile that are no longer in "
 "Restream. They will be deleted on save."
-
-#: guyrapu/ui/restream_perfil.py
-msgid "&Título:"
-msgstr "&Title:"
 
 #: guyrapu/ui/restream_perfil.py
 msgid "&Descripción, opcional:"

@@ -20,6 +20,7 @@ from guyrapu.restream import eventos as eventos_restream
 from guyrapu.restream import perfiles
 from guyrapu.restream.api import Canal, ErrorApi
 from guyrapu.restream.perfiles import Perfil
+from guyrapu.ui import restream_acciones_destino
 from guyrapu.ui import restream_pagina_destinos
 from guyrapu.ui import restream_pagina_eventos
 from guyrapu.ui import restream_pagina_perfiles
@@ -527,11 +528,81 @@ class PruebaVentanaRestream(unittest.TestCase):
                          list(pagina.lista.GetStrings()))
         self.assertEqual("Destinos", pagina.lista.GetName())
         self.assertEqual("&Agregar destino…", pagina.btn_agregar.GetLabel())
+        self.assertEqual("Agregar destino &manual…",
+                         pagina.btn_agregar_manual.GetLabel())
+        self.assertEqual("Ac&tivar destino", pagina.btn_activar.GetLabel())
+        self.assertEqual("Cambiar tít&ulo…", pagina.btn_titulo.GetLabel())
         self.assertEqual("&Eliminar destino", pagina.btn_eliminar.GetLabel())
         self.assertEqual("A&ctualizar", pagina.btn_actualizar.GetLabel())
         self.assertEqual("Agregar destino", pagina.btn_agregar.GetName())
+        self.assertEqual("Agregar destino manual",
+                         pagina.btn_agregar_manual.GetName())
+        self.assertEqual("Activar destino", pagina.btn_activar.GetName())
+        self.assertEqual("Cambiar título", pagina.btn_titulo.GetName())
         self.assertEqual("Eliminar destino", pagina.btn_eliminar.GetName())
         self.assertEqual("Actualizar", pagina.btn_actualizar.GetName())
+
+    def test_p1_el_boton_activar_sigue_a_la_seleccion_y_se_deshabilita(self):
+        destinos = [Canal(1, 67, "TikTok", "uno", "", True),
+                    Canal(2, 5, "YouTube", "dos", "", False)]
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=lambda: list(destinos))
+        pagina = dialogo._pagina_destinos
+        self.assertTrue(_esperar(lambda: pagina.lista.GetCount() == 2))
+        boton = pagina.btn_activar
+
+        self.assertFalse(boton.IsEnabled())
+        self.assertEqual("Ac&tivar destino", boton.GetLabel())
+        self.assertEqual("Activar destino", boton.GetName())
+
+        pagina.lista.SetSelection(0)
+        pagina._al_elegir_destino(mock.Mock())
+        self.assertTrue(boton.IsEnabled())
+        self.assertEqual("Desac&tivar destino", boton.GetLabel())
+        self.assertEqual("Desactivar destino", boton.GetName())
+
+        pagina.lista.SetSelection(1)
+        pagina._al_elegir_destino(mock.Mock())
+        self.assertTrue(boton.IsEnabled())
+        self.assertEqual("Ac&tivar destino", boton.GetLabel())
+        self.assertEqual("Activar destino", boton.GetName())
+
+        pagina.lista.SetSelection(wx.NOT_FOUND)
+        pagina._al_elegir_destino(mock.Mock())
+        self.assertFalse(boton.IsEnabled())
+
+    def test_p2_activar_desde_la_pestana_actualiza_y_anuncia(self):
+        destinos = [Canal(1, 67, "TikTok", "uno", "", True),
+                    Canal(2, 5, "YouTube", "dos", "", True)]
+        llamadas = []
+
+        def activar(identificador, activo, cliente=None):
+            llamadas.append((identificador, activo))
+
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=lambda: list(destinos))
+        pagina = dialogo._pagina_destinos
+        self.assertTrue(_esperar(lambda: pagina.lista.GetCount() == 2))
+        pagina.lista.SetSelection(0)
+
+        with mock.patch.object(restream_acciones_destino.cuenta,
+                               "activar_canal", side_effect=activar), \
+                mock.patch.object(restream_acciones_destino,
+                                  "anunciar") as anunciar, \
+                mock.patch.object(restream_acciones_destino._snd,
+                                  "reproducir") as sonar:
+            pagina._activar()
+            self.assertTrue(_esperar(lambda: llamadas))
+            self.assertTrue(_esperar(lambda: anunciar.called))
+
+        self.assertEqual([(1, False)], llamadas)
+        self.assertFalse(dialogo._destinos[0].activo)
+        self.assertEqual(["TikTok: uno, desactivado", "YouTube: dos"],
+                         list(pagina.lista.GetStrings()))
+        self.assertEqual(0, pagina.lista.GetSelection())
+        self.assertEqual("Ac&tivar destino", pagina.btn_activar.GetLabel())
+        anunciar.assert_called_once_with("TikTok: uno desactivado")
+        sonar.assert_not_called()
 
     def test_p3_destinos_instala_la_busqueda_por_teclado(self):
         with mock.patch.object(restream_pagina_destinos,

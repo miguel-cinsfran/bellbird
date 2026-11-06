@@ -232,13 +232,44 @@ class DisenoEscenaDialog(wx.Dialog):
             modos=modos)
 
     def _al_elegir_diseno(self, _event):
-        self._cargar_diseno(self.cho_diseno.GetSelection())
+        indice = self.cho_diseno.GetSelection()
+        self._cargar_diseno(indice)
+        aviso = self._aviso_de_fuentes(indice)
+        if aviso is not None:
+            anunciar(aviso)
+
+    def _aviso_de_fuentes(self, indice):
+        if not 0 <= indice < len(self._fabrica) + len(self._guardados):
+            return None
+        if indice < len(self._fabrica):
+            fabrica = self._fabrica[indice]
+            nombre = _(fabrica.nombre)
+            clase = fabrica.diseno.clase
+        else:
+            nombre, guardado = self._guardados[indice - len(self._fabrica)]
+            clase = guardado.clase
+        if not disenos_fabrica.faltan_fuentes(clase, self._fuentes):
+            return None
+        pedidas = len(disenos_fabrica.lugares(clase))
+        presentes = sum(1 for fuente in self._fuentes
+                        if fuente.tipo != "chat")
+        if presentes == 0:
+            return _("{diseno} necesita {n} fuentes y esta escena no tiene "
+                     "ninguna. Agrega una con Agregar fuente.").format(
+                         diseno=nombre, n=pedidas)
+        return _("{diseno} necesita {n} fuentes y esta escena tiene {m}. "
+                 "Agrega otra con Agregar fuente.").format(
+                     diseno=nombre, n=pedidas, m=presentes)
 
     def _al_cambiar_chat(self, event):
         self._actualizar_visibilidad()
         event.Skip()
 
     def _al_aplicar(self, _event):
+        aviso = self._aviso_de_fuentes(self.cho_diseno.GetSelection())
+        if aviso is not None:
+            anunciar(aviso)
+            return
         diseno = self._diseno_actual()
         problema = disenos_fabrica.motivo_para_no_aplicar(diseno, self._fuentes)
         if problema is not None:

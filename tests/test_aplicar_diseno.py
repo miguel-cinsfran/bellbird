@@ -72,7 +72,7 @@ def _fabrica(clave):
 def _principal(elementos):
     gestor = obs_panel.GestorPanelObs(DobleObs(elementos))
     fuentes = aplicar_diseno.fuentes_de_escena(gestor, "Escena")
-    fabrica = _fabrica("pantalla_juego")
+    fabrica = _fabrica("pantalla_completa")
     return disenos_fabrica.completar(
         fabrica.diseno, fabrica.papeles, fuentes).principal
 
@@ -229,6 +229,17 @@ class AplicarDisenoTest(unittest.TestCase):
             gestor, RegistroFalso(eventos), "Escena", _diseno())
         self.assertEqual([nombre for nombre, _estado in resultado],
                          [NOMBRE_FUENTE, "Cámara", "Juego"])
+        self.assertEqual(sin_mover, ["Extra"])
+
+    def test_aplicar_diseno_no_nombra_las_fuentes_ocultas(self):
+        extra = elemento(4, "Extra", 3)
+        extra["inputKind"] = "image_source"
+        oculta = elemento(5, "Oculta", 4, visible=False)
+        oculta["inputKind"] = "image_source"
+        eventos = []
+        gestor = GestorQueAnota(DobleObs(_escena() + [extra, oculta]), eventos)
+        _resultado, sin_mover = aplicar_diseno.aplicar_diseno(
+            gestor, RegistroFalso(eventos), "Escena", _diseno())
         self.assertEqual(sin_mover, ["Extra"])
 
     def test_chat_superpuesto_solo_se_coloca(self):

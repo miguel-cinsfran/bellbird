@@ -33,7 +33,8 @@ def _leer(gestor, escena):
     pares.sort(key=lambda par: (
         _ORDEN_TIPOS[par[0].tipo], 0 if par[1] else 1))
     return ([fuente for fuente, _visible in pares],
-            [elemento.get("sourceName", "") for elemento in elementos])
+            [elemento.get("sourceName", "") for elemento in elementos
+             if elemento.get("sceneItemEnabled", True)])
 
 
 def _fuente(elemento):

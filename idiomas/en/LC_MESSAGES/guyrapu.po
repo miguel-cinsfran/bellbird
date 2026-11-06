@@ -2900,53 +2900,33 @@ msgstr ""
 " Esc undoes, Tab exits."
 
 #: guyrapu/obs/disenos_fabrica.py
-msgid "la fuente principal"
-msgstr "the main source"
+msgid "Falta la fuente principal."
+msgstr "The main source is missing."
 
 #: guyrapu/obs/disenos_fabrica.py
-msgid "la fuente en la esquina"
-msgstr "the source in the corner"
+msgid "Falta la fuente de la esquina."
+msgstr "The source in the corner is missing."
 
 #: guyrapu/obs/disenos_fabrica.py
-msgid "la fuente a la izquierda"
-msgstr "the source on the left"
+msgid "Falta la fuente de la izquierda."
+msgstr "The source on the left is missing."
 
 #: guyrapu/obs/disenos_fabrica.py
-msgid "la fuente a la derecha"
-msgstr "the source on the right"
+msgid "Falta la fuente de la derecha."
+msgstr "The source on the right is missing."
+
+#: guyrapu/obs/disenos_fabrica.py guyrapu/player/reproductor.py
+#: guyrapu/ui/atajos_captura.py
+msgid "Pantalla completa"
+msgstr "Full screen"
 
 #: guyrapu/obs/disenos_fabrica.py
-msgid "Fuente principal con cámara en una esquina"
-msgstr "Main source with camera in a corner"
+msgid "Imagen en imagen"
+msgstr "Picture-in-picture"
 
 #: guyrapu/obs/disenos_fabrica.py
-msgid "Fuente principal con cámara y chat a la derecha"
-msgstr "Main source with camera and chat on the right"
-
-#: guyrapu/obs/disenos_fabrica.py
-msgid "Cámara con la fuente principal en una esquina"
-msgstr "Camera with main source in a corner"
-
-#: guyrapu/obs/disenos_fabrica.py
-msgid "Fuente principal a pantalla completa"
-msgstr "Main source full screen"
-
-#: guyrapu/obs/disenos_fabrica.py
-msgid "Cámara a pantalla completa"
-msgstr "Camera full screen"
-
-#: guyrapu/obs/disenos_fabrica.py
-msgid "Fuente principal y cámara lado a lado"
-msgstr "Main source and camera side by side"
-
-#: guyrapu/obs/disenos_fabrica.py
-msgid "Fuente principal grande y cámara a la derecha"
-msgstr "Large main source and camera on the right"
-
-#: guyrapu/obs/disenos_fabrica.py
-#, python-brace-format
-msgid "Elige una fuente para {lugar}."
-msgstr "Select a source for {lugar}."
+msgid "Dividida en dos"
+msgstr "Split in two"
 
 #: guyrapu/obs/disenos_fabrica.py
 #, python-brace-format
@@ -4232,7 +4212,7 @@ msgstr "Preparing the clips."
 msgid "Iniciando la transmisión."
 msgstr "Starting the broadcast."
 
-#: guyrapu/obs/obs_supervisor.py
+#: guyrapu/obs/obs_supervisor.py guyrapu/restream/ganchos.py
 msgid "Creando el directo en YouTube."
 msgstr "Creating the live stream on YouTube."
 
@@ -4501,10 +4481,6 @@ msgstr "Mute audio"
 #: guyrapu/player/reproductor.py guyrapu/ui/atajos_captura.py
 msgid "Silenciar o activar audio"
 msgstr "Mute or unmute audio"
-
-#: guyrapu/player/reproductor.py guyrapu/ui/atajos_captura.py
-msgid "Pantalla completa"
-msgstr "Full screen"
 
 #. Traductores: etiqueta del deslizador de posición.
 #: guyrapu/player/reproductor.py
@@ -4882,6 +4858,31 @@ msgstr ""
 "Viewers: average {promedio}, peak {máximo}. Views: {vistas}. Time watched: "
 "{tiempo}."
 
+#: guyrapu/restream/ganchos.py
+msgid ""
+"Para transmitir con un perfil de Restream hace falta conectar la cuenta, en"
+" el cuadro Restream, pestaña Cuenta."
+msgstr ""
+"To broadcast with a Restream profile you need to connect the account, in "
+"the Restream window, Account tab."
+
+#: guyrapu/restream/ganchos.py
+#, python-brace-format
+msgid "Preparando Restream para {nombre}."
+msgstr "Preparing Restream for {nombre}."
+
+#: guyrapu/restream/ganchos.py
+msgid "Directo iniciado con Restream. Conecta el chat manualmente."
+msgstr "Live stream started with Restream. Connect the chat manually."
+
+#: guyrapu/restream/ganchos.py guyrapu/ui/gui_transmitir.py
+msgid "El chat ya estaba conectado y no se cambió."
+msgstr "The chat was already connected and was not changed."
+
+#: guyrapu/restream/ganchos.py guyrapu/ui/directo_panel.py
+msgid "Elige primero a dónde transmitir, en Transmitir a."
+msgstr "First choose where to broadcast, in Broadcast to."
+
 #: guyrapu/restream/oauth.py
 msgid "Se canceló el inicio de sesión en Restream."
 msgstr "The Restream sign-in was canceled."
@@ -4955,6 +4956,11 @@ msgstr "The Restream session expired. Connect the account again."
 #: guyrapu/restream/sesion.py
 msgid "No se pudo renovar la sesión de Restream. Comprueba la conexión a internet."
 msgstr "Could not renew the Restream session. Check the internet connection."
+
+#: guyrapu/restream/transmitir.py
+#, python-brace-format
+msgid "Restream: {nombre}"
+msgstr "Restream: {nombre}"
 
 #: guyrapu/ui/agregar_camara.py
 msgid "Windows no tiene ninguna cámara disponible para OBS."
@@ -6081,10 +6087,6 @@ msgid "&Cerrar"
 msgstr "&Close"
 
 #: guyrapu/ui/directo_panel.py
-msgid "Elige primero a dónde transmitir, en Transmitir a."
-msgstr "First choose where to broadcast, in Broadcast to."
-
-#: guyrapu/ui/directo_panel.py
 msgid "Escribe tu usuario de TikTok en Usuario de TikTok."
 msgstr "Type your TikTok user in TikTok user."
 
@@ -6275,6 +6277,22 @@ msgstr "&Delete"
 #: guyrapu/ui/escena_disenos.py
 msgid "Cance&lar"
 msgstr "&Cancel"
+
+#: guyrapu/ui/escena_disenos.py
+#, python-brace-format
+msgid ""
+"{diseno} necesita {n} fuentes y esta escena no tiene ninguna. Agrega una "
+"con Agregar fuente."
+msgstr "{diseno} needs {n} sources and this scene has none. Add one with Add source."
+
+#: guyrapu/ui/escena_disenos.py
+#, python-brace-format
+msgid ""
+"{diseno} necesita {n} fuentes y esta escena tiene {m}. Agrega otra con "
+"Agregar fuente."
+msgstr ""
+"{diseno} needs {n} sources and this scene has {m}. Add another with Add "
+"source."
 
 #: guyrapu/ui/escena_disenos.py
 msgid "Ese nombre es de un diseño de fábrica. Elige otro."
@@ -8447,12 +8465,12 @@ msgid "Restream…"
 msgstr "Restream…"
 
 #: guyrapu/ui/gui_transmision.py
-msgid "Directo"
-msgstr "Live"
-
-#: guyrapu/ui/gui_transmision.py
 msgid "Transmitir &a:"
 msgstr "Broadcast &to:"
+
+#: guyrapu/ui/gui_transmision.py
+msgid "Directo"
+msgstr "Live"
 
 #: guyrapu/ui/gui_transmision.py
 msgid "&Usuario de TikTok:"
@@ -8523,10 +8541,6 @@ msgid ""
 msgstr ""
 "The live stream is private and YouTube does not allow reading its chat. To "
 "read it, broadcast as public or unlisted."
-
-#: guyrapu/ui/gui_transmitir.py
-msgid "El chat ya estaba conectado y no se cambió."
-msgstr "The chat was already connected and was not changed."
 
 #. Traductores: anuncio al empezar la guía de encuadre con pitidos.
 #: guyrapu/ui/guia_encuadre.py
@@ -10871,26 +10885,4 @@ msgstr "Signed in. You can go back to the application."
 #: guyrapu/youtube/youtube_api.py
 msgid "Sin título"
 msgstr "Untitled"
-
-#: guyrapu/restream/ganchos.py
-msgid ""
-"Para transmitir con un perfil de Restream hace falta conectar la cuenta, en"
-" el cuadro Restream, pestaña Cuenta."
-msgstr ""
-"To broadcast with a Restream profile you need to connect the account, in "
-"the Restream window, Account tab."
-
-#: guyrapu/restream/ganchos.py
-#, python-brace-format
-msgid "Preparando Restream para {nombre}."
-msgstr "Preparing Restream for {nombre}."
-
-#: guyrapu/restream/ganchos.py
-msgid "Directo iniciado con Restream. Conecta el chat manualmente."
-msgstr "Live stream started with Restream. Connect the chat manually."
-
-#: guyrapu/restream/transmitir.py
-#, python-brace-format
-msgid "Restream: {nombre}"
-msgstr "Restream: {nombre}"
 

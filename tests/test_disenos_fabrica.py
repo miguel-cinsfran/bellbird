@@ -18,18 +18,33 @@ def _fabrica(clave):
                 if fabrica.clave == clave)
 
 
+def _solo_camara():
+    return [disenos_escena.Fuente("Cámara", "camara", 1280, 720)]
+
+
+def _solo_captura():
+    return [disenos_escena.Fuente("Pantalla", "captura", 1600, 900)]
+
+
+def _captura_y_camara():
+    return [disenos_escena.Fuente("Cámara", "camara", 1280, 720),
+            disenos_escena.Fuente("Pantalla", "captura", 1600, 900)]
+
+
+def _completar(clave, fuentes):
+    fabrica = _fabrica(clave)
+    return disenos_fabrica.completar(fabrica.diseno, fabrica.papeles, fuentes)
+
+
 class FabricaTest(unittest.TestCase):
 
-    def test_los_siete_disenos_en_orden(self):
+    def test_los_tres_disenos_en_orden(self):
         self.assertEqual(
-            [fabrica.nombre for fabrica in disenos_fabrica.FABRICA],
-            ["Fuente principal con cámara en una esquina",
-             "Fuente principal con cámara y chat a la derecha",
-             "Cámara con la fuente principal en una esquina",
-             "Fuente principal a pantalla completa",
-             "Cámara a pantalla completa",
-             "Fuente principal y cámara lado a lado",
-             "Fuente principal grande y cámara a la derecha"])
+            [(fabrica.clave, fabrica.nombre, fabrica.diseno.clase)
+             for fabrica in disenos_fabrica.FABRICA],
+            [("pantalla_completa", "Pantalla completa", "pantalla_completa"),
+             ("imagen_en_imagen", "Imagen en imagen", "imagen_en_imagen"),
+             ("dividida", "Dividida en dos", "dividida")])
 
     def test_cada_diseno_se_calcula_con_juego_camara_y_chat(self):
         fuentes = _fuentes()
@@ -39,45 +54,39 @@ class FabricaTest(unittest.TestCase):
                     fabrica.diseno, fabrica.papeles, fuentes)
                 disenos_escena.calcular(1600, 900, fuentes, diseno)
 
-    def test_completar_pone_la_camara_y_el_juego_donde_van(self):
-        fuentes = [disenos_escena.Fuente("Cámara", "camara", 1280, 720),
-                   disenos_escena.Fuente("Juego", "otra", 1600, 900),
-                   disenos_escena.Fuente("Chat en el vídeo", "chat", 460, 620)]
-        imagen = disenos_fabrica.FABRICA[0]
-        completa = disenos_fabrica.completar(
-            imagen.diseno, imagen.papeles, fuentes)
-        self.assertEqual((completa.principal, completa.secundaria),
-                         ("Juego", "Cámara"))
-        dividida = _fabrica("dividida_mitades")
-        completa = disenos_fabrica.completar(
-            dividida.diseno, dividida.papeles, fuentes)
-        self.assertEqual((completa.izquierda, completa.derecha),
-                         ("Juego", "Cámara"))
+    def test_pantalla_completa_prefiere_captura_y_cae_en_camara(self):
+        self.assertEqual(
+            _completar("pantalla_completa", _captura_y_camara()).principal,
+            "Pantalla")
+        self.assertEqual(
+            _completar("pantalla_completa", _solo_captura()).principal,
+            "Pantalla")
+        self.assertEqual(
+            _completar("pantalla_completa", _solo_camara()).principal,
+            "Cámara")
 
-    def test_camara_a_pantalla_completa_con_la_principal_en_una_esquina(self):
-        fuentes = _fuentes()
-        fabrica = _fabrica("camara_esquina")
-        completa = disenos_fabrica.completar(
-            fabrica.diseno, fabrica.papeles, fuentes)
+    def test_imagen_en_imagen_pone_captura_grande_y_camara_en_la_esquina(self):
+        completa = _completar("imagen_en_imagen", _captura_y_camara())
         self.assertEqual((completa.principal, completa.secundaria),
-                         ("Cámara", "Juego"))
-        colocaciones = disenos_escena.calcular(1600, 900, fuentes, completa)
-        por_nombre = {colocacion["nombre"]: colocacion
-                      for colocacion in colocaciones}
-        camara = por_nombre["Cámara"]
-        self.assertEqual(
-            (camara["positionX"], camara["positionY"],
-             camara["boundsWidth"], camara["boundsHeight"]),
-            (0, 0, 1600, 900))
-        self.assertEqual(camara["estado"], disenos_escena.ESTADO_LLENA)
-        juego = por_nombre["Juego"]
-        self.assertEqual(
-            (juego["positionX"], juego["positionY"],
-             juego["boundsWidth"], juego["boundsHeight"]),
-            (1168, 657, 400, 225))
-        self.assertEqual(juego["estado"], disenos_escena.ESTADO_AJUSTA)
-        nombres = [colocacion["nombre"] for colocacion in colocaciones]
-        self.assertLess(nombres.index("Juego"), nombres.index("Cámara"))
+                         ("Pantalla", "Cámara"))
+        completa = _completar("imagen_en_imagen", _solo_captura())
+        self.assertEqual((completa.principal, completa.secundaria),
+                         ("Pantalla", ""))
+        completa = _completar("imagen_en_imagen", _solo_camara())
+        self.assertEqual((completa.principal, completa.secundaria),
+                         ("Cámara", ""))
+
+    def test_dividida_en_dos_pone_captura_izquierda_y_camara_derecha(self):
+        completa = _completar("dividida", _captura_y_camara())
+        self.assertEqual((completa.izquierda, completa.derecha),
+                         ("Pantalla", "Cámara"))
+        self.assertEqual(completa.proporcion, "mitades")
+        completa = _completar("dividida", _solo_captura())
+        self.assertEqual((completa.izquierda, completa.derecha),
+                         ("Pantalla", ""))
+        completa = _completar("dividida", _solo_camara())
+        self.assertEqual((completa.izquierda, completa.derecha),
+                         ("Cámara", ""))
 
     def test_papel_principal_acepta_captura_y_otra(self):
         self.assertIn("captura", disenos_fabrica.PAPEL_PRINCIPAL)
@@ -130,20 +139,45 @@ class FabricaTest(unittest.TestCase):
                          (completa.principal, completa.secundaria))
 
 
+class FaltanFuentesTest(unittest.TestCase):
+
+    def test_cuenta_los_lugares_que_pide_cada_clase(self):
+        casos = {
+            "pantalla_completa": ([0, 1, 2, 3], [1, 0, 0, 0]),
+            "imagen_en_imagen": ([0, 1, 2, 3], [2, 1, 0, 0]),
+            "dividida": ([0, 1, 2, 3], [2, 1, 0, 0]),
+        }
+        for clase, (cantidades, esperados) in casos.items():
+            for cantidad, esperado in zip(cantidades, esperados):
+                with self.subTest(clase=clase, fuentes=cantidad):
+                    fuentes = [disenos_escena.Fuente(f"Fuente {indice}", "otra")
+                               for indice in range(cantidad)]
+                    self.assertEqual(
+                        disenos_fabrica.faltan_fuentes(clase, fuentes), esperado)
+
+    def test_el_chat_en_el_video_no_cuenta(self):
+        fuentes = [disenos_escena.Fuente("Chat en el vídeo", "chat", 460, 620)]
+        self.assertEqual(
+            disenos_fabrica.faltan_fuentes("pantalla_completa", fuentes), 1)
+        fuentes.append(disenos_escena.Fuente("Juego", "otra", 1600, 900))
+        self.assertEqual(
+            disenos_fabrica.faltan_fuentes("imagen_en_imagen", fuentes), 1)
+
+
 class MotivoTest(unittest.TestCase):
 
     def test_sin_fuente_en_un_lugar(self):
         diseno = disenos_escena.Diseno(clase="pantalla_completa")
         self.assertEqual(
             disenos_fabrica.motivo_para_no_aplicar(diseno, _fuentes()),
-            ("principal", "Elige una fuente para la fuente principal."))
+            ("principal", "Falta la fuente principal."))
 
     def test_fuente_que_no_esta_en_la_escena(self):
         diseno = disenos_escena.Diseno(
             clase="pantalla_completa", principal="Vieja")
         self.assertEqual(
             disenos_fabrica.motivo_para_no_aplicar(diseno, _fuentes()),
-            ("principal", "Elige una fuente para la fuente principal."))
+            ("principal", "Falta la fuente principal."))
 
     def test_fuente_repetida_nombra_el_segundo_lugar(self):
         diseno = disenos_escena.Diseno(
@@ -151,6 +185,26 @@ class MotivoTest(unittest.TestCase):
         self.assertEqual(
             disenos_fabrica.motivo_para_no_aplicar(diseno, _fuentes()),
             ("derecha", "Juego está en dos lugares. Elige otra."))
+
+    def test_los_cuatro_textos_de_fuente_faltante(self):
+        casos = [
+            (disenos_escena.Diseno(clase="pantalla_completa"),
+             "principal", "Falta la fuente principal."),
+            (disenos_escena.Diseno(
+                clase="imagen_en_imagen", principal="Juego"),
+             "secundaria", "Falta la fuente de la esquina."),
+            (disenos_escena.Diseno(
+                clase="dividida", derecha="Cámara"),
+             "izquierda", "Falta la fuente de la izquierda."),
+            (disenos_escena.Diseno(
+                clase="dividida", izquierda="Juego"),
+             "derecha", "Falta la fuente de la derecha."),
+        ]
+        for diseno, lugar, texto in casos:
+            with self.subTest(lugar=lugar):
+                self.assertEqual(
+                    disenos_fabrica.motivo_para_no_aplicar(diseno, _fuentes()),
+                    (lugar, texto))
 
     def test_chat_sin_panel(self):
         fuentes = [disenos_escena.Fuente("Juego", "otra", 1600, 900)]

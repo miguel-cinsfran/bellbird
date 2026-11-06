@@ -47,9 +47,9 @@ class DisenoEscenaDialogTest(unittest.TestCase):
         aviso.start()
         self.addCleanup(aviso.stop)
 
-    def _dialogo(self, guardados=None):
+    def _dialogo(self, guardados=None, fuentes=None):
         dialogo = escena_disenos.DisenoEscenaDialog(
-            None, _fuentes(), guardados or [])
+            None, _fuentes() if fuentes is None else fuentes, guardados or [])
         self.addCleanup(destruir, dialogo)
         return dialogo
 
@@ -68,7 +68,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_elegir_cada_clase_muestra_solo_sus_controles(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, _indice("imagen_esquina"))
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
         self.assertTrue(dialogo.cho_principal.IsShown())
         self.assertTrue(dialogo.cho_ajuste_principal.IsShown())
         self.assertTrue(dialogo.cho_secundaria.IsShown())
@@ -79,7 +79,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
         self.assertTrue(dialogo.cho_tamano.IsShown())
         self.assertFalse(dialogo.cho_reparto.IsShown())
 
-        self._elegir(dialogo, _indice("pantalla_juego"))
+        self._elegir(dialogo, _indice("pantalla_completa"))
         self.assertTrue(dialogo.cho_principal.IsShown())
         self.assertFalse(dialogo.cho_secundaria.IsShown())
         self.assertFalse(dialogo.cho_izquierda.IsShown())
@@ -88,7 +88,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
         self.assertFalse(dialogo.cho_tamano.IsShown())
         self.assertFalse(dialogo.cho_reparto.IsShown())
 
-        self._elegir(dialogo, _indice("dividida_mitades"))
+        self._elegir(dialogo, _indice("dividida"))
         self.assertFalse(dialogo.cho_principal.IsShown())
         self.assertFalse(dialogo.cho_secundaria.IsShown())
         self.assertTrue(dialogo.cho_izquierda.IsShown())
@@ -99,21 +99,21 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_el_chat_encima_muestra_su_esquina(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, _indice("pantalla_juego"))
+        self._elegir(dialogo, _indice("pantalla_completa"))
         self.assertFalse(dialogo.cho_esquina_chat.IsShown())
         self._cambiar_chat(dialogo, 1)
         self.assertTrue(dialogo.cho_esquina_chat.IsShown())
 
     def test_al_elegir_completa_los_lugares_con_las_fuentes(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, _indice("imagen_esquina"))
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
         self.assertEqual(dialogo.cho_principal.GetStringSelection(), "Juego")
         self.assertEqual(dialogo.cho_secundaria.GetStringSelection(), "Cámara")
         self.assertNotIn(NOMBRE_FUENTE, dialogo.cho_principal.GetStrings())
 
     def test_los_controles_ajustan_el_diseno(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, _indice("imagen_esquina"))
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
         dialogo.cho_principal.SetStringSelection("Cámara")
         dialogo.cho_secundaria.SetStringSelection("Juego")
         dialogo.cho_ajuste_principal.SetSelection(2)
@@ -131,24 +131,25 @@ class DisenoEscenaDialogTest(unittest.TestCase):
                          ("superior-izquierda", "grande"))
         self.assertEqual((diseno.chat, diseno.esquina_chat),
                          ("superpuesto", "superior-derecha"))
-        self._elegir(dialogo, _indice("dividida_mitades"))
+        self._elegir(dialogo, _indice("dividida"))
         dialogo.cho_reparto.SetSelection(1)
         self.assertEqual(dialogo._diseno_actual().proporcion, "dos_tercios")
 
     def test_aceptar_devuelve_el_nombre_y_el_diseno_completo(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, _indice("imagen_esquina"))
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
         dialogo.EndModal = mock.Mock()
         dialogo._al_aplicar(None)
         nombre, diseno = dialogo.diseno_elegido()
-        self.assertEqual(nombre, disenos_fabrica.FABRICA[0].nombre)
+        self.assertEqual(
+            nombre, disenos_fabrica.FABRICA[_indice("imagen_en_imagen")].nombre)
         self.assertEqual((diseno.principal, diseno.secundaria),
                          ("Juego", "Cámara"))
         dialogo.EndModal.assert_called_once_with(wx.ID_OK)
 
     def test_aceptar_con_una_fuente_repetida_no_cierra_y_enfoca_la_segunda(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, _indice("dividida_mitades"))
+        self._elegir(dialogo, _indice("dividida"))
         dialogo.cho_izquierda.SetStringSelection("Juego")
         dialogo.cho_derecha.SetStringSelection("Juego")
         dialogo.EndModal = mock.Mock()
@@ -161,7 +162,7 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_guardar_y_eliminar_un_diseno_guardado(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, _indice("imagen_esquina"))
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
         with mock.patch.object(escena_disenos, "_pedir_nombre",
                                return_value="Mi diseño"):
             dialogo._al_guardar(None)
@@ -178,11 +179,11 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_un_nombre_de_fabrica_no_se_guarda(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, _indice("imagen_esquina"))
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
         with mock.patch.object(
                 escena_disenos, "_pedir_nombre",
                 return_value=disenos_fabrica.FABRICA[
-                    _indice("pantalla_juego")].nombre):
+                    _indice("pantalla_completa")].nombre):
             dialogo._al_guardar(None)
         self.assertEqual(disenos_guardados.cargar(), [])
         self.assertIn("Ese nombre es de un diseño de fábrica. Elige otro.",
@@ -190,9 +191,72 @@ class DisenoEscenaDialogTest(unittest.TestCase):
 
     def test_los_disenos_de_fabrica_no_se_eliminan(self):
         dialogo = self._dialogo()
-        self._elegir(dialogo, _indice("imagen_esquina"))
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
         dialogo._al_eliminar(None)
         self.assertIn("Los diseños de fábrica no se eliminan.", self.anuncios)
+
+    def test_elegir_un_diseno_que_pide_mas_fuentes_avisa(self):
+        dialogo = self._dialogo(
+            fuentes=[disenos_escena.Fuente("Juego", "otra", 1600, 900)])
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
+        self.assertEqual(
+            self.anuncios,
+            ["Imagen en imagen necesita 2 fuentes y esta escena tiene 1. "
+             "Agrega otra con Agregar fuente."])
+
+    def test_con_cero_fuentes_el_aviso_dice_que_no_hay_ninguna(self):
+        dialogo = self._dialogo(fuentes=[
+            disenos_escena.Fuente(NOMBRE_FUENTE, "chat", 460, 620)])
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
+        self.assertEqual(
+            self.anuncios,
+            ["Imagen en imagen necesita 2 fuentes y esta escena no tiene "
+             "ninguna. Agrega una con Agregar fuente."])
+
+    def test_aceptar_con_fuentes_faltantes_avisa_y_no_cierra(self):
+        dialogo = self._dialogo(
+            fuentes=[disenos_escena.Fuente("Juego", "otra", 1600, 900)])
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
+        self.anuncios.clear()
+        dialogo.EndModal = mock.Mock()
+        dialogo._al_aplicar(None)
+        dialogo.EndModal.assert_not_called()
+        self.assertEqual(
+            self.anuncios,
+            ["Imagen en imagen necesita 2 fuentes y esta escena tiene 1. "
+             "Agrega otra con Agregar fuente."])
+        self.assertIsNone(dialogo.diseno_elegido())
+
+    def test_aceptar_sin_la_fuente_de_la_esquina_avisa_y_enfoca_ese_lugar(self):
+        dialogo = self._dialogo()
+        self._elegir(dialogo, _indice("imagen_en_imagen"))
+        self.anuncios.clear()
+        dialogo.EndModal = mock.Mock()
+        with mock.patch.object(
+                dialogo, "_diseno_actual",
+                return_value=disenos_escena.Diseno(
+                    clase="imagen_en_imagen", principal="Juego")), \
+                mock.patch.object(dialogo.cho_secundaria, "SetFocus") as foco:
+            dialogo._al_aplicar(None)
+        dialogo.EndModal.assert_not_called()
+        foco.assert_called_once_with()
+        self.assertEqual(self.anuncios, ["Falta la fuente de la esquina."])
+        self.assertIsNone(dialogo.diseno_elegido())
+
+    def test_un_guardado_con_nombre_de_fabrica_sigue_como_guardado(self):
+        guardado = disenos_escena.Diseno(
+            clase="dividida", izquierda="Juego", derecha="Cámara")
+        dialogo = self._dialogo([("Imagen en imagen", guardado)])
+        nombres = dialogo.cho_diseno.GetStrings()
+        self.assertEqual(nombres.count("Imagen en imagen"), 2)
+        self.assertEqual(nombres[-1], "Imagen en imagen")
+        self._elegir(dialogo, len(nombres) - 1)
+        self.assertEqual(dialogo._diseno_actual().clase, "dividida")
+        dialogo.EndModal = mock.Mock()
+        dialogo._al_aplicar(None)
+        nombre, diseno = dialogo.diseno_elegido()
+        self.assertEqual(nombre, "Imagen en imagen")
+        self.assertEqual(diseno.clase, "dividida")
 
     def test_nombres_accesibles(self):
         dialogo = self._dialogo()

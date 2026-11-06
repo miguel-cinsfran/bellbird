@@ -16,11 +16,11 @@ from guyrapu.obs.disenos_escena import (
 PAPEL_CAMARA = "camara"
 PAPEL_PRINCIPAL = ("captura", "otra")
 
-_ETIQUETAS_LUGAR = {
-    "principal": N_("la fuente principal"),
-    "secundaria": N_("la fuente en la esquina"),
-    "izquierda": N_("la fuente a la izquierda"),
-    "derecha": N_("la fuente a la derecha"),
+_FALTAS = {
+    "principal": N_("Falta la fuente principal."),
+    "secundaria": N_("Falta la fuente de la esquina."),
+    "izquierda": N_("Falta la fuente de la izquierda."),
+    "derecha": N_("Falta la fuente de la derecha."),
 }
 
 
@@ -36,42 +36,20 @@ class DisenoFabrica:
 
 FABRICA = (
     DisenoFabrica(
-        clave="imagen_esquina",
-        nombre=N_("Fuente principal con cámara en una esquina"),
-        diseno=Diseno(clase="imagen_en_imagen", esquina="inferior-derecha",
-                      tamano="mediana"),
-        papeles={"principal": PAPEL_PRINCIPAL, "secundaria": PAPEL_CAMARA}),
-    DisenoFabrica(
-        clave="imagen_esquina_chat",
-        nombre=N_("Fuente principal con cámara y chat a la derecha"),
-        diseno=Diseno(clase="imagen_en_imagen", esquina="superior-derecha",
-                      tamano="mediana", chat="franja"),
-        papeles={"principal": PAPEL_PRINCIPAL, "secundaria": PAPEL_CAMARA}),
-    DisenoFabrica(
-        clave="camara_esquina",
-        nombre=N_("Cámara con la fuente principal en una esquina"),
-        diseno=Diseno(clase="imagen_en_imagen", esquina="inferior-derecha",
-                      tamano="mediana"),
-        papeles={"principal": PAPEL_CAMARA, "secundaria": PAPEL_PRINCIPAL}),
-    DisenoFabrica(
-        clave="pantalla_juego",
-        nombre=N_("Fuente principal a pantalla completa"),
+        clave="pantalla_completa",
+        nombre=N_("Pantalla completa"),
         diseno=Diseno(clase="pantalla_completa"),
         papeles={"principal": PAPEL_PRINCIPAL}),
     DisenoFabrica(
-        clave="pantalla_camara",
-        nombre=N_("Cámara a pantalla completa"),
-        diseno=Diseno(clase="pantalla_completa"),
-        papeles={"principal": PAPEL_CAMARA}),
+        clave="imagen_en_imagen",
+        nombre=N_("Imagen en imagen"),
+        diseno=Diseno(clase="imagen_en_imagen", esquina="inferior-derecha",
+                      tamano="mediana"),
+        papeles={"principal": PAPEL_PRINCIPAL, "secundaria": PAPEL_CAMARA}),
     DisenoFabrica(
-        clave="dividida_mitades",
-        nombre=N_("Fuente principal y cámara lado a lado"),
+        clave="dividida",
+        nombre=N_("Dividida en dos"),
         diseno=Diseno(clase="dividida", proporcion="mitades"),
-        papeles={"izquierda": PAPEL_PRINCIPAL, "derecha": PAPEL_CAMARA}),
-    DisenoFabrica(
-        clave="dividida_dos_tercios",
-        nombre=N_("Fuente principal grande y cámara a la derecha"),
-        diseno=Diseno(clase="dividida", proporcion="dos_tercios"),
         papeles={"izquierda": PAPEL_PRINCIPAL, "derecha": PAPEL_CAMARA}),
 )
 
@@ -83,6 +61,12 @@ def lugares(clase):
     if clase == "dividida":
         return ("izquierda", "derecha")
     return ("principal",)
+
+
+def faltan_fuentes(clase, fuentes):
+    """Cuántas fuentes le faltan a la escena para la clase, sin contar el chat."""
+    disponibles = sum(1 for fuente in fuentes if fuente.tipo != "chat")
+    return max(0, len(lugares(clase)) - disponibles)
 
 
 def completar(diseno, papeles, fuentes):
@@ -115,8 +99,7 @@ def motivo_para_no_aplicar(diseno, fuentes):
     for lugar in lugares(diseno.clase):
         nombre = getattr(diseno, lugar, "")
         if not nombre or nombre not in nombres:
-            return (lugar, _("Elige una fuente para {lugar}.").format(
-                lugar=_(_ETIQUETAS_LUGAR[lugar])))
+            return (lugar, _(_FALTAS[lugar]))
         if nombre in vistos:
             return (lugar, _("{fuente} está en dos lugares. Elige otra.").format(
                 fuente=nombre))

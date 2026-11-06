@@ -3791,12 +3791,6 @@ msgstr "fills the whole video"
 msgid "en una posición libre"
 msgstr "in a free position"
 
-#. Traductores: {a} es el ancho en píxeles y {h} el alto.
-#: guyrapu/obs/obs_escena.py
-#, python-brace-format
-msgid "{a} por {h} píxeles"
-msgstr "{a} by {h} pixels"
-
 #: guyrapu/obs/obs_escena.py
 msgid "oculta en OBS"
 msgstr "hidden in OBS"
@@ -6356,38 +6350,12 @@ msgid "&Ganancia:"
 msgstr "&Gain:"
 
 #: guyrapu/ui/escena_menu_fuente.py
-msgid "&Mostrar en la escena"
-msgstr "&Show in scene"
-
-#: guyrapu/ui/escena_menu_fuente.py
 msgid "&Bloquear posición"
 msgstr "&Lock position"
 
 #: guyrapu/ui/escena_menu_fuente.py
-msgid "&Posición y tamaño…"
-msgstr "&Position and size…"
-
-#: guyrapu/ui/escena_menu_fuente.py
 msgid "&Ordenar"
 msgstr "&Order"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Mover a la &cima"
-msgstr "Move to &Top"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgctxt "orden de fuentes"
-msgid "&Subir"
-msgstr "Move &Up"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgctxt "orden de fuentes"
-msgid "&Bajar"
-msgstr "Move &Down"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Mover al &fondo"
-msgstr "Move to &Bottom"
 
 #: guyrapu/ui/escena_pagina_audio.py
 msgid "Si&lenciar"
@@ -6475,20 +6443,12 @@ msgid "&Fuentes:"
 msgstr "S&ources:"
 
 #: guyrapu/ui/escena_pagina_fuentes.py
-msgid "Mover con flec&has"
-msgstr "Move with &arrows"
-
-#: guyrapu/ui/escena_pagina_fuentes.py
 msgid "&Aplicar diseño…"
 msgstr "Appl&y layout…"
 
 #: guyrapu/ui/escena_pagina_fuentes.py
 msgid "Agregar f&uente…"
 msgstr "A&dd source…"
-
-#: guyrapu/ui/escena_pagina_fuentes.py
-msgid "Deshacer cambi&os"
-msgstr "&Undo changes"
 
 #: guyrapu/ui/escena_pagina_fuentes.py
 #, python-brace-format
@@ -6510,10 +6470,6 @@ msgstr "&Camera…"
 #: guyrapu/ui/escena_pagina_fuentes.py
 msgid "Cambios deshechos"
 msgstr "Changes undone"
-
-#: guyrapu/ui/escena_tamano.py
-msgid "Posición y tamaño de la fuente"
-msgstr "Source position and size"
 
 #: guyrapu/ui/escena_tamano.py
 msgid "&Posición:"
@@ -10948,4 +10904,239 @@ msgstr "&Reset"
 #: guyrapu/ui/preferencias_ia_clave.py
 msgid "&Eliminar clave"
 msgstr "&Delete key"
+
+#: guyrapu/obs/fuentes_obs.py
+msgid "Solo puede haber un chat en el vídeo."
+msgstr "There can only be one chat on the video."
+
+#: guyrapu/obs/fuentes_obs.py
+msgid ""
+"Una cámara no se puede abrir dos veces. Para usarla en otra escena, duplica"
+" la escena."
+msgstr ""
+"A camera can't be opened twice. To use it in another scene, duplicate the "
+"scene."
+
+#: guyrapu/obs/transformar_fuente.py
+#, python-brace-format
+msgid "{p} por ciento del ancho"
+msgstr "{p} percent of the width"
+
+#: guyrapu/obs/transformar_fuente.py
+#, python-brace-format
+msgid "{fuente} - copia"
+msgstr "{fuente} - copy"
+
+#: guyrapu/obs/transformar_fuente.py
+#, python-brace-format
+msgid "{fuente} - copia {n}"
+msgstr "{fuente} - copy {n}"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "visibilidad"
+msgstr "visibility"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "bloqueo"
+msgstr "lock"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "orden"
+msgstr "order"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+#, python-brace-format
+msgid "{fuente} al frente."
+msgstr "{fuente} to the front."
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "posición y tamaño"
+msgstr "position and size"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "posición"
+msgstr "position"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "centrada"
+msgstr "centered"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "tamaño"
+msgstr "size"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "ajustada al vídeo"
+msgstr "fitted to the video"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "cubre todo el vídeo"
+msgstr "fills the whole video"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "volteo"
+msgstr "flip"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "volteada horizontalmente"
+msgstr "flipped horizontally"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "volteada verticalmente"
+msgstr "flipped vertically"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "giro"
+msgstr "rotation"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "girada a la derecha"
+msgstr "rotated right"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "girada a la izquierda"
+msgstr "rotated left"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "tamaño y posición"
+msgstr "size and position"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "vuelve a su tamaño y posición originales"
+msgstr "returns to its original size and position"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "No hay nada que deshacer."
+msgstr "There's nothing to undo."
+
+#: guyrapu/ui/escena_acciones_fuente.py
+#, python-brace-format
+msgid "Deshecho: {accion} de {fuente}."
+msgstr "Undone: {accion} of {fuente}."
+
+#: guyrapu/ui/escena_edicion_fuente.py
+msgid "Chat en el vídeo no se puede cambiar de nombre: Guyrapu lo reconoce por él."
+msgstr "Chat en el vídeo can't be renamed: Guyrapu recognizes it by its name."
+
+#: guyrapu/ui/escena_edicion_fuente.py
+msgid "Ya hay una fuente con ese nombre."
+msgstr "There's already a source with that name."
+
+#: guyrapu/ui/escena_edicion_fuente.py
+msgid "Nombre nuevo:"
+msgstr "New name:"
+
+#: guyrapu/ui/escena_edicion_fuente.py
+msgid "Cambiar nombre"
+msgstr "Rename"
+
+#: guyrapu/ui/escena_edicion_fuente.py
+#, python-brace-format
+msgid ""
+"{antes} cambiada a {nombre}. El nombre cambia en todas las escenas que la "
+"usan."
+msgstr "{antes} renamed to {nombre}. The name changes in every scene that uses it."
+
+#: guyrapu/ui/escena_edicion_fuente.py
+#, python-brace-format
+msgid "{fuente} duplicada como {copia}."
+msgstr "{fuente} duplicated as {copia}."
+
+#: guyrapu/ui/escena_edicion_fuente.py
+#, python-brace-format
+msgid "¿Eliminar {fuente} de esta escena?"
+msgstr "Delete {fuente} from this scene?"
+
+#: guyrapu/ui/escena_edicion_fuente.py
+msgid "Eliminar fuente"
+msgstr "Delete source"
+
+#: guyrapu/ui/escena_edicion_fuente.py
+#, python-brace-format
+msgid "{fuente} eliminada de la escena."
+msgstr "{fuente} deleted from the scene."
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Transformar"
+msgstr "&Transform"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Mostrar en la escena\tEspacio"
+msgstr "&Show in scene\tEspacio"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Cambiar nombre…\tF2"
+msgstr "&Rename…\tF2"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Duplicar\tCtrl+D"
+msgstr "&Duplicate\tCtrl+D"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "E&liminar\tSupr"
+msgstr "De&lete\tSupr"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Tamaño y posición…"
+msgstr "&Size and position…"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Mover con flechas"
+msgstr "&Move with arrows"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Restablecer tamaño y posición"
+msgstr "&Reset size and position"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Centrar en el vídeo"
+msgstr "&Center on the video"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Ajustar al vídeo"
+msgstr "&Fit to the video"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Llenar el vídeo"
+msgstr "&Fill the video"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Voltear &horizontalmente"
+msgstr "Flip &horizontally"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Voltear &verticalmente"
+msgstr "Flip &vertically"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Girar a la &derecha"
+msgstr "Rotate &right"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Girar a la &izquierda"
+msgstr "Rotate &left"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Traer al &frente\tCtrl+Inicio"
+msgstr "Bring to &front\tCtrl+Inicio"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Traer a&delante\tCtrl+Flecha arriba"
+msgstr "Bring for&ward\tCtrl+Flecha arriba"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Enviar a&trás\tCtrl+Flecha abajo"
+msgstr "Send &backward\tCtrl+Flecha abajo"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Enviar al fo&ndo\tCtrl+Fin"
+msgstr "Send to bac&k\tCtrl+Fin"
+
+#: guyrapu/ui/escena_pagina_fuentes.py
+msgid "Deshacer todos los cambi&os"
+msgstr "&Undo all changes"
+
+#: guyrapu/ui/escena_tamano.py
+msgid "Tamaño y posición de la fuente"
+msgstr "Source size and position"
 

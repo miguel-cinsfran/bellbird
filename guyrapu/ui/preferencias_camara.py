@@ -20,6 +20,29 @@ from guyrapu.voice import sonido_memoria
 logger = diagnostico.obtener_logger(__name__)
 
 
+def recordar_cambio_de_nombre(principal, antes, nuevo, guardar=None) -> bool:
+    """Actualiza la cámara guardada si la fuente renombrada era esa."""
+    config = getattr(principal, "_config", None)
+    if not isinstance(config, dict):
+        return False
+    if str(config.get("camara_fuente", "") or "") != antes:
+        return False
+    config["camara_fuente"] = nuevo
+    try:
+        (guardar or _guardar_preferencia)(
+            "transmision", "camara_fuente", nuevo)
+    except Exception as error:
+        logger.warning("No se pudo guardar la cámara renombrada: %s", error)
+    return True
+
+
+def _guardar_preferencia(seccion, clave, valor):
+    from guyrapu.core import config as config_mod
+    from guyrapu.core import paths
+    return config_mod.guardar_opcion(
+        paths.config_ini(), seccion, clave, valor)
+
+
 class PaginaCamara:
     """Página Cámara: avisos de encuadre, cámara e inversión."""
 

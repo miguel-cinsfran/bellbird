@@ -7,9 +7,12 @@ from unittest import mock
 import wx
 
 from guyrapu.obs import (
-    disenos_escena, disenos_guardados, obs_capas, obs_disposicion)
+    disenos_escena, disenos_guardados, fuentes_obs, obs_capas,
+    obs_disposicion)
 from guyrapu.obs.obs_escena import FilaFuente
+from guyrapu.ui import escena_acciones_fuente
 from guyrapu.ui import escena_disenos
+from guyrapu.ui import escena_edicion_fuente
 from guyrapu.ui import escena_menu_fuente
 from guyrapu.ui import escena_captura_ventana
 from guyrapu.ui import escena_pagina_audio
@@ -118,6 +121,8 @@ class TestVentanaObs(unittest.TestCase):
             mock.patch.object(obs_ventana, "anunciar", anunciar),
             mock.patch.object(escena_pagina_escena, "anunciar", anunciar),
             mock.patch.object(escena_pagina_fuentes, "anunciar", anunciar),
+            mock.patch.object(escena_acciones_fuente, "anunciar", anunciar),
+            mock.patch.object(escena_edicion_fuente, "anunciar", anunciar),
             mock.patch.object(escena_captura_ventana, "anunciar", anunciar),
             mock.patch.object(gui_microfono, "anunciar", anunciar),
             mock.patch.object(mover_con_flechas, "anunciar", anunciar),
@@ -306,7 +311,7 @@ class TestVentanaObs(unittest.TestCase):
             pagina, "Mostrar en la escena", marcada=False)
         self._abrir_menu_de_fuente(
             pagina, "Bloquear posición", marcada=True)
-        self._abrir_menu_de_fuente(pagina, "Mover a la cima")
+        self._abrir_menu_de_fuente(pagina, "Traer al frente")
         self._pulsar(pagina.btn_restaurar)
         self.assertIn(("colocar", "Principal", "inferior-derecha"),
                       self.gestor.llamadas)
@@ -323,15 +328,20 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(
             etiquetas,
             ["Mostrar en la escena", "Bloquear posición",
-             "Posición y tamaño…", "Mover a la cima", "Subir", "Bajar",
-             "Mover al fondo"])
+             "Cambiar nombre…", "Duplicar", "Eliminar",
+             "Tamaño y posición…", "Mover con flechas",
+             "Centrar en el vídeo", "Ajustar al vídeo", "Llenar el vídeo",
+             "Voltear horizontalmente", "Voltear verticalmente",
+             "Girar a la derecha", "Girar a la izquierda",
+             "Restablecer tamaño y posición",
+             "Traer al frente", "Traer adelante", "Enviar atrás",
+             "Enviar al fondo"])
 
     def test_el_menu_marca_las_casillas_segun_la_fila(self):
         pagina = self.dialogo._pagina_fuentes
         fila = FilaFuente("Juego", "Juego", False, True)
         pagina._filas = (fila,)
-        menu = escena_menu_fuente.menu_de_fuente(
-            fila, mock.Mock(), mock.Mock(), mock.Mock(), mock.Mock())
+        menu = escena_menu_fuente.menu_de_fuente(fila, mock.Mock())
         self.addCleanup(menu.Destroy)
         items = [item for item in menu.GetMenuItems()
                  if item.GetItemLabelText()]
@@ -340,11 +350,10 @@ class TestVentanaObs(unittest.TestCase):
 
     def test_el_submenu_ordenar_no_repite_letras_de_acceso(self):
         fila = FilaFuente("Juego", "Juego", True, False)
-        menu = escena_menu_fuente.menu_de_fuente(
-            fila, mock.Mock(), mock.Mock(), mock.Mock(), mock.Mock())
+        menu = escena_menu_fuente.menu_de_fuente(fila, mock.Mock())
         self.addCleanup(menu.Destroy)
         ordenar = next(item.GetSubMenu() for item in menu.GetMenuItems()
-                       if item.GetSubMenu() is not None)
+                       if item.GetItemLabelText() == "Ordenar")
         letras = [etiqueta[etiqueta.index("&") + 1].lower()
                   for etiqueta in (item.GetItemLabel()
                                    for item in ordenar.GetMenuItems())]
@@ -353,13 +362,13 @@ class TestVentanaObs(unittest.TestCase):
     def test_cada_entrada_del_menu_llama_a_su_accion(self):
         pagina = self.dialogo._pagina_fuentes
         for etiqueta, movimiento in (
-                ("Subir", "adelante"),
-                ("Bajar", "atras"),
-                ("Mover al fondo", "fondo")):
+                ("Traer adelante", "adelante"),
+                ("Enviar atrás", "atras"),
+                ("Enviar al fondo", "fondo")):
             self._abrir_menu_de_fuente(pagina, etiqueta)
             self.assertIn(("mover_capa", "Principal", movimiento),
                           self.gestor.llamadas)
-        self._abrir_menu_de_fuente(pagina, "Mover a la cima")
+        self._abrir_menu_de_fuente(pagina, "Traer al frente")
         self.assertIn(("al_frente", "Principal"), self.gestor.llamadas)
 
     def test_la_tecla_aplicaciones_abre_el_menu_de_la_fila(self):
@@ -461,7 +470,8 @@ class TestVentanaObs(unittest.TestCase):
         filas = tuple(
             FilaFuente(nombre, f"{nombre}, movida", True, False)
             for nombre in self.gestor.fuentes("Principal"))
-        self._pulsar(pagina.btn_ajuste)
+        self._elegir_fuente(pagina, "Chat en el vídeo")
+        pagina._mover.iniciar()
         with mock.patch.object(self.gestor, "filas_escena",
                                return_value=filas) as releer:
             pagina._mover._mover(10, 0)
@@ -572,7 +582,7 @@ class TestVentanaObs(unittest.TestCase):
     def test_mover_anuncia_el_lugar_y_despues_la_descripcion(self):
         pagina = self.dialogo._pagina_fuentes
         self._elegir_fuente(pagina, "Chat en el vídeo")
-        self._abrir_menu_de_fuente(pagina, "Subir")
+        self._abrir_menu_de_fuente(pagina, "Traer adelante")
         aviso = next(anuncio for anuncio in self.anuncios
                      if anuncio.startswith("Chat en el vídeo: 1 de 3 en el orden."))
         self.assertIn("Chat en el vídeo.", aviso)
@@ -580,16 +590,16 @@ class TestVentanaObs(unittest.TestCase):
     def test_mover_en_el_extremo_anuncia_que_ya_esta_en_el_borde(self):
         pagina = self.dialogo._pagina_fuentes
         self._elegir_fuente(pagina, "Cámara")
-        self._abrir_menu_de_fuente(pagina, "Subir")
+        self._abrir_menu_de_fuente(pagina, "Traer adelante")
         self.assertIn("Cámara ya está en la cima.", self.anuncios)
         self._elegir_fuente(pagina, "Juego")
-        self._abrir_menu_de_fuente(pagina, "Mover al fondo")
+        self._abrir_menu_de_fuente(pagina, "Enviar al fondo")
         self.assertIn("Juego ya está al fondo.", self.anuncios)
 
     def test_la_lista_fuente_queda_ordenada_y_con_la_misma_fuente(self):
         pagina = self.dialogo._pagina_fuentes
         self._elegir_fuente(pagina, "Chat en el vídeo")
-        self._abrir_menu_de_fuente(pagina, "Subir")
+        self._abrir_menu_de_fuente(pagina, "Traer adelante")
         self.assertEqual(pagina.lst_fuentes.GetStrings(),
                          ["Chat en el vídeo", "Cámara", "Juego"])
         self.assertEqual(pagina.fuente(),
@@ -597,9 +607,9 @@ class TestVentanaObs(unittest.TestCase):
 
     def test_los_tres_movimientos_entran_en_deshacer(self):
         pagina = self.dialogo._pagina_fuentes
-        for fuente, etiqueta in (("Cámara", "Subir"),
-                                 ("Chat en el vídeo", "Bajar"),
-                                 ("Juego", "Mover al fondo")):
+        for fuente, etiqueta in (("Cámara", "Traer adelante"),
+                                 ("Chat en el vídeo", "Enviar atrás"),
+                                 ("Juego", "Enviar al fondo")):
             self._elegir_fuente(pagina, fuente)
             self._abrir_menu_de_fuente(pagina, etiqueta)
         self.gestor.llamadas.clear()
@@ -768,10 +778,10 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(escena.btn_imagen.GetName(), "Guardar imagen…")
         fuentes = self.dialogo._pagina_fuentes
         self.assertEqual(fuentes.lst_fuentes.GetName(), "Fuentes")
-        self.assertEqual(fuentes.btn_ajuste.GetName(), "Mover con flechas")
         self.assertEqual(fuentes.btn_diseno.GetName(), "Aplicar diseño…")
         self.assertEqual(fuentes.btn_agregar.GetName(), "Agregar fuente…")
-        self.assertEqual(fuentes.btn_restaurar.GetName(), "Deshacer cambios")
+        self.assertEqual(fuentes.btn_restaurar.GetName(),
+                         "Deshacer todos los cambios")
         audio = self.dialogo._pagina_audio
         self.assertEqual(audio.lst_audio.GetName(), "Fuentes de audio")
         self.assertEqual(audio.chk_silenciar.GetName(), "Silenciar")
@@ -783,9 +793,9 @@ class TestVentanaObs(unittest.TestCase):
 
     def test_orden_de_tab_de_cada_pestana(self):
         self.assertEqual(self._nombres(self.dialogo._pagina_escena), [
-            "Escena", "Cambiar escena", "Fuentes", "Mover con flechas",
-            "Aplicar diseño…", "Agregar fuente…", "Deshacer cambios",
-            "Guardar imagen…"])
+            "Escena", "Cambiar escena", "Fuentes",
+            "Aplicar diseño…", "Agregar fuente…",
+            "Deshacer todos los cambios", "Guardar imagen…"])
         self.assertEqual(self._nombres(self.dialogo._pagina_audio), [
             "Fuentes de audio", "Silenciar", "Elegir micrófono…",
             "Probar nivel", "Filtros…", "Escuchar"])
@@ -794,7 +804,7 @@ class TestVentanaObs(unittest.TestCase):
     def test_cuadro_tamano_abre_con_el_comun_actual(self):
         dialogo = self._cuadro_tamano(25, 33)
         self.assertEqual(dialogo.GetTitle(),
-                         "Posición y tamaño de la fuente")
+                         "Tamaño y posición de la fuente")
         self.assertEqual(dialogo.cho_posicion.GetStringSelection(),
                          "Donde está ahora")
         self.assertEqual(dialogo.cho_tamano.GetStringSelection(),
@@ -876,16 +886,228 @@ class TestVentanaObs(unittest.TestCase):
     def test_escape_durante_el_ajuste_lo_deshace_sin_cerrar(self):
         self.dialogo.EndModal = mock.Mock()
         pagina = self.dialogo._pagina_fuentes
-        self._pulsar(pagina.btn_ajuste)
+        self._elegir_fuente(pagina, "Chat en el vídeo")
+        pagina._mover.iniciar()
         self.assertTrue(pagina._mover.en_curso)
-        evento = wx.KeyEvent(wx.wxEVT_CHAR_HOOK)
-        evento.KeyCode = wx.WXK_ESCAPE
-        self.dialogo.GetEventHandler().ProcessEvent(evento)
+        pagina._mover._mover(10, 0)
+        self.assertFalse(pagina.acciones_fuente._pila.vacia)
+        pagina._tecla_fuente(EventoTecla(wx.WXK_ESCAPE))
         self.dialogo.EndModal.assert_not_called()
         self.assertFalse(pagina._mover.en_curso)
+        self.assertTrue(pagina.acciones_fuente._pila.vacia)
         self.assertIn(("posicionar", "Principal", 32, 18, 5),
                       self.gestor.llamadas)
         self.assertIn("Movimiento deshecho", self.anuncios)
+
+    def test_los_atajos_de_la_lista_hacen_su_accion(self):
+        pagina = self.dialogo._pagina_fuentes
+        acciones = pagina.acciones_fuente
+        self._elegir_fuente(pagina, "Juego")
+        with mock.patch.object(acciones, "mostrar") as mostrar:
+            pagina._tecla_fuente(EventoTecla(wx.WXK_SPACE))
+        mostrar.assert_called_once_with(False)
+        with mock.patch.object(acciones, "renombrar") as renombrar:
+            pagina._tecla_fuente(EventoTecla(wx.WXK_F2))
+        renombrar.assert_called_once_with()
+        with mock.patch.object(acciones, "duplicar") as duplicar:
+            pagina._tecla_fuente(EventoTecla(ord("D"), ctrl=True))
+        duplicar.assert_called_once_with()
+        with mock.patch.object(acciones, "eliminar") as eliminar:
+            pagina._tecla_fuente(EventoTecla(wx.WXK_DELETE))
+        eliminar.assert_called_once_with()
+        with mock.patch.object(acciones, "deshacer") as deshacer:
+            pagina._tecla_fuente(EventoTecla(ord("Z"), ctrl=True))
+        deshacer.assert_called_once_with()
+        with mock.patch.object(acciones, "ordenar") as ordenar:
+            for codigo, movimiento in (
+                    (wx.WXK_HOME, "frente"),
+                    (wx.WXK_UP, "adelante"),
+                    (wx.WXK_DOWN, "atras"),
+                    (wx.WXK_END, "fondo")):
+                pagina._tecla_fuente(EventoTecla(codigo, ctrl=True))
+        self.assertEqual(
+            [llamada.args[0] for llamada in ordenar.call_args_list],
+            ["frente", "adelante", "atras", "fondo"])
+
+    def test_deshacer_reaplica_el_ultimo_cambio_y_lo_anuncia(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Juego")
+        self._abrir_menu_de_fuente(
+            pagina, "Bloquear posición", marcada=True)
+        self.gestor.llamadas.clear()
+        pagina.acciones_fuente.deshacer()
+        self.assertIn(("fijar", "Principal", False), self.gestor.llamadas)
+        self.assertIn("Deshecho: bloqueo de Juego.", self.anuncios)
+
+    def test_deshacer_sin_cambios_lo_dice(self):
+        pagina = self.dialogo._pagina_fuentes
+        pagina._tecla_fuente(EventoTecla(ord("Z"), ctrl=True))
+        self.assertIn("No hay nada que deshacer.", self.anuncios)
+
+    def test_renombrar_pide_el_nombre_y_actualiza_la_lista(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Cámara")
+        filas = (FilaFuente("Cámara nueva", "Cámara nueva", True, False),)
+        with mock.patch.object(
+                pagina.acciones_fuente._edicion, "_pedir_nombre",
+                return_value="Cámara nueva") as pedir, \
+                mock.patch.object(fuentes_obs, "renombrar") as renombrar, \
+                mock.patch.object(self.gestor, "filas_escena",
+                                  return_value=filas):
+            pagina.acciones_fuente.renombrar()
+        pedir.assert_called_once_with("Cámara")
+        renombrar.assert_called_once_with(
+            self.gestor, "Principal", "Cámara", "Cámara nueva")
+        self.assertEqual(pagina.fuente(), "Cámara nueva")
+        self.assertIn(
+            "Cámara cambiada a Cámara nueva. El nombre cambia en todas las "
+            "escenas que la usan.", self.anuncios)
+
+    def test_renombrar_con_un_nombre_ocupado_vuelve_a_pedir(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Cámara")
+        filas = (FilaFuente("Cámara nueva", "Cámara nueva", True, False),)
+        with mock.patch.object(
+                pagina.acciones_fuente._edicion, "_pedir_nombre",
+                side_effect=["Juego", "Cámara nueva"]) as pedir, \
+                mock.patch.object(fuentes_obs, "renombrar"), \
+                mock.patch.object(self.gestor, "filas_escena",
+                                  return_value=filas):
+            pagina.acciones_fuente.renombrar()
+        self.assertEqual(pedir.call_count, 2)
+        self.assertIn("Ya hay una fuente con ese nombre.", self.anuncios)
+
+    def test_renombrar_actualiza_la_camara_guardada(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Cámara")
+        filas = (FilaFuente("Cámara nueva", "Cámara nueva", True, False),)
+        with mock.patch.object(
+                pagina.acciones_fuente._edicion, "_pedir_nombre",
+                return_value="Cámara nueva"), \
+                mock.patch.object(fuentes_obs, "renombrar"), \
+                mock.patch.object(self.gestor, "filas_escena",
+                                  return_value=filas), \
+                mock.patch.object(
+                    escena_edicion_fuente.preferencias_camara,
+                    "recordar_cambio_de_nombre") as recordar:
+            pagina.acciones_fuente.renombrar()
+        recordar.assert_called_once_with(
+            self.principal, "Cámara", "Cámara nueva")
+
+    def test_eliminar_confirma_y_selecciona_la_siguiente(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Cámara")
+        filas = (FilaFuente("Chat en el vídeo", "Chat en el vídeo", True,
+                            False),)
+        with mock.patch.object(
+                pagina.acciones_fuente._edicion, "_confirmar_eliminar",
+                return_value=True), \
+                mock.patch.object(fuentes_obs, "eliminar") as eliminar, \
+                mock.patch.object(self.gestor, "filas_escena",
+                                  return_value=filas):
+            pagina.acciones_fuente.eliminar()
+        eliminar.assert_called_once_with(self.gestor, "Principal", "Cámara")
+        self.assertEqual(pagina.fuente(), "Chat en el vídeo")
+        self.assertIn("Cámara eliminada de la escena.", self.anuncios)
+
+    def test_eliminar_la_ultima_selecciona_la_anterior(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Juego")
+        filas = (FilaFuente("Cámara", "Cámara", True, False),
+                 FilaFuente("Chat en el vídeo", "Chat en el vídeo", True,
+                            False))
+        with mock.patch.object(
+                pagina.acciones_fuente._edicion, "_confirmar_eliminar",
+                return_value=True), \
+                mock.patch.object(fuentes_obs, "eliminar"), \
+                mock.patch.object(self.gestor, "filas_escena",
+                                  return_value=filas):
+            pagina.acciones_fuente.eliminar()
+        self.assertEqual(pagina.fuente(), "Chat en el vídeo")
+
+    def test_eliminar_cancelado_no_toca_obs(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Juego")
+        with mock.patch.object(
+                pagina.acciones_fuente._edicion, "_confirmar_eliminar",
+                return_value=False), \
+                mock.patch.object(fuentes_obs, "eliminar") as eliminar:
+            pagina.acciones_fuente.eliminar()
+        eliminar.assert_not_called()
+        self.assertEqual(pagina.fuente(), "Juego")
+
+    def test_duplicar_copia_y_selecciona_la_copia(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Juego")
+        filas = (FilaFuente("Juego - copia", "Juego - copia", True, False),)
+        with mock.patch.object(
+                fuentes_obs, "duplicar", return_value="Juego - copia") \
+                as duplicar, \
+                mock.patch.object(self.gestor, "filas_escena",
+                                  return_value=filas):
+            pagina.acciones_fuente.duplicar()
+        duplicar.assert_called_once_with(
+            self.gestor, "Principal", "Juego", tipo="")
+        self.assertEqual(pagina.fuente(), "Juego - copia")
+        self.assertIn("Juego duplicada como Juego - copia.", self.anuncios)
+
+    def test_duplicar_el_chat_avisa_sin_llamar_a_obs(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Chat en el vídeo")
+        with mock.patch.object(fuentes_obs, "duplicar") as duplicar:
+            pagina.acciones_fuente.duplicar()
+        duplicar.assert_not_called()
+        self.assertIn("Solo puede haber un chat en el vídeo.", self.anuncios)
+
+    def test_cada_accion_del_menu_de_transformar_llama_a_la_suya(self):
+        pagina = self.dialogo._pagina_fuentes
+        for etiqueta, metodo in (
+                ("Tamaño y posición…", "posicion_tamano"),
+                ("Mover con flechas", "mover_con_flechas"),
+                ("Centrar en el vídeo", "centrar"),
+                ("Ajustar al vídeo", "ajustar"),
+                ("Llenar el vídeo", "llenar"),
+                ("Voltear horizontalmente", "voltear_horizontal"),
+                ("Voltear verticalmente", "voltear_vertical"),
+                ("Girar a la derecha", "girar_derecha"),
+                ("Girar a la izquierda", "girar_izquierda"),
+                ("Restablecer tamaño y posición", "restablecer")):
+            with mock.patch.object(
+                    pagina.acciones_fuente, metodo) as accion:
+                self._abrir_menu_de_fuente(pagina, etiqueta)
+            accion.assert_called_once()
+
+    def test_centrar_anuncia_la_accion_y_el_estado_nuevo(self):
+        pagina = self.dialogo._pagina_fuentes
+        self._elegir_fuente(pagina, "Juego")
+        filas = (FilaFuente(
+            "Juego", "Juego", True, False, "", "en el centro",
+            "la mitad del vídeo"),)
+        with mock.patch.object(
+                fuentes_obs, "aplicar_transformacion") as aplicar, \
+                mock.patch.object(self.gestor, "filas_escena",
+                                  return_value=filas):
+            pagina.acciones_fuente.centrar()
+        aplicar.assert_called_once()
+        self.assertIn(
+            "Juego centrada. En el centro. La mitad del vídeo.",
+            self.anuncios)
+
+    def test_el_menu_muestra_los_atajos_de_cada_accion(self):
+        fila = FilaFuente("Juego", "Juego", True, False)
+        menu = escena_menu_fuente.menu_de_fuente(fila, mock.Mock())
+        self.addCleanup(menu.Destroy)
+        etiquetas = {
+            item.GetItemLabelText(): item.GetItemLabel()
+            for item in _items_del_menu(menu)}
+        self.assertIn("\tEspacio", etiquetas["Mostrar en la escena"])
+        self.assertIn("\tF2", etiquetas["Cambiar nombre…"])
+        self.assertIn("\tCtrl+D", etiquetas["Duplicar"])
+        self.assertIn("\tSupr", etiquetas["Eliminar"])
+        self.assertIn("\tCtrl+Inicio", etiquetas["Traer al frente"])
+        self.assertIn("\tCtrl+Flecha arriba", etiquetas["Traer adelante"])
+        self.assertIn("\tCtrl+Flecha abajo", etiquetas["Enviar atrás"])
+        self.assertIn("\tCtrl+Fin", etiquetas["Enviar al fondo"])
 
     def test_escape_cierra(self):
         self.dialogo.EndModal = mock.Mock()

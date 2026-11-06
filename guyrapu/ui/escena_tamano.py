@@ -20,7 +20,7 @@ class TamanoFuenteDialog(wx.Dialog):
     """Pide el tamaño y el lugar de una fuente, con el foco en Tamaño."""
 
     def __init__(self, padre, porcentaje_ancho, porcentaje_alto):
-        super().__init__(padre, title=_("Posición y tamaño de la fuente"),
+        super().__init__(padre, title=_("Tamaño y posición de la fuente"),
                          name="DialogoTamanoFuente")
         self._elegido = None
         self._anclaje = ""

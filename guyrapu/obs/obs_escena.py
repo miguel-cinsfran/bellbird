@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from guyrapu.core.idioma import _, ngettext
-from guyrapu.obs import obs_disposicion
+from guyrapu.obs import obs_disposicion, transformar_fuente
 
 
 # Cubre este porcentaje del lienzo o más y se considera imagen completa.
@@ -153,10 +153,13 @@ class FilaFuente:
     texto: str
     visible: bool
     bloqueada: bool
+    tipo: str = ""
+    posicion: str = ""
+    tamano: str = ""
 
 
 def _texto_fuente(elemento, rect, delanteros, lienzo_ancho,
-                  lienzo_alto, tipos) -> str:
+                  lienzo_alto, tipos) -> tuple:
     nombre = str(elemento.get("sourceName") or _("sin nombre"))
     tipo = (tipos or {}).get(nombre, "")
     visible = _visible(elemento)
@@ -166,8 +169,7 @@ def _texto_fuente(elemento, rect, delanteros, lienzo_ancho,
         posicion, tamano = _("ocupa todo el vídeo"), ""
     else:
         posicion = _texto_anclaje(rect, lienzo_ancho, lienzo_alto) or _("en una posición libre")
-        # Traductores: {a} es el ancho en píxeles y {h} el alto.
-        tamano = _("{a} por {h} píxeles").format(a=int(round(rect[2])), h=int(round(rect[3])))
+        tamano = transformar_fuente.texto_de_tamano(rect[2], lienzo_ancho)
     if not visible:
         estado = _("oculta en OBS")
     else:
@@ -192,7 +194,7 @@ def _texto_fuente(elemento, rect, delanteros, lienzo_ancho,
     if tamano:
         partes.append(tamano)
     partes.append(estado)
-    return ", ".join(partes)
+    return ", ".join(partes), posicion, tamano
 
 
 def _filas_base(elementos, lienzo_ancho, lienzo_alto, tipos) -> list:
@@ -204,11 +206,13 @@ def _filas_base(elementos, lienzo_ancho, lienzo_alto, tipos) -> list:
     delanteros = []
     for elemento, rect in zip(ordenados, rects):
         nombre = str(elemento.get("sourceName") or _("sin nombre"))
-        texto = _texto_fuente(elemento, rect, delanteros,
-                              lienzo_ancho, lienzo_alto, tipos)
+        tipo = (tipos or {}).get(nombre, "")
+        texto, posicion, tamano = _texto_fuente(
+            elemento, rect, delanteros, lienzo_ancho, lienzo_alto, tipos)
         visible = _visible(elemento)
         bloqueada = bool(elemento.get("sceneItemLocked", False))
-        filas.append((nombre, texto, visible, bloqueada))
+        filas.append((nombre, texto, visible, bloqueada, tipo,
+                      posicion, tamano))
         if visible and rect is not None:
             delanteros.append((nombre, rect))
     return filas
@@ -224,8 +228,9 @@ def filas_de_escena(elementos, lienzo_ancho, lienzo_alto, tipos) -> tuple:
         FilaFuente(
             nombre=nombre,
             texto=texto + (f", {_('bloqueada')}" if bloqueada else ""),
-            visible=visible, bloqueada=bloqueada)
-        for nombre, texto, visible, bloqueada
+            visible=visible, bloqueada=bloqueada, tipo=tipo,
+            posicion=posicion, tamano=tamano)
+        for nombre, texto, visible, bloqueada, tipo, posicion, tamano
         in _filas_base(elementos, lienzo_ancho, lienzo_alto, tipos))
 
 
@@ -256,9 +261,8 @@ def describir_escena(escena, elementos, lienzo_ancho, lienzo_alto, tipos,
                     "de adelante hacia atrás.").format(
                         escena=escena, palabra=palabra)
     lineas = [primera]
-    for numero, (_nombre, texto, _visible_fila, _bloqueada) in enumerate(
-            filas, 1):
-        lineas.append(f"{numero}: {texto}.")
+    for numero, fila in enumerate(filas, 1):
+        lineas.append(f"{numero}: {fila[1]}.")
     return "\n".join(lineas)
 
 

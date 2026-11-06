@@ -79,7 +79,7 @@ class DescribirEscenaTest(unittest.TestCase):
             "Escena actual: Principal. 2 fuentes, de adelante hacia atrás.\n"
             "1: Captura, captura de pantalla, ocupa todo el vídeo, se ve.\n"
             "2: Panel, navegador, abajo a la izquierda, "
-            "460 por 620 píxeles, visible en OBS, pero no aparece en "
+            "29 por ciento del ancho, visible en OBS, pero no aparece en "
             "el vídeo: la tapa entera Captura.")
 
     def test_fuente_oculta_no_dice_tapada(self):
@@ -89,7 +89,7 @@ class DescribirEscenaTest(unittest.TestCase):
              elemento(2, "Captura", 1, 800, 450, 1600, 900, 0)],
             *LIENZO, {"Panel": "navegador", "Captura": "captura de pantalla"})
         self.assertIn("2: Panel, navegador, abajo a la izquierda, "
-                      "460 por 620 píxeles, oculta en OBS.", frase)
+                      "29 por ciento del ancho, oculta en OBS.", frase)
 
     def test_captura_oculta_no_tapa(self):
         frase = obs_escena.describir_escena(
@@ -98,7 +98,7 @@ class DescribirEscenaTest(unittest.TestCase):
              elemento(2, "Captura", 1, 800, 450, 1600, 900, 0, visible=False)],
             *LIENZO, {"Panel": "navegador", "Captura": "captura de pantalla"})
         self.assertIn("2: Panel, navegador, abajo a la izquierda, "
-                      "460 por 620 píxeles, se ve.", frase)
+                      "29 por ciento del ancho, se ve.", frase)
 
     def test_tapa_leve_no_se_dice(self):
         # El frente cubre 200 por 100 de 460 por 620: 7 %, debajo del aviso.
@@ -108,7 +108,7 @@ class DescribirEscenaTest(unittest.TestCase):
              elemento(2, "Aviso", 1, 32, 262, 200, 100, 5)],
             *LIENZO, {"Panel": "navegador", "Aviso": "texto"})
         self.assertIn("2: Panel, navegador, abajo a la izquierda, "
-                      "460 por 620 píxeles, se ve.", frase)
+                      "29 por ciento del ancho, se ve.", frase)
 
     def test_nombra_a_la_que_mas_tapa(self):
         # A cubre la mitad izquierda (50 %), B una franja de arriba (30 %).
@@ -157,7 +157,7 @@ class DescribirEscenaTest(unittest.TestCase):
             frase,
             "Escena actual: Principal. 1 fuente, de adelante hacia atrás.\n"
             "1: Juego, captura de juego, cerca de la posición centro a la derecha, "
-            "800 por 450 píxeles, se ve y un 25 por ciento queda "
+            "la mitad del vídeo, se ve y un 25 por ciento queda "
             "fuera del vídeo.")
 
     def test_sin_transformacion_no_rompe_el_resto(self):
@@ -211,7 +211,7 @@ class FilasDeEscenaTest(unittest.TestCase):
         self.assertEqual(
             [fila.texto for fila in filas],
             ["Chat en el vídeo, navegador, abajo a la derecha, "
-             "460 por 620 píxeles, se ve, bloqueada",
+             "29 por ciento del ancho, se ve, bloqueada",
              "Cámara, cámara, ocupa todo el vídeo, se ve en parte: "
              "Chat en el vídeo tapa el 20 por ciento"])
         self.assertEqual([fila.nombre for fila in filas],
@@ -223,9 +223,22 @@ class FilasDeEscenaTest(unittest.TestCase):
             *LIENZO, {"Panel": "navegador"})
         self.assertEqual(
             filas[0].texto,
-            "Panel, navegador, abajo a la izquierda, 460 por 620 píxeles, "
+            "Panel, navegador, abajo a la izquierda, 29 por ciento del ancho, "
             "oculta en OBS")
         self.assertFalse(filas[0].visible)
+
+    def test_una_fraccion_comun_se_dice_con_palabras(self):
+        filas = obs_escena.filas_de_escena(
+            [elemento(1, "Panel", 0, 0, 0, 400, 300, 5)],
+            *LIENZO, {"Panel": "navegador"})
+        self.assertEqual(filas[0].tamano, "un cuarto del vídeo")
+        self.assertEqual(filas[0].tipo, "navegador")
+
+    def test_fuera_de_las_fracciones_dice_el_porcentaje_del_ancho(self):
+        filas = obs_escena.filas_de_escena(
+            [elemento(1, "Panel", 0, 0, 0, 460, 620, 5)],
+            *LIENZO, {"Panel": "navegador"})
+        self.assertEqual(filas[0].tamano, "29 por ciento del ancho")
 
     def test_una_bloqueada_termina_en_bloqueada(self):
         filas = obs_escena.filas_de_escena(
@@ -276,7 +289,7 @@ class ZonaCercanaTest(unittest.TestCase):
             1360, 768, {})
         self.assertIn(
             "1: Panel, cerca de la posición arriba a la izquierda, "
-            "460 por 620 píxeles, se ve.", frase)
+            "un tercio del vídeo, se ve.", frase)
 
     def test_la_esquina_no_decide_la_zona_sino_el_centro(self):
         # La esquina (200, 350) cae a la izquierda, el centro (300, 400)

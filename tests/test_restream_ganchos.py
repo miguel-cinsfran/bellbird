@@ -1,9 +1,11 @@
 """Pruebas de los ganchos de Restream antes de iniciar OBS."""
 
+import logging
 import unittest
 from types import SimpleNamespace
 from unittest import mock
 
+from guyrapu.core import diagnostico
 from guyrapu.obs import obs_cliente
 from guyrapu.restream import api, ganchos
 from guyrapu.restream.api import Canal
@@ -168,6 +170,38 @@ class TestPrepararEmision(unittest.TestCase):
             preparar(None)
 
         self.assertEqual(cuenta.llamadas[-1], ("activar", 1, False))
+
+    def test_la_clave_no_aparece_en_el_registro_ni_en_el_error(self):
+        perfil = _perfil(canales=(1,))
+        cuenta = CuentaFalsa([_canal(1, "YouTube", False)])
+        escritor = EscritorFalso(fallo=obs_cliente.ObsError(
+            "OBS no aplicó el destino. Vuelve a intentarlo."))
+        preparar, _restaurar, _anuncios = _armar(
+            "restream:Uno", cuenta, perfil, escritor=escritor)
+
+        registros = []
+
+        class Captor(logging.Handler):
+            def emit(self, record):
+                registros.append(record.getMessage())
+
+        captor = Captor()
+        loggers = (ganchos.logger, diagnostico.logger)
+        niveles = [(logger, logger.level) for logger in loggers]
+        for logger in loggers:
+            logger.setLevel(logging.DEBUG)
+            logger.addHandler(captor)
+        try:
+            with self.assertRaises(EmisionError) as contexto_error:
+                preparar(None)
+        finally:
+            for logger, nivel in niveles:
+                logger.setLevel(nivel)
+                logger.removeHandler(captor)
+
+        self.assertEqual(escritor.llamadas[0][2], "clave-secreta")
+        self.assertNotIn("clave-secreta", str(contexto_error.exception))
+        self.assertNotIn("clave-secreta", "\n".join(registros))
 
 
 class TestRestauracion(unittest.TestCase):

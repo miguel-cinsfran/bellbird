@@ -153,8 +153,11 @@ def _con_cuadro(transformacion, lienzo_ancho, lienzo_alto, tipo):
     nueva = dict(transformacion)
     nueva["boundsType"] = tipo
     nueva["boundsAlignment"] = 0
-    nueva["boundsWidth"] = float(lienzo_ancho)
-    nueva["boundsHeight"] = float(lienzo_alto)
+    ancho, alto = float(lienzo_ancho), float(lienzo_alto)
+    if abs(float(transformacion.get("rotation") or 0) % 180 - 90) < 1e-6:
+        ancho, alto = alto, ancho
+    nueva["boundsWidth"] = ancho
+    nueva["boundsHeight"] = alto
     nueva["alignment"] = 0
     nueva["positionX"] = float(lienzo_ancho) / 2
     nueva["positionY"] = float(lienzo_alto) / 2

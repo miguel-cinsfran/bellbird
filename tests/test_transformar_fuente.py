@@ -20,10 +20,10 @@ def fuente(**cambios):
     return datos
 
 
-def fuente_medida():
+def fuente_medida(**cambios):
     return fuente(
         positionX=300.0, positionY=200.0, width=400.0, height=200.0,
-        sourceWidth=400.0, sourceHeight=200.0)
+        sourceWidth=400.0, sourceHeight=200.0, **cambios)
 
 
 class TextoDeTamanoTest(unittest.TestCase):
@@ -91,6 +91,22 @@ class TransformacionesTest(unittest.TestCase):
         self.assertEqual(nueva["boundsType"], "OBS_BOUNDS_SCALE_OUTER")
         self.assertEqual(nueva["boundsWidth"], 1600)
         self.assertEqual(nueva["boundsHeight"], 900)
+
+    def test_llenar_con_giro_de_90_cubre_el_video(self):
+        nueva = transformar_fuente.llenar(
+            fuente_medida(rotation=90), 1600, 900)
+        self.assertEqual(
+            transformar_fuente.caja_visible(nueva), (0, 0, 1600, 900))
+
+    def test_ajustar_con_giro_de_90_entra_en_el_video(self):
+        nueva = transformar_fuente.ajustar(
+            fuente_medida(rotation=90), 1600, 900)
+        izquierda, arriba, ancho, alto = transformar_fuente.caja_visible(
+            nueva)
+        self.assertGreaterEqual(izquierda, 0)
+        self.assertGreaterEqual(arriba, 0)
+        self.assertLessEqual(izquierda + ancho, 1600)
+        self.assertLessEqual(arriba + alto, 900)
 
     def test_voltear_horizontal_cambia_el_signo_y_conserva_el_centro(self):
         original = fuente()

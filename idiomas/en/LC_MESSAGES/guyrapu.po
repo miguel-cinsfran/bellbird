@@ -4992,10 +4992,10 @@ msgstr ""
 #: guyrapu/ui/atajos_captura.py
 msgid ""
 "Debe ser una tecla de función, de F1 a F12 (por ejemplo F2). Puede ir sola,"
-" con Ctrl o con Ctrl+Mayús (por ejemplo Ctrl+F2)."
+" con Ctrl, con Ctrl+Mayús o con Alt (por ejemplo Ctrl+F2 o Alt+F3)."
 msgstr ""
-"It must be a function key, from F1 to F12, alone, with Ctrl or with "
-"Ctrl+Shift (for example F2 or Ctrl+F2)."
+"It must be a function key, from F1 to F12, alone, with Ctrl, with "
+"Ctrl+Shift or with Alt (for example F2, Ctrl+F2 or Alt+F3)."
 
 #: guyrapu/ui/atajos_captura.py
 msgid "Ir al directo"
@@ -5143,6 +5143,10 @@ msgstr "Announce camera framing"
 #: guyrapu/ui/atajos_captura.py
 msgid "Avisar si el rostro sale del encuadre"
 msgstr "Warn when the face leaves the frame"
+
+#: guyrapu/ui/atajos_captura.py
+msgid "Mostrar u ocultar la cámara"
+msgstr "Show or hide the camera"
 
 #: guyrapu/ui/atajos_captura.py
 msgid "Región siguiente"
@@ -5631,6 +5635,27 @@ msgstr "{cantidad} results"
 #, python-brace-format
 msgid "No hay coincidencias con {texto}"
 msgstr "No matches for {texto}"
+
+#. Traductores: respuesta al atajo que oculta la cámara.
+#: guyrapu/ui/camara_atajos.py
+msgid "Cámara oculta"
+msgstr "Camera hidden"
+
+#. Traductores: respuesta al atajo que vuelve a mostrar la cámara.
+#: guyrapu/ui/camara_atajos.py
+msgid "Cámara visible"
+msgstr "Camera visible"
+
+#. Traductores: confirmación de que los atajos de cámara valen fuera de la app.
+#: guyrapu/ui/camara_atajos.py
+msgid "Atajos de cámara en cualquier aplicación"
+msgstr "Camera shortcuts in any application"
+
+#. Traductores: confirmación de que los atajos de cámara valen solo en la app.
+#: guyrapu/ui/camara_atajos.py
+#, python-brace-format
+msgid "Atajos de cámara solo en {app}"
+msgstr "Camera shortcuts only in {app}"
 
 #: guyrapu/ui/chat_recientes.py
 msgid "Mensajes recientes del chat en cualquier aplicación"
@@ -8736,6 +8761,10 @@ msgid "A&visar si el rostro sale del encuadre"
 msgstr "Warn when the face &leaves the frame"
 
 #: guyrapu/ui/menu_obs.py
+msgid "Mo&strar u ocultar la cámara"
+msgstr "Show or hide the &camera"
+
+#: guyrapu/ui/menu_obs.py
 msgid "Panel de &OBS…"
 msgstr "&OBS panel…"
 
@@ -9226,6 +9255,10 @@ msgstr "8-bit"
 #: guyrapu/ui/preferencias_camara.py
 msgid "Sonido de la guía"
 msgstr "Guide sound"
+
+#: guyrapu/ui/preferencias_camara.py
+msgid "Usar atajos de cámara en cualquier a&plicación"
+msgstr "Use camera shortcuts in any a&pplication"
 
 #: guyrapu/ui/preferencias_descargas.py
 msgid "Carpeta de &descargas:"

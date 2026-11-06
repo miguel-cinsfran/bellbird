@@ -1,4 +1,4 @@
-<!-- original: es/MANUAL.md 8175ebf94fa701368b7418036a2418fc7586df1c -->
+<!-- original: es/MANUAL.md ad678a8f0c2ffbf1afabb9dd71c5de7f5baf64e0 -->
 # Bellbird, user manual
 
 This is a translation of the Spanish original, made with artificial intelligence. If you find an error, report it at https://github.com/miguel-cinsfran/bellbird/issues. See the [original in Spanish](../es/MANUAL.md).
@@ -498,6 +498,12 @@ right indications come out reversed, check *Invert left and right*. The guide
 sound is chosen in the *Guide sound* list. The warnings are turned on from the
 same category.
 
+`Alt+F3` hides or shows the camera in the program scene again without turning
+the device off. The *OBS* menu has the same command, *Show or hide the camera*.
+The *Use camera shortcuts in any application* checkbox, in *Preferences*, on the
+*Camera* category, also makes `Ctrl+F3`, `Ctrl+Shift+F3` and `Alt+F3` work with
+another program in the foreground. It is unchecked by default.
+
 If OBS has no camera, you can add one in *Preferences*, on the *Camera*
 category, with *Add camera to OBS…*: it uses a Windows camera and leaves it at
 the bottom right of the video, in front of the other sources. To move it, use
@@ -807,6 +813,7 @@ shortcuts. They all also appear in the menu bar, next to their action.
 | `Ctrl+Shift+F2` | Ask the AI about the scene |
 | `Ctrl+F3` | Announce camera framing |
 | `Ctrl+Shift+F3` | Warn when the face leaves the frame |
+| `Alt+F3` | Show or hide the camera |
 
 When you repeat a speed or volume adjustment, the first time it says the name
 and the value (“Voice volume: 40%”) and after that only the value.

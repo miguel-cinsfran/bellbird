@@ -55,4 +55,5 @@ ATAJOS_PREDETERMINADOS = [
     ("preguntar_ia", "ctrl+shift+i"),
     ("anunciar_encuadre", "ctrl+f3"),
     ("avisos_encuadre", "ctrl+shift+f3"),
+    ("camara_visible", "alt+f3"),
 ]

@@ -27,6 +27,7 @@ def aplicar_en_caliente(frame):
     _aplicar_reproductor(frame)
     _aplicar_musica(frame)
     _aplicar_recientes(frame)
+    _aplicar_camara_atajos(frame)
     frame._actualizar_vigilante_obs()
     from guyrapu.ui import gui as _gui
     _gui.anunciar(_("Preferencias aplicadas"))
@@ -168,3 +169,13 @@ def _aplicar_recientes(frame):
         frame._recientes.aplicar_preferencias()
     except Exception as exc:
         logger.debug("aplicar recientes desde preferencias: %s", exc, exc_info=True)
+
+
+def _aplicar_camara_atajos(frame):
+    try:
+        camara_atajos = getattr(frame, "_camara_atajos", None)
+        if camara_atajos is not None:
+            camara_atajos.aplicar_preferencias()
+    except Exception as exc:
+        logger.debug("aplicar atajos de cámara desde preferencias: %s", exc,
+                     exc_info=True)

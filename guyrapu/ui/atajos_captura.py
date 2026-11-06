@@ -50,7 +50,7 @@ _AREA_AYUDA = {
     "ctrl+shift": N_("Debe ser Ctrl+Mayús y una tecla (por ejemplo Ctrl+Mayús+P)."),
     "alt+shift": N_("Debe ser Alt+Mayús y una tecla (por ejemplo Alt+Mayús+C)."),
     "ctrl+alt": N_("Debe ser Ctrl+Alt y una flecha, Espacio, una letra o un número (por ejemplo Ctrl+Alt+T). También se acepta Ctrl+Alt+Mayús y Flecha izquierda o derecha."),
-    "f": N_("Debe ser una tecla de función, de F1 a F12 (por ejemplo F2). Puede ir sola, con Ctrl o con Ctrl+Mayús (por ejemplo Ctrl+F2)."),
+    "f": N_("Debe ser una tecla de función, de F1 a F12 (por ejemplo F2). Puede ir sola, con Ctrl, con Ctrl+Mayús o con Alt (por ejemplo Ctrl+F2 o Alt+F3)."),
 }
 ETIQUETAS = {
     # Reproductor
@@ -93,6 +93,7 @@ ETIQUETAS = {
     "consulta_rapida_ia": N_("Preguntar a la IA sobre la escena"),
     "anunciar_encuadre": N_("Anunciar encuadre de cámara"),
     "avisos_encuadre": N_("Avisar si el rostro sale del encuadre"),
+    "camara_visible": N_("Mostrar u ocultar la cámara"),
     "region_siguiente": N_("Región siguiente"), "region_anterior": N_("Región anterior"),
     # Música (Ctrl+Alt)
     "musica_play": N_("Reproducir o pausar la música"),

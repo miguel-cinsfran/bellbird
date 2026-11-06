@@ -1925,6 +1925,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("transmision", "camara_fuente"),
             ("transmision", "camara_invertir"),
             ("transmision", "guia_timbre"),
+            ("transmision", "camara_atajos_globales"),
             ("musica", "aleatorio"), ("musica", "repetir"),
             ("musica", "retomar"), ("musica", "sonido_tema"),
             ("musica", "decir"), ("musica", "decir_pausa"), ("musica", "normalizar"),

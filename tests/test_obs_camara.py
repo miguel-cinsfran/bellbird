@@ -15,13 +15,15 @@ def dato_imagen(crudo, formato):
 
 
 def elemento(nombre, indice, habilitado=None, transformacion=None,
-             es_grupo=False):
+             es_grupo=False, id_elemento=None):
     item = {"sourceName": nombre, "sceneItemIndex": indice,
             "isGroup": es_grupo}
     if habilitado is not None:
         item["sceneItemEnabled"] = habilitado
     if transformacion is not None:
         item["sceneItemTransform"] = dict(transformacion)
+    if id_elemento is not None:
+        item["sceneItemId"] = id_elemento
     return item
 
 
@@ -42,6 +44,7 @@ class Doble:
         self.cuadro = cuadro
         self.falla_cuadro = falla_cuadro
         self.llamadas = []
+        self.cambios = []
 
     def pedir(self, tipo, datos=None, parada=None):
         self.llamadas.append((tipo, dict(datos or {})))
@@ -61,6 +64,9 @@ class Doble:
             if self.falla_cuadro:
                 raise obs_cliente.ObsError("Failed to render screenshot")
             return {"responseData": {"imageData": self.cuadro_dato}}
+        if tipo == "SetSceneItemEnabled":
+            self.cambios.append(dict(datos or {}))
+            return {"responseData": {}}
         raise AssertionError(tipo)
 
     def tipos(self):
@@ -153,6 +159,104 @@ class TestBuscarConNombre(unittest.TestCase):
             obs_camara.buscar_camara(doble, "Foto")
         self.assertEqual(str(contexto.exception),
                          "La fuente Foto no está en la escena actual.")
+
+
+class TestElementoCamara(unittest.TestCase):
+    """La cámara aunque esté oculta, con el contenedor y su id."""
+
+    def test_encuentra_la_oculta_en_la_escena_al_aire(self):
+        doble = Doble(
+            por_escena={"Principal": [elemento("Cam", 1, habilitado=False,
+                                               id_elemento=7)]},
+            entradas=[entrada("Cam")])
+        hallada = obs_camara.elemento_camara(doble)
+        self.assertEqual(hallada.contenedor, "Principal")
+        self.assertEqual(hallada.id, 7)
+        self.assertFalse(hallada.visible)
+
+    def test_la_de_adelante_cuando_hay_dos(self):
+        doble = Doble(
+            por_escena={"Principal": [
+                elemento("Atras", 1, id_elemento=4),
+                elemento("Adelante", 2, id_elemento=5)]},
+            entradas=[entrada("Atras"), entrada("Adelante")])
+        hallada = obs_camara.elemento_camara(doble)
+        self.assertEqual(hallada.id, 5)
+
+    def test_dentro_de_escena_anidada(self):
+        doble = Doble(
+            por_escena={"Principal": [elemento("Anidada", 1, id_elemento=1)],
+                        "Anidada": [elemento("Cam", 1, habilitado=False,
+                                             id_elemento=9)]},
+            entradas=[entrada("Cam")])
+        hallada = obs_camara.elemento_camara(doble)
+        self.assertEqual(hallada.contenedor, "Anidada")
+        self.assertEqual(hallada.id, 9)
+        self.assertFalse(hallada.visible)
+
+    def test_dentro_de_grupo(self):
+        doble = Doble(
+            por_escena={"Principal": [elemento("Grupo", 1, es_grupo=True,
+                                               id_elemento=2)]},
+            grupos={"Grupo": [elemento("Cam", 1, habilitado=False,
+                                       id_elemento=8)]},
+            entradas=[entrada("Cam")])
+        hallada = obs_camara.elemento_camara(doble)
+        self.assertEqual(hallada.contenedor, "Grupo")
+        self.assertEqual(hallada.id, 8)
+        self.assertFalse(hallada.visible)
+
+    def test_no_entra_en_una_escena_anidada_oculta(self):
+        doble = Doble(
+            por_escena={"Principal": [elemento("Anidada", 1,
+                                               habilitado=False)],
+                        "Anidada": [elemento("Cam", 1, id_elemento=9)]},
+            entradas=[entrada("Cam")])
+        with self.assertRaises(CamaraNoEncontrada):
+            obs_camara.elemento_camara(doble)
+
+    def test_con_nombre_trae_esa_fuente(self):
+        doble = Doble(
+            por_escena={"Principal": [elemento("Foto", 1, habilitado=False,
+                                               id_elemento=3)]},
+            entradas=[entrada("Foto", "image_source")])
+        hallada = obs_camara.elemento_camara(doble, "Foto")
+        self.assertEqual(hallada.contenedor, "Principal")
+        self.assertEqual(hallada.id, 3)
+        self.assertFalse(hallada.visible)
+
+
+class TestAlternarCamara(unittest.TestCase):
+
+    def test_oculta_la_visible_con_su_contenedor_e_id(self):
+        doble = Doble(
+            por_escena={"Principal": [elemento("Cam", 1, id_elemento=7)]},
+            entradas=[entrada("Cam")])
+        self.assertFalse(obs_camara.alternar_camara(doble))
+        self.assertEqual(doble.cambios, [
+            {"sceneName": "Principal", "sceneItemId": 7,
+             "sceneItemEnabled": False}])
+
+    def test_muestra_la_oculta_con_su_contenedor_e_id(self):
+        doble = Doble(
+            por_escena={"Principal": [elemento("Cam", 1, habilitado=False,
+                                               id_elemento=7)]},
+            entradas=[entrada("Cam")])
+        self.assertTrue(obs_camara.alternar_camara(doble))
+        self.assertEqual(doble.cambios, [
+            {"sceneName": "Principal", "sceneItemId": 7,
+             "sceneItemEnabled": True}])
+
+    def test_sin_camara_lanza_su_frase(self):
+        doble = Doble(
+            por_escena={"Principal": [elemento("Foto", 1,
+                                               id_elemento=1)]},
+            entradas=[entrada("Foto", "image_source")])
+        with self.assertRaises(CamaraNoEncontrada) as contexto:
+            obs_camara.alternar_camara(doble)
+        self.assertEqual(str(contexto.exception),
+                         "No hay ninguna cámara en OBS.")
+        self.assertEqual(doble.cambios, [])
 
 
 class TestFrasesDeError(unittest.TestCase):

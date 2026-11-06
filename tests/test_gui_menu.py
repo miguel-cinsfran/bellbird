@@ -184,6 +184,7 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&OBS", "---", None, "sep"),
             ("&OBS", "Anunciar en&cuadre de cámara", ANY, "normal"),
             ("&OBS", "A&visar si el rostro sale del encuadre", ANY, "check"),
+            ("&OBS", "Mo&strar u ocultar la cámara", ANY, "normal"),
             ("&OBS", "---", None, "sep"),
             ("&OBS", "Mos&trar OBS", ANY, "normal"),
             ("&OBS", "&Avisar si OBS se sobrecarga", ANY, "check"),
@@ -673,13 +674,23 @@ class TestMenuObs(unittest.TestCase):
             ("&OBS", "---", None, "sep"),
             ("&OBS", "Anunciar en&cuadre de cámara	Ctrl+F3",
              ANY, "normal"),
-            ("&OBS", "A&visar si el rostro sale del encuadre	"
+            ("&OBS", "A&visar si el rostro sale del encuadre\t"
              "Ctrl+Shift+F3", ANY, "check"),
+            ("&OBS", "Mo&strar u ocultar la cámara\tAlt+F3",
+             ANY, "normal"),
             ("&OBS", "---", None, "sep"),
             ("&OBS", "Mos&trar OBS	Alt+Shift+O", ANY, "normal"),
             ("&OBS", "&Avisar si OBS se sobrecarga	Alt+Shift+A",
              ANY, "check"),
         ], _entradas_de("&OBS"))
+
+    def test_mostrar_u_ocultar_va_despues_del_aviso_y_con_alt_f3(self):
+        entradas = _entradas_de("&OBS")
+        etiquetas = [fila[1] for fila in entradas]
+        indice = next(i for i, texto in enumerate(etiquetas)
+                      if texto.startswith("A&visar si el rostro"))
+        self.assertEqual(etiquetas[indice + 1],
+                         "Mo&strar u ocultar la cámara\tAlt+F3")
 
     def test_la_letra_no_se_repite_en_el_menu(self):
         letras = [texto[texto.index("&") + 1].lower()
@@ -830,6 +841,53 @@ class TestCableadoComandosGrabacion(unittest.TestCase):
             frame = self._frame_con_menu()
             self._elegir(frame, frame.mi_obs_pausar_grabacion)
         comando.assert_called_once_with(frame)
+
+
+class TestCableadoCamaraVisible(unittest.TestCase):
+    """El comando de cámara queda enlazado y el marco tiene sus atajos."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.app = app_de_prueba()
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.app
+
+    def _frame_con_menu(self):
+        from guyrapu.ui import menu_obs
+
+        frame = wx.Frame(None)
+        self.addCleanup(destruir, frame)
+        frame._accel = lambda _accion: ""
+        frame._bind_menu = gui.VentanaPrincipal._bind_menu.__get__(frame)
+        frame._config = {"avisar_sobrecarga": True}
+        frame._on_obs_micro = mock.Mock()
+        frame._alternar_aviso_sobrecarga = mock.Mock()
+        barra = wx.MenuBar()
+        menu_obs.construir(frame, barra)
+        frame.SetMenuBar(barra)
+        return frame
+
+    def test_el_comando_llama_a_alternar_camara_con_el_marco(self):
+        from guyrapu.ui import camara_atajos, menu_obs
+
+        with mock.patch.object(camara_atajos,
+                               "alternar_camara") as alternar:
+            frame = self._frame_con_menu()
+            with mock.patch.object(menu_obs.wx, "CallAfter",
+                                   side_effect=lambda fn, *a: fn(*a)):
+                evento = wx.CommandEvent(
+                    wx.EVT_MENU.typeId, frame.mi_camara_visible.GetId())
+                frame.GetEventHandler().ProcessEvent(evento)
+        alternar.assert_called_once_with(frame)
+
+    def test_construir_deja_los_atajos_de_camara_en_el_marco(self):
+        from guyrapu.ui import camara_atajos
+
+        frame = self._frame_con_menu()
+        self.assertIsInstance(frame._camara_atajos,
+                              camara_atajos.CamaraAtajos)
 
 
 # Textos que arma otro módulo y la barra solo muestra. Las etiquetas de

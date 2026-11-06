@@ -123,6 +123,36 @@ class TestPaginaCamara(unittest.TestCase):
         self.assertEqual(cambios[("transmision", "avisar_encuadre")], "false")
         self.assertEqual(cambios[("transmision", "camara_invertir")], "true")
 
+    def test_los_atajos_globales_estan_apagados_de_fabrica(self):
+        dialogo = self._dialogo({})
+        casilla = dialogo.pagina_camara.chk_camara_atajos_globales
+        self.assertEqual(casilla.GetName(), "CamaraAtajosGlobales")
+        self.assertFalse(casilla.GetValue())
+
+    def test_los_atajos_globales_quedan_al_final_de_la_pagina(self):
+        dialogo = self._dialogo({})
+        pagina = dialogo.nb.GetPage(
+            self._indice_categoria(dialogo, "Cámara"))
+        hijos = [h for h in pagina.GetChildren() if h.IsShown()]
+        self.assertIs(hijos[-1],
+                      dialogo.pagina_camara.chk_camara_atajos_globales)
+
+    def test_la_casilla_muestra_el_valor_guardado(self):
+        dialogo = self._dialogo({"camara_atajos_globales": True})
+        self.assertTrue(
+            dialogo.pagina_camara.chk_camara_atajos_globales.GetValue())
+
+    def test_guardar_deja_la_preferencia_en_transmision(self):
+        dialogo = self._dialogo({})
+        dialogo.pagina_camara.chk_camara_atajos_globales.SetValue(True)
+        cambios = {}
+        dialogo.pagina_camara.guardar(
+            lambda s, k, v: cambios.setdefault((s, k), v), dialogo._config)
+        self.assertEqual(
+            cambios[("transmision", "camara_atajos_globales")], "true")
+        self.assertIs(
+            dialogo._config["camara_atajos_globales"], True)
+
     def _indice_categoria(self, dialogo, nombre):
         for i in range(dialogo.nb.GetPageCount()):
             if dialogo.nb.GetPageText(i) == nombre:

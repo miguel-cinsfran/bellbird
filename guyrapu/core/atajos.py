@@ -73,7 +73,7 @@ ATAJOS_GRUPOS = [
        "volumen_menos", "volumen_mas", "silenciar_lectura",
        "silenciar_sonidos", "anunciar_estado", "anunciar_autor",
         "describir_escena", "consulta_rapida_ia",
-        "anunciar_encuadre", "avisos_encuadre"]),
+        "anunciar_encuadre", "avisos_encuadre", "camara_visible"]),
     (N_("Música (Ctrl+Alt)"),
      ["musica_play", "musica_siguiente", "musica_anterior",
       "musica_vol_mas", "musica_vol_menos", "musica_que_suena",
@@ -137,7 +137,8 @@ _RE_FKEY  = re.compile(r"^f(1[0-2]|[1-9])$", re.IGNORECASE)
 _RE_CTRL_FKEY = re.compile(r"^ctrl\+f(1[0-2]|[1-9])$", re.IGNORECASE)
 _RE_CTRL_SHIFT_FKEY = re.compile(
     r"^ctrl\+shift\+f(1[0-2]|[1-9])$", re.IGNORECASE)
-_RE_F_TODAS = (_RE_FKEY, _RE_CTRL_FKEY, _RE_CTRL_SHIFT_FKEY)
+_RE_ALT_FKEY = re.compile(r"^alt\+f(1[0-2]|[1-9])$", re.IGNORECASE)
+_RE_F_TODAS = (_RE_FKEY, _RE_CTRL_FKEY, _RE_CTRL_SHIFT_FKEY, _RE_ALT_FKEY)
 
 logger = diagnostico.obtener_logger(__name__)
 

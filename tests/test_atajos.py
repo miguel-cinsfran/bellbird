@@ -261,7 +261,9 @@ class TestParsearAtajos(unittest.TestCase):
                 self.assertIn(accion, ATAJOS_FIJOS_DEFAULTS)
                 continue
             if area == "f":
-                self.assertRegex(normalizado, r"^(ctrl\+(shift\+)?)?f(1[0-2]|[1-9])$")
+                self.assertRegex(
+                    normalizado,
+                    r"^((ctrl\+|alt\+|ctrl\+shift\+)?)f(1[0-2]|[1-9])$")
             else:
                 self.assertTrue(normalizado.startswith(area + "+"))
         self.assertEqual(set(ATAJOS_FIJOS_DEFAULTS) | {
@@ -356,7 +358,8 @@ class TestParsearAtajos(unittest.TestCase):
                 ("musica_adelantar", "ctrl+alt+shift+right", "ctrl+alt"),
                 ("musica_retroceder", "ctrl+alt+shift+left", "ctrl+alt"),
                 ("anunciar_encuadre", "ctrl+f3", "f"),
-                ("avisos_encuadre", "ctrl+shift+f3", "f")):
+                ("avisos_encuadre", "ctrl+shift+f3", "f"),
+                ("camara_visible", "alt+f3", "f")):
             self.assertEqual(ATAJOS_DEFAULTS[accion], valor)
             self.assertTrue(atajo_valido_para_area(accion, valor),
                             f"{accion} no tiene un atajo válido para su área")

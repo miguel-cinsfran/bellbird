@@ -18,7 +18,7 @@ from guyrapu.capture import estado_sesion
 from guyrapu.core import atajos
 from guyrapu.obs.obs_camara import CamaraNoEncontrada, CamaraObs
 from guyrapu.obs.obs_captura_ia import CapturaFallida
-from guyrapu.ui import encuadre_camara, guia_encuadre
+from guyrapu.ui import camara_atajos, encuadre_camara, guia_encuadre
 
 
 def _rostro_centrado():
@@ -43,6 +43,18 @@ class MarcoFalso:
 
     def IsBeingDeleted(self):
         return False
+
+
+class _HiloInmediato:
+    def __init__(self, target):
+        self._target = target
+
+    def start(self):
+        self._target()
+
+
+def _crear_hilo_inmediato(target, nombre, **kwargs):
+    return _HiloInmediato(target)
 
 
 def _nuevo_marco(**config):
@@ -406,6 +418,78 @@ class TestVigilancia(_Testigo):
         self.assertEqual(inst._ultima_frase, "Ningún rostro.")
 
 
+class TestCamaraOculta(_Testigo):
+
+    def _con_camara_en_fuera(self):
+        marco = _nuevo_marco(avisar_encuadre=True)
+        inst = self.inst(marco)
+        inst._detector = mock.Mock()
+        inst._detector.analizar.return_value = _cuadro_con(
+            [_rostro_centrado()], b"rostro")
+        inst._camara = CamaraObs("Cam", False)
+        inst._ultima_busqueda = 9.0
+        # Venía avisando que el rostro estaba fuera; el siguiente cuadro
+        # bueno daría el aviso de vuelta si no se reiniciara el vigía.
+        inst._vigia._anunciado = "fuera"
+        inst._vigia._racha_mal = False
+        inst._vigia._inicio_racha = 0.0
+        self.patch_obj(encuadre_camara.obs_activacion,
+                       "obs_esta_en_ejecucion", return_value=True)
+        self.patch_obj(encuadre_camara.obs_cliente, "ClienteObs")
+        buscar = self.patch_obj(
+            encuadre_camara.obs_camara, "buscar_camara",
+            side_effect=CamaraNoEncontrada(
+                "La cámara de OBS no está en la escena actual."))
+        self.patch_obj(encuadre_camara.obs_camara, "capturar_cuadro",
+                       return_value=b"cuadro")
+        return marco, inst, buscar
+
+    def _ocultar(self, marco):
+        with mock.patch.object(camara_atajos.diagnostico, "crear_hilo",
+                               side_effect=_crear_hilo_inmediato), \
+                mock.patch.object(camara_atajos.obs_cliente, "ClienteObs"), \
+                mock.patch.object(camara_atajos.obs_cliente,
+                                  "leer_ajustes"), \
+                mock.patch.object(camara_atajos.obs_camara,
+                                  "alternar_camara", return_value=False), \
+                mock.patch.object(camara_atajos, "anunciar"):
+            camara_atajos.alternar_camara(marco)
+
+    def test_ocultar_olvida_la_camara(self):
+        marco, inst, _buscar = self._con_camara_en_fuera()
+        self._ocultar(marco)
+        self.assertIsNone(inst._camara)
+
+    def test_con_la_camara_oculta_la_vuelta_sigue_sin_avisar(self):
+        marco, inst, _buscar = self._con_camara_en_fuera()
+        anunciar = self.parchear_modulo("anunciar")
+        suena = self.parchear_modulo("reproducir")
+        llamadas = self.parchear_wx()
+        self._ocultar(marco)
+        espera = encuadre_camara._paso(inst, 10.0)
+        self.correr_llamadas(llamadas)
+        self.assertEqual(espera, encuadre_camara.ESPERA_TRAS_FALLO)
+        anunciar.assert_not_called()
+        suena.assert_not_called()
+
+    def test_al_mostrarla_no_llega_un_aviso_atrasado(self):
+        marco, inst, buscar = self._con_camara_en_fuera()
+        anunciar = self.parchear_modulo("anunciar")
+        suena = self.parchear_modulo("reproducir")
+        llamadas = self.parchear_wx()
+        self._ocultar(marco)
+        encuadre_camara._paso(inst, 10.0)
+        # Vuelve a estar visible: el vigía ya se reinició en la pausa.
+        buscar.side_effect = None
+        buscar.return_value = CamaraObs("Cam", False)
+        llamadas.clear()
+        espera = encuadre_camara._paso(inst, 12.0)
+        self.correr_llamadas(llamadas)
+        self.assertEqual(espera, encuadre_camara.INTERVALO_VUELTA)
+        anunciar.assert_not_called()
+        suena.assert_not_called()
+
+
 class TestAlternarAvisos(_Testigo):
 
     def test_activar_guarda_marca_anuncia_y_arranca(self):
@@ -560,14 +644,18 @@ class TestAtajosNuevos(unittest.TestCase):
                          "ctrl+f3")
         self.assertEqual(atajos.ATAJOS_DEFAULTS["avisos_encuadre"],
                          "ctrl+shift+f3")
+        self.assertEqual(atajos.ATAJOS_DEFAULTS["camara_visible"],
+                         "alt+f3")
 
     def test_area_f_y_grupo_de_voz(self):
         self.assertEqual(atajos.ATAJOS_AREA["anunciar_encuadre"], "f")
         self.assertEqual(atajos.ATAJOS_AREA["avisos_encuadre"], "f")
+        self.assertEqual(atajos.ATAJOS_AREA["camara_visible"], "f")
         grupos = dict(atajos.ATAJOS_GRUPOS)
         self.assertIn("anunciar_encuadre",
                       grupos["Voz y lectura (teclas F)"])
         self.assertIn("avisos_encuadre", grupos["Voz y lectura (teclas F)"])
+        self.assertIn("camara_visible", grupos["Voz y lectura (teclas F)"])
 
     def test_ini_sin_ellos_recibe_los_de_fabrica(self):
         atajos_resueltos = atajos.parsear_atajos({})
@@ -575,6 +663,8 @@ class TestAtajosNuevos(unittest.TestCase):
                          "ctrl+f3")
         self.assertEqual(atajos_resueltos["avisos_encuadre"].texto,
                          "ctrl+shift+f3")
+        self.assertEqual(atajos_resueltos["camara_visible"].texto,
+                         "alt+f3")
 
 
 class TestRecuperacion(_Testigo):

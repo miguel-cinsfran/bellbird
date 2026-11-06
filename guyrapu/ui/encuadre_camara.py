@@ -112,6 +112,13 @@ def _instancia_para(frame):
     return instancia
 
 
+def olvidar_camara(frame) -> None:
+    """Suelta la cámara guardada para que la vuelta siguiente la busque."""
+    instancia = _INSTANCIAS.get(id(frame))
+    if instancia is not None and instancia._frame is frame:
+        instancia._camara = None
+
+
 def _fuente(marco) -> str:
     try:
         return str(marco._config.get("camara_fuente", "") or "")

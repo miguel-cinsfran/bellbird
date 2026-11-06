@@ -494,6 +494,12 @@ al revés, marca *Invertir izquierda y derecha*. El sonido de la guía se elige
 en la lista *Sonido de la guía*. Los avisos se activan desde la misma
 categoría.
 
+Con `Alt+F3` se oculta o se vuelve a mostrar la cámara de la escena al aire,
+sin apagar el dispositivo. El menú *OBS* trae el mismo comando, *Mostrar u
+ocultar la cámara*. La casilla *Usar atajos de cámara en cualquier aplicación*,
+en *Preferencias*, categoría *Cámara*, hace que `Ctrl+F3`, `Ctrl+Mayús+F3` y
+`Alt+F3` valgan también con otro programa en primer plano. Viene desmarcada.
+
 Si OBS no tiene ninguna cámara, *Preferencias*, categoría *Cámara*, la agrega
 con *Agregar cámara a OBS…*: usa una cámara de Windows y la deja abajo a la
 derecha del vídeo, delante de las demás fuentes. Para moverla, usa la pestaña
@@ -801,6 +807,7 @@ atajos. Todos figuran además en la barra de menú, junto a su acción.
 | `Ctrl+Mayús+F2` | Preguntar a la IA sobre la escena |
 | `Ctrl+F3` | Anunciar encuadre de cámara |
 | `Ctrl+Mayús+F3` | Avisar si el rostro sale del encuadre |
+| `Alt+F3` | Mostrar u ocultar la cámara |
 
 Al repetir un ajuste de velocidad o de volumen, la primera vez se dice el
 nombre y el valor («Volumen de la voz: 40%») y después solo el valor.

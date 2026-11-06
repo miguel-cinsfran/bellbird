@@ -126,6 +126,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("camara_fuente", ""),
         ("camara_invertir", "false"),
         ("guia_timbre", "normal"),
+        ("camara_atajos_globales", "false"),
         ("youtube_titulo", ""),
         ("youtube_descripcion", ""),
         ("youtube_privacidad", "unlisted"),
@@ -252,7 +253,9 @@ _COMENTARIOS: dict[str, str] = {
         "# descripción guarda los saltos de línea como \\n.\n"
         "# La cámara de la escena actual se busca sola; camara_fuente\n"
         "# la fija por nombre. camara_invertir invierte izquierda y\n"
-        "# derecha además del espejo que informa OBS.\n"
+        "# derecha además del espejo que informa OBS. Con\n"
+        "# camara_atajos_globales, los atajos de cámara valen en\n"
+        "# cualquier aplicación.\n"
         "# clips: 0 desactivados, 30 o 60 segundos de búfer.\n"
         "# clips_chat: permitir !clip en el chat; clips_chat_espera: minutos\n"
         "# entre clips pedidos desde el chat.\n"

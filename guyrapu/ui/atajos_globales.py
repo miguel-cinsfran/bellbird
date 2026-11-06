@@ -8,6 +8,8 @@ que recibe la ventana.
 
 from __future__ import annotations
 
+import re
+
 import wx
 
 from guyrapu.core import diagnostico
@@ -92,6 +94,33 @@ def combinacion_ctrl_mayus(texto: str | None) -> tuple[int, int] | None:
     if len(tecla) == 1 and tecla.isascii() and tecla.isdigit():
         return (wx.MOD_CONTROL | wx.MOD_SHIFT, ord(tecla))
     return None
+
+
+def combinacion_funcion(texto: str | None) -> tuple[int, int] | None:
+    """Traduce una tecla F con modificadores a lo que pide `RegisterHotKey`.
+
+    Acepta F1 a F12 con uno o más de Ctrl, Alt y Mayús, en cualquier orden.
+    Una tecla F sola da None: registrarla en todo el sistema se la quitaría
+    a los demás programas.
+    """
+    partes = (texto or "").strip().lower().replace(" ", "").split("+")
+    if len(partes) < 2:
+        return None
+    tecla = partes[-1]
+    coincidencia = re.fullmatch(r"f(1[0-2]|[1-9])", tecla)
+    if coincidencia is None:
+        return None
+    modificadores = 0
+    for parte in partes[:-1]:
+        if parte == "ctrl":
+            modificadores |= wx.MOD_CONTROL
+        elif parte == "alt":
+            modificadores |= wx.MOD_ALT
+        elif parte == "shift":
+            modificadores |= wx.MOD_SHIFT
+        else:
+            return None
+    return (modificadores, 0x70 + int(coincidencia.group(1)) - 1)
 
 
 class AtajosGlobales:

@@ -18,7 +18,8 @@ from guyrapu.music import anuncios
 from guyrapu.ui import atajos_globales
 from guyrapu.ui.atajos_captura import atajo_legible
 from guyrapu.ui.atajos_globales import (
-    AtajosGlobales, combinacion_ctrl_mayus, combinacion_windows,
+    AtajosGlobales, combinacion_ctrl_mayus, combinacion_funcion,
+    combinacion_windows,
 )
 
 
@@ -112,6 +113,32 @@ class TestCombinacionCtrlMayus(unittest.TestCase):
                       "ctrl+shift+", "ctrl+shift", "", "   ", None, "basura"):
             with self.subTest(texto=texto):
                 self.assertIsNone(combinacion_ctrl_mayus(texto))
+
+
+class TestCombinacionFuncion(unittest.TestCase):
+
+    def test_las_tres_teclas_de_fabrica(self):
+        self.assertEqual(combinacion_funcion("alt+f3"),
+                         (wx.MOD_ALT, 0x72))
+        self.assertEqual(combinacion_funcion("ctrl+f3"),
+                         (wx.MOD_CONTROL, 0x72))
+        self.assertEqual(
+            combinacion_funcion("ctrl+shift+f3"),
+            (wx.MOD_CONTROL | wx.MOD_SHIFT, 0x72))
+
+    def test_cualquier_orden_y_hasta_f12(self):
+        self.assertEqual(
+            combinacion_funcion("shift+ctrl+f12"),
+            (wx.MOD_CONTROL | wx.MOD_SHIFT, 0x7B))
+        self.assertEqual(
+            combinacion_funcion(" ALT + CTRL + f1 "),
+            (wx.MOD_CONTROL | wx.MOD_ALT, 0x70))
+
+    def test_los_rechazos(self):
+        for texto in ("f3", "alt+f13", "alt+x", "", "   ", None,
+                      "alt+", "ctrl+alt", "alt+f0", "alt+shift+ctrl"):
+            with self.subTest(texto=texto):
+                self.assertIsNone(combinacion_funcion(texto))
 
 
 class TestAtajosGlobales(unittest.TestCase):

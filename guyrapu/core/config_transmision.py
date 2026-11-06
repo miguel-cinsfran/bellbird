@@ -56,6 +56,8 @@ def opciones_transmision(p) -> dict:
         "camara_fuente": leer_texto(p, "transmision", "camara_fuente"),
         "camara_invertir": leer_booleano(p, "transmision", "camara_invertir"),
         "guia_timbre": _timbre(p),
+        "camara_atajos_globales": leer_booleano(
+            p, "transmision", "camara_atajos_globales"),
         **_opciones_youtube(p),
     }
 

@@ -35,6 +35,7 @@ class PaginaCamara:
         self._camara(p, vs)
         self._invertir(p, vs)
         self._sonido(p, vs)
+        self._atajos_globales(p, vs)
         p.SetSizer(vs)
         p.Bind(wx.EVT_SHOW, self._al_mostrar)
         return p
@@ -77,6 +78,15 @@ class PaginaCamara:
         self.cho_sonido_guia.SetSelection(tono_guia.TIMBRES.index(timbre))
         vs.Add(self.cho_sonido_guia, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         self.cho_sonido_guia.Bind(wx.EVT_CHOICE, self._elegir_sonido)
+
+    def _atajos_globales(self, p, vs):
+        self.chk_camara_atajos_globales = wx.CheckBox(
+            p, label=_("Usar atajos de cámara en cualquier a&plicación"),
+            name="CamaraAtajosGlobales")
+        self.chk_camara_atajos_globales.SetValue(
+            bool(self._config.get("camara_atajos_globales", False)))
+        vs.Add(self.chk_camara_atajos_globales, 0,
+               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
 
     def _elegir_sonido(self, event):
         timbre = tono_guia.TIMBRES[self.cho_sonido_guia.GetSelection()]
@@ -134,3 +144,10 @@ class PaginaCamara:
         timbre = tono_guia.TIMBRES[self.cho_sonido_guia.GetSelection()]
         fijar("transmision", "guia_timbre", timbre)
         en_memoria["guia_timbre"] = timbre
+        self._guardar_atajos_globales(fijar, en_memoria)
+
+    def _guardar_atajos_globales(self, fijar, en_memoria):
+        globales = bool(self.chk_camara_atajos_globales.GetValue())
+        fijar("transmision", "camara_atajos_globales",
+              "true" if globales else "false")
+        en_memoria["camara_atajos_globales"] = globales

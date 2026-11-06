@@ -9,7 +9,7 @@ from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.obs import obs_entradas_audio
 from guyrapu.obs import obs_ventana
-from guyrapu.ui import encuadre_camara
+from guyrapu.ui import camara_atajos, encuadre_camara
 from guyrapu.ui.accesibilidad import anunciar
 
 
@@ -36,10 +36,15 @@ def _agregar_encuadre(frame, m):
     frame.mi_avisos_encuadre = m.AppendCheckItem(
         wx.ID_ANY, _("A&visar si el rostro sale del encuadre") + frame._accel("avisos_encuadre"))
     frame.mi_avisos_encuadre.Check(bool(frame._config.get("avisar_encuadre", False)))
+    frame.mi_camara_visible = m.Append(
+        wx.ID_ANY,
+        _("Mo&strar u ocultar la cámara") + frame._accel("camara_visible"))
     frame._bind_menu(frame.mi_anunciar_encuadre,
                      encuadre_camara.anunciar_encuadre, frame)
     frame._bind_menu(frame.mi_avisos_encuadre,
                      encuadre_camara.alternar_avisos, frame)
+    frame._bind_menu(frame.mi_camara_visible,
+                     camara_atajos.alternar_camara, frame)
     encuadre_camara.sincronizar(frame)
     m.AppendSeparator()
 
@@ -74,6 +79,8 @@ def construir(frame, mb):
     _agregar_comandos(m, frame)
     mb.Append(m, _("&OBS"))
     _enlazar(frame, m)
+    if getattr(frame, "_camara_atajos", None) is None:
+        frame._camara_atajos = camara_atajos.CamaraAtajos(frame)
 
 
 def _enlazar(frame, m):

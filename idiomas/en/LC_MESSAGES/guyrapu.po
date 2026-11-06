@@ -11158,18 +11158,6 @@ msgstr "{nombre} - copy"
 msgid "{nombre} - copia {n}"
 msgstr "{nombre} - copy {n}"
 
-#: guyrapu/ui/escena_menu_escena.py
-msgid "Cambiar escena"
-msgstr "Change scene"
-
-#: guyrapu/ui/escena_menu_escena.py
-msgid "Cambiar nombre…"
-msgstr "Rename…"
-
-#: guyrapu/ui/escena_menu_escena.py
-msgid "Guardar imagen…"
-msgstr "Save image…"
-
 #: guyrapu/ui/escena_pagina_escena.py
 msgid "&Escenas:"
 msgstr "&Scenes:"
@@ -11219,15 +11207,19 @@ msgid "Eliminar escena"
 msgstr "Delete scene"
 
 #: guyrapu/ui/escena_pagina_escena.py
-msgid "&Sí"
-msgstr "&Yes"
-
-#: guyrapu/ui/escena_pagina_escena.py
-msgid "&No"
-msgstr "&No"
-
-#: guyrapu/ui/escena_pagina_escena.py
 #, python-brace-format
 msgid "Escena {escena} eliminada."
 msgstr "Scene {escena} deleted."
+
+#: guyrapu/ui/escena_menu_escena.py
+msgid "&Cambiar escena"
+msgstr "&Change scene"
+
+#: guyrapu/ui/escena_menu_escena.py
+msgid "Cambiar &nombre…"
+msgstr "Change &name…"
+
+#: guyrapu/ui/escena_menu_escena.py
+msgid "&Guardar imagen…"
+msgstr "&Save image…"
 

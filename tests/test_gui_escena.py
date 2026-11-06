@@ -263,21 +263,19 @@ class TestVentanaObs(unittest.TestCase):
 
     def _menu_de_escena(self, pagina, al_elegir=None):
         etiquetas = []
-        teclas = []
+        textos = []
 
         def falso_popup(menu):
             for item in _items_del_menu(menu):
                 etiquetas.append(item.GetItemLabelText())
-                accel = item.GetAccel()
-                teclas.append((accel.GetFlags(), accel.GetKeyCode())
-                              if accel else None)
+                textos.append(item.GetItemLabel())
                 if item.GetItemLabelText() == al_elegir:
                     item.GetMenu().ProcessEvent(
                         wx.CommandEvent(wx.EVT_MENU.typeId, item.GetId()))
 
         with mock.patch.object(pagina.lst_escenas, "PopupMenu", falso_popup):
             pagina._mostrar_menu(pagina.lst_escenas)
-        return etiquetas, teclas
+        return etiquetas, textos
 
     def _dialogo_de_nombre(self, valores):
         creados = []
@@ -509,33 +507,15 @@ class TestVentanaObs(unittest.TestCase):
         confirmar.assert_not_called()
         self.assertIn("No se puede eliminar la única escena.", self.anuncios)
 
-    def test_eliminar_pregunta_con_si_y_no(self):
+    def test_eliminar_pregunta_con_eliminar_y_cancelar(self):
         pagina = self.dialogo._pagina_escena
-        creados = []
-
-        class Dialogo:
-
-            def __init__(self, padre, mensaje, titulo, estilo):
-                self.mensaje = mensaje
-                self.titulo = titulo
-                self.etiquetas = None
-                creados.append(self)
-
-            def SetYesNoLabels(self, si, no):
-                self.etiquetas = (si, no)
-
-            def ShowModal(self):
-                return wx.ID_NO
-
-            def Destroy(self):
-                pass
-
         with mock.patch.object(
-                escena_pagina_escena.wx, "MessageDialog", Dialogo):
-            self.assertFalse(pagina._confirmar_eliminar("Juego"))
-        self.assertEqual(creados[0].mensaje, "¿Eliminar la escena Juego?")
-        self.assertEqual(creados[0].titulo, "Eliminar escena")
-        self.assertEqual(creados[0].etiquetas, ("&Sí", "&No"))
+                escena_pagina_escena.confirmar, "preguntar",
+                return_value=True) as preguntar:
+            self.assertTrue(pagina._confirmar_eliminar("Juego"))
+        preguntar.assert_called_once_with(
+            pagina, "¿Eliminar la escena Juego?", "Eliminar escena",
+            "&Eliminar", "&Cancelar", predeterminado_si=False)
 
     def test_un_nombre_vacio_no_crea_nada(self):
         pagina = self.dialogo._pagina_escena
@@ -559,18 +539,15 @@ class TestVentanaObs(unittest.TestCase):
     def test_el_menu_de_la_escena_tiene_sus_acciones_en_orden(self):
         pagina = self.dialogo._pagina_escena
         self._elegir_escena(pagina, "Principal")
-        etiquetas, teclas = self._menu_de_escena(pagina)
+        etiquetas, textos = self._menu_de_escena(pagina)
         self.assertEqual(
             etiquetas,
             ["Cambiar escena", "Cambiar nombre…", "Duplicar", "Eliminar",
              "Guardar imagen…"])
         self.assertEqual(
-            teclas[:4],
-            [(wx.ACCEL_NORMAL, wx.WXK_RETURN),
-             (wx.ACCEL_NORMAL, wx.WXK_F2),
-             (wx.ACCEL_CTRL, ord("D")),
-             (wx.ACCEL_NORMAL, wx.WXK_DELETE)])
-        self.assertIsNone(teclas[4])
+            [texto.split("\t")[-1] for texto in textos[:4]],
+            ["Enter", "F2", "Ctrl+D", "Del"])
+        self.assertEqual(textos[4], "&Guardar imagen…")
 
     def test_cada_entrada_del_menu_de_la_escena_llama_a_su_accion(self):
         pagina = self.dialogo._pagina_escena

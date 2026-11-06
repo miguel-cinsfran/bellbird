@@ -7,6 +7,11 @@ es quien ya sabe listar los elementos de una escena.
 
 from __future__ import annotations
 
+from guyrapu.core import diagnostico
+from guyrapu.obs import obs_cliente
+
+logger = diagnostico.obtener_logger(__name__)
+
 
 def crear(pedir, nombre, parada=None) -> None:
     pedir("CreateScene", {"sceneName": nombre}, parada)
@@ -34,13 +39,18 @@ def inventario(gestor, escenas, parada=None) -> tuple:
 def duplicar(pedir, origen, destino, parada=None) -> None:
     """Crea la escena de destino y copia ahí las fuentes de la de origen.
 
-    DuplicateSceneItem reutiliza la misma fuente, así que una cámara no se
-    abre dos veces. El índice, la transformación y la visibilidad se copian
-    aparte para conservar el orden y la presentación.
+    DuplicateSceneItem reutiliza la misma fuente y ya copia su transformación,
+    así que una cámara no se abre dos veces. El índice y la visibilidad se
+    copian aparte para conservar el orden. Si algo falla después de crear la
+    escena, se la quita para no dejar una copia a medias.
     """
     crear(pedir, destino, parada)
-    for elemento in _elementos(pedir, origen, parada):
-        _duplicar_elemento(pedir, origen, destino, elemento, parada)
+    try:
+        for elemento in _elementos(pedir, origen, parada):
+            _duplicar_elemento(pedir, origen, destino, elemento, parada)
+    except Exception:
+        _quitar_destino(pedir, destino, parada)
+        raise
 
 
 def _elementos(pedir, escena, parada):
@@ -67,11 +77,15 @@ def _copiar_presentacion(pedir, destino, identificador, elemento, parada):
         pedir("SetSceneItemIndex", {
             "sceneName": destino, "sceneItemId": identificador,
             "sceneItemIndex": indice}, parada)
-    transformacion = elemento.get("sceneItemTransform")
-    if transformacion:
-        pedir("SetSceneItemTransform", {
-            "sceneName": destino, "sceneItemId": identificador,
-            "sceneItemTransform": transformacion}, parada)
     pedir("SetSceneItemEnabled", {
         "sceneName": destino, "sceneItemId": identificador,
         "sceneItemEnabled": elemento.get("sceneItemEnabled", True)}, parada)
+
+
+def _quitar_destino(pedir, destino, parada):
+    try:
+        eliminar(pedir, destino, parada)
+    except obs_cliente.ObsError as error:
+        # El fallo de la copia es el que importa: si tampoco se puede quitar
+        # la escena a medias, no se tapa el motivo original.
+        logger.debug("no se pudo quitar la copia de la escena: %s", error)

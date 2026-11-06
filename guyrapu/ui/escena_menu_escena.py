@@ -18,12 +18,12 @@ ACCIONES = {
 def menu_de_escena(cambiar, renombrar, duplicar, eliminar, guardar):
     """Arma el menú de la escena elegida, con la tecla a la vista."""
     menu = wx.Menu()
-    _accion(menu, _("Cambiar escena"), wx.WXK_RETURN, cambiar)
-    _accion(menu, _("Cambiar nombre…"), wx.WXK_F2, renombrar)
-    _accion(menu, _("Duplicar"), ord("D"), duplicar, wx.ACCEL_CTRL)
-    _accion(menu, _("Eliminar"), wx.WXK_DELETE, eliminar)
+    _accion(menu, _("&Cambiar escena") + "\tEnter", cambiar)
+    _accion(menu, _("Cambiar &nombre…") + "\tF2", renombrar)
+    _accion(menu, _("&Duplicar") + "\tCtrl+D", duplicar)
+    _accion(menu, _("E&liminar") + "\tDel", eliminar)
     menu.AppendSeparator()
-    _accion(menu, _("Guardar imagen…"), None, guardar)
+    _accion(menu, _("&Guardar imagen…"), guardar)
     return menu
 
 
@@ -38,9 +38,7 @@ def accion_de_tecla(evento):
     return ACCIONES.get(codigo)
 
 
-def _accion(menu, etiqueta, tecla, funcion, modificador=wx.ACCEL_NORMAL):
+def _accion(menu, etiqueta, funcion):
     identificador = wx.NewIdRef()
-    item = menu.Append(identificador, etiqueta)
-    if tecla is not None:
-        item.SetAccel(wx.AcceleratorEntry(modificador, tecla, identificador))
+    menu.Append(identificador, etiqueta)
     menu.Bind(wx.EVT_MENU, lambda _evento: funcion(), id=identificador)

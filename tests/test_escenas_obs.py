@@ -4,22 +4,26 @@ import unittest
 
 import wx
 
-from guyrapu.obs import escenas_obs
+from guyrapu.obs import escenas_obs, obs_cliente
 from guyrapu.ui import escena_menu_escena
+from tests.letras_acceso import _letra_de_acceso
 from tests.ventanas_prueba import app_de_prueba
 
 
 class PedirFalso:
 
-    def __init__(self, respuestas=None, fallo=None):
+    def __init__(self, respuestas=None, fallo=None, fallos=None):
         self.llamadas = []
         self._respuestas = respuestas or {}
         self._fallo = fallo
+        self._fallos = fallos or {}
 
     def __call__(self, tipo, datos=None, parada=None):
         self.llamadas.append((tipo, datos or {}, parada))
         if self._fallo is not None:
             raise self._fallo
+        if tipo in self._fallos:
+            raise self._fallos[tipo]
         respuesta = self._respuestas.get(tipo, {})
         return respuesta(datos or {}) if callable(respuesta) else respuesta
 
@@ -134,17 +138,24 @@ class TestDuplicar(unittest.TestCase):
                 "SetSceneItemIndex")],
             [0, 1, 2])
 
-    def test_conserva_la_posicion_el_tamano_y_la_visibilidad(self):
-        transformaciones = self._de_tipo("SetSceneItemTransform")
-        self.assertEqual(
-            [datos["sceneItemTransform"]["positionX"]
-             for datos in transformaciones], [0, 10, 20])
-        self.assertEqual(
-            [datos["sceneItemTransform"]["scaleX"]
-             for datos in transformaciones], [1.5, 1.5, 1.5])
+    def test_no_manda_la_transformacion(self):
+        self.assertEqual(self._de_tipo("SetSceneItemTransform"), [])
+
+    def test_conserva_la_visibilidad(self):
         self.assertEqual(
             [datos["sceneItemEnabled"] for datos in self._de_tipo(
                 "SetSceneItemEnabled")], [True, True, False])
+
+    def test_si_falla_el_duplicado_quita_la_copia_y_propaga(self):
+        pedir = PedirFalso(
+            {"GetSceneItemList": {"sceneItems": [self.fuentes[0]]}},
+            fallos={"DuplicateSceneItem": obs_cliente.ObsError("sin cupo")})
+        with self.assertRaises(obs_cliente.ObsError) as contexto:
+            escenas_obs.duplicar(pedir, "Principal", "Principal - copia")
+        self.assertEqual(str(contexto.exception), "sin cupo")
+        self.assertEqual(
+            pedir.llamadas[-1],
+            ("RemoveScene", {"sceneName": "Principal - copia"}, None))
 
     def test_una_escena_vacia_solo_se_crea(self):
         pedir = PedirFalso({"GetSceneItemList": {"sceneItems": []}})
@@ -180,19 +191,26 @@ class TestMenuDeEscena(unittest.TestCase):
             ["Cambiar escena", "Cambiar nombre…", "Duplicar", "Eliminar",
              "Guardar imagen…"])
 
-    def test_cada_elemento_muestra_su_tecla(self):
+    def test_cada_elemento_muestra_su_tecla_tras_un_tabulador(self):
         llamadas = []
         menu = self._menu(llamadas)
         self.addCleanup(menu.Destroy)
         items = self._items(menu)
         self.assertEqual(
-            [(item.GetAccel().GetFlags(), item.GetAccel().GetKeyCode())
-             for item in items[:4]],
-            [(wx.ACCEL_NORMAL, wx.WXK_RETURN),
-             (wx.ACCEL_NORMAL, wx.WXK_F2),
-             (wx.ACCEL_CTRL, ord("D")),
-             (wx.ACCEL_NORMAL, wx.WXK_DELETE)])
-        self.assertIsNone(items[4].GetAccel())
+            [item.GetItemLabel().split("\t")[-1] for item in items[:4]],
+            ["Enter", "F2", "Ctrl+D", "Del"])
+        self.assertEqual(items[4].GetItemLabel(), "&Guardar imagen…")
+
+    def test_las_letras_de_acceso_no_se_repiten(self):
+        llamadas = []
+        menu = self._menu(llamadas)
+        self.addCleanup(menu.Destroy)
+        letras = {}
+        for item in self._items(menu):
+            letra = _letra_de_acceso(item.GetItemLabel())
+            self.assertIsNotNone(letra, item.GetItemLabel())
+            self.assertNotIn(letra, letras, item.GetItemLabel())
+            letras[letra] = item.GetItemLabel()
 
     def test_cada_entrada_llama_a_su_accion(self):
         for indice, accion in enumerate(

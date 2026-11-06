@@ -9,7 +9,7 @@ from guyrapu.obs import consultas_transmision
 from guyrapu.obs import escenas_obs
 from guyrapu.obs import nombres_escena
 from guyrapu.obs import obs_estado
-from guyrapu.ui import escena_menu_escena
+from guyrapu.ui import confirmar, escena_menu_escena
 from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
 from guyrapu.ui.escena_pagina_fuentes import PaginaFuentes
 from guyrapu.ui.preferencias_comun import (
@@ -266,14 +266,10 @@ class PaginaEscena(wx.Panel):
         return nombres[indice - 1] if indice else ""
 
     def _confirmar_eliminar(self, escena):
-        dialogo = wx.MessageDialog(
+        return confirmar.preguntar(
             self, _("¿Eliminar la escena {escena}?").format(escena=escena),
-            _("Eliminar escena"), wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
-        try:
-            dialogo.SetYesNoLabels(_("&Sí"), _("&No"))
-            return dialogo.ShowModal() == wx.ID_YES
-        finally:
-            dialogo.Destroy()
+            _("Eliminar escena"), _("&Eliminar"), _("&Cancelar"),
+            predeterminado_si=False)
 
     def _eliminar_y_leer(self, escena, siguiente):
         escenas_obs.eliminar(self._gestor._pedir, escena)

@@ -9,8 +9,8 @@ from guyrapu.obs import (
     aplicar_diseno, consultas_transmision, disenos_fabrica, disenos_guardados,
     obs_disposicion)
 from guyrapu.ui import (
-    agregar_camara, escena_acciones_fuente, escena_captura_ventana,
-    escena_disenos, escena_menu_fuente)
+    escena_acciones_fuente, escena_agregar_fuente, escena_disenos,
+    escena_menu_fuente)
 from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
 from guyrapu.ui.preferencias_comun import boton, fila_campo, nombre_de_etiqueta
 
@@ -175,41 +175,7 @@ class PaginaFuentes(wx.Panel):
             nombre, resultado[0], sin_mover=resultado[1]))
 
     def _agregar_fuente(self, _event):
-        menu = wx.Menu()
-        captura = wx.NewIdRef()
-        menu.Append(captura, _("Captura de &ventana…"))
-        menu.Bind(wx.EVT_MENU, lambda _evento: self._capturar_ventana(),
-                  id=captura)
-        camara = wx.NewIdRef()
-        menu.Append(camara, _("&Cámara…"))
-        menu.Bind(wx.EVT_MENU, lambda _evento: self._agregar_camara(),
-                  id=camara)
-        self.btn_agregar.PopupMenu(menu)
-        menu.Destroy()
-
-    def _capturar_ventana(self):
-        escena = self._escena()
-        if not escena:
-            anunciar(_("Sin selección"))
-            return
-        if self._operaciones.en_vuelo:
-            return
-        escena_captura_ventana.pedir_ventana(
-            self._ventana, self._gestor, self._operaciones, escena,
-            lambda datos: self._ventana_aplicada(escena, datos),
-            self.lst_fuentes.SetFocus)
-
-    def _ventana_aplicada(self, escena, datos):
-        anunciar(datos.frase)
-        self._releer_filas(escena, datos.fuente)
-
-    def _agregar_camara(self):
-        agregar_camara.agregar(self._ventana, self._camara_agregada)
-
-    def _camara_agregada(self, _fuentes):
-        escena = self._escena()
-        if escena:
-            self._releer_filas(escena, "")
+        escena_agregar_fuente.mostrar_menu(self, self.btn_agregar)
 
     def _releer_filas(self, escena, fuente):
         self._operaciones.en_hilo(

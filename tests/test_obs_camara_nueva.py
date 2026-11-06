@@ -200,6 +200,16 @@ class AgregarTest(unittest.TestCase):
         self.assertNotIn("CreateInput", tipos)
         self.assertNotIn("SetSceneItemTransform", tipos)
 
+    def test_usa_el_nombre_elegido_si_se_lo_pasan(self):
+        doble = Doble()
+        self.assertEqual(
+            obs_camara_nueva.agregar(
+                doble, "Escena", "abc123", nombre="Mi cámara"),
+            ("Mi cámara", True))
+        crear = next(llamada for llamada in doble.llamadas
+                     if llamada[0] == "CreateInput")
+        self.assertEqual(crear[1]["inputName"], "Mi cámara")
+
 
 if __name__ == "__main__":
     unittest.main()

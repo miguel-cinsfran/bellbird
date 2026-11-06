@@ -46,66 +46,101 @@ def cerrar_cliente(cliente):
         logger.debug("no se pudo cerrar el cliente de OBS: %s", error)
 
 
-def agregar(ventana, al_agregar):
+def agregar(ventana, al_agregar, al_pedir_nombre=None):
     """Agrega una cámara de Windows a OBS sin bloquear la interfaz."""
     diagnostico.crear_hilo(
-        lambda: _consultar_camaras(ventana, al_agregar),
+        lambda: _consultar_camaras(ventana, al_agregar, al_pedir_nombre),
         "AgregarCamara").start()
 
 
-def _consultar_camaras(ventana, al_agregar):
+def _consultar_camaras(ventana, al_agregar, al_pedir_nombre=None):
     cliente = None
     try:
         cliente = obs_cliente.ClienteObs(obs_cliente.leer_ajustes())
         cliente.conectar()
         escena = _escena_al_aire(cliente)
         camaras = obs_camara_nueva.camaras_disponibles(cliente, escena)
+        existentes, ocupados = {}, set()
+        if al_pedir_nombre is not None:
+            existentes = obs_camara_nueva.camaras_existentes(cliente)
+            ocupados = obs_camara_nueva.nombres_ocupados(cliente)
     except Exception as exc:
         wx.CallAfter(anunciar, obs_cliente.mensaje_de_fallo_obs(exc))
         return
     finally:
         cerrar_cliente(cliente)
-    wx.CallAfter(_camaras_windows, ventana, al_agregar, camaras)
+    wx.CallAfter(_camaras_windows, ventana, al_agregar, camaras,
+                 al_pedir_nombre, existentes, ocupados)
 
 
-def _camaras_windows(ventana, al_agregar, camaras):
+def _camaras_windows(ventana, al_agregar, camaras, al_pedir_nombre=None,
+                     existentes=None, ocupados=()):
     if not ventana:
         return
     if not camaras:
         anunciar(_("Windows no tiene ninguna cámara disponible para OBS."))
     elif len(camaras) == 1:
-        _agregar_en_hilo(ventana, al_agregar, camaras[0][1])
+        _decidir(ventana, al_agregar, camaras[0][1], al_pedir_nombre,
+                 existentes, ocupados)
     else:
-        _preguntar_camara(ventana, al_agregar, camaras)
+        _preguntar_camara(ventana, al_agregar, camaras, al_pedir_nombre,
+                          existentes, ocupados)
 
 
-def _preguntar_camara(ventana, al_agregar, camaras):
+def _preguntar_camara(ventana, al_agregar, camaras, al_pedir_nombre=None,
+                      existentes=None, ocupados=()):
+    valor = pedir_camara(ventana, camaras)
+    if valor is None:
+        return
+    _decidir(ventana, al_agregar, valor, al_pedir_nombre, existentes,
+             ocupados)
+
+
+def pedir_camara(padre, opciones, actual=""):
+    """Abre el cuadro de cámaras y devuelve el valor elegido, sin agregar."""
+    if not opciones:
+        return None
+    valores = [valor for _nombre, valor in opciones]
     dialogo = wx.SingleChoiceDialog(
-        ventana, _("Cámaras de Windows:"), _("Elegir cámara"),
-        [nombre for nombre, valor in camaras])
+        padre, _("Cámaras de Windows:"), _("Elegir cámara"),
+        [nombre for nombre, _valor in opciones])
     try:
+        if actual in valores:
+            dialogo.SetSelection(valores.index(actual))
         if dialogo.ShowModal() != wx.ID_OK:
-            return
+            return None
         indice = dialogo.GetSelection()
     finally:
         dialogo.Destroy()
-    if indice >= 0:
-        _agregar_en_hilo(ventana, al_agregar, camaras[indice][1])
+    return valores[indice] if 0 <= indice < len(valores) else None
 
 
-def _agregar_en_hilo(ventana, al_agregar, valor):
+def _decidir(ventana, al_agregar, valor, al_pedir_nombre, existentes,
+             ocupados):
+    if valor in (existentes or {}):
+        _agregar_en_hilo(ventana, al_agregar, valor)
+        return
+    if al_pedir_nombre is None:
+        _agregar_en_hilo(ventana, al_agregar, valor)
+        return
+    nombre = al_pedir_nombre(ocupados)
+    if nombre:
+        _agregar_en_hilo(ventana, al_agregar, valor, nombre)
+
+
+def _agregar_en_hilo(ventana, al_agregar, valor, nombre=""):
     diagnostico.crear_hilo(
-        lambda: _agregar_camara_en_obs(ventana, al_agregar, valor),
+        lambda: _agregar_camara_en_obs(ventana, al_agregar, valor, nombre),
         "AgregarCamara").start()
 
 
-def _agregar_camara_en_obs(ventana, al_agregar, valor):
+def _agregar_camara_en_obs(ventana, al_agregar, valor, nombre=""):
     cliente = None
     try:
         cliente = obs_cliente.ClienteObs(obs_cliente.leer_ajustes())
         cliente.conectar()
         escena = _escena_al_aire(cliente)
-        nombre, nueva = obs_camara_nueva.agregar(cliente, escena, valor)
+        nombre, nueva = obs_camara_nueva.agregar(cliente, escena, valor, nombre=nombre)
         if not nueva:
             wx.CallAfter(_camara_ya_esta, ventana, nombre)
             return

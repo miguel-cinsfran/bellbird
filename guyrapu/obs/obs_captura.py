@@ -9,7 +9,7 @@ from __future__ import annotations
 import time
 
 from guyrapu.core.idioma import N_, _
-from guyrapu.obs import obs_cliente
+from guyrapu.obs import obs_cliente, tipos_fuente
 
 
 NOMBRE_CAPTURA = N_("Captura de ventana")
@@ -233,17 +233,17 @@ def ventanas(cliente, escena, parada=None, dormir=time.sleep,
 
 def _nombre_libre(ocupados) -> str:
     """Nombre para la fuente nueva: el base o el primero con número libre."""
-    nombre = _(NOMBRE_CAPTURA)
-    contador = 2
-    while nombre in ocupados:
-        # Traductores: {nombre} es el nombre base y {contador} el número libre.
-        nombre = _("{nombre} {contador}").format(nombre=_(NOMBRE_CAPTURA),
-                                                 contador=contador)
-        contador += 1
-    return nombre
+    return tipos_fuente.nombre_libre(_(NOMBRE_CAPTURA), ocupados)
 
 
-def usar_ventana(cliente, escena, item_value, parada=None) -> str:
+def _nombre_nuevo(cliente, parada=None) -> str:
+    entradas = _datos(cliente, "GetInputList", parada=parada).get(
+        "inputs", ()) or ()
+    return _nombre_libre({entrada.get("inputName", "")
+                          for entrada in entradas})
+
+
+def usar_ventana(cliente, escena, item_value, parada=None, nombre="") -> str:
     """Hace que la escena capture la ventana indicada y lo anuncia."""
     captura = captura_de_escena(cliente, escena, parada)
     legible = _legible_desde_valor(item_value)
@@ -262,10 +262,7 @@ def usar_ventana(cliente, escena, item_value, parada=None) -> str:
                            "sceneItemEnabled": True}, parada=parada)
         # Traductores: {legible} es «título, de programa».
         return _("Ahora se captura {legible}.").format(legible=legible)
-    entradas = _datos(cliente, "GetInputList", parada=parada).get(
-        "inputs", ()) or ()
-    ocupados = {entrada.get("inputName", "") for entrada in entradas}
-    nombre = _nombre_libre(ocupados)
+    nombre = nombre or _nombre_nuevo(cliente, parada)
     respuesta = cliente.pedir(
         "CreateInput", {"sceneName": escena, "inputName": nombre,
                         "inputKind": "window_capture",

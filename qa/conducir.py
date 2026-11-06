@@ -164,6 +164,8 @@ SUPERFICIES = {
     "gui_transmision.py": "transmision",
     "escena_pagina_escena.py": "escena",
     "escena_pagina_fuentes.py": "escena",
+    "escena_agregar_fuente.py": "escena",
+    "escena_propiedades.py": "escena",
     "escena_menu_fuente.py": "escena",
     "escena_menu_escena.py": "escena",
     "escena_edicion_fuente.py": "escena",

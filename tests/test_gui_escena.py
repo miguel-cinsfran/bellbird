@@ -11,6 +11,7 @@ from guyrapu.obs import (
     obs_disposicion)
 from guyrapu.obs.obs_escena import FilaFuente
 from guyrapu.ui import escena_acciones_fuente
+from guyrapu.ui import escena_agregar_fuente
 from guyrapu.ui import escena_disenos
 from guyrapu.ui import escena_edicion_fuente
 from guyrapu.ui import escena_menu_fuente
@@ -18,6 +19,7 @@ from guyrapu.ui import escena_captura_ventana
 from guyrapu.ui import escena_pagina_audio
 from guyrapu.ui import escena_pagina_escena
 from guyrapu.ui import escena_pagina_fuentes
+from guyrapu.ui import escena_propiedades
 from guyrapu.ui import escena_tamano
 from guyrapu.ui import gui_grabaciones
 from guyrapu.ui import obs_ventana
@@ -187,6 +189,7 @@ class TestVentanaObs(unittest.TestCase):
             mock.patch.object(obs_ventana, "anunciar", anunciar),
             mock.patch.object(escena_pagina_escena, "anunciar", anunciar),
             mock.patch.object(escena_pagina_fuentes, "anunciar", anunciar),
+            mock.patch.object(escena_agregar_fuente, "anunciar", anunciar),
             mock.patch.object(escena_acciones_fuente, "anunciar", anunciar),
             mock.patch.object(escena_edicion_fuente, "anunciar", anunciar),
             mock.patch.object(escena_captura_ventana, "anunciar", anunciar),
@@ -663,7 +666,7 @@ class TestVentanaObs(unittest.TestCase):
         self.assertEqual(
             etiquetas,
             ["Mostrar en la escena", "Bloquear posición",
-             "Cambiar nombre…", "Duplicar", "Eliminar",
+             "Propiedades…", "Cambiar nombre…", "Duplicar", "Eliminar",
              "Tamaño y posición…", "Mover con flechas",
              "Centrar en el vídeo", "Ajustar al vídeo", "Llenar el vídeo",
              "Voltear horizontalmente", "Voltear verticalmente",
@@ -953,11 +956,13 @@ class TestVentanaObs(unittest.TestCase):
             len([llamada for llamada in self.gestor.llamadas
                  if llamada[0] == "transformar"]), 3)
 
-    def test_agregar_fuente_abre_un_menu_con_captura_y_camara(self):
+    def test_agregar_fuente_abre_el_menu_con_los_ocho_tipos(self):
         pagina = self.dialogo._pagina_fuentes
         self.assertEqual(
             self._abrir_menu_agregar(pagina),
-            ["Captura de ventana…", "Cámara…"])
+            ["Cámara…", "Captura de pantalla…", "Captura de ventana…",
+             "Captura de juego…", "Imagen…", "Archivo multimedia…",
+             "Texto…", "Fuente de otra escena…"])
 
     def test_capturar_ventana_pide_las_ventanas_y_aplica_la_elegida(self):
         pagina = self.dialogo._pagina_fuentes
@@ -966,8 +971,11 @@ class TestVentanaObs(unittest.TestCase):
             FilaFuente("Chat en el vídeo", "Chat en el vídeo", True, False))
         elegida = self.gestor.opciones_ventana[1][1]
         with mock.patch.object(
-                escena_captura_ventana.DialogoCapturarVentana, "ShowModal",
-                self._modal_con_seleccion(1)), \
+                escena_agregar_fuente, "_pedir_nombre",
+                return_value="Captura de ventana"), \
+                mock.patch.object(
+                    escena_captura_ventana.DialogoCapturarVentana, "ShowModal",
+                    self._modal_con_seleccion(1)), \
                 mock.patch.object(self.gestor, "filas_escena",
                                   return_value=filas) as releer, \
                 mock.patch.object(pagina.lst_fuentes, "SetFocus") as foco:
@@ -987,8 +995,11 @@ class TestVentanaObs(unittest.TestCase):
         pagina = self.dialogo._pagina_fuentes
         filas = (FilaFuente("Nueva", "Nueva", True, False),)
         with mock.patch.object(
-                escena_captura_ventana.DialogoCapturarVentana, "ShowModal",
-                self._modal_con_seleccion(0)), \
+                escena_agregar_fuente, "_pedir_nombre",
+                return_value="Captura de ventana"), \
+                mock.patch.object(
+                    escena_captura_ventana.DialogoCapturarVentana, "ShowModal",
+                    self._modal_con_seleccion(0)), \
                 mock.patch.object(self.gestor, "filas_escena",
                                   return_value=filas), \
                 mock.patch.object(pagina.lst_fuentes, "SetFocus"):
@@ -1035,8 +1046,11 @@ class TestVentanaObs(unittest.TestCase):
     def test_al_cerrar_el_cuadro_el_foco_vuelve_a_fuentes(self):
         pagina = self.dialogo._pagina_fuentes
         with mock.patch.object(
-                escena_captura_ventana.DialogoCapturarVentana, "ShowModal",
-                return_value=wx.ID_CANCEL), \
+                escena_agregar_fuente, "_pedir_nombre",
+                return_value="Captura de ventana"), \
+                mock.patch.object(
+                    escena_captura_ventana.DialogoCapturarVentana, "ShowModal",
+                    return_value=wx.ID_CANCEL), \
                 mock.patch.object(pagina.lst_fuentes, "SetFocus") as foco:
             self._abrir_menu_agregar(pagina, "Captura de ventana…")
         foco.assert_called_once_with()
@@ -1047,10 +1061,10 @@ class TestVentanaObs(unittest.TestCase):
                  FilaFuente("Chat en el vídeo", "Chat en el vídeo", True,
                             False))
 
-        def agregar(ventana, al_agregar):
+        def agregar(ventana, al_agregar, al_pedir_nombre=None):
             al_agregar(("Cámara",))
 
-        with mock.patch.object(escena_pagina_fuentes.agregar_camara,
+        with mock.patch.object(escena_agregar_fuente.agregar_camara,
                                "agregar", side_effect=agregar) as llamada, \
                 mock.patch.object(self.gestor, "filas_escena",
                                   return_value=filas) as releer:
@@ -1061,6 +1075,59 @@ class TestVentanaObs(unittest.TestCase):
                          [fila.texto for fila in filas])
         self.assertEqual(pagina.fuente(), "Cámara")
         releer.assert_called_once_with("Principal")
+
+    def test_el_cuadro_de_pantalla_vacio_avisa_y_deshabilita_aceptar(self):
+        dialogo = escena_propiedades.DialogoEleccion(
+            self.dialogo, "Captura de pantalla", "DialogoPantalla",
+            "&Pantalla:", (), "", "No hay pantallas para capturar.")
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(dialogo.aviso_vacio.GetLabel(),
+                         "No hay pantallas para capturar.")
+        self.assertFalse(dialogo.btn_aceptar.IsEnabled())
+        self.assertIs(dialogo.FindFocus(), dialogo.btn_cancelar)
+
+    def test_el_cuadro_de_juego_oculta_la_ventana_y_enfoca_el_modo(self):
+        dialogo = escena_propiedades.DialogoJuego(
+            self.dialogo, (("Champions", "champions"),),
+            {"modo": "window", "ventana": "champions"})
+        self.addCleanup(destruir, dialogo)
+        self.assertTrue(dialogo.cho_ventana.IsShown())
+        dialogo.cho_modo.SetSelection(0)
+        dialogo.cho_modo.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_CHOICE.typeId, dialogo.cho_modo.GetId()))
+        self.assertFalse(dialogo.cho_ventana.IsShown())
+        self.assertTrue(dialogo.btn_aceptar.IsEnabled())
+
+    def test_el_cuadro_de_juego_sin_ventanas_deshabilita_solo_una_ventana(
+            self):
+        dialogo = escena_propiedades.DialogoJuego(
+            self.dialogo, (), {"modo": "window"})
+        self.addCleanup(destruir, dialogo)
+        self.assertTrue(dialogo.aviso_vacio.IsShown())
+        self.assertFalse(dialogo.btn_aceptar.IsEnabled())
+        dialogo.cho_modo.SetSelection(0)
+        dialogo.cho_modo.GetEventHandler().ProcessEvent(
+            wx.CommandEvent(wx.EVT_CHOICE.typeId, dialogo.cho_modo.GetId()))
+        self.assertFalse(dialogo.aviso_vacio.IsShown())
+        self.assertTrue(dialogo.btn_aceptar.IsEnabled())
+
+    def test_el_cuadro_de_texto_abre_con_72_y_su_rango(self):
+        dialogo = escena_propiedades.DialogoTexto(self.dialogo, {})
+        self.addCleanup(destruir, dialogo)
+        self.assertEqual(dialogo.spin_tamano.GetValue(), 72)
+        self.assertEqual(dialogo.spin_tamano.GetMin(), 8)
+        self.assertEqual(dialogo.spin_tamano.GetMax(), 300)
+        self.assertIs(dialogo.FindFocus(), dialogo.txt_texto)
+
+    def test_el_cuadro_de_archivo_avisa_si_no_existe_y_no_cierra(self):
+        dialogo = escena_propiedades.DialogoArchivo(
+            self.dialogo, "imagen", {"archivo": "C:/no-existe.png"})
+        self.addCleanup(destruir, dialogo)
+        dialogo.EndModal = mock.Mock()
+        with mock.patch.object(escena_propiedades, "anunciar") as anunciar:
+            dialogo._al_aceptar(None)
+        dialogo.EndModal.assert_not_called()
+        anunciar.assert_called_once_with("Elige un archivo que exista.")
 
     def test_silenciar_usa_la_fuente_de_la_fila(self):
         pagina = self.dialogo._pagina_audio
@@ -1447,6 +1514,7 @@ class TestVentanaObs(unittest.TestCase):
             item.GetItemLabelText(): item.GetItemLabel()
             for item in _items_del_menu(menu)}
         self.assertIn("\tSpace", etiquetas["Mostrar en la escena"])
+        self.assertIn("\tAlt+Enter", etiquetas["Propiedades…"])
         self.assertIn("\tF2", etiquetas["Cambiar nombre…"])
         self.assertIn("\tCtrl+D", etiquetas["Duplicar"])
         self.assertIn("\tDel", etiquetas["Eliminar"])

@@ -33,6 +33,7 @@ from guyrapu.ui import escena_captura_ventana
 from guyrapu.ui import escena_pagina_audio
 from guyrapu.ui import escena_pagina_escena
 from guyrapu.ui import escena_pagina_fuentes
+from guyrapu.ui import escena_propiedades
 from guyrapu.ui import escena_tamano
 from guyrapu.ui import obs_ventana
 from guyrapu.ui import preferencias_ia
@@ -348,6 +349,26 @@ class TestLetrasAccesoTamano(unittest.TestCase):
         dialogo = escena_tamano.TamanoFuenteDialog(None, 29, 69)
         self.addCleanup(destruir, dialogo)
         self.assertEqual(letras_repetidas(dialogo), {})
+
+
+class TestLetrasAccesoPropiedades(unittest.TestCase):
+    def setUp(self):
+        self.app = app_de_prueba()
+
+    def test_los_cuadros_nuevos_sin_letras_repetidas(self):
+        casos = (
+            escena_propiedades.DialogoEleccion(
+                None, "Captura de pantalla", "DialogoPantalla",
+                "&Pantalla:", (("HP", "hp"),), "", ""),
+            escena_propiedades.DialogoJuego(
+                None, (("Champions", "champions"),), {}),
+            escena_propiedades.DialogoArchivo(None, "imagen", {}),
+            escena_propiedades.DialogoArchivo(None, "multimedia", {}),
+            escena_propiedades.DialogoTexto(None, {}),
+        )
+        for dialogo in casos:
+            self.addCleanup(destruir, dialogo)
+            self.assertEqual(letras_repetidas(dialogo), {})
 
 
 class TestLetrasAccesoDisenos(unittest.TestCase):

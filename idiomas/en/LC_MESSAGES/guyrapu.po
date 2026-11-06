@@ -3147,6 +3147,26 @@ msgstr "Microphone filters applied. {detalle}"
 msgid "Chat en el vídeo"
 msgstr "Chat on video"
 
+#: guyrapu/obs/fuente_nueva.py
+msgid "Guyrapu, sonda de propiedades"
+msgstr "Guyrapu, properties probe"
+
+#: guyrapu/obs/fuentes_obs.py
+msgid "Solo puede haber un chat en el vídeo."
+msgstr "There can only be one chat on the video."
+
+#: guyrapu/obs/fuentes_obs.py guyrapu/obs/obs_prevuelo.py
+msgid "cámara"
+msgstr "camera"
+
+#: guyrapu/obs/fuentes_obs.py
+msgid ""
+"Una cámara no se puede abrir dos veces. Para usarla en otra escena, duplica"
+" la escena."
+msgstr ""
+"A camera can't be opened twice. To use it in another scene, duplicate the "
+"scene."
+
 #: guyrapu/obs/grabaciones.py
 #, python-brace-format
 msgid "Clip, {nombre}, {fecha}, {tamano}"
@@ -3202,6 +3222,36 @@ msgid ""
 msgstr ""
 "OBS is getting nothing from this microphone. Check that it is connected or "
 "choose another one in Choose a device."
+
+#: guyrapu/obs/nombres_escena.py
+msgid "escena actual"
+msgstr "current scene"
+
+#: guyrapu/obs/nombres_escena.py
+#, python-brace-format
+msgid "{n} fuente"
+msgid_plural "{n} fuentes"
+msgstr[0] "{n} source"
+msgstr[1] "{n} sources"
+
+#: guyrapu/obs/nombres_escena.py
+msgid "sin fuentes"
+msgstr "no sources"
+
+#: guyrapu/obs/nombres_escena.py
+#, python-brace-format
+msgid "Escena {n}"
+msgstr "Scene {n}"
+
+#: guyrapu/obs/nombres_escena.py
+#, python-brace-format
+msgid "{nombre} - copia"
+msgstr "{nombre} - copy"
+
+#: guyrapu/obs/nombres_escena.py
+#, python-brace-format
+msgid "{nombre} - copia {n}"
+msgstr "{nombre} - copy {n}"
 
 #: guyrapu/obs/obs_activacion.py
 msgid "El servidor WebSocket de OBS ya está activado"
@@ -3297,7 +3347,8 @@ msgstr "There is no camera in OBS."
 msgid "La cámara de OBS no está en la escena actual."
 msgstr "The OBS camera is not in the current scene."
 
-#: guyrapu/obs/obs_camara_nueva.py guyrapu/ui/gui_preferencias.py
+#: guyrapu/obs/obs_camara_nueva.py guyrapu/obs/tipos_fuente.py
+#: guyrapu/ui/gui_preferencias.py
 msgid "Cámara"
 msgstr "Camera"
 
@@ -3308,12 +3359,6 @@ msgstr "Guyrapu, camera list"
 #: guyrapu/obs/obs_camara_nueva.py
 msgid "Bellbird, lista de cámaras"
 msgstr "Bellbird, camera list"
-
-#. Traductores: {nombre} es el nombre base y {contador} el número libre.
-#: guyrapu/obs/obs_camara_nueva.py guyrapu/obs/obs_captura.py
-#, python-brace-format
-msgid "{nombre} {contador}"
-msgstr "{nombre} {contador}"
 
 #. Traductores: {fuente} es el nombre de la fuente.
 #: guyrapu/obs/obs_capas.py
@@ -3334,7 +3379,7 @@ msgstr "{fuente} is already at the back."
 msgid "{fuente}: {n} de {total} en el orden."
 msgstr "{fuente}: {n} of {total} in order."
 
-#: guyrapu/obs/obs_captura.py
+#: guyrapu/obs/obs_captura.py guyrapu/obs/tipos_fuente.py
 msgid "Captura de ventana"
 msgstr "Window capture"
 
@@ -4002,21 +4047,17 @@ msgstr ""
 "OBS is not installed on this computer. Install it from obsproject.com and "
 "try again."
 
-#: guyrapu/obs/obs_prevuelo.py
+#: guyrapu/obs/obs_prevuelo.py guyrapu/obs/tipos_fuente.py
 msgid "captura de ventana"
 msgstr "window capture"
 
-#: guyrapu/obs/obs_prevuelo.py
+#: guyrapu/obs/obs_prevuelo.py guyrapu/obs/tipos_fuente.py
 msgid "captura de juego"
 msgstr "game capture"
 
 #: guyrapu/obs/obs_prevuelo.py
 msgid "captura de pantalla"
 msgstr "screen capture"
-
-#: guyrapu/obs/obs_prevuelo.py
-msgid "cámara"
-msgstr "camera"
 
 #: guyrapu/obs/obs_prevuelo.py
 msgid "navegador"
@@ -4285,6 +4326,79 @@ msgstr "Two thirds of the video"
 #: guyrapu/obs/tamano_relativo.py
 msgid "Todo el vídeo"
 msgstr "The whole video"
+
+#: guyrapu/obs/tipos_fuente.py
+msgid "&Cámara…"
+msgstr "&Camera…"
+
+#: guyrapu/obs/tipos_fuente.py
+msgid "Captura de &pantalla…"
+msgstr "&Display capture…"
+
+#: guyrapu/obs/tipos_fuente.py guyrapu/ui/escena_propiedades.py
+msgid "Captura de pantalla"
+msgstr "Display capture"
+
+#: guyrapu/obs/tipos_fuente.py
+msgid "Captura de &ventana…"
+msgstr "&Window capture…"
+
+#: guyrapu/obs/tipos_fuente.py
+msgid "Captura de &juego…"
+msgstr "&Game capture…"
+
+#: guyrapu/obs/tipos_fuente.py guyrapu/ui/escena_propiedades.py
+msgid "Captura de juego"
+msgstr "Game capture"
+
+#: guyrapu/obs/tipos_fuente.py
+msgid "&Imagen…"
+msgstr "&Image…"
+
+#: guyrapu/obs/tipos_fuente.py guyrapu/ui/escena_propiedades.py
+msgid "Imagen"
+msgstr "Image"
+
+#: guyrapu/obs/tipos_fuente.py
+msgid "&Archivo multimedia…"
+msgstr "&Media file…"
+
+#: guyrapu/obs/tipos_fuente.py guyrapu/ui/escena_propiedades.py
+msgid "Archivo multimedia"
+msgstr "Media file"
+
+#: guyrapu/obs/tipos_fuente.py
+msgid "&Texto…"
+msgstr "&Text…"
+
+#: guyrapu/obs/tipos_fuente.py guyrapu/ui/escena_propiedades.py
+msgid "Texto"
+msgstr "Text"
+
+#: guyrapu/obs/tipos_fuente.py
+msgid "&Fuente de otra escena…"
+msgstr "&Source from another scene…"
+
+#. Traductores: {nombre} es el nombre base y {contador} el número libre.
+#: guyrapu/obs/tipos_fuente.py
+#, python-brace-format
+msgid "{nombre} {contador}"
+msgstr "{nombre} {contador}"
+
+#: guyrapu/obs/transformar_fuente.py
+#, python-brace-format
+msgid "{p} por ciento del ancho"
+msgstr "{p} percent of the width"
+
+#: guyrapu/obs/transformar_fuente.py
+#, python-brace-format
+msgid "{fuente} - copia"
+msgstr "{fuente} - copy"
+
+#: guyrapu/obs/transformar_fuente.py
+#, python-brace-format
+msgid "{fuente} - copia {n}"
+msgstr "{fuente} - copy {n}"
 
 #: guyrapu/obs/transmision_directa.py
 msgid "Finalizando el directo"
@@ -5752,9 +5866,14 @@ msgid "Antes de transmitir"
 msgstr "Before broadcasting"
 
 #. Traductores: botón para cerrar sin publicar.
-#: guyrapu/ui/confirmar_transmision.py guyrapu/ui/escena_captura_ventana.py
-#: guyrapu/ui/escena_filtros.py guyrapu/ui/escena_tamano.py
+#: guyrapu/ui/confirmar_transmision.py guyrapu/ui/descargas_acciones.py
+#: guyrapu/ui/escena_captura_ventana.py guyrapu/ui/escena_edicion_fuente.py
+#: guyrapu/ui/escena_filtros.py guyrapu/ui/escena_pagina_escena.py
+#: guyrapu/ui/escena_tamano.py guyrapu/ui/gui.py guyrapu/ui/gui_envio_chat.py
 #: guyrapu/ui/gui_preferencias.py guyrapu/ui/gui_redactar.py
+#: guyrapu/ui/ia_privacidad.py guyrapu/ui/musica_ventana_acciones.py
+#: guyrapu/ui/preferencias_general.py guyrapu/ui/preferencias_ia_clave.py
+#: guyrapu/ui/restream_pagina_destinos.py
 msgid "&Cancelar"
 msgstr "&Cancel"
 
@@ -5775,12 +5894,36 @@ msgid "&Reanudar grabación"
 msgstr "&Keep recording"
 
 #: guyrapu/ui/descargas_acciones.py
+msgid ""
+"Elimina de la lista las descargas terminadas. No borra ningún archivo del "
+"disco. ¿Deseas continuar?"
+msgstr ""
+"Removes finished downloads from the list. No files are deleted from the "
+"disk. Do you want to continue?"
+
+#: guyrapu/ui/descargas_acciones.py
+msgid "Vaciar lista"
+msgstr "Clear list"
+
+#: guyrapu/ui/descargas_acciones.py
+msgid "&Vaciar lista"
+msgstr "C&lear list"
+
+#: guyrapu/ui/descargas_acciones.py
 msgid "Descargas terminadas. ¿Abrir la carpeta?"
 msgstr "Downloads finished. Open the folder?"
 
 #: guyrapu/ui/descargas_acciones.py guyrapu/ui/gui_descargas.py
 msgid "Administrador de descargas"
 msgstr "Download manager"
+
+#: guyrapu/ui/descargas_acciones.py
+msgid "&Abrir carpeta"
+msgstr "&Open folder"
+
+#: guyrapu/ui/descargas_acciones.py guyrapu/ui/gui_preferencias.py
+msgid "Ahora &no"
+msgstr "&Not now"
 
 #: guyrapu/ui/descargas_acciones.py guyrapu/ui/gui_grabaciones.py
 msgid "La carpeta ya no está disponible."
@@ -5843,18 +5986,6 @@ msgstr "{cantidad} downloads removed from the list"
 #: guyrapu/ui/descargas_acciones.py
 msgid "No hay descargas terminadas"
 msgstr "No finished downloads"
-
-#: guyrapu/ui/descargas_acciones.py
-msgid ""
-"Elimina de la lista las descargas terminadas. No borra ningún archivo del "
-"disco. ¿Deseas continuar?"
-msgstr ""
-"Removes finished downloads from the list. No files are deleted from the "
-"disk. Do you want to continue?"
-
-#: guyrapu/ui/descargas_acciones.py
-msgid "Vaciar lista"
-msgstr "Clear list"
 
 #: guyrapu/ui/descargas_buscador.py
 msgid "B&uscar o pegar enlace:"
@@ -6134,21 +6265,151 @@ msgstr "Framing warnings on"
 msgid "Avisos de encuadre desactivados"
 msgstr "Framing warnings off"
 
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "visibilidad"
+msgstr "visibility"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "bloqueo"
+msgstr "lock"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "orden"
+msgstr "order"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+#, python-brace-format
+msgid "{fuente} al frente."
+msgstr "{fuente} to the front."
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "posición y tamaño"
+msgstr "position and size"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+#, python-brace-format
+msgid "{fuente} todavía no informa su tamaño."
+msgstr "{fuente} does not report its size yet."
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "posición"
+msgstr "position"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "centrada"
+msgstr "centered"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "tamaño"
+msgstr "size"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "ajustada al vídeo"
+msgstr "fitted to the video"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "cubre todo el vídeo"
+msgstr "fills the whole video"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "volteo"
+msgstr "flip"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "volteada horizontalmente"
+msgstr "flipped horizontally"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "volteada verticalmente"
+msgstr "flipped vertically"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "giro"
+msgstr "rotation"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "girada a la derecha"
+msgstr "rotated right"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "girada a la izquierda"
+msgstr "rotated left"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "tamaño y posición"
+msgstr "size and position"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "vuelve a su tamaño y posición originales"
+msgstr "returns to its original size and position"
+
+#: guyrapu/ui/escena_acciones_fuente.py
+msgid "No hay nada que deshacer."
+msgstr "There's nothing to undo."
+
+#: guyrapu/ui/escena_acciones_fuente.py
+#, python-brace-format
+msgid "Deshecho: {accion} de {fuente}."
+msgstr "Undone: {accion} of {fuente}."
+
+#: guyrapu/ui/escena_acciones_fuente.py guyrapu/ui/escena_agregar_fuente.py
+#: guyrapu/ui/escena_edicion_fuente.py guyrapu/ui/escena_pagina_audio.py
+#: guyrapu/ui/escena_pagina_escena.py guyrapu/ui/escena_pagina_fuentes.py
+#: guyrapu/ui/gui_historial.py guyrapu/ui/mover_con_flechas.py
+#: guyrapu/ui/restream_pagina_eventos.py guyrapu/ui/restream_pagina_perfiles.py
+#: guyrapu/ui/restream_ventana.py
+msgid "Sin selección"
+msgstr "Nothing selected"
+
+#: guyrapu/ui/escena_agregar_fuente.py
+#, python-brace-format
+msgid "{nombre} agregada a la escena {escena}."
+msgstr "{nombre} added to scene {escena}."
+
+#: guyrapu/ui/escena_agregar_fuente.py
+msgid "Nombre de la fuente:"
+msgstr "Source name:"
+
+#: guyrapu/ui/escena_agregar_fuente.py
+msgid "Agregar fuente"
+msgstr "Add source"
+
+#: guyrapu/ui/escena_agregar_fuente.py guyrapu/ui/escena_edicion_fuente.py
+msgid "Ya hay una fuente con ese nombre."
+msgstr "There's already a source with that name."
+
+#: guyrapu/ui/escena_agregar_fuente.py guyrapu/ui/escena_propiedades.py
+msgid "No hay fuentes de otras escenas para agregar."
+msgstr "There are no sources from other scenes to add."
+
+#: guyrapu/ui/escena_agregar_fuente.py
+msgid "Esta fuente no tiene propiedades en Guyrapu. Cámbialas en OBS."
+msgstr "This source has no properties in Guyrapu. Change them in OBS."
+
+#: guyrapu/ui/escena_agregar_fuente.py
+#, python-brace-format
+msgid "Propiedades de {fuente} aplicadas."
+msgstr "{fuente} properties applied."
+
 #: guyrapu/ui/escena_captura_ventana.py
 msgid "Capturar ventana"
 msgstr "Capture window"
 
-#: guyrapu/ui/escena_captura_ventana.py
+#: guyrapu/ui/escena_captura_ventana.py guyrapu/ui/escena_propiedades.py
 msgid "&Ventana:"
 msgstr "&Window:"
 
+#: guyrapu/ui/escena_captura_ventana.py guyrapu/ui/escena_propiedades.py
+msgid "No hay ventanas para capturar."
+msgstr "There are no windows to capture."
+
 #: guyrapu/ui/escena_captura_ventana.py guyrapu/ui/escena_disenos.py
 #: guyrapu/ui/escena_filtros.py guyrapu/ui/escena_tamano.py
-#: guyrapu/ui/restream_dialogos_destino.py
+#: guyrapu/ui/preferencias_general.py guyrapu/ui/restream_dialogos_destino.py
 msgid "&Aceptar"
 msgstr "&Accept"
 
-#: guyrapu/ui/escena_captura_ventana.py
+#: guyrapu/ui/escena_captura_ventana.py guyrapu/ui/escena_propiedades.py
 msgid "Elige primero una ventana en Ventana."
 msgstr "First choose a window in Window."
 
@@ -6321,6 +6582,49 @@ msgstr "Layout name:"
 msgid "Guardar diseño"
 msgstr "Save layout"
 
+#: guyrapu/ui/escena_edicion_fuente.py
+msgid "Chat en el vídeo no se puede cambiar de nombre: Guyrapu lo reconoce por él."
+msgstr "Chat en el vídeo can't be renamed: Guyrapu recognizes it by its name."
+
+#: guyrapu/ui/escena_edicion_fuente.py
+msgid "Nombre nuevo:"
+msgstr "New name:"
+
+#: guyrapu/ui/escena_edicion_fuente.py guyrapu/ui/escena_pagina_escena.py
+msgid "Cambiar nombre"
+msgstr "Rename"
+
+#: guyrapu/ui/escena_edicion_fuente.py
+#, python-brace-format
+msgid ""
+"{antes} cambiada a {nombre}. El nombre cambia en todas las escenas que la "
+"usan."
+msgstr "{antes} renamed to {nombre}. The name changes in every scene that uses it."
+
+#: guyrapu/ui/escena_edicion_fuente.py
+#, python-brace-format
+msgid "{fuente} duplicada como {copia}."
+msgstr "{fuente} duplicated as {copia}."
+
+#: guyrapu/ui/escena_edicion_fuente.py
+#, python-brace-format
+msgid "¿Eliminar {fuente} de esta escena?"
+msgstr "Delete {fuente} from this scene?"
+
+#: guyrapu/ui/escena_edicion_fuente.py
+msgid "Eliminar fuente"
+msgstr "Delete source"
+
+#: guyrapu/ui/escena_edicion_fuente.py guyrapu/ui/escena_pagina_escena.py
+#: guyrapu/ui/musica_ventana_acciones.py guyrapu/ui/restream_pagina_destinos.py
+msgid "&Eliminar"
+msgstr "&Delete"
+
+#: guyrapu/ui/escena_edicion_fuente.py
+#, python-brace-format
+msgid "{fuente} eliminada de la escena."
+msgstr "{fuente} deleted from the scene."
+
 #. Traductores: {fuente} es la fuente de audio y {frase} el resultado.
 #: guyrapu/ui/escena_escucha.py
 #, python-brace-format
@@ -6349,13 +6653,107 @@ msgstr "&Noise Gate"
 msgid "&Ganancia:"
 msgstr "&Gain:"
 
+#: guyrapu/ui/escena_menu_escena.py
+msgid "&Cambiar escena"
+msgstr "&Change scene"
+
+#: guyrapu/ui/escena_menu_escena.py
+msgid "Cambiar &nombre…"
+msgstr "Change &name…"
+
+#: guyrapu/ui/escena_menu_escena.py guyrapu/ui/escena_menu_fuente.py
+msgid "&Duplicar"
+msgstr "&Duplicate"
+
+#: guyrapu/ui/escena_menu_escena.py guyrapu/ui/escena_menu_fuente.py
+#: guyrapu/ui/gui_historial.py guyrapu/ui/preferencias_programados.py
+#: guyrapu/ui/restream_pagina_perfiles.py
+msgid "E&liminar"
+msgstr "De&lete"
+
+#: guyrapu/ui/escena_menu_escena.py
+msgid "&Guardar imagen…"
+msgstr "&Save image…"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Transformar"
+msgstr "&Transform"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Ordenar"
+msgstr "&Order"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Mostrar en la escena"
+msgstr "&Show in scene"
+
 #: guyrapu/ui/escena_menu_fuente.py
 msgid "&Bloquear posición"
 msgstr "&Lock position"
 
 #: guyrapu/ui/escena_menu_fuente.py
-msgid "&Ordenar"
-msgstr "&Order"
+msgid "&Propiedades…"
+msgstr "&Properties…"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Cambiar nombre…"
+msgstr "&Rename…"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Tamaño y posición…"
+msgstr "&Size and position…"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Mover con flechas"
+msgstr "&Move with arrows"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Restablecer tamaño y posición"
+msgstr "&Reset size and position"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Centrar en el vídeo"
+msgstr "&Center on the video"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Ajustar al vídeo"
+msgstr "&Fit to the video"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "&Llenar el vídeo"
+msgstr "&Fill the video"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Voltear &horizontalmente"
+msgstr "Flip &horizontally"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Voltear &verticalmente"
+msgstr "Flip &vertically"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Girar a la &derecha"
+msgstr "Rotate &right"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Girar a la &izquierda"
+msgstr "Rotate &left"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Traer al &frente"
+msgstr "Bring to &front"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Traer a&delante"
+msgstr "Bring for&ward"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Enviar a&trás"
+msgstr "Send &backward"
+
+#: guyrapu/ui/escena_menu_fuente.py
+msgid "Enviar al fo&ndo"
+msgstr "Send to bac&k"
 
 #: guyrapu/ui/escena_pagina_audio.py
 msgid "Si&lenciar"
@@ -6376,12 +6774,6 @@ msgstr "&Test level"
 #: guyrapu/ui/escena_pagina_audio.py
 msgid "&Filtros…"
 msgstr "&Filters…"
-
-#: guyrapu/ui/escena_pagina_audio.py guyrapu/ui/escena_pagina_fuentes.py
-#: guyrapu/ui/gui_historial.py guyrapu/ui/restream_pagina_eventos.py
-#: guyrapu/ui/restream_pagina_perfiles.py guyrapu/ui/restream_ventana.py
-msgid "Sin selección"
-msgstr "Nothing selected"
 
 #: guyrapu/ui/escena_pagina_audio.py
 #, python-brace-format
@@ -6414,8 +6806,61 @@ msgid "{fuente}: {resumen}"
 msgstr "{fuente}: {resumen}"
 
 #: guyrapu/ui/escena_pagina_escena.py
+msgid "&Escenas:"
+msgstr "&Scenes:"
+
+#: guyrapu/ui/escena_pagina_escena.py
 msgid "Cambiar e&scena"
 msgstr "Chan&ge scene"
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "A&gregar escena…"
+msgstr "Add sc&ene…"
+
+#: guyrapu/ui/escena_pagina_escena.py
+#, python-brace-format
+msgid "{escena} ya es la escena actual."
+msgstr "{escena} is already the current scene."
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "Agregar escena"
+msgstr "Add scene"
+
+#: guyrapu/ui/escena_pagina_escena.py
+#, python-brace-format
+msgid "Escena {nombre} agregada."
+msgstr "Scene {nombre} added."
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "Ya hay una escena con ese nombre."
+msgstr "A scene with that name already exists."
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "Nombre de la escena:"
+msgstr "Scene name:"
+
+#: guyrapu/ui/escena_pagina_escena.py
+#, python-brace-format
+msgid "Escena {antes} cambiada a {nombre}."
+msgstr "Scene {antes} renamed to {nombre}."
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "No se puede eliminar la única escena."
+msgstr "The only scene cannot be deleted."
+
+#: guyrapu/ui/escena_pagina_escena.py
+#, python-brace-format
+msgid "¿Eliminar la escena {escena}?"
+msgstr "Delete the scene {escena}?"
+
+#: guyrapu/ui/escena_pagina_escena.py
+msgid "Eliminar escena"
+msgstr "Delete scene"
+
+#: guyrapu/ui/escena_pagina_escena.py
+#, python-brace-format
+msgid "Escena {escena} eliminada."
+msgstr "Scene {escena} deleted."
 
 #. Traductores: traduce solo «Imagen PNG»; no cambies «(*.png)|*.png».
 #: guyrapu/ui/escena_pagina_escena.py
@@ -6443,25 +6888,76 @@ msgid "Agregar f&uente…"
 msgstr "A&dd source…"
 
 #: guyrapu/ui/escena_pagina_fuentes.py
-#, python-brace-format
-msgid "{fuente} todavía no informa su tamaño."
-msgstr "{fuente} does not report its size yet."
+msgid "Deshacer todos los cambi&os"
+msgstr "&Undo all changes"
 
 #: guyrapu/ui/escena_pagina_fuentes.py
 msgid "La escena no tiene fuentes para un diseño."
 msgstr "The scene does not have sources for a layout."
 
 #: guyrapu/ui/escena_pagina_fuentes.py
-msgid "Captura de &ventana…"
-msgstr "&Window capture…"
-
-#: guyrapu/ui/escena_pagina_fuentes.py
-msgid "&Cámara…"
-msgstr "&Camera…"
-
-#: guyrapu/ui/escena_pagina_fuentes.py
 msgid "Cambios deshechos"
 msgstr "Changes undone"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "&Capturar:"
+msgstr "&Capture:"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "Cualquier juego a pantalla completa"
+msgstr "Any fullscreen game"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "Una ventana"
+msgstr "A window"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "&Archivo:"
+msgstr "&File:"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "&Examinar…"
+msgstr "&Browse…"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "&Repetir"
+msgstr "&Loop"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "Elegir archivo"
+msgstr "Choose file"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "Archivos"
+msgstr "Files"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "Elige un archivo que exista."
+msgstr "Choose a file that exists."
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "&Texto:"
+msgstr "&Text:"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "Tamaño de letra:"
+msgstr "Font size:"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "No hay pantallas para capturar."
+msgstr "There are no displays to capture."
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "Fuente de otra escena"
+msgstr "Source from another scene"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "&Fuente:"
+msgstr "&Source:"
+
+#: guyrapu/ui/escena_tamano.py
+msgid "Tamaño y posición de la fuente"
+msgstr "Source size and position"
 
 #: guyrapu/ui/escena_tamano.py
 msgid "&Posición:"
@@ -6888,6 +7384,10 @@ msgstr "{autor} is no longer muted"
 msgid "Salir"
 msgstr "Exit"
 
+#: guyrapu/ui/gui.py guyrapu/ui/gui_menu.py
+msgid "&Salir"
+msgstr "&Exit"
+
 #. Traductores: aviso mientras se cierra la app.
 #: guyrapu/ui/gui.py
 msgid "Cerrando"
@@ -7129,7 +7629,8 @@ msgstr "Could not start the installation: {detalle}."
 msgid "Buscar actualizaciones"
 msgstr "Check for updates"
 
-#: guyrapu/ui/gui_actualizar_app.py guyrapu/ui/preferencias_general.py
+#: guyrapu/ui/gui_actualizar_app.py guyrapu/ui/musica_ventana_igualando.py
+#: guyrapu/ui/preferencias_general.py
 msgid "&Más tarde"
 msgstr "&Later"
 
@@ -7348,9 +7849,25 @@ msgid "Este vídeo ya está en el historial. ¿Agregar de todos modos?"
 msgstr "This video is already in the history. Add anyway?"
 
 #: guyrapu/ui/gui_descargas.py
+msgid "&Agregar"
+msgstr "&Add"
+
+#: guyrapu/ui/gui_descargas.py
+msgid "&No agregar"
+msgstr "&Don't add"
+
+#: guyrapu/ui/gui_descargas.py
 #, python-brace-format
 msgid "{cantidad} ya están en el historial. ¿Agregar de todos modos?"
 msgstr "{cantidad} are already in the history. Add anyway?"
+
+#: guyrapu/ui/gui_descargas.py
+msgid "&Agregar todos"
+msgstr "&Add all"
+
+#: guyrapu/ui/gui_descargas.py
+msgid "Solo los &nuevos"
+msgstr "Only &new ones"
 
 #: guyrapu/ui/gui_descargas.py
 #, python-brace-format
@@ -7639,6 +8156,10 @@ msgstr "Scheduled messages stopped because of a service error."
 msgid "¿Suspender temporalmente a {autor} durante 5 minutos?"
 msgstr "Put {autor} in timeout for 5 minutes?"
 
+#: guyrapu/ui/gui_envio_chat.py
+msgid "&Suspender"
+msgstr "&Timeout"
+
 #. Traductores: aviso de suspensión; {autor} es su nombre.
 #: guyrapu/ui/gui_envio_chat.py
 #, python-brace-format
@@ -7652,6 +8173,10 @@ msgid ""
 "¿Ocultar a {autor} en el canal de YouTube? Se puede deshacer desde YouTube "
 "Studio."
 msgstr "Hide {autor} on the YouTube channel? You can undo this from YouTube Studio."
+
+#: guyrapu/ui/gui_envio_chat.py
+msgid "&Ocultar"
+msgstr "&Hide"
 
 #. Traductores: aviso de ocultación; {autor} es su nombre.
 #: guyrapu/ui/gui_envio_chat.py
@@ -7713,11 +8238,6 @@ msgstr ""
 " the user is live. An ended YouTube live stream does not come back, but a "
 "regular video does."
 
-#: guyrapu/ui/gui_historial.py guyrapu/ui/preferencias_programados.py
-#: guyrapu/ui/restream_pagina_perfiles.py
-msgid "E&liminar"
-msgstr "De&lete"
-
 #: guyrapu/ui/gui_historial.py
 msgid "C&errar"
 msgstr "Cl&ose"
@@ -7760,10 +8280,6 @@ msgstr "Copy live stream lin&k"
 #: guyrapu/ui/gui_menu.py
 msgid "&Historial de directos…"
 msgstr "&Live stream history…"
-
-#: guyrapu/ui/gui_menu.py
-msgid "&Salir"
-msgstr "&Exit"
 
 #: guyrapu/ui/gui_menu.py
 msgid "&Archivo"
@@ -8385,6 +8901,10 @@ msgstr "Your YouTube session expired. Open Preferences to sign in again?"
 msgid "Sesión caducada"
 msgstr "Session expired"
 
+#: guyrapu/ui/gui_preferencias.py
+msgid "&Abrir Preferencias"
+msgstr "&Open Preferences"
+
 #: guyrapu/ui/gui_redactar.py
 msgid "Mensaje para el chat"
 msgstr "Message for the chat"
@@ -8593,6 +9113,10 @@ msgstr ""
 "The scene screenshot and what you type are sent to {proveedor} so it can "
 "respond. This notice appears only once. Send?"
 
+#: guyrapu/ui/ia_privacidad.py guyrapu/ui/ia_ventana.py
+msgid "&Enviar"
+msgstr "&Send"
+
 #: guyrapu/ui/ia_ventana.py
 msgid "Preguntar a la IA"
 msgstr "Ask the AI"
@@ -8612,10 +9136,6 @@ msgstr "Con&versation:"
 #: guyrapu/ui/ia_ventana.py
 msgid "Conversación"
 msgstr "Conversation"
-
-#: guyrapu/ui/ia_ventana.py
-msgid "&Enviar"
-msgstr "&Send"
 
 #: guyrapu/ui/ia_ventana.py
 msgid "Enviar"
@@ -9014,6 +9534,10 @@ msgstr "Volume matching"
 #: guyrapu/ui/musica_ventana_igualando.py
 msgid "Progreso de la igualación"
 msgstr "Matching progress"
+
+#: guyrapu/ui/musica_ventana_igualando.py
+msgid "&Igualar ahora"
+msgstr "&Match now"
 
 #: guyrapu/ui/musica_ventana_igualando.py
 msgid "Detener la &igualación"
@@ -9537,6 +10061,10 @@ msgid "Restablecer las preferencias"
 msgstr "Reset preferences"
 
 #: guyrapu/ui/preferencias_general.py
+msgid "&Restablecer"
+msgstr "&Reset"
+
+#: guyrapu/ui/preferencias_general.py
 #, python-brace-format
 msgid ""
 "No se pudieron restablecer las preferencias:\n"
@@ -9639,6 +10167,10 @@ msgstr "&Delete saved key"
 #: guyrapu/ui/preferencias_ia_clave.py
 msgid "Eliminar clave"
 msgstr "Delete key"
+
+#: guyrapu/ui/preferencias_ia_clave.py
+msgid "&Eliminar clave"
+msgstr "&Delete key"
 
 #: guyrapu/ui/preferencias_lectura.py
 msgid "Nombre y mensaje"
@@ -10840,386 +11372,4 @@ msgstr "Signed in. You can go back to the application."
 #: guyrapu/youtube/youtube_api.py
 msgid "Sin título"
 msgstr "Untitled"
-
-#: guyrapu/ui/descargas_acciones.py
-msgid "&Abrir carpeta"
-msgstr "&Open folder"
-
-#: guyrapu/ui/descargas_acciones.py guyrapu/ui/gui_preferencias.py
-msgid "Ahora &no"
-msgstr "&Not now"
-
-#: guyrapu/ui/descargas_acciones.py
-msgid "&Vaciar lista"
-msgstr "C&lear list"
-
-#: guyrapu/ui/gui_descargas.py
-msgid "&Agregar"
-msgstr "&Add"
-
-#: guyrapu/ui/gui_descargas.py
-msgid "&No agregar"
-msgstr "&Don't add"
-
-#: guyrapu/ui/gui_descargas.py
-msgid "&Agregar todos"
-msgstr "&Add all"
-
-#: guyrapu/ui/gui_descargas.py
-msgid "Solo los &nuevos"
-msgstr "Only &new ones"
-
-#: guyrapu/ui/gui_envio_chat.py
-msgid "&Suspender"
-msgstr "&Timeout"
-
-#: guyrapu/ui/gui_envio_chat.py
-msgid "&Ocultar"
-msgstr "&Hide"
-
-#: guyrapu/ui/gui_preferencias.py
-msgid "&Abrir Preferencias"
-msgstr "&Open Preferences"
-
-#: guyrapu/ui/musica_ventana_acciones.py guyrapu/ui/restream_pagina_destinos.py
-msgid "&Eliminar"
-msgstr "&Delete"
-
-#: guyrapu/ui/musica_ventana_igualando.py
-msgid "&Igualar ahora"
-msgstr "&Match now"
-
-#: guyrapu/ui/preferencias_general.py
-msgid "&Restablecer"
-msgstr "&Reset"
-
-#: guyrapu/ui/preferencias_ia_clave.py
-msgid "&Eliminar clave"
-msgstr "&Delete key"
-
-#: guyrapu/obs/fuentes_obs.py
-msgid "Solo puede haber un chat en el vídeo."
-msgstr "There can only be one chat on the video."
-
-#: guyrapu/obs/fuentes_obs.py
-msgid ""
-"Una cámara no se puede abrir dos veces. Para usarla en otra escena, duplica"
-" la escena."
-msgstr ""
-"A camera can't be opened twice. To use it in another scene, duplicate the "
-"scene."
-
-#: guyrapu/obs/transformar_fuente.py
-#, python-brace-format
-msgid "{p} por ciento del ancho"
-msgstr "{p} percent of the width"
-
-#: guyrapu/obs/transformar_fuente.py
-#, python-brace-format
-msgid "{fuente} - copia"
-msgstr "{fuente} - copy"
-
-#: guyrapu/obs/transformar_fuente.py
-#, python-brace-format
-msgid "{fuente} - copia {n}"
-msgstr "{fuente} - copy {n}"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "visibilidad"
-msgstr "visibility"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "bloqueo"
-msgstr "lock"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "orden"
-msgstr "order"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-#, python-brace-format
-msgid "{fuente} al frente."
-msgstr "{fuente} to the front."
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "posición y tamaño"
-msgstr "position and size"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "posición"
-msgstr "position"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "centrada"
-msgstr "centered"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "tamaño"
-msgstr "size"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "ajustada al vídeo"
-msgstr "fitted to the video"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "cubre todo el vídeo"
-msgstr "fills the whole video"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "volteo"
-msgstr "flip"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "volteada horizontalmente"
-msgstr "flipped horizontally"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "volteada verticalmente"
-msgstr "flipped vertically"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "giro"
-msgstr "rotation"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "girada a la derecha"
-msgstr "rotated right"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "girada a la izquierda"
-msgstr "rotated left"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "tamaño y posición"
-msgstr "size and position"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "vuelve a su tamaño y posición originales"
-msgstr "returns to its original size and position"
-
-#: guyrapu/ui/escena_acciones_fuente.py
-msgid "No hay nada que deshacer."
-msgstr "There's nothing to undo."
-
-#: guyrapu/ui/escena_acciones_fuente.py
-#, python-brace-format
-msgid "Deshecho: {accion} de {fuente}."
-msgstr "Undone: {accion} of {fuente}."
-
-#: guyrapu/ui/escena_edicion_fuente.py
-msgid "Chat en el vídeo no se puede cambiar de nombre: Guyrapu lo reconoce por él."
-msgstr "Chat en el vídeo can't be renamed: Guyrapu recognizes it by its name."
-
-#: guyrapu/ui/escena_edicion_fuente.py
-msgid "Ya hay una fuente con ese nombre."
-msgstr "There's already a source with that name."
-
-#: guyrapu/ui/escena_edicion_fuente.py
-msgid "Nombre nuevo:"
-msgstr "New name:"
-
-#: guyrapu/ui/escena_edicion_fuente.py
-msgid "Cambiar nombre"
-msgstr "Rename"
-
-#: guyrapu/ui/escena_edicion_fuente.py
-#, python-brace-format
-msgid ""
-"{antes} cambiada a {nombre}. El nombre cambia en todas las escenas que la "
-"usan."
-msgstr "{antes} renamed to {nombre}. The name changes in every scene that uses it."
-
-#: guyrapu/ui/escena_edicion_fuente.py
-#, python-brace-format
-msgid "{fuente} duplicada como {copia}."
-msgstr "{fuente} duplicated as {copia}."
-
-#: guyrapu/ui/escena_edicion_fuente.py
-#, python-brace-format
-msgid "¿Eliminar {fuente} de esta escena?"
-msgstr "Delete {fuente} from this scene?"
-
-#: guyrapu/ui/escena_edicion_fuente.py
-msgid "Eliminar fuente"
-msgstr "Delete source"
-
-#: guyrapu/ui/escena_edicion_fuente.py
-#, python-brace-format
-msgid "{fuente} eliminada de la escena."
-msgstr "{fuente} deleted from the scene."
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Transformar"
-msgstr "&Transform"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Tamaño y posición…"
-msgstr "&Size and position…"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Mover con flechas"
-msgstr "&Move with arrows"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Restablecer tamaño y posición"
-msgstr "&Reset size and position"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Centrar en el vídeo"
-msgstr "&Center on the video"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Ajustar al vídeo"
-msgstr "&Fit to the video"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Llenar el vídeo"
-msgstr "&Fill the video"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Voltear &horizontalmente"
-msgstr "Flip &horizontally"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Voltear &verticalmente"
-msgstr "Flip &vertically"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Girar a la &derecha"
-msgstr "Rotate &right"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Girar a la &izquierda"
-msgstr "Rotate &left"
-
-#: guyrapu/ui/escena_pagina_fuentes.py
-msgid "Deshacer todos los cambi&os"
-msgstr "&Undo all changes"
-
-#: guyrapu/ui/escena_tamano.py
-msgid "Tamaño y posición de la fuente"
-msgstr "Source size and position"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Mostrar en la escena"
-msgstr "&Show in scene"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Cambiar nombre…"
-msgstr "&Rename…"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "&Duplicar"
-msgstr "&Duplicate"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Traer al &frente"
-msgstr "Bring to &front"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Traer a&delante"
-msgstr "Bring for&ward"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Enviar a&trás"
-msgstr "Send &backward"
-
-#: guyrapu/ui/escena_menu_fuente.py
-msgid "Enviar al fo&ndo"
-msgstr "Send to bac&k"
-
-#: guyrapu/obs/nombres_escena.py
-msgid "escena actual"
-msgstr "current scene"
-
-#: guyrapu/obs/nombres_escena.py
-#, python-brace-format
-msgid "{n} fuente"
-msgid_plural "{n} fuentes"
-msgstr[0] "{n} source"
-msgstr[1] "{n} sources"
-
-#: guyrapu/obs/nombres_escena.py
-msgid "sin fuentes"
-msgstr "no sources"
-
-#: guyrapu/obs/nombres_escena.py
-#, python-brace-format
-msgid "Escena {n}"
-msgstr "Scene {n}"
-
-#: guyrapu/obs/nombres_escena.py
-#, python-brace-format
-msgid "{nombre} - copia"
-msgstr "{nombre} - copy"
-
-#: guyrapu/obs/nombres_escena.py
-#, python-brace-format
-msgid "{nombre} - copia {n}"
-msgstr "{nombre} - copy {n}"
-
-#: guyrapu/ui/escena_pagina_escena.py
-msgid "&Escenas:"
-msgstr "&Scenes:"
-
-#: guyrapu/ui/escena_pagina_escena.py
-msgid "A&gregar escena…"
-msgstr "Add sc&ene…"
-
-#: guyrapu/ui/escena_pagina_escena.py
-#, python-brace-format
-msgid "{escena} ya es la escena actual."
-msgstr "{escena} is already the current scene."
-
-#: guyrapu/ui/escena_pagina_escena.py
-msgid "Agregar escena"
-msgstr "Add scene"
-
-#: guyrapu/ui/escena_pagina_escena.py
-#, python-brace-format
-msgid "Escena {nombre} agregada."
-msgstr "Scene {nombre} added."
-
-#: guyrapu/ui/escena_pagina_escena.py
-msgid "Ya hay una escena con ese nombre."
-msgstr "A scene with that name already exists."
-
-#: guyrapu/ui/escena_pagina_escena.py
-msgid "Nombre de la escena:"
-msgstr "Scene name:"
-
-#: guyrapu/ui/escena_pagina_escena.py
-#, python-brace-format
-msgid "Escena {antes} cambiada a {nombre}."
-msgstr "Scene {antes} renamed to {nombre}."
-
-#: guyrapu/ui/escena_pagina_escena.py
-msgid "No se puede eliminar la única escena."
-msgstr "The only scene cannot be deleted."
-
-#: guyrapu/ui/escena_pagina_escena.py
-#, python-brace-format
-msgid "¿Eliminar la escena {escena}?"
-msgstr "Delete the scene {escena}?"
-
-#: guyrapu/ui/escena_pagina_escena.py
-msgid "Eliminar escena"
-msgstr "Delete scene"
-
-#: guyrapu/ui/escena_pagina_escena.py
-#, python-brace-format
-msgid "Escena {escena} eliminada."
-msgstr "Scene {escena} deleted."
-
-#: guyrapu/ui/escena_menu_escena.py
-msgid "&Cambiar escena"
-msgstr "&Change scene"
-
-#: guyrapu/ui/escena_menu_escena.py
-msgid "Cambiar &nombre…"
-msgstr "Change &name…"
-
-#: guyrapu/ui/escena_menu_escena.py
-msgid "&Guardar imagen…"
-msgstr "&Save image…"
 

@@ -31,6 +31,11 @@ class DialogoCapturarVentana(wx.Dialog):
             self, _("&Ventana:"), [texto for texto, _valor in opciones or ()])
         self.cho_ventana.SetSelection(self._seleccion(actual))
         fila_campo(vertical, self.rotulo_ventana, self.cho_ventana)
+        self.aviso_vacio = None
+        if not opciones:
+            self.aviso_vacio = wx.StaticText(
+                self, label=_("No hay ventanas para capturar."))
+            vertical.Add(self.aviso_vacio, 0, wx.ALL, 6)
         self._crear_botones(vertical)
         self.SetSizerAndFit(vertical)
         self._enlazar_eventos()
@@ -52,6 +57,8 @@ class DialogoCapturarVentana(wx.Dialog):
         fila.Add(self.btn_aceptar, 0, wx.RIGHT, 8)
         fila.Add(self.btn_cancelar, 0)
         vertical.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
+        if not self.cho_ventana.GetCount():
+            self.btn_aceptar.Disable()
 
     def _enlazar_eventos(self):
         self.btn_aceptar.Bind(wx.EVT_BUTTON, self._al_aceptar)
@@ -78,6 +85,17 @@ class DialogoCapturarVentana(wx.Dialog):
             self.EndModal(wx.ID_CANCEL)
             return
         event.Skip()
+
+
+def pedir_valor(padre, opciones, actual):
+    """Abre el cuadro de ventanas y devuelve la elegida, sin aplicarla."""
+    dialogo = DialogoCapturarVentana(padre, opciones, actual)
+    try:
+        if dialogo.ShowModal() != wx.ID_OK:
+            return None
+        return dialogo.valor() or None
+    finally:
+        dialogo.Destroy()
 
 
 def pedir_ventana(padre, gestor, operaciones, escena, al_aplicar, al_cerrar):

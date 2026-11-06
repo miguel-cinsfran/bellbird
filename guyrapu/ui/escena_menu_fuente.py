@@ -26,6 +26,7 @@ def _casillas(menu, fila, acciones):
 
 def _edicion(menu, acciones):
     menu.AppendSeparator()
+    _accion(menu, _("&Propiedades…") + "\tAlt+Enter", acciones.propiedades)
     _accion(menu, _("&Cambiar nombre…") + "\tF2", acciones.renombrar)
     _accion(menu, _("&Duplicar") + "\tCtrl+D", acciones.duplicar)
     _accion(menu, _("E&liminar") + "\tDel", acciones.eliminar)

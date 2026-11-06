@@ -501,6 +501,14 @@ class UsarVentanaTest(unittest.TestCase):
         self.assertEqual(crear[1]["inputName"],
                          f"{obs_captura.NOMBRE_CAPTURA} 3")
 
+    def test_sin_captura_usa_el_nombre_elegido_si_se_lo_pasan(self):
+        doble = Doble(video={"baseWidth": 1280, "baseHeight": 720})
+        obs_captura.usar_ventana(
+            doble, "Escena", "Juego:Ventana:juego.exe", nombre="Mi captura")
+        crear = next(llamada for llamada in doble.llamadas
+                     if llamada[0] == "CreateInput")
+        self.assertEqual(crear[1]["inputName"], "Mi captura")
+
     def test_con_solo_la_sonda_crea_captura_nueva(self):
         doble = Doble(
             elementos=(elemento(7, obs_captura.NOMBRE_SONDA,

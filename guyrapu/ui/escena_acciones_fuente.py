@@ -8,7 +8,8 @@ from guyrapu.core.idioma import _
 from guyrapu.obs import (
     consultas_transmision, deshacer, fuentes_obs, tamano_relativo,
     transformar_fuente)
-from guyrapu.ui import escena_edicion_fuente, escena_tamano
+from guyrapu.ui import (
+    escena_agregar_fuente, escena_edicion_fuente, escena_tamano)
 from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.ui.mover_con_flechas import MoverConFlechas
 
@@ -49,11 +50,8 @@ class AccionesFuente:
             self._atajo_de_orden(codigo)
             return True
         if codigo == wx.WXK_SPACE:
-            fila = self._fila()
-            if fila is None:
-                self._sin_seleccion()
-            else:
-                self.mostrar(not fila.visible)
+            return self._tecla_espacio(codigo)
+        if self._atajo_propiedades(event, codigo):
             return True
         if codigo == wx.WXK_F2:
             self.renombrar()
@@ -63,6 +61,23 @@ class AccionesFuente:
             return True
         if codigo == wx.WXK_DELETE:
             self.eliminar()
+            return True
+        return False
+
+    def _tecla_espacio(self, codigo):
+        if codigo != wx.WXK_SPACE:
+            return False
+        fila = self._fila()
+        if fila is None:
+            self._sin_seleccion()
+        else:
+            self.mostrar(not fila.visible)
+        return True
+
+    def _atajo_propiedades(self, event, codigo):
+        alt = event.AltDown() if hasattr(event, "AltDown") else False
+        if alt and codigo in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            self.propiedades()
             return True
         return False
 
@@ -255,6 +270,9 @@ class AccionesFuente:
 
     def renombrar(self):
         self._edicion.renombrar()
+
+    def propiedades(self):
+        escena_agregar_fuente.abrir_propiedades(self._pagina)
 
     def duplicar(self):
         self._edicion.duplicar()

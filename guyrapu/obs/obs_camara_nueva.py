@@ -9,7 +9,7 @@ from __future__ import annotations
 import time
 
 from guyrapu.core.idioma import N_, _
-from guyrapu.obs import obs_cliente, obs_disposicion
+from guyrapu.obs import obs_cliente, obs_disposicion, tipos_fuente
 
 
 NOMBRE_CAMARA = N_("Cámara")
@@ -115,7 +115,9 @@ def camaras_disponibles(cliente, escena, parada=None, dormir=time.sleep,
                  and item.get("itemValue", ""))
 
 
-def _camara_existente(cliente, valor, parada=None) -> str:
+def camaras_existentes(cliente, parada=None) -> dict:
+    """Las cámaras que ya están en OBS, por identificador: valor -> nombre."""
+    resultado = {}
     entradas = _datos(cliente, "GetInputList", parada=parada).get(
         "inputs", ()) or ()
     for entrada in entradas:
@@ -127,21 +129,34 @@ def _camara_existente(cliente, valor, parada=None) -> str:
         ajustes = _datos(cliente, "GetInputSettings",
                          {"inputName": nombre}, parada).get(
                              "inputSettings", {}) or {}
-        if str(ajustes.get("video_device_id", "") or "") == valor:
-            return nombre
-    return ""
+        valor = str(ajustes.get("video_device_id", "") or "")
+        if valor:
+            resultado[valor] = nombre
+    return resultado
+
+
+def nombres_ocupados(cliente, parada=None) -> set:
+    """Los nombres de todas las fuentes de OBS, para proponer uno libre."""
+    entradas = _datos(cliente, "GetInputList", parada=parada).get(
+        "inputs", ()) or ()
+    return {entrada.get("inputName", "") for entrada in entradas
+            if entrada.get("inputName", "")}
+
+
+def _camara_existente(cliente, valor, parada=None) -> str:
+    return camaras_existentes(cliente, parada).get(valor, "")
 
 
 def _nombre_libre(ocupados) -> str:
     """Nombre para la fuente nueva: el base o el primero con número libre."""
-    nombre = _(NOMBRE_CAMARA)
-    contador = 2
-    while nombre in ocupados:
-        # Traductores: {nombre} es el nombre base y {contador} el número libre.
-        nombre = _("{nombre} {contador}").format(nombre=_(NOMBRE_CAMARA),
-                                                 contador=contador)
-        contador += 1
-    return nombre
+    return tipos_fuente.nombre_libre(_(NOMBRE_CAMARA), ocupados)
+
+
+def _nombre_nuevo(cliente, parada=None) -> str:
+    entradas = _datos(cliente, "GetInputList", parada=parada).get(
+        "inputs", ()) or ()
+    return _nombre_libre({entrada.get("inputName", "")
+                          for entrada in entradas})
 
 
 def _identificador(cliente, escena, nombre, parada=None):
@@ -170,15 +185,13 @@ def _transformacion(base_ancho, base_alto) -> dict:
             "boundsWidth": base_ancho / 2, "boundsHeight": base_alto / 2}
 
 
-def agregar(cliente, escena, valor, parada=None):
+def agregar(cliente, escena, valor, parada=None, nombre=""):
     """Agrega la cámara y devuelve su nombre y si era nueva."""
     existente = _camara_existente(cliente, valor, parada)
     if existente:
         return existente, False
-    entradas = _datos(cliente, "GetInputList", parada=parada).get(
-        "inputs", ()) or ()
-    nombre = _nombre_libre({entrada.get("inputName", "")
-                            for entrada in entradas})
+    if not nombre:
+        nombre = _nombre_nuevo(cliente, parada)
     respuesta = cliente.pedir(
         "CreateInput", {"sceneName": escena, "inputName": nombre,
                         "inputKind": "dshow_input",

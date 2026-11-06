@@ -208,7 +208,7 @@ class TestPseudoPreguntarHuerfano(unittest.TestCase):
             captado["mensaje"] = mensaje
             captado["titulo"] = titulo
             dialogo = mock.Mock()
-            dialogo.ShowModal.return_value = huerfano.wx.ID_YES
+            dialogo.ShowModal.return_value = huerfano.wx.ID_OK
             creados.append(dialogo)
             return dialogo
 
@@ -216,7 +216,7 @@ class TestPseudoPreguntarHuerfano(unittest.TestCase):
             _alive=True,
             _supervisar_transmision=mock.Mock(return_value=False))
         with con_pseudo(), \
-                mock.patch.object(huerfano.wx, "MessageDialog", fabrica), \
+                mock.patch.object(huerfano.confirmar, "MessageDialog", fabrica), \
                 mock.patch.object(huerfano.diagnostico, "crear_hilo"):
             huerfano._preguntar(frame, huerfanos)
         return captado, creados
@@ -226,7 +226,7 @@ class TestPseudoPreguntarHuerfano(unittest.TestCase):
         self.assertIn("Charla", captado["mensaje"])
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
-        for etiqueta in creados[0].SetYesNoLabels.call_args.args:
+        for etiqueta in creados[0].SetOKCancelLabels.call_args.args:
             self.assertTrue(etiqueta.startswith("[¡"), etiqueta)
 
     def test_plural_marca_mensaje_titulo_y_botones(self):
@@ -235,7 +235,7 @@ class TestPseudoPreguntarHuerfano(unittest.TestCase):
         self.assertNotIn("Charla", captado["mensaje"])
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
-        for etiqueta in creados[0].SetYesNoLabels.call_args.args:
+        for etiqueta in creados[0].SetOKCancelLabels.call_args.args:
             self.assertTrue(etiqueta.startswith("[¡"), etiqueta)
 
 
@@ -268,11 +268,11 @@ class TestPseudoAnunciosHuerfano(unittest.TestCase):
 
     def test_dejar_al_aire_avisa_marcado(self):
         dialogo = mock.Mock()
-        dialogo.ShowModal.return_value = huerfano.wx.ID_NO
-        with mock.patch.object(huerfano.wx, "MessageDialog",
+        dialogo.ShowModal.return_value = huerfano.wx.ID_CANCEL
+        with mock.patch.object(huerfano.confirmar, "MessageDialog",
                                return_value=dialogo):
             huerfano._preguntar(self._frame(), [("vid1", "Charla")])
-        dialogo.SetYesNoLabels.assert_called_once()
+        dialogo.SetOKCancelLabels.assert_called_once()
         self._exigir_marcados(1)
 
     def test_fin_singular_y_plural_marcan(self):

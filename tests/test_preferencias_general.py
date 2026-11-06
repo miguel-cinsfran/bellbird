@@ -116,17 +116,18 @@ class TestCanalDeActualizaciones(unittest.TestCase):
 
 
 class _CuadroFalso:
+    respuesta = gui.wx.ID_CANCEL
+    ultimo = None
+
     def __init__(self, *args, **kwargs):
-        self.respuesta = gui.wx.ID_NO
+        self.estilo = (args[3] if len(args) > 3
+                       else kwargs.get("style", 0))
         self.etiquetas = None
-        self.escape = None
         self.destruido = False
+        _CuadroFalso.ultimo = self
 
-    def SetYesNoLabels(self, si, no):
+    def SetOKCancelLabels(self, si, no):
         self.etiquetas = (si, no)
-
-    def SetEscapeId(self, identificador):
-        self.escape = identificador
 
     def ShowModal(self):
         return self.respuesta
@@ -145,39 +146,32 @@ class TestReinicioPorIdioma(unittest.TestCase):
         self.app = app_de_prueba()
 
     def test_reiniciar_ahora_es_el_boton_de_fabrica(self):
-        cuadro = _CuadroFalso()
-        captados = {}
+        _CuadroFalso.respuesta = gui.wx.ID_CANCEL
 
-        def fabrica(*args, **kwargs):
-            captados["args"] = args
-            captados["kwargs"] = kwargs
-            return cuadro
-
-        with mock.patch.object(preferencias_general.wx, "MessageDialog",
-                               side_effect=fabrica):
+        with mock.patch.object(preferencias_general.confirmar,
+                               "MessageDialog", _CuadroFalso):
             preferencias_general.ofrecer_reinicio(None)
-        estilo = (captados["args"][3] if len(captados["args"]) > 3
-                  else captados["kwargs"].get("style", 0))
-        self.assertTrue(estilo & gui.wx.YES_NO)
-        self.assertFalse(estilo & gui.wx.NO_DEFAULT)
+        cuadro = _CuadroFalso.ultimo
+        self.assertFalse(cuadro.estilo & gui.wx.CANCEL_DEFAULT)
+        self.assertTrue(cuadro.estilo & gui.wx.OK)
+        self.assertTrue(cuadro.estilo & gui.wx.ICON_QUESTION)
 
     def test_mas_tarde_no_programa_el_reinicio(self):
-        cuadro = _CuadroFalso()
-        with mock.patch.object(preferencias_general.wx, "MessageDialog",
-                               return_value=cuadro), \
+        _CuadroFalso.respuesta = gui.wx.ID_CANCEL
+        with mock.patch.object(preferencias_general.confirmar,
+                               "MessageDialog", _CuadroFalso), \
                 mock.patch.object(preferencias_general.wx, "CallAfter") as llamar:
             self.assertFalse(preferencias_general.ofrecer_reinicio(None))
         llamar.assert_not_called()
-        self.assertEqual(cuadro.etiquetas, ("&Reiniciar ahora", "&Más tarde"))
-        self.assertEqual(cuadro.escape, gui.wx.ID_NO)
-        self.assertTrue(cuadro.destruido)
+        self.assertEqual(_CuadroFalso.ultimo.etiquetas,
+                         ("&Reiniciar ahora", "&Más tarde"))
+        self.assertTrue(_CuadroFalso.ultimo.destruido)
 
     def test_reiniciar_ahora_programa_el_reinicio(self):
-        cuadro = _CuadroFalso()
-        cuadro.respuesta = gui.wx.ID_YES
+        _CuadroFalso.respuesta = gui.wx.ID_OK
         padre = object()
-        with mock.patch.object(preferencias_general.wx, "MessageDialog",
-                               return_value=cuadro), \
+        with mock.patch.object(preferencias_general.confirmar,
+                               "MessageDialog", _CuadroFalso), \
                 mock.patch.object(preferencias_general.wx, "CallAfter") as llamar:
             self.assertTrue(preferencias_general.ofrecer_reinicio(padre))
         llamar.assert_called_once_with(preferencias_general._reiniciar, padre)

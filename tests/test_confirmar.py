@@ -336,6 +336,66 @@ class TestCuadrosDeP1(unittest.TestCase):
             pagina, "¿Eliminar TikTok: uno?", _("Eliminar destino"),
             _("&Eliminar"), _("&Cancelar"), predeterminado_si=False)
 
+    def test_finalizar_el_directo(self):
+        from guyrapu.ui import confirmar_transmision
+
+        DobleDialogo.respuesta = confirmar.ID_CANCEL
+        with mock.patch.object(confirmar, "MessageDialog", DobleDialogo):
+            self.assertFalse(
+                confirmar_transmision.confirmar_finalizar("padre"))
+        dialogo = DobleDialogo.ultimo
+        self.assertEqual(dialogo.mensaje,
+                         _("¿Finalizar el directo? Quienes te están viendo "
+                           "dejarán de verte."))
+        self.assertEqual(dialogo.titulo, _("Finalizar directo"))
+        self.assertEqual(dialogo.etiquetas_ok_cancel,
+                         (_("&Finalizar directo"),
+                          _("&Seguir transmitiendo")))
+        self.assertTrue(dialogo.estilo & confirmar.CANCEL_DEFAULT)
+        self.assertTrue(dialogo.estilo & confirmar.ICON_QUESTION)
+
+    def test_directo_sin_imagen(self):
+        from guyrapu.ui import gui_directo_huerfano
+
+        frame = SimpleNamespace(
+            _alive=True,
+            _supervisar_transmision=mock.Mock(return_value=False))
+        DobleDialogo.respuesta = confirmar.ID_CANCEL
+        with mock.patch.object(confirmar, "MessageDialog", DobleDialogo), \
+                mock.patch.object(gui_directo_huerfano, "anunciar") as anunciar, \
+                mock.patch.object(gui_directo_huerfano.diagnostico,
+                                  "crear_hilo") as crear_hilo:
+            gui_directo_huerfano._preguntar(frame, [("vid1", "Charla")])
+        crear_hilo.assert_not_called()
+        anunciar.assert_called_once_with(_("El directo sigue en curso."))
+        dialogo = DobleDialogo.ultimo
+        self.assertEqual(dialogo.titulo, _("Directo sin imagen"))
+        self.assertIn("Charla", dialogo.mensaje)
+        self.assertEqual(dialogo.etiquetas_ok_cancel,
+                         (_("&Finalizar directo"), _("&Dejarlo en curso")))
+        self.assertTrue(dialogo.estilo & confirmar.CANCEL_DEFAULT)
+        self.assertTrue(dialogo.estilo & confirmar.ICON_QUESTION)
+
+    def test_reinicio_por_idioma(self):
+        from guyrapu.ui import preferencias_general
+
+        DobleDialogo.respuesta = confirmar.ID_CANCEL
+        with mock.patch.object(confirmar, "MessageDialog", DobleDialogo), \
+                mock.patch.object(preferencias_general.wx,
+                                  "CallAfter") as llamar:
+            self.assertFalse(preferencias_general.ofrecer_reinicio(None))
+        llamar.assert_not_called()
+        dialogo = DobleDialogo.ultimo
+        self.assertEqual(dialogo.mensaje,
+                         _("El idioma nuevo se aplica al reiniciar la "
+                           "aplicación."))
+        self.assertEqual(dialogo.titulo, _("Idioma"))
+        self.assertEqual(dialogo.etiquetas_ok_cancel,
+                         (_("&Reiniciar ahora"), _("&Más tarde")))
+        self.assertFalse(dialogo.estilo & confirmar.CANCEL_DEFAULT)
+        self.assertTrue(dialogo.estilo & confirmar.CENTRE)
+        self.assertTrue(dialogo.estilo & confirmar.ICON_QUESTION)
+
 
 def _hwnd_del_cuadro(titulo):
     hwnd = user32.FindWindowW(None, titulo)

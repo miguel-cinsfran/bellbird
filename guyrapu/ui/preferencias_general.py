@@ -38,16 +38,10 @@ def ofrecer_reinicio(parent) -> bool:
     Devuelve True si se eligió reiniciar ahora. El reinicio se deja para
     después del manejador de Preferencias, cuando ya no hay cuadros abiertos.
     """
-    dialogo = wx.MessageDialog(
-        parent, _("El idioma nuevo se aplica al reiniciar la aplicación."),
-        _("Idioma"), wx.YES_NO | wx.YES_DEFAULT | wx.ICON_QUESTION | wx.CENTRE)
-    dialogo.SetYesNoLabels(_("&Reiniciar ahora"), _("&Más tarde"))
-    dialogo.SetEscapeId(wx.ID_NO)
-    try:
-        respuesta = dialogo.ShowModal()
-    finally:
-        dialogo.Destroy()
-    if respuesta != wx.ID_YES:
+    if not confirmar.preguntar(
+            parent, _("El idioma nuevo se aplica al reiniciar la aplicación."),
+            _("Idioma"), _("&Reiniciar ahora"), _("&Más tarde"),
+            predeterminado_si=True, centrar=True):
         return False
     wx.CallAfter(_reiniciar, parent)
     return True

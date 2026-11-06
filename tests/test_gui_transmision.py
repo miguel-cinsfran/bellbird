@@ -961,12 +961,13 @@ class TestConfirmarFinalizarSinVentana(unittest.TestCase):
             creados.append((args, dialogo))
             return dialogo
 
-        with mock.patch.object(modulo_confirmar.wx, "MessageDialog", fabrica):
+        with mock.patch.object(modulo_confirmar.confirmar, "MessageDialog",
+                               fabrica):
             acepta = modulo_confirmar.confirmar_finalizar(mock.sentinel.padre)
         return acepta, creados
 
     def test_aceptar_devuelve_verdadero_con_los_textos_de_siempre(self):
-        acepta, creados = self._confirmar(wx.ID_YES)
+        acepta, creados = self._confirmar(wx.ID_OK)
         self.assertTrue(acepta)
         args, dialogo = creados[0]
         self.assertEqual(args[0], mock.sentinel.padre)
@@ -974,13 +975,15 @@ class TestConfirmarFinalizarSinVentana(unittest.TestCase):
             args[1],
             "¿Finalizar el directo? Quienes te están viendo dejarán de verte.")
         self.assertEqual(args[2], "Finalizar directo")
-        self.assertEqual(args[3], wx.YES_NO | wx.NO_DEFAULT)
-        dialogo.SetYesNoLabels.assert_called_once_with(
+        self.assertTrue(args[3] & wx.OK)
+        self.assertTrue(args[3] & wx.CANCEL)
+        self.assertTrue(args[3] & wx.CANCEL_DEFAULT)
+        dialogo.SetOKCancelLabels.assert_called_once_with(
             "&Finalizar directo", "&Seguir transmitiendo")
         dialogo.Destroy.assert_called_once_with()
 
     def test_no_devuelve_falso_y_cierra(self):
-        acepta, creados = self._confirmar(wx.ID_NO)
+        acepta, creados = self._confirmar(wx.ID_CANCEL)
         self.assertFalse(acepta)
         creados[0][1].Destroy.assert_called_once_with()
 
@@ -1022,11 +1025,11 @@ class TestPseudoConfirmarTransmision(unittest.TestCase):
             creados.append(dialogo)
             return dialogo
 
-        with con_pseudo(),                 mock.patch.object(modulo_confirmar.wx, "MessageDialog", fabrica):
+        with con_pseudo(),                 mock.patch.object(modulo_confirmar.confirmar, "MessageDialog", fabrica):
             modulo_confirmar.confirmar_finalizar(mock.sentinel.padre)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))
-        for etiqueta in creados[0].SetYesNoLabels.call_args.args:
+        for etiqueta in creados[0].SetOKCancelLabels.call_args.args:
             self.assertTrue(etiqueta.startswith("[¡"))
 
 

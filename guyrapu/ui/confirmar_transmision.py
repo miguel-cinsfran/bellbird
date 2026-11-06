@@ -5,6 +5,7 @@ from __future__ import annotations
 import wx
 
 from guyrapu.core.idioma import N_, _
+from guyrapu.ui import confirmar
 
 
 _ETIQUETA_TRANSMITIR = N_("&Transmitir")
@@ -12,16 +13,11 @@ _ETIQUETA_TRANSMITIR = N_("&Transmitir")
 
 def confirmar_finalizar(padre) -> bool:
     """Pide confirmar el fin del directo, con el texto de siempre."""
-    dialogo = wx.MessageDialog(
+    return confirmar.preguntar(
         padre,
         _("¿Finalizar el directo? Quienes te están viendo dejarán de verte."),
-        _("Finalizar directo"), wx.YES_NO | wx.NO_DEFAULT)
-    try:
-        dialogo.SetYesNoLabels(_("&Finalizar directo"),
-                               _("&Seguir transmitiendo"))
-        return dialogo.ShowModal() == wx.ID_YES
-    finally:
-        dialogo.Destroy()
+        _("Finalizar directo"), _("&Finalizar directo"),
+        _("&Seguir transmitiendo"), predeterminado_si=False)
 
 
 def confirmar_transmision(padre, revision) -> bool:

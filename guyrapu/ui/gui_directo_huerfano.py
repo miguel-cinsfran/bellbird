@@ -20,6 +20,7 @@ from guyrapu.core import paths
 from guyrapu.core.idioma import _
 from guyrapu.obs import obs_activacion
 from guyrapu.obs.obs_panel import GestorPanelObs
+from guyrapu.ui import confirmar
 from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.voice import sound_player as _snd
 from guyrapu.youtube import credenciales, emision, fin_pendiente, youtube_api
@@ -192,13 +193,9 @@ def _preguntar(frame, huerfanos) -> None:
             texto = (_("Tienes {cuantos} directos en curso en YouTube "
                        "sin imagen, porque OBS no está transmitiendo. "
                        "¿Finalizarlos?").format(cuantos=len(huerfanos)))
-        dialogo = wx.MessageDialog(
-            frame, texto, _("Directo sin imagen"), wx.YES_NO | wx.NO_DEFAULT)
-        try:
-            dialogo.SetYesNoLabels(_("&Finalizar directo"), _("&Dejarlo en curso"))
-            dejar = dialogo.ShowModal() != wx.ID_YES
-        finally:
-            dialogo.Destroy()
+        dejar = not confirmar.preguntar(
+            frame, texto, _("Directo sin imagen"), _("&Finalizar directo"),
+            _("&Dejarlo en curso"), predeterminado_si=False)
         if dejar:
             logger.info("revisión de directo huérfano: el usuario dejó %d "
                         "directos en curso", len(huerfanos))

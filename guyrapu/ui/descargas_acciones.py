@@ -18,6 +18,7 @@ from guyrapu.downloads import filas_descargas
 from guyrapu.downloads.filas_descargas import (
     ACTIVAS, FINALES, clave_de_entrada)
 from guyrapu.downloads import historial_descargas
+from guyrapu.ui import confirmar
 from guyrapu.ui.gui import anunciar, copiar_al_portapapeles
 from guyrapu.voice import sound_player as _snd
 
@@ -47,11 +48,21 @@ def _padre_vigente(padre):
     return app.GetTopWindow() if app is not None else None
 
 
+def _confirmar_vaciar(padre) -> bool:
+    mensaje = _("Elimina de la lista las descargas terminadas. "
+                "No borra ningún archivo del disco. ¿Deseas continuar?")
+    return confirmar.preguntar(
+        padre, mensaje, _("Vaciar lista"), _("&Vaciar lista"),
+        _("&Cancelar"), icono=confirmar.ICON_WARNING,
+        predeterminado_si=False)
+
+
 def _preguntar_carpeta(carpeta, padre) -> None:
-    if wx.MessageBox(
+    if not confirmar.preguntar(
+            _padre_vigente(padre),
             _("Descargas terminadas. ¿Abrir la carpeta?"),
-            _("Administrador de descargas"),
-            wx.YES_NO | wx.ICON_QUESTION, _padre_vigente(padre)) != wx.YES:
+            _("Administrador de descargas"), _("&Abrir carpeta"),
+            _("Ahora &no")):
         return
     if not os.path.exists(carpeta):
         _falta(_("La carpeta ya no está disponible."))
@@ -180,10 +191,7 @@ class AccionesDescarga:
         if not terminadas:
             self._falta(_("No hay descargas terminadas"))
             return
-        mensaje = _("Elimina de la lista las descargas terminadas. "
-                    "No borra ningún archivo del disco. ¿Deseas continuar?")
-        if wx.MessageBox(mensaje, _("Vaciar lista"),
-                         wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING, padre) != wx.YES:
+        if not _confirmar_vaciar(padre):
             return
         resto = [e for e in historial if e.get("estado") not in FINALES]
         for entrada in terminadas:

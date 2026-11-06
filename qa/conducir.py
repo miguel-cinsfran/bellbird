@@ -213,6 +213,7 @@ SIN_ESCENARIO: dict[str, str] = {
     "restream_perfil.py": "El banco no tiene cuenta ni canales; el diálogo lo cubren las pruebas con wx.",
     "restream_dialogos_destino.py": "El banco no tiene cuenta ni canales; los cuadros los cubren las pruebas con wx.",
     "agregar_camara.py": "El banco no tiene cámara de Windows; el flujo lo cubren las pruebas con wx y la prueba contra OBS real.",
+    "confirmar.py": "Envuelve los cuadros nativos de Windows; no abre una ventana propia.",
 }
 
 EXTRAS_DE_INTERFAZ = ("reproductor.py", "iconos.py")

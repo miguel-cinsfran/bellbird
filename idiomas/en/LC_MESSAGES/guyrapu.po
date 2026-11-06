@@ -10893,3 +10893,59 @@ msgstr "Signed in. You can go back to the application."
 msgid "Sin título"
 msgstr "Untitled"
 
+#: guyrapu/ui/descargas_acciones.py
+msgid "&Abrir carpeta"
+msgstr "&Open folder"
+
+#: guyrapu/ui/descargas_acciones.py guyrapu/ui/gui_preferencias.py
+msgid "Ahora &no"
+msgstr "&Not now"
+
+#: guyrapu/ui/descargas_acciones.py
+msgid "&Vaciar lista"
+msgstr "C&lear list"
+
+#: guyrapu/ui/gui_descargas.py
+msgid "&Agregar"
+msgstr "&Add"
+
+#: guyrapu/ui/gui_descargas.py
+msgid "&No agregar"
+msgstr "&Don't add"
+
+#: guyrapu/ui/gui_descargas.py
+msgid "&Agregar todos"
+msgstr "&Add all"
+
+#: guyrapu/ui/gui_descargas.py
+msgid "Solo los &nuevos"
+msgstr "Only &new ones"
+
+#: guyrapu/ui/gui_envio_chat.py
+msgid "&Suspender"
+msgstr "&Timeout"
+
+#: guyrapu/ui/gui_envio_chat.py
+msgid "&Ocultar"
+msgstr "&Hide"
+
+#: guyrapu/ui/gui_preferencias.py
+msgid "&Abrir Preferencias"
+msgstr "&Open Preferences"
+
+#: guyrapu/ui/musica_ventana_acciones.py guyrapu/ui/restream_pagina_destinos.py
+msgid "&Eliminar"
+msgstr "&Delete"
+
+#: guyrapu/ui/musica_ventana_igualando.py
+msgid "&Igualar ahora"
+msgstr "&Match now"
+
+#: guyrapu/ui/preferencias_general.py
+msgid "&Restablecer"
+msgstr "&Reset"
+
+#: guyrapu/ui/preferencias_ia_clave.py
+msgid "&Eliminar clave"
+msgstr "&Delete key"
+

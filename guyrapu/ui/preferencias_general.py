@@ -19,6 +19,7 @@ from guyrapu.core import instancia
 from guyrapu.core import paths
 from guyrapu.core import preferencias_archivo
 from guyrapu.core.idioma import _
+from guyrapu.ui import confirmar
 from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.ui.preferencias_comun import EleccionTexto, crear_panel, fila_label
 from guyrapu.ui.tema import _tc
@@ -205,27 +206,27 @@ class PaginaGeneral:
         self._ventana.EndModal(wx.ID_CANCEL)
 
     def _restablecer_prefs(self, event):
-        dialogo = wx.MessageDialog(
-            self._ventana, _("¿Restablecer todas las preferencias a los valores "
-                             "de fábrica? Se guarda una copia de las actuales en "
-                             "la carpeta de datos."),
-            _("Restablecer las preferencias"),
-            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION | wx.CENTRE)
-        try:
-            respuesta = dialogo.ShowModal()
-        finally:
-            dialogo.Destroy()
-        if respuesta != wx.ID_YES:
+        if not confirmar.preguntar(
+                self._ventana,
+                _("¿Restablecer todas las preferencias a los valores "
+                  "de fábrica? Se guarda una copia de las actuales en "
+                  "la carpeta de datos."),
+                _("Restablecer las preferencias"), _("&Restablecer"),
+                _("&Cancelar"), predeterminado_si=False, centrar=True):
             return
         try:
             preferencias_archivo.restablecer()
         except Exception as exc:
-            wx.MessageBox(_("No se pudieron restablecer las preferencias:\n\n{exc}").format(exc=exc),
-                          _("Restablecer las preferencias"),
-                          wx.OK | wx.ICON_ERROR, self._ventana)
+            confirmar.avisar(
+                self._ventana,
+                _("No se pudieron restablecer las preferencias:\n\n{exc}").format(exc=exc),
+                _("Restablecer las preferencias"), _("&Aceptar"),
+                icono=confirmar.ICON_ERROR)
             return
-        wx.MessageBox(_("Preferencias restablecidas. Se aplican al reiniciar "
-                        "la aplicación."),
-                      _("Preferencias restablecidas"),
-                      wx.OK | wx.ICON_INFORMATION, self._ventana)
+        confirmar.avisar(
+            self._ventana,
+            _("Preferencias restablecidas. Se aplican al reiniciar "
+              "la aplicación."),
+            _("Preferencias restablecidas"), _("&Aceptar"),
+            icono=confirmar.ICON_INFORMATION)
         self._ventana.EndModal(wx.ID_CANCEL)

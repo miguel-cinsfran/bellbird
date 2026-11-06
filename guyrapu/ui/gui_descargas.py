@@ -37,7 +37,7 @@ from guyrapu.ui.descargas_listas import _ESTADOS_FINALES, PaginaDescargas
 from guyrapu.ui.buscador_acciones import anunciar_agregados
 from guyrapu.ui.descargas_acciones import ofrecer_carpeta
 from guyrapu.ui.gui import anunciar, nombre_accesible
-from guyrapu.ui import paleta
+from guyrapu.ui import confirmar, paleta
 from guyrapu.ui.accesibilidad import enlazar_anuncio_de_pestana
 from guyrapu.voice import sound_player as _snd
 
@@ -95,11 +95,13 @@ def _pedidos_nuevos(pedidos, padre) -> list:
         return list(pedidos)
     if len(repetidos) == 1:
         pregunta = _("Este vídeo ya está en el historial. ¿Agregar de todos modos?")
+        etiqueta_si, etiqueta_no = _("&Agregar"), _("&No agregar")
     else:
         pregunta = _("{cantidad} ya están en el historial. ¿Agregar de todos modos?").format(
             cantidad=len(repetidos))
-    if wx.MessageBox(pregunta, _("Administrador de descargas"),
-                     wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION, padre) == wx.YES:
+        etiqueta_si, etiqueta_no = _("&Agregar todos"), _("Solo los &nuevos")
+    if confirmar.preguntar(padre, pregunta, _("Administrador de descargas"),
+                           etiqueta_si, etiqueta_no, predeterminado_si=False):
         return list(pedidos)
     return [u for u in pedidos if u not in repetidos]
 

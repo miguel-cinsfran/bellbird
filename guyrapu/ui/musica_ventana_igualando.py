@@ -155,6 +155,7 @@ class IgualandoVentanaMusica:
             _(pregunta_igualar.TITULO),
             wx.YES_NO | wx.ICON_QUESTION | wx.NO_DEFAULT)
         dialogo.ShowCheckBox(_(pregunta_igualar.CASILLA))
+        dialogo.SetYesNoLabels(_("&Igualar ahora"), _("&Más tarde"))
         respuesta = dialogo.ShowModal()
         marcada = dialogo.IsCheckBoxChecked()
         dialogo.Destroy()

@@ -13,6 +13,7 @@ import wx
 
 from guyrapu.core import sonidos_eventos
 from guyrapu.core.idioma import _
+from guyrapu.ui import confirmar
 from guyrapu.ui.accesibilidad import nombre_accesible
 from guyrapu.ui.busqueda_teclado import instalar_busqueda_tipo
 from guyrapu.ui.preferencias_comun import fila_horizontal
@@ -136,13 +137,9 @@ class PaginaDestinos(wx.Panel):
                      destino=destino)
 
     def confirmar(self, destino):
-        dialogo = wx.MessageDialog(
+        return confirmar.preguntar(
             self, self.pregunta(destino), _("Eliminar destino"),
-            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
-        try:
-            return dialogo.ShowModal() == wx.ID_YES
-        finally:
-            dialogo.Destroy()
+            _("&Eliminar"), _("&Cancelar"), predeterminado_si=False)
 
     def _agregar(self):
         abrir_navegador(URL_DESTINOS)

@@ -22,6 +22,7 @@ directo.
 from __future__ import annotations
 
 from guyrapu.core.idioma import _
+from guyrapu.ui import confirmar
 
 
 def on_enviar_live(frame, event):
@@ -179,21 +180,22 @@ def procesar_programado(frame) -> None:
 
 
 def moderar(frame, autor: str, canal_id: str, segundos: int | None) -> None:
-    from guyrapu.ui import gui as _gui
     if segundos:
         # Traductores: confirmación de moderación; {autor} es su nombre.
         pregunta = _("¿Suspender temporalmente a {autor} durante 5 minutos?")
+        etiqueta_si = _("&Suspender")
         # Traductores: aviso de suspensión; {autor} es su nombre.
         ok = _("{autor} suspendido 5 minutos")
     else:
         # Traductores: confirmación de moderación; {autor} es su nombre.
         pregunta = _("¿Ocultar a {autor} en el canal de YouTube? "
                      "Se puede deshacer desde YouTube Studio.")
+        etiqueta_si = _("&Ocultar")
         # Traductores: aviso de ocultación; {autor} es su nombre.
         ok = _("{autor} oculto en el canal de YouTube")
-    if _gui.wx.MessageBox(pregunta.format(autor=autor),
-                          _("Confirmar moderación"),
-                          _gui.wx.YES_NO | _gui.wx.ICON_QUESTION, frame) != _gui.wx.YES:
+    if not confirmar.preguntar(frame, pregunta.format(autor=autor),
+                               _("Confirmar moderación"), etiqueta_si,
+                               _("&Cancelar")):
         return
     lcid = frame.sesion.live_chat_id
     frame._accion_api(

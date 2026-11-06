@@ -33,7 +33,7 @@ from guyrapu.core import historial
 from guyrapu.downloads.descargas import gestor
 from guyrapu.ui.lista_chat import MensajeChat, texto_fila
 from guyrapu.ui.chat_vivo import ControladorChat
-from guyrapu.ui import atajos_captura, recientes_inicio as recientes
+from guyrapu.ui import atajos_captura, confirmar, recientes_inicio as recientes
 from guyrapu.voice import escala_voz
 from guyrapu.voice import sound_player as _snd
 from guyrapu.youtube import credenciales
@@ -1227,14 +1227,10 @@ class VentanaPrincipal(wx.Frame):
             puede_vetar = callable(getattr(event, "CanVeto", None)) and event.CanVeto()
             if mensaje is not None and puede_vetar:
                 # Traductores: título del cuadro para salir.
-                dialogo = wx.MessageDialog(
-                    self, mensaje, _("Salir"),
-                    wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION | wx.CENTRE)
-                try:
-                    respuesta = dialogo.ShowModal()
-                finally:
-                    dialogo.Destroy()
-                if respuesta != wx.ID_YES:
+                if not confirmar.preguntar(
+                        self, mensaje, _("Salir"), _("&Salir"),
+                        _("&Cancelar"), predeterminado_si=False,
+                        centrar=True):
                     event.Veto()
                     return
         self._apagando = True

@@ -6,12 +6,11 @@ preguntar. La ventana no agrega controles, solo este diálogo.
 
 from __future__ import annotations
 
-import wx
-
 from guyrapu.ai import ajustes_ia
 from guyrapu.core import diagnostico
 from guyrapu.core import paths
 from guyrapu.core.idioma import _, N_
+from guyrapu.ui import confirmar as confirmaciones
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -27,10 +26,10 @@ def confirmar(padre, ajustes, nombre_proveedor) -> bool:
     """Si se puede enviar al proveedor, preguntando la primera vez."""
     if ajustes.privacidad_aceptada:
         return True
-    respuesta = wx.MessageBox(
-        _(TEXTO_AVISO).format(proveedor=nombre_proveedor), _(TITULO_AVISO),
-        wx.YES_NO | wx.NO_DEFAULT | wx.ICON_INFORMATION, padre)
-    if respuesta != wx.YES:
+    if not confirmaciones.preguntar(
+            padre, _(TEXTO_AVISO).format(proveedor=nombre_proveedor),
+            _(TITULO_AVISO), _("&Enviar"), _("&Cancelar"),
+            icono=confirmaciones.ICON_INFORMATION, predeterminado_si=False):
         return False
     try:
         guardado = ajustes_ia.guardar_privacidad_aceptada(

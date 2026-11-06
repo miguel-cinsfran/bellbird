@@ -195,6 +195,9 @@ class TestPseudoAnunciosIgualando(unittest.TestCase):
             def ShowCheckBox(self, texto):
                 capturado["casilla"] = texto
 
+            def SetYesNoLabels(self, si, no):
+                capturado["etiquetas"] = (si, no)
+
             def ShowModal(self):
                 return wx.ID_NO
 
@@ -214,6 +217,8 @@ class TestPseudoAnunciosIgualando(unittest.TestCase):
                                 capturado[clave])
         self.assertIn("Hay 1 canción", capturado["mensaje"])
         self.assertIn("5 MB", capturado["mensaje"])
+        self.assertIn("&Igualar ahora", capturado["etiquetas"][0])
+        self.assertIn("&Más tarde", capturado["etiquetas"][1])
 
 
 if __name__ == "__main__":

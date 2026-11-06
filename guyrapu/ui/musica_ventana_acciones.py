@@ -12,7 +12,7 @@ import wx
 from guyrapu.core import diagnostico
 from guyrapu.core.idioma import N_, _
 from guyrapu.music import anuncios, listas, vista
-from guyrapu.ui import musica_dialogo_enlace, musica_menus
+from guyrapu.ui import confirmar, musica_dialogo_enlace, musica_menus
 
 logger = diagnostico.obtener_logger(__name__)
 
@@ -40,18 +40,9 @@ def _pedir_nombre(parent, titulo, valor=""):
 
 def _confirmar_borrar(parent, nombre):
     pregunta = _(anuncios.TEXTO_CONFIRMAR_BORRAR_LISTA).format(nombre=nombre)
-    dialogo = wx.MessageDialog(
-        parent, pregunta, _(TITULO), wx.YES_NO | wx.ICON_QUESTION)
-    try:
-        boton = dialogo.FindWindow(wx.ID_NO)
-        if boton is not None:
-            dialogo.SetDefaultItem(boton)
-    except Exception as exc:
-        logger.debug("No se pudo dejar No por defecto: %s", exc)
-    try:
-        return dialogo.ShowModal() == wx.ID_YES
-    finally:
-        dialogo.Destroy()
+    return confirmar.preguntar(
+        parent, pregunta, _(TITULO), _("&Eliminar"), _("&Cancelar"),
+        predeterminado_si=False)
 
 
 class AccionesVentanaMusica:

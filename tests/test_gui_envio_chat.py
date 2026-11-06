@@ -101,30 +101,36 @@ class TestPseudoEnvioChat(unittest.TestCase):
                 self.assertFalse(frame._config["programados_activo"])
 
     def test_moderar_pregunta_titulo_y_aviso_salen_marcados(self):
+        etiquetas = {300: "&Suspender", None: "&Ocultar"}
         for segundos in (300, None):
             with self.subTest(segundos=segundos):
                 frame = mock.Mock()
                 frame.sesion.live_chat_id = "LCID"
                 captado = {}
 
-                def caja(mensaje, titulo, estilo, padre=None):
+                def caja(padre, mensaje, titulo, etiqueta_si, etiqueta_no,
+                         **kwargs):
                     captado["mensaje"] = mensaje
                     captado["titulo"] = titulo
-                    return gui.wx.YES
+                    captado["etiqueta_si"] = etiqueta_si
+                    captado["etiqueta_no"] = etiqueta_no
+                    return True
 
                 with con_pseudo(), \
-                        mock.patch.object(gui.wx, "MessageBox", caja):
+                        mock.patch.object(envio.confirmar, "preguntar", caja):
                     envio.moderar(frame, "Ana", "CANAL", segundos)
                 self.assertTrue(captado["mensaje"].startswith("[¡"),
                                 captado)
                 self.assertTrue(captado["titulo"].startswith("[¡"), captado)
+                self.assertIn(etiquetas[segundos], captado["etiqueta_si"])
+                self.assertIn("&Cancelar", captado["etiqueta_no"])
                 _accion, ok = frame._accion_api.call_args.args
                 self.assertTrue(ok.startswith("[¡"), ok)
 
     def test_moderar_con_no_no_actua(self):
         frame = mock.Mock()
-        with mock.patch.object(gui.wx, "MessageBox",
-                               return_value=gui.wx.NO):
+        with mock.patch.object(envio.confirmar, "preguntar",
+                               return_value=False):
             envio.moderar(frame, "Ana", "CANAL", 300)
         frame._accion_api.assert_not_called()
 

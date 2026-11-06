@@ -479,7 +479,7 @@ class TestPaginaUnica(unittest.TestCase):
         pagina = dialogo.pagina_descargas
         with mock.patch.object(descargas_acciones, "anunciar") as anunciar, \
                 mock.patch.object(descargas_acciones._snd, "reproducir") as sonido, \
-                mock.patch.object(descargas_acciones.wx, "MessageBox",
+                mock.patch.object(descargas_acciones.confirmar, "preguntar",
                                    side_effect=AssertionError("modal")):
             pagina._on_vaciar(None)
         anunciar.assert_called_once_with("No hay descargas terminadas")
@@ -1700,13 +1700,15 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         with mock.patch.object(gui_descargas.cfg,
                                "guardar_opciones_descarga"), \
                 mock.patch.object(dialogo._gestor, "encolar") as encolar, \
-                mock.patch.object(gui_descargas.wx, "MessageBox",
-                                  return_value=wx.NO) as caja, \
+                mock.patch.object(gui_descargas.confirmar, "preguntar",
+                                  return_value=False) as caja, \
                 mock.patch.object(gui_descargas, "anunciar"):
             agregados = dialogo.agregar_urls([vieja1, vieja2, nueva])
         self.assertEqual(
-            caja.call_args.args[0],
+            caja.call_args.args[1],
             "2 ya están en el historial. ¿Agregar de todos modos?")
+        self.assertEqual(caja.call_args.args[3], "&Agregar todos")
+        self.assertEqual(caja.call_args.args[4], "Solo los &nuevos")
         encolar.assert_called_once()
         self.assertEqual(encolar.call_args.args[0], nueva)
         self.assertEqual(agregados, 1)
@@ -2302,8 +2304,8 @@ class TestOfrecerCarpetaAlTerminar(unittest.TestCase):
             mock.patch("guyrapu.core.config.obtener_opciones_descarga",
                        side_effect=self._opciones),
             mock.patch.object(descargas_acciones.wx, "CallLater"),
-            mock.patch.object(descargas_acciones.wx, "MessageBox",
-                              side_effect=lambda *a, **k: self._respuesta),
+            mock.patch.object(descargas_acciones.confirmar, "preguntar",
+                              side_effect=lambda *a, **k: self._respuesta == wx.YES),
             mock.patch.object(descargas_acciones.os, "startfile"),
             mock.patch.object(descargas_acciones.os.path, "exists",
                               side_effect=lambda _ruta: self._existe),
@@ -2313,7 +2315,7 @@ class TestOfrecerCarpetaAlTerminar(unittest.TestCase):
             parche.start()
             self.addCleanup(parche.stop)
         self._gestor = gui_descargas.gestor.return_value
-        self._mensaje = descargas_acciones.wx.MessageBox
+        self._mensaje = descargas_acciones.confirmar.preguntar
         self._programada = descargas_acciones.wx.CallLater
         self._inicio = descargas_acciones.os.startfile
         self._anuncio = descargas_acciones.anunciar
@@ -2357,9 +2359,8 @@ class TestOfrecerCarpetaAlTerminar(unittest.TestCase):
         self._fin(unico)
         self._abrir_la_pregunta()
         self._mensaje.assert_called_once_with(
-            "Descargas terminadas. ¿Abrir la carpeta?",
-            "Administrador de descargas",
-            wx.YES_NO | wx.ICON_QUESTION, None)
+            None, "Descargas terminadas. ¿Abrir la carpeta?",
+            "Administrador de descargas", "&Abrir carpeta", "Ahora &no")
 
     def test_dos_completadas_preguntan_una_vez_al_final(self):
         self._preguntar = True

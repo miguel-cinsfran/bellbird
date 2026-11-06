@@ -17,7 +17,7 @@ from guyrapu.core import config as cfg
 from guyrapu.core import paths
 from guyrapu.core.ini_tipado import separar_por_comas
 from guyrapu.core.idioma import _
-from guyrapu.ui import atajos_captura
+from guyrapu.ui import atajos_captura, confirmar
 from guyrapu.capture import estado_sesion
 from guyrapu.voice import sound_player as _snd
 from guyrapu.ui.gui import ContadorAccesible, _T, _tc, nombre_accesible
@@ -519,9 +519,9 @@ def ofrecer_iniciar_sesion(parent, config) -> bool:
     Devuelve lo que devuelva `abrir_preferencias` si el usuario acepta, o
     False si no quiere.
     """
-    if wx.MessageBox(_("Tu sesión de YouTube caducó. ¿Abrir Preferencias para "
-                        "volver a iniciar sesión?"),
-                      _("Sesión caducada"), wx.YES_NO | wx.ICON_QUESTION,
-                      parent) != wx.YES:
+    if not confirmar.preguntar(
+            parent, _("Tu sesión de YouTube caducó. ¿Abrir Preferencias para "
+                      "volver a iniciar sesión?"),
+            _("Sesión caducada"), _("&Abrir Preferencias"), _("Ahora &no")):
         return False
     return abrir_preferencias(parent, config, pagina="API y sesión")

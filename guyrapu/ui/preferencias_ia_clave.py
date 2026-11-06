@@ -13,6 +13,7 @@ from guyrapu.ai import claves
 from guyrapu.ai import opciones_ia
 from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
+from guyrapu.ui import confirmar
 from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.ui.tema import _T, _tc
 from guyrapu.voice import sound_player as _snd
@@ -154,10 +155,10 @@ class SeccionClaveIA:
         proveedor = self._proveedor_actual()
         mensaje = opciones_ia.TEXTO_CONFIRMAR_BORRADO.format(
             proveedor=proveedor.nombre)
-        respuesta = wx.MessageBox(
-            mensaje, _("Eliminar clave"),
-            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_WARNING, self._panel)
-        if respuesta != wx.YES:
+        if not confirmar.preguntar(
+                self._panel, mensaje, _("Eliminar clave"),
+                _("&Eliminar clave"), _("&Cancelar"),
+                icono=confirmar.ICON_WARNING, predeterminado_si=False):
             self.btn_borrar.SetFocus()
             return
         try:

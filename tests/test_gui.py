@@ -2531,8 +2531,8 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         dialogo = self._dialogo()
         self.assertTrue(dialogo.pagina_ia.ia_clave.btn_borrar.IsShown())
         with mock.patch.object(
-                preferencias_ia_clave.wx, "MessageBox",
-                return_value=gui.wx.YES), \
+                preferencias_ia_clave.confirmar, "preguntar",
+                return_value=True), \
                 mock.patch.object(
                     preferencias_ia_clave.claves, "borrar") as borrar, \
                 mock.patch.object(
@@ -2551,8 +2551,8 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.clave_guardada = self.CLAVE_GEMINI
         dialogo = self._dialogo()
         with mock.patch.object(
-                preferencias_ia_clave.wx, "MessageBox",
-                return_value=gui.wx.NO) as mensaje, \
+                preferencias_ia_clave.confirmar, "preguntar",
+                return_value=False) as mensaje, \
                 mock.patch.object(
                     preferencias_ia_clave.claves, "borrar") as borrar, \
                 mock.patch.object(
@@ -2563,10 +2563,9 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         mensaje.assert_called_once()
         argumentos = mensaje.call_args.args
-        self.assertEqual(argumentos[1], "Eliminar clave")
-        self.assertEqual(
-            argumentos[2],
-            gui.wx.YES_NO | gui.wx.NO_DEFAULT | gui.wx.ICON_WARNING)
+        self.assertEqual(argumentos[2], "Eliminar clave")
+        self.assertEqual(argumentos[3], "&Eliminar clave")
+        self.assertEqual(argumentos[4], "&Cancelar")
         borrar.assert_not_called()
         foco.assert_called_once_with()
 
@@ -2574,8 +2573,8 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         self.clave_guardada = self.CLAVE_GEMINI
         dialogo = self._dialogo()
         with mock.patch.object(
-                preferencias_ia_clave.wx, "MessageBox",
-                return_value=gui.wx.YES), \
+                preferencias_ia_clave.confirmar, "preguntar",
+                return_value=True), \
                 mock.patch.object(
                     preferencias_ia_clave.claves, "borrar") as borrar, \
                 mock.patch.object(preferencias_ia_clave, "anunciar"):
@@ -2949,8 +2948,8 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         def borrar(proveedor):
             self.clave_guardada = ""
 
-        with mock.patch.object(preferencias_ia_clave.wx, "MessageBox",
-                               return_value=gui.wx.YES), \
+        with mock.patch.object(preferencias_ia_clave.confirmar, "preguntar",
+                               return_value=True), \
                 mock.patch.object(preferencias_ia_clave.claves, "borrar",
                                   side_effect=borrar), \
                 mock.patch.object(preferencias_ia_clave, "anunciar"):
@@ -3673,12 +3672,15 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
         dialogo = self._dialogo()
         respuesta = mock.Mock()
         respuesta.ShowModal.return_value = gui.wx.ID_NO
-        with mock.patch.object(gui_preferencias.wx, "MessageDialog",
+        with mock.patch.object(preferencias_general.confirmar, "MessageDialog",
                                return_value=respuesta) as crear, \
-                mock.patch.object(gui_preferencias.wx, "MessageBox") as aviso, \
+                mock.patch.object(preferencias_general.confirmar,
+                                  "avisar") as aviso, \
                 mock.patch.object(dialogo, "EndModal") as cerrar:
             dialogo.pagina_general._restablecer_prefs(None)
         crear.assert_called_once()
+        respuesta.SetYesNoLabels.assert_called_once_with(
+            "&Restablecer", "&Cancelar")
         respuesta.Destroy.assert_called_once_with()
         aviso.assert_not_called()
         cerrar.assert_not_called()
@@ -4570,7 +4572,7 @@ class TestCierreVentana(unittest.TestCase):
         evento = self._evento_vetable()
         dialogo = mock.Mock()
         dialogo.ShowModal.return_value = gui.wx.ID_NO
-        with mock.patch.object(gui.wx, "MessageDialog",
+        with mock.patch.object(gui.confirmar, "MessageDialog",
                                return_value=dialogo) as crear:
             frame._on_close(evento)
 
@@ -4579,6 +4581,7 @@ class TestCierreVentana(unittest.TestCase):
         self.assertEqual(args[1],
                          "¿Salir de la aplicación? Hay un chat conectado.")
         self.assertEqual(args[2], "Salir")
+        dialogo.SetYesNoLabels.assert_called_once_with("&Salir", "&Cancelar")
         dialogo.Destroy.assert_called_once_with()
         evento.Veto.assert_called_once_with()
         self.assertFalse(frame._apagando)
@@ -4589,7 +4592,7 @@ class TestCierreVentana(unittest.TestCase):
         evento = self._evento_vetable()
         dialogo = mock.Mock()
         dialogo.ShowModal.return_value = gui.wx.ID_YES
-        with mock.patch.object(gui.wx, "MessageDialog",
+        with mock.patch.object(gui.confirmar, "MessageDialog",
                                return_value=dialogo), \
                 mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
                 mock.patch.object(gui, "anunciar"), \
@@ -4604,7 +4607,7 @@ class TestCierreVentana(unittest.TestCase):
         frame = self._frame_conectado()
         frame._cerrar_sin_preguntar = True
         evento = self._evento_vetable()
-        with mock.patch.object(gui.wx, "MessageDialog") as crear, \
+        with mock.patch.object(gui.confirmar, "MessageDialog") as crear, \
                 mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
                 mock.patch.object(gui, "anunciar"), \
                 mock.patch.object(gui.diagnostico.logger, "info"):
@@ -4621,7 +4624,7 @@ class TestCierreVentana(unittest.TestCase):
         frame._supervisor = None
         frame._obs_transmitiendo = False
         evento = self._evento_vetable()
-        with mock.patch.object(gui.wx, "MessageDialog") as crear, \
+        with mock.patch.object(gui.confirmar, "MessageDialog") as crear, \
                 mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
                 mock.patch.object(gui, "anunciar"), \
                 mock.patch.object(gui.diagnostico.logger, "info"):
@@ -4643,7 +4646,7 @@ class TestCierreVentana(unittest.TestCase):
         dialogo = mock.Mock()
         dialogo.ShowModal.return_value = gui.wx.ID_NO
         with mock.patch.object(gui, "gestor", return_value=gestor), \
-                mock.patch.object(gui.wx, "MessageDialog",
+                mock.patch.object(gui.confirmar, "MessageDialog",
                                   return_value=dialogo) as crear:
             frame._on_close(evento)
 
@@ -4668,7 +4671,7 @@ class TestCierreVentana(unittest.TestCase):
         gestor = mock.Mock()
         gestor.lista.return_value = []
         with mock.patch.object(gui, "gestor", return_value=gestor), \
-                mock.patch.object(gui.wx, "MessageDialog") as crear, \
+                mock.patch.object(gui.confirmar, "MessageDialog") as crear, \
                 mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
                 mock.patch.object(gui, "anunciar"), \
                 mock.patch.object(gui.diagnostico.logger, "info"):
@@ -6284,7 +6287,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
             creados.append(dialogo)
             return dialogo
 
-        with mock.patch.object(gui.wx, "MessageDialog", fabrica):
+        with mock.patch.object(gui.confirmar, "MessageDialog", fabrica):
             gui.VentanaPrincipal._on_close(marco, evento)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))

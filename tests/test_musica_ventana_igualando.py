@@ -195,11 +195,11 @@ class TestPseudoAnunciosIgualando(unittest.TestCase):
             def ShowCheckBox(self, texto):
                 capturado["casilla"] = texto
 
-            def SetYesNoLabels(self, si, no):
+            def SetOKCancelLabels(self, si, no):
                 capturado["etiquetas"] = (si, no)
 
             def ShowModal(self):
-                return wx.ID_NO
+                return wx.ID_CANCEL
 
             def IsCheckBoxChecked(self):
                 return False

@@ -7,32 +7,31 @@ import wx
 
 # Nombres separados para que las pruebas sustituyan el cuadro sin abrir uno.
 MessageDialog = wx.MessageDialog
-YES_NO = wx.YES_NO
 OK = wx.OK
-NO_DEFAULT = wx.NO_DEFAULT
+CANCEL = wx.CANCEL
+CANCEL_DEFAULT = wx.CANCEL_DEFAULT
 CENTRE = wx.CENTRE
 ICON_QUESTION = wx.ICON_QUESTION
 ICON_INFORMATION = wx.ICON_INFORMATION
 ICON_WARNING = wx.ICON_WARNING
 ICON_ERROR = wx.ICON_ERROR
-ID_YES = wx.ID_YES
-ID_NO = wx.ID_NO
+ID_OK = wx.ID_OK
+ID_CANCEL = wx.ID_CANCEL
 
 
 def preguntar(padre, mensaje, titulo, etiqueta_si, etiqueta_no, *,
               icono=ICON_QUESTION, predeterminado_si=True,
               centrar=False) -> bool:
     """Pregunta con dos botones propios y dice si se eligió el primero."""
-    estilo = YES_NO | icono
+    estilo = OK | CANCEL | icono
     if not predeterminado_si:
-        estilo |= NO_DEFAULT
+        estilo |= CANCEL_DEFAULT
     if centrar:
         estilo |= CENTRE
     dialogo = MessageDialog(padre, mensaje, titulo, estilo)
     try:
-        dialogo.SetYesNoLabels(etiqueta_si, etiqueta_no)
-        dialogo.SetEscapeId(ID_NO)
-        return dialogo.ShowModal() == ID_YES
+        dialogo.SetOKCancelLabels(etiqueta_si, etiqueta_no)
+        return dialogo.ShowModal() == ID_OK
     finally:
         dialogo.Destroy()
 

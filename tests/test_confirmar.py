@@ -1,11 +1,48 @@
-"""El ayudante de confirmaciones y los textos de cada cuadro que lo usa."""
+"""El ayudante de confirmaciones y los textos de cada cuadro que lo usa.
 
+Los dos últimos cuadros son reales y solo corren en Windows: abren el
+diálogo nativo, leen el texto de sus botones y lo cierran con Escape.
+"""
+
+import ctypes
+import sys
 import unittest
 from types import SimpleNamespace
 from unittest import mock
 
+import wx
+
+from tests.ventanas_prueba import app_de_prueba
 from guyrapu.core.idioma import _
 from guyrapu.ui import confirmar
+
+if sys.platform == "win32":
+    from ctypes import wintypes
+
+    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    EnumProc = ctypes.WINFUNCTYPE(
+        wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    user32.FindWindowW.argtypes = (wintypes.LPCWSTR, wintypes.LPCWSTR)
+    user32.FindWindowW.restype = wintypes.HWND
+    user32.EnumChildWindows.argtypes = (
+        wintypes.HWND, EnumProc, wintypes.LPARAM)
+    user32.EnumChildWindows.restype = wintypes.BOOL
+    user32.GetClassNameW.argtypes = (
+        wintypes.HWND, wintypes.LPWSTR, ctypes.c_int)
+    user32.GetClassNameW.restype = ctypes.c_int
+    user32.GetWindowTextW.argtypes = (
+        wintypes.HWND, wintypes.LPWSTR, ctypes.c_int)
+    user32.GetWindowTextW.restype = ctypes.c_int
+    user32.GetFocus.argtypes = ()
+    user32.GetFocus.restype = wintypes.HWND
+    user32.IsWindow.argtypes = (wintypes.HWND,)
+    user32.IsWindow.restype = wintypes.BOOL
+    user32.PostMessageW.argtypes = (
+        wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM)
+    user32.PostMessageW.restype = wintypes.BOOL
+else:
+    user32 = None
+    EnumProc = None
 
 
 class DobleDialogo:
@@ -19,20 +56,16 @@ class DobleDialogo:
         self.mensaje = mensaje
         self.titulo = titulo
         self.estilo = estilo
-        self.etiquetas_si_no = None
+        self.etiquetas_ok_cancel = None
         self.etiqueta_ok = None
-        self.escape = None
         self.destruido = False
         DobleDialogo.ultimo = self
 
-    def SetYesNoLabels(self, etiqueta_si, etiqueta_no):
-        self.etiquetas_si_no = (etiqueta_si, etiqueta_no)
+    def SetOKCancelLabels(self, etiqueta_ok, etiqueta_cancel):
+        self.etiquetas_ok_cancel = (etiqueta_ok, etiqueta_cancel)
 
     def SetOKLabel(self, etiqueta):
         self.etiqueta_ok = etiqueta
-
-    def SetEscapeId(self, identificador):
-        self.escape = identificador
 
     def ShowModal(self):
         return self.respuesta
@@ -52,27 +85,28 @@ class TestPreguntar(unittest.TestCase):
         return resultado, DobleDialogo.ultimo
 
     def test_si_devuelve_verdadero_con_las_dos_etiquetas(self):
-        resultado, dialogo = self._correr(confirmar.ID_YES)
+        resultado, dialogo = self._correr(confirmar.ID_OK)
         self.assertTrue(resultado)
-        self.assertEqual(dialogo.etiquetas_si_no, ("&Acción", "&Cancelar"))
-        self.assertEqual(dialogo.escape, confirmar.ID_NO)
-        self.assertTrue(dialogo.estilo & confirmar.YES_NO)
-        self.assertFalse(dialogo.estilo & confirmar.NO_DEFAULT)
+        self.assertEqual(dialogo.etiquetas_ok_cancel,
+                         ("&Acción", "&Cancelar"))
+        self.assertTrue(dialogo.estilo & confirmar.OK)
+        self.assertTrue(dialogo.estilo & confirmar.CANCEL)
+        self.assertFalse(dialogo.estilo & confirmar.CANCEL_DEFAULT)
         self.assertTrue(dialogo.destruido)
 
     def test_no_devuelve_falso(self):
-        resultado, _dialogo = self._correr(confirmar.ID_NO)
+        resultado, _dialogo = self._correr(confirmar.ID_CANCEL)
         self.assertFalse(resultado)
 
     def test_predeterminado_no_y_centrado(self):
         _resultado, dialogo = self._correr(
-            confirmar.ID_NO, predeterminado_si=False, centrar=True)
-        self.assertTrue(dialogo.estilo & confirmar.NO_DEFAULT)
+            confirmar.ID_CANCEL, predeterminado_si=False, centrar=True)
+        self.assertTrue(dialogo.estilo & confirmar.CANCEL_DEFAULT)
         self.assertTrue(dialogo.estilo & confirmar.CENTRE)
 
     def test_icono_elegido(self):
         _resultado, dialogo = self._correr(
-            confirmar.ID_NO, icono=confirmar.ICON_ERROR)
+            confirmar.ID_CANCEL, icono=confirmar.ICON_ERROR)
         self.assertTrue(dialogo.estilo & confirmar.ICON_ERROR)
         self.assertFalse(dialogo.estilo & confirmar.ICON_QUESTION)
 
@@ -301,6 +335,95 @@ class TestCuadrosDeP1(unittest.TestCase):
         preguntar.assert_called_once_with(
             pagina, "¿Eliminar TikTok: uno?", _("Eliminar destino"),
             _("&Eliminar"), _("&Cancelar"), predeterminado_si=False)
+
+
+def _hwnd_del_cuadro(titulo):
+    hwnd = user32.FindWindowW(None, titulo)
+    if hwnd:
+        return hwnd
+    for ventana in wx.GetTopLevelWindows():
+        if ventana.GetTitle() == titulo:
+            return int(ventana.GetHandle())
+    return 0
+
+
+def _botones(hwnd):
+    textos, botones = [], []
+
+    def cada(hijo, _parametro):
+        clase = ctypes.create_unicode_buffer(64)
+        user32.GetClassNameW(hijo, clase, 64)
+        if clase.value == "Button":
+            texto = ctypes.create_unicode_buffer(256)
+            user32.GetWindowTextW(hijo, texto, 256)
+            textos.append(texto.value)
+            botones.append(hijo)
+        return True
+
+    user32.EnumChildWindows(hwnd, EnumProc(cada), 0)
+    return textos, botones
+
+
+def _cerrar_si_sigue(hwnd, botones, capturado):
+    if user32.IsWindow(hwnd):
+        capturado["escape_fallo"] = True
+        if botones:
+            user32.PostMessageW(botones[-1], 0x00F5, 0, 0)
+
+
+def _cerrar_con_escape(hwnd, botones, capturado):
+    foco = user32.GetFocus() or (botones[0] if botones else hwnd)
+    user32.PostMessageW(foco, 0x0100, 0x1B, 0)
+    user32.PostMessageW(foco, 0x0101, 0x1B, 0)
+    wx.CallLater(2000, _cerrar_si_sigue, hwnd, botones, capturado)
+
+
+@unittest.skipUnless(sys.platform == "win32", "solo Windows")
+class TestCuadrosReales(unittest.TestCase):
+    """Los cuadros nativos de verdad, con sus botones y la salida por Escape."""
+
+    def setUp(self):
+        self.app = app_de_prueba()
+
+    def _abrir_y_leer(self, titulo, accion):
+        capturado = {}
+
+        def leer(intentos=20):
+            hwnd = _hwnd_del_cuadro(titulo)
+            if not hwnd and intentos:
+                wx.CallLater(100, leer, intentos - 1)
+                return
+            if hwnd:
+                textos, botones = _botones(hwnd)
+                capturado["textos"] = textos
+                _cerrar_con_escape(hwnd, botones, capturado)
+
+        wx.CallLater(300, leer)
+        return accion(), capturado
+
+    def _exigir_escape(self, capturado):
+        self.assertFalse(capturado.get("escape_fallo", False),
+                         "Escape no cerró el cuadro")
+
+    def test_preguntar_muestra_sus_etiquetas_y_escape_devuelve_falso(self):
+        titulo = "Prueba de botones de confirmar"
+        resultado, capturado = self._abrir_y_leer(
+            titulo,
+            lambda: confirmar.preguntar(
+                None, "¿Eliminar la lista?", titulo, "&Eliminar",
+                "&Cancelar", predeterminado_si=False))
+        self.assertFalse(resultado)
+        self.assertCountEqual(capturado["textos"], ["&Eliminar", "&Cancelar"])
+        self._exigir_escape(capturado)
+
+    def test_avisar_muestra_aceptar(self):
+        titulo = "Prueba de botones de avisar"
+        resultado, capturado = self._abrir_y_leer(
+            titulo,
+            lambda: confirmar.avisar(None, "Listo.", titulo, "&Aceptar"))
+        self.assertIsNone(resultado)
+        self.assertEqual(capturado["textos"], ["&Aceptar"])
+        self._exigir_escape(capturado)
 
 
 if __name__ == "__main__":

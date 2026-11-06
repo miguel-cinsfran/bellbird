@@ -3671,7 +3671,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
     def test_restablecer_con_no_no_cambia_nada(self):
         dialogo = self._dialogo()
         respuesta = mock.Mock()
-        respuesta.ShowModal.return_value = gui.wx.ID_NO
+        respuesta.ShowModal.return_value = gui.wx.ID_CANCEL
         with mock.patch.object(preferencias_general.confirmar, "MessageDialog",
                                return_value=respuesta) as crear, \
                 mock.patch.object(preferencias_general.confirmar,
@@ -3679,7 +3679,7 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
                 mock.patch.object(dialogo, "EndModal") as cerrar:
             dialogo.pagina_general._restablecer_prefs(None)
         crear.assert_called_once()
-        respuesta.SetYesNoLabels.assert_called_once_with(
+        respuesta.SetOKCancelLabels.assert_called_once_with(
             "&Restablecer", "&Cancelar")
         respuesta.Destroy.assert_called_once_with()
         aviso.assert_not_called()
@@ -4571,7 +4571,7 @@ class TestCierreVentana(unittest.TestCase):
         frame = self._frame_conectado()
         evento = self._evento_vetable()
         dialogo = mock.Mock()
-        dialogo.ShowModal.return_value = gui.wx.ID_NO
+        dialogo.ShowModal.return_value = gui.wx.ID_CANCEL
         with mock.patch.object(gui.confirmar, "MessageDialog",
                                return_value=dialogo) as crear:
             frame._on_close(evento)
@@ -4581,7 +4581,7 @@ class TestCierreVentana(unittest.TestCase):
         self.assertEqual(args[1],
                          "¿Salir de la aplicación? Hay un chat conectado.")
         self.assertEqual(args[2], "Salir")
-        dialogo.SetYesNoLabels.assert_called_once_with("&Salir", "&Cancelar")
+        dialogo.SetOKCancelLabels.assert_called_once_with("&Salir", "&Cancelar")
         dialogo.Destroy.assert_called_once_with()
         evento.Veto.assert_called_once_with()
         self.assertFalse(frame._apagando)
@@ -4591,7 +4591,7 @@ class TestCierreVentana(unittest.TestCase):
         frame = self._frame_conectado()
         evento = self._evento_vetable()
         dialogo = mock.Mock()
-        dialogo.ShowModal.return_value = gui.wx.ID_YES
+        dialogo.ShowModal.return_value = gui.wx.ID_OK
         with mock.patch.object(gui.confirmar, "MessageDialog",
                                return_value=dialogo), \
                 mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
@@ -4644,7 +4644,7 @@ class TestCierreVentana(unittest.TestCase):
         gestor = mock.Mock()
         gestor.lista.return_value = [mock.Mock(estado="descargando")]
         dialogo = mock.Mock()
-        dialogo.ShowModal.return_value = gui.wx.ID_NO
+        dialogo.ShowModal.return_value = gui.wx.ID_CANCEL
         with mock.patch.object(gui, "gestor", return_value=gestor), \
                 mock.patch.object(gui.confirmar, "MessageDialog",
                                   return_value=dialogo) as crear:
@@ -6283,7 +6283,7 @@ class TestPseudoAnunciosGui(unittest.TestCase):
             captado["mensaje"] = mensaje
             captado["titulo"] = titulo
             dialogo = mock.Mock()
-            dialogo.ShowModal.return_value = gui.wx.ID_NO
+            dialogo.ShowModal.return_value = gui.wx.ID_CANCEL
             creados.append(dialogo)
             return dialogo
 

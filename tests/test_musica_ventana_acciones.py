@@ -44,7 +44,7 @@ class DobleEntradaCancelada(DobleEntradaTexto):
 class DobleConfirmar:
     """MessageDialog falso: captura el mensaje y el título, sin ventana."""
 
-    respuesta = wx.ID_YES
+    respuesta = wx.ID_OK
     ultimo = None
 
     def __init__(self, parent, mensaje, titulo, estilo):
@@ -52,15 +52,11 @@ class DobleConfirmar:
         self.titulo = titulo
         self.estilo = estilo
         self.etiquetas = None
-        self.escape = None
         self.destruida = False
         DobleConfirmar.ultimo = self
 
-    def SetYesNoLabels(self, si, no):
+    def SetOKCancelLabels(self, si, no):
         self.etiquetas = (si, no)
-
-    def SetEscapeId(self, identificador):
-        self.escape = identificador
 
     def ShowModal(self):
         return self.respuesta
@@ -154,7 +150,7 @@ class TestDialogosAcciones(unittest.TestCase):
                     acciones._pedir_nombre(None, _(acciones.TITULO_NUEVA)))
 
     def test_confirmar_borrar_muestra_pregunta_y_titulo_marcados(self):
-        DobleConfirmar.respuesta = wx.ID_YES
+        DobleConfirmar.respuesta = wx.ID_OK
         with mock.patch.object(acciones.confirmar, "MessageDialog",
                                DobleConfirmar):
             with con_pseudo():
@@ -168,12 +164,11 @@ class TestDialogosAcciones(unittest.TestCase):
                         dialogo.etiquetas)
         self.assertIn("&Eliminar", dialogo.etiquetas[0])
         self.assertIn("&Cancelar", dialogo.etiquetas[1])
-        self.assertEqual(dialogo.escape, wx.ID_NO)
         self.assertTrue(dialogo.destruida)
 
     def test_confirmar_borrar_con_no_devuelve_falso(self):
-        DobleConfirmar.respuesta = wx.ID_NO
-        self.addCleanup(setattr, DobleConfirmar, "respuesta", wx.ID_YES)
+        DobleConfirmar.respuesta = wx.ID_CANCEL
+        self.addCleanup(setattr, DobleConfirmar, "respuesta", wx.ID_OK)
         with mock.patch.object(acciones.confirmar, "MessageDialog",
                                DobleConfirmar):
             with con_pseudo():

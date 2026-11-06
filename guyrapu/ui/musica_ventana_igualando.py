@@ -153,15 +153,15 @@ class IgualandoVentanaMusica:
         dialogo = wx.RichMessageDialog(
             self, pregunta_igualar.texto_pregunta(cantidad, tamano),
             _(pregunta_igualar.TITULO),
-            wx.YES_NO | wx.ICON_QUESTION | wx.NO_DEFAULT)
+            wx.OK | wx.CANCEL | wx.ICON_QUESTION | wx.CANCEL_DEFAULT)
         dialogo.ShowCheckBox(_(pregunta_igualar.CASILLA))
-        dialogo.SetYesNoLabels(_("&Igualar ahora"), _("&Más tarde"))
+        dialogo.SetOKCancelLabels(_("&Igualar ahora"), _("&Más tarde"))
         respuesta = dialogo.ShowModal()
         marcada = dialogo.IsCheckBoxChecked()
         dialogo.Destroy()
         if marcada:
             self._control.fijar_preguntar_igualar(False)
-        if respuesta == wx.ID_YES:
+        if respuesta == wx.ID_OK:
             self._empezar_igualacion(pendientes)
 
     def _rotular_boton_igualar(self, midiendo) -> None:

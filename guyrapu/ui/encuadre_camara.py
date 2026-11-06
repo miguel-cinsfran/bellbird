@@ -179,10 +179,10 @@ def _consultar_en_hilo(inst) -> None:
             luz_rostro=cuadro.luz_rostro, luz_fondo=cuadro.luz_fondo)
         frase = encuadre.frase(estado)
     except (CamaraNoEncontrada, CapturaFallida) as fallo:
-        wx.CallAfter(_vuelta_fallo, inst, str(fallo))
+        wx.CallAfter(_vuelta_texto, inst, str(fallo))
         return
     except Exception as fallo:
-        wx.CallAfter(_vuelta_fallo, inst,
+        wx.CallAfter(_vuelta_texto, inst,
                      obs_cliente.mensaje_de_fallo_obs(fallo))
         return
     finally:
@@ -192,21 +192,14 @@ def _consultar_en_hilo(inst) -> None:
             except Exception as fallo:
                 logger.warning("EncuadreCamara: no se pudo cerrar OBS: %s",
                                fallo)
-    wx.CallAfter(_vuelta_frase, inst, frase)
+    wx.CallAfter(_vuelta_texto, inst, frase)
 
 
-def _vuelta_frase(inst, frase) -> None:
+def _vuelta_texto(inst, texto) -> None:
     inst._en_curso = False
     if inst._frame is None:
         return
-    anunciar(frase)
-
-
-def _vuelta_fallo(inst, mensaje) -> None:
-    inst._en_curso = False
-    if inst._frame is None:
-        return
-    anunciar(mensaje)
+    anunciar(texto)
 
 
 def alternar_avisos(frame) -> None:

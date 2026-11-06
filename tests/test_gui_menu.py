@@ -173,19 +173,19 @@ class TestEquivalenciaMenu(unittest.TestCase):
             ("&Reproductor", "S&ubir volumen del reproductor", ANY, "normal"),
             ("&Reproductor", "---", None, "sep"),
             ("&Reproductor", "Mostrar botones en &pantalla", ANY, "check"),
+            ("&Transmisión", "Transm&itir en directo", ANY, "normal"),
             ("&Transmisión", "Re&stream…", ANY, "normal"),
             ("&Transmisión", "&Grabar también al transmitir", ANY, "check"),
-            ("&Transmisión", "---", None, "sep"),
-            ("&Transmisión", "Anunciar en&cuadre de cámara", ANY, "normal"),
-            ("&Transmisión", "A&visar si el rostro sale del encuadre", ANY, "check"),
             ("&OBS", "Panel de &OBS…", ANY, "normal"),
-            ("&OBS", "Silenciar &micrófono de OBS", ANY, "check"),
-            ("&OBS", "&Elegir micrófono…", ANY, "normal"),
-            ("&OBS", "Mos&trar OBS", ANY, "normal"),
             ("&OBS", "Iniciar o detener g&rabación", ANY, "normal"),
             ("&OBS", "Pa&usar o reanudar grabación", ANY, "normal"),
             ("&OBS", "Guardar cl&ip", ANY, "normal"),
+            ("&OBS", "Silenciar &micrófono de OBS", ANY, "check"),
             ("&OBS", "---", None, "sep"),
+            ("&OBS", "Anunciar en&cuadre de cámara", ANY, "normal"),
+            ("&OBS", "A&visar si el rostro sale del encuadre", ANY, "check"),
+            ("&OBS", "---", None, "sep"),
+            ("&OBS", "Mos&trar OBS", ANY, "normal"),
             ("&OBS", "&Avisar si OBS se sobrecarga", ANY, "check"),
             ("&Música", "&Elegir música…", ANY, "normal"),
             ("&Música", "---", None, "sep"),
@@ -534,12 +534,12 @@ class TestMenuRestream(unittest.TestCase):
         _, lista = _construir_lista(accel)
         return [fila for fila in lista if fila[0] == "&Transmisión"]
 
-    def test_restream_es_el_primero_con_su_atajo(self):
+    def test_restream_va_despues_del_directo_con_su_atajo(self):
         entradas = self._transmision()
         self.assertEqual(
             ("&Transmisión", "Re&stream…\tCtrl+Shift+R",
              gui.wx.ID_ANY, "normal"),
-            entradas[0])
+            entradas[1])
 
     def test_la_letra_s_no_se_repite_en_el_menu(self):
         letras = [texto[texto.index("&") + 1].lower()
@@ -593,6 +593,8 @@ class TestCableadoRestream(unittest.TestCase):
         frame._accel = lambda _accion: ""
         frame._bind_menu = gui.VentanaPrincipal._bind_menu.__get__(frame)
         frame._config = {"avisar_sobrecarga": True}
+        frame._boton_directo = mock.Mock()
+        frame._actualizar_boton_directo = mock.Mock()
         frame._on_obs_micro = mock.Mock()
         frame._alternar_aviso_sobrecarga = mock.Mock()
         barra = wx.MenuBar()
@@ -637,13 +639,9 @@ class TestMenuTransmision(unittest.TestCase):
     def test_contenido_en_orden(self):
         ANY = gui.wx.ID_ANY
         self.assertEqual([
-            ("&Transmisión", "Re&stream…\tCtrl+Shift+R", ANY, "normal"),
+            ("&Transmisión", "Transm&itir en directo", ANY, "normal"),
+            ("&Transmisión", "Re&stream…	Ctrl+Shift+R", ANY, "normal"),
             ("&Transmisión", "&Grabar también al transmitir", ANY, "check"),
-            ("&Transmisión", "---", None, "sep"),
-            ("&Transmisión", "Anunciar en&cuadre de cámara\tCtrl+F3",
-             ANY, "normal"),
-            ("&Transmisión", "A&visar si el rostro sale del encuadre\t"
-             "Ctrl+Shift+F3", ANY, "check"),
         ], _entradas_de("&Transmisión"))
 
     def test_grabaciones_guardadas_ya_no_esta(self):
@@ -664,18 +662,22 @@ class TestMenuObs(unittest.TestCase):
     def test_contenido_en_orden(self):
         ANY = gui.wx.ID_ANY
         self.assertEqual([
-            ("&OBS", "Panel de &OBS…\tCtrl+Shift+O", ANY, "normal"),
-            ("&OBS", "Silenciar &micrófono de OBS\tAlt+Shift+M",
+            ("&OBS", "Panel de &OBS…	Ctrl+Shift+O", ANY, "normal"),
+            ("&OBS", "Iniciar o detener g&rabación	Alt+Shift+G",
+             ANY, "normal"),
+            ("&OBS", "Pa&usar o reanudar grabación	Alt+Shift+P",
+             ANY, "normal"),
+            ("&OBS", "Guardar cl&ip	Alt+Shift+R", ANY, "normal"),
+            ("&OBS", "Silenciar &micrófono de OBS	Alt+Shift+M",
              ANY, "check"),
-            ("&OBS", "&Elegir micrófono…", ANY, "normal"),
-            ("&OBS", "Mos&trar OBS\tAlt+Shift+O", ANY, "normal"),
-            ("&OBS", "Iniciar o detener g&rabación\tAlt+Shift+G",
-             ANY, "normal"),
-            ("&OBS", "Pa&usar o reanudar grabación\tAlt+Shift+P",
-             ANY, "normal"),
-            ("&OBS", "Guardar cl&ip\tAlt+Shift+R", ANY, "normal"),
             ("&OBS", "---", None, "sep"),
-            ("&OBS", "&Avisar si OBS se sobrecarga\tAlt+Shift+A",
+            ("&OBS", "Anunciar en&cuadre de cámara	Ctrl+F3",
+             ANY, "normal"),
+            ("&OBS", "A&visar si el rostro sale del encuadre	"
+             "Ctrl+Shift+F3", ANY, "check"),
+            ("&OBS", "---", None, "sep"),
+            ("&OBS", "Mos&trar OBS	Alt+Shift+O", ANY, "normal"),
+            ("&OBS", "&Avisar si OBS se sobrecarga	Alt+Shift+A",
              ANY, "check"),
         ], _entradas_de("&OBS"))
 
@@ -684,6 +686,10 @@ class TestMenuObs(unittest.TestCase):
                   for _menu, texto, _dato, _tipo in _entradas_de("&OBS")
                   if texto != "---" and "&" in texto]
         self.assertEqual(len(letras), len(set(letras)))
+
+    def test_elegir_microfono_no_esta_en_ningun_menu(self):
+        _, lista = _construir_lista()
+        self.assertFalse(any("Elegir micrófono" in fila[1] for fila in lista))
 
 
 class TestCableadoPanelObs(unittest.TestCase):
@@ -772,33 +778,6 @@ class TestCableadoMostrarObs(unittest.TestCase):
     def test_microfono_de_obs_es_casilla(self):
         frame = self._frame_con_menu()
         self.assertTrue(frame.mi_obs_micro.IsCheckable())
-
-    def test_elegir_microfono_sin_atajo_detras_del_silencio(self):
-        frame = self._frame_con_menu()
-        self.assertEqual(frame.mi_micro_obs.GetItemLabel(),
-                         "&Elegir micrófono…")
-        barra = frame.GetMenuBar()
-        for indice in range(barra.GetMenuCount()):
-            menu = barra.GetMenu(indice)
-            ids = [item.GetId() for item in menu.GetMenuItems()]
-            if frame.mi_obs_micro.GetId() in ids:
-                self.assertEqual(
-                    ids[ids.index(frame.mi_obs_micro.GetId()) + 1],
-                    frame.mi_micro_obs.GetId())
-
-    def test_elegir_microfono_abre_el_cuadro(self):
-        from guyrapu.ui import menu_obs
-
-        with mock.patch("guyrapu.ui.gui_microfono.abrir_microfono_obs") \
-                as abrir, \
-                mock.patch.object(menu_obs.wx, "CallAfter",
-                                  side_effect=lambda fn, *a: fn(*a)):
-            frame = self._frame_con_menu()
-            evento = wx.CommandEvent(
-                wx.EVT_MENU.typeId, frame.mi_micro_obs.GetId())
-            frame.GetEventHandler().ProcessEvent(evento)
-        abrir.assert_called_once_with(frame)
-
 
 class TestCableadoComandosGrabacion(unittest.TestCase):
     """Elegir los comandos de grabación llega a comandos_grabacion."""

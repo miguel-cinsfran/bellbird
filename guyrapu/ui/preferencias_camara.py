@@ -12,12 +12,12 @@ from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.obs import obs_camara
 from guyrapu.obs import obs_cliente
-from guyrapu.ui import agregar_camara
-from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.ui.agregar_camara import cerrar_cliente
 from guyrapu.ui.preferencias_comun import (
     crear_panel, fila_label, opciones_con_elegida)
 from guyrapu.voice import sonido_memoria
+
+logger = diagnostico.obtener_logger(__name__)
 
 
 class PaginaCamara:
@@ -26,6 +26,7 @@ class PaginaCamara:
     def __init__(self, ventana, config):
         self._ventana = ventana
         self._config = config
+        self._consultadas = False
 
     def construir(self, parent):
         p = crear_panel(parent, "PagCamara")
@@ -35,6 +36,7 @@ class PaginaCamara:
         self._invertir(p, vs)
         self._sonido(p, vs)
         p.SetSizer(vs)
+        p.Bind(wx.EVT_SHOW, self._al_mostrar)
         return p
 
     def _avisos(self, p, vs):
@@ -55,23 +57,6 @@ class PaginaCamara:
             p, choices=opciones, name=_("Cámara de OBS"))
         self.cho_camara_obs.SetSelection(1 if guardada else 0)
         vs.Add(self.cho_camara_obs, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        self.btn_buscar_camaras = wx.Button(
-            p, label=_("&Buscar cámaras en OBS"),
-            name=_("Buscar cámaras en OBS"))
-        vs.Add(self.btn_buscar_camaras, 0, wx.ALL, 10)
-        self.btn_buscar_camaras.Bind(wx.EVT_BUTTON, self._buscar_camaras)
-        self._boton_agregar(p, vs)
-
-    def _boton_agregar(self, p, vs):
-        self.btn_agregar_camara = wx.Button(
-            p, label=_("&Agregar cámara a OBS…"),
-            name=_("Agregar cámara a OBS…"))
-        vs.Add(self.btn_agregar_camara, 0,
-               wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-        self.btn_agregar_camara.Bind(
-            wx.EVT_BUTTON,
-            lambda evento: agregar_camara.agregar(
-                self._ventana, self._llenar_camaras))
 
     def _invertir(self, p, vs):
         self.chk_invertir_camara = wx.CheckBox(
@@ -97,22 +82,35 @@ class PaginaCamara:
         timbre = tono_guia.TIMBRES[self.cho_sonido_guia.GetSelection()]
         sonido_memoria.reproducir(tono_guia.muestra(timbre))
 
-    def _buscar_camaras(self, event):
+    def _al_mostrar(self, evento):
+        """Consulta OBS la primera vez que la página queda a la vista."""
+        evento.Skip()
+        if not evento.IsShown() or self._consultadas:
+            return
+        self._consultadas = True
+        self._consultar_camaras()
+
+    def _consultar_camaras(self):
         # Consultar OBS puede tardar o no responder, por eso nunca corre en la interfaz.
         def consultar():
             cliente = None
             try:
                 cliente = obs_cliente.ClienteObs(obs_cliente.leer_ajustes())
                 cliente.conectar()
-                wx.CallAfter(
-                    self._camaras_encontradas,
-                    obs_camara.fuentes_video(cliente))
+                fuentes = obs_camara.fuentes_video(cliente)
             except Exception as exc:
-                wx.CallAfter(anunciar, obs_cliente.mensaje_de_fallo_obs(exc))
+                logger.debug("no se pudieron leer las cámaras de OBS: %s", exc)
+                return
             finally:
                 cerrar_cliente(cliente)
+            wx.CallAfter(self._aplicar_fuentes, fuentes)
 
         diagnostico.crear_hilo(consultar, "CamarasPrefs").start()
+
+    def _aplicar_fuentes(self, fuentes):
+        if self._ventana is not None and not self._ventana:
+            return
+        self._llenar_camaras(fuentes)
 
     def _llenar_camaras(self, fuentes):
         elegida = self.cho_camara_obs.GetStringSelection()
@@ -121,18 +119,6 @@ class PaginaCamara:
         # La fuente guardada se conserva aunque OBS no responda o ya no la vea.
         self.cho_camara_obs.Set(opciones)
         self.cho_camara_obs.SetStringSelection(elegida or opciones[0])
-
-    def _camaras_encontradas(self, fuentes):
-        if not self._ventana:   # el diálogo pudo cerrarse mientras OBS respondía
-            return
-        self._llenar_camaras(fuentes)
-        if len(fuentes) == 1:
-            anunciar(_("Se encontró una cámara en OBS."))
-        elif fuentes:
-            anunciar(_("Se encontraron {cantidad} cámaras en OBS.").format(
-                cantidad=len(fuentes)))
-        else:
-            anunciar(_("No hay ninguna cámara en OBS."))
 
     def guardar(self, fijar, en_memoria):
         avisar = bool(self.chk_avisar_encuadre.GetValue())

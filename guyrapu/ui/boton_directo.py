@@ -54,16 +54,25 @@ class BotonDirecto:
                                                          deteniendo)
         self.boton.SetLabel(etiqueta)
         self.boton.SetName(nombre)
-        if transmision_directa.boton_visible(conectado, conectando, propio,
-                                             transmitiendo):
+        visible = transmision_directa.boton_visible(
+            conectado, conectando, propio, transmitiendo)
+        if visible:
             self.boton.Show()
         else:
             if self.boton.HasFocus():
                 self._conectar.SetFocus()
             self.boton.Hide()
+        comando = getattr(self._marco, "mi_directo", None)
+        if comando is not None:
+            comando.SetItemLabel(etiqueta)
+            comando.Enable(visible)
         self.boton.GetParent().Layout()
 
     def _al_pulsar(self, event):
+        self.pulsar()
+
+    def pulsar(self):
+        """Hace lo mismo que pulsar el botón, desde él o desde el menú."""
         if self._deteniendo:
             anunciar(_("Deteniendo la transmisión. Esperando a que OBS confirme."))
             return

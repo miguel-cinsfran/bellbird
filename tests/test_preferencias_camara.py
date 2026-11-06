@@ -49,10 +49,7 @@ class TestPaginaCamara(unittest.TestCase):
         return dialogo
 
     def _pulsar_agregar_camara(self, dialogo):
-        boton = dialogo.pagina_camara.btn_agregar_camara
-        boton.GetEventHandler().ProcessEvent(
-            preferencias_camara.wx.CommandEvent(
-                preferencias_camara.wx.EVT_BUTTON.typeId, boton.GetId()))
+        agregar_camara.agregar(dialogo, dialogo.pagina_camara._llenar_camaras)
 
     def test_la_lista_de_sonido_tiene_su_nombre_y_sus_opciones(self):
         dialogo = self._dialogo({})
@@ -126,79 +123,75 @@ class TestPaginaCamara(unittest.TestCase):
         self.assertEqual(cambios[("transmision", "avisar_encuadre")], "false")
         self.assertEqual(cambios[("transmision", "camara_invertir")], "true")
 
-    def test_sin_camaras_anuncia_que_no_hay_ninguna(self):
+    def _indice_categoria(self, dialogo, nombre):
+        for i in range(dialogo.nb.GetPageCount()):
+            if dialogo.nb.GetPageText(i) == nombre:
+                return i
+        raise AssertionError(f"no está la categoría {nombre}")
+
+    def test_construir_el_dialogo_no_consulta_obs(self):
+        with mock.patch.object(preferencias_camara.diagnostico,
+                               "crear_hilo") as hilo:
+            self._dialogo({})
+        hilo.assert_not_called()
+
+    def test_elegir_camara_consulta_obs_una_sola_vez(self):
         dialogo = self._dialogo({"camara_fuente": "Vieja"})
-        with mock.patch.object(preferencias_camara, "anunciar") as anunciar:
-            dialogo.pagina_camara._camaras_encontradas(())
-        anunciar.assert_called_once_with("No hay ninguna cámara en OBS.")
-        self.assertEqual(dialogo.pagina_camara.cho_camara_obs.GetStrings(),
-                         ["Elegir automáticamente", "Vieja"])
-
-    def test_una_camara_se_anuncia_en_singular(self):
-        dialogo = self._dialogo({})
-        with mock.patch.object(preferencias_camara, "anunciar") as anunciar:
-            dialogo.pagina_camara._camaras_encontradas(("Cam",))
-        anunciar.assert_called_once_with("Se encontró una cámara en OBS.")
-
-    def test_tres_camaras_anuncian_cantidad_y_conservan_la_elegida(self):
-        dialogo = self._dialogo({"camara_fuente": "Vieja"})
-        with mock.patch.object(preferencias_camara, "anunciar") as anunciar:
-            dialogo.pagina_camara._camaras_encontradas(
-                ("Nueva", "Vieja", "Otra"))
-        anunciar.assert_called_once_with(
-            "Se encontraron 3 cámaras en OBS.")
-        self.assertEqual(dialogo.pagina_camara.cho_camara_obs.GetStrings(),
-                         ["Elegir automáticamente", "Vieja", "Nueva", "Otra"])
-        self.assertEqual(
-            dialogo.pagina_camara.cho_camara_obs.GetStringSelection(), "Vieja")
-
-    def test_respuesta_ignora_el_dialogo_destruido(self):
-        dialogo = self._dialogo({})
-        with mock.patch.object(gui_preferencias.PreferenciasDialog, "__bool__",
-                               lambda self: False, create=True), \
-                mock.patch.object(preferencias_camara, "anunciar") as anunciar:
-            dialogo.pagina_camara._camaras_encontradas(("Cam",))
-        anunciar.assert_not_called()
-
-    def test_buscar_camaras_lanza_hilo_sin_conectar_al_construir(self):
-        dialogo = self._dialogo({})
-        hilo = mock.Mock()
-        consulta = {}
+        llamadas = []
 
         def crear_hilo(target, nombre):
-            consulta["target"] = target
-            consulta["nombre"] = nombre
-            return hilo
+            llamadas.append(nombre)
+            return HiloInmediato(target)
 
         cliente = mock.Mock()
-        cliente.fuentes_video = mock.Mock(return_value=("Cam",))
-        with mock.patch.object(preferencias_camara.diagnostico, "crear_hilo",
-                               side_effect=crear_hilo), \
+        with (
+                mock.patch.object(preferencias_camara.diagnostico, "crear_hilo",
+                                  side_effect=crear_hilo),
                 mock.patch.object(preferencias_camara.obs_cliente, "ClienteObs",
-                                  return_value=cliente) as cliente_clase, \
-                mock.patch.object(preferencias_camara.obs_cliente, "leer_ajustes"), \
-                mock.patch.object(preferencias_camara.obs_camara, "fuentes_video",
-                                  return_value=("Cam",)) as fuentes, \
+                                  return_value=cliente),
+                mock.patch.object(preferencias_camara.obs_cliente,
+                                  "leer_ajustes"),
+                mock.patch.object(preferencias_camara.obs_camara,
+                                  "fuentes_video", return_value=("Cam",)),
+                mock.patch("guyrapu.ui.accesibilidad.anunciar") as anunciar,
                 mock.patch.object(preferencias_camara.wx, "CallAfter",
-                                  side_effect=lambda funcion, *args: funcion(*args)):
-            dialogo.pagina_camara._buscar_camaras(None)
-            cliente_clase.assert_not_called()
-            consulta["target"]()
+                                  side_effect=lambda funcion, *args:
+                                  funcion(*args)),
+        ):
+            camara = self._indice_categoria(dialogo, "Cámara")
+            general = self._indice_categoria(dialogo, "General")
+            dialogo.nb.SetSelection(camara)
+            dialogo.nb.SetSelection(general)
+            dialogo.nb.SetSelection(camara)
 
-        self.assertEqual(consulta["nombre"], "CamarasPrefs")
-        hilo.start.assert_called_once_with()
-        cliente.conectar.assert_called_once_with()
-        fuentes.assert_called_once_with(cliente)
-        cliente.cerrar.assert_called_once_with()
+        self.assertEqual(llamadas, ["CamarasPrefs"])
+        anunciar.assert_not_called()
+        lista = dialogo.pagina_camara.cho_camara_obs
+        self.assertIn("Cam", lista.GetStrings())
+        self.assertEqual(lista.GetStringSelection(), "Vieja")
 
-    def test_el_boton_de_agregar_camara_tiene_su_nombre_y_su_lugar(self):
-        dialogo = self._dialogo({})
-        boton = dialogo.pagina_camara.btn_agregar_camara
-        self.assertEqual(boton.GetLabel(), "&Agregar cámara a OBS…")
-        self.assertEqual(boton.GetName(), "Agregar cámara a OBS…")
-        hijos = list(boton.GetParent().GetChildren())
-        self.assertLess(hijos.index(dialogo.pagina_camara.btn_buscar_camaras),
-                        hijos.index(boton))
+    def test_un_fallo_de_obs_no_anuncia_y_conserva_la_camara(self):
+        dialogo = self._dialogo({"camara_fuente": "Vieja"})
+        cliente = mock.Mock()
+        cliente.conectar.side_effect = RuntimeError("sin OBS")
+        with (
+                mock.patch.object(preferencias_camara.diagnostico, "crear_hilo",
+                                  side_effect=_crear_hilo_inmediato),
+                mock.patch.object(preferencias_camara.obs_cliente, "ClienteObs",
+                                  return_value=cliente),
+                mock.patch.object(preferencias_camara.obs_cliente,
+                                  "leer_ajustes"),
+                mock.patch("guyrapu.ui.accesibilidad.anunciar") as anunciar,
+                mock.patch.object(preferencias_camara.wx, "CallAfter") as diferido,
+        ):
+            dialogo.nb.SetSelection(self._indice_categoria(dialogo, "Cámara"))
+
+        anunciar.assert_not_called()
+        diferido.assert_not_called()
+        lista = dialogo.pagina_camara.cho_camara_obs
+        self.assertEqual(lista.GetStrings(),
+                         ["Elegir automáticamente", "Vieja"])
+        self.assertEqual(lista.GetStringSelection(), "Vieja")
 
     def test_con_una_camara_la_agrega_y_anuncia_donde_quedo(self):
         dialogo = self._dialogo({})

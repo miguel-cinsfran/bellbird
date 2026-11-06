@@ -112,18 +112,28 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_confirmar_salida = self.pagina_general.chk_confirmar_salida
         self.chk_sonido_inicio = self.pagina_general.chk_sonido_inicio
         self.chk_registro_detallado = self.pagina_general.chk_registro_detallado
+        self.nb.AddPage(self._pag_interfaz(self.nb), _("Interfaz"))
+        self.pagina_sonidos = PaginaSonidos()
+        self.nb.AddPage(self.pagina_sonidos.construir(self.nb), _("Sonidos"))
+        self.cho_tema = self.pagina_sonidos.cho_tema
+        self.pagina_atajos = PaginaAtajos(self, self._config)
+        self.nb.AddPage(self.pagina_atajos.construir(self.nb), _("Atajos"))
         self.pagina_voz = PaginaVoz(self, self._config)
         self.nb.AddPage(self.pagina_voz.construir(self.nb), _("Voces"))
         self.pagina_lectura = self._pagina(
             self.nb, _("Lectura"), PaginaLectura, OPCIONES_LECTURA)
         self.rb_formato = self.pagina_lectura.rb_formato
+        self.nb.AddPage(self._pag_cola(self.nb), _("Cola de lectura"))
         self.pagina_eventos = self._pagina(
             self.nb, _("Eventos del directo"), PaginaEventos, OPCIONES_EVENTOS)
-        self.nb.AddPage(self._pag_cola(self.nb), _("Cola de lectura"))
-        self.nb.AddPage(self._pag_interfaz(self.nb), _("Interfaz"))
-        self.pagina_sonidos = PaginaSonidos()
-        self.nb.AddPage(self.pagina_sonidos.construir(self.nb), _("Sonidos"))
-        self.cho_tema = self.pagina_sonidos.cho_tema
+        self.nb.AddPage(self._pag_filtros(self.nb), _("Filtros"))
+        self.nb.AddPage(self._pag_estado(self.nb), _("Estado (F2)"))
+        self.pagina_programados = PaginaProgramados()
+        self.nb.AddPage(self.pagina_programados.construir(self.nb), _("Mensajes automáticos"))
+        self.chk_programados = self.pagina_programados.chk_programados
+        self.nb.AddPage(self._pag_conexion(self.nb), _("Conexión"))
+        self.pagina_api = PaginaApi(self)
+        self.nb.AddPage(self.pagina_api.construir(self.nb), _("API y sesión"))
         self.nb.AddPage(self._pag_reproductor(self.nb), _("Reproductor"))
         self.pagina_musica = PaginaMusica(self, self._config)
         self.nb.AddPage(self.pagina_musica.construir(self.nb), _("Música"))
@@ -131,24 +141,14 @@ class PreferenciasDialog(wx.Dialog):
             setattr(self, fila[0], getattr(self.pagina_musica, fila[0]))
         self.pagina_descargas = PaginaDescargasPreferencias()
         self.nb.AddPage(self.pagina_descargas.construir(self.nb), _("Descargas"))
-        self.nb.AddPage(self._pag_conexion(self.nb), _("Conexión"))
-        self.nb.AddPage(self._pag_filtros(self.nb), _("Filtros"))
-        self.nb.AddPage(self._pag_estado(self.nb), _("Estado (F2)"))
-        self.pagina_atajos = PaginaAtajos(self, self._config)
-        self.nb.AddPage(self.pagina_atajos.construir(self.nb), _("Atajos"))
-        self.pagina_api = PaginaApi(self)
-        self.nb.AddPage(self.pagina_api.construir(self.nb), _("API y sesión"))
-        self.pagina_programados = PaginaProgramados()
-        self.nb.AddPage(self.pagina_programados.construir(self.nb), _("Mensajes automáticos"))
-        self.chk_programados = self.pagina_programados.chk_programados
+        self.pagina_ia = PaginaIA(self, self._ruta)
+        self.nb.AddPage(self.pagina_ia.construir(self.nb), _("Inteligencia artificial"))
         self.pagina_transmision = PaginaTransmision(self, self._config)
         self.nb.AddPage(self.pagina_transmision.construir(self.nb), _("OBS"))
-        for _nombre in ("sp_puerto_overlay", "chk_avisar_sobrecarga", "chk_titulo_estado_obs", "cho_microfono_obs"):
+        for _nombre in ("sp_puerto_overlay", "chk_avisar_sobrecarga", "chk_titulo_estado_obs"):
             setattr(self, _nombre, getattr(self.pagina_transmision, _nombre))
         self.pagina_camara = PaginaCamara(self, self._config)
         self.nb.AddPage(self.pagina_camara.construir(self.nb), _("Cámara"))
-        self.pagina_ia = PaginaIA(self, self._ruta)
-        self.nb.AddPage(self.pagina_ia.construir(self.nb), _("Inteligencia artificial"))
         ajustar_ancho_categorias(self.nb, self.lista_categorias)
         # Mínimo explícito: si no, el libro pide el «mejor tamaño» de la página
         # más alta (Atajos, más de 1200 px) y el sizer lo desbordaría en vez

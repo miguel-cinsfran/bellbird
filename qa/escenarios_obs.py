@@ -146,7 +146,8 @@ def escenario_microfono(app: Aplicacion, args, res: Resultado):
     Sin OBS no hay nada que auditar: el cuadro solo se abre si OBS
     responde, sin él la aplicación anuncia el fallo y no se abre. Con OBS
     abierto se audita entero, pero sin pulsar «Aplicar»: el banco no cambia
-    el micrófono de OBS de la PC donde corre.
+    el micrófono de OBS de la PC donde corre. Se abre desde el botón de la
+    pestaña Audio del Panel de OBS, que es el único camino que queda.
     """
     if not obs_abierto():
         res.nota("Micrófono de OBS: OBS está cerrado, el cuadro no se abre "
@@ -155,11 +156,75 @@ def escenario_microfono(app: Aplicacion, args, res: Resultado):
     res.nota("Micrófono de OBS: no se pulsa Aplicar, el banco no cambia "
              "el micrófono de la PC")
     esperados = ("Fuente de OBS", "Dispositivo", "Aplicar", "Cerrar")
-    auditar_dialogo(
-        app, res, "Elegir micrófono…", "Micrófono de OBS",
-        vueltas_tab=8,
-        esperados=esperados,
-        esperados_en_tab=esperados)
+    try:
+        app.abrir_por_menu("OBS > Panel de OBS…")
+    except Exception as exc:
+        res.fallo(f"Micrófono de OBS: no se pudo abrir el Panel de OBS, {exc}")
+        return
+    if app.esperar_ventana("Panel de OBS", segundos=15) is None:
+        res.fallo("Micrófono de OBS: el menú no abrió el Panel de OBS")
+        return
+    try:
+        try:
+            paginas = app.pedir("pestanas", ventana="Panel de OBS").get(
+                "datos", {}).get("paginas", [])
+        except Exception as exc:
+            res.fallo(f"Micrófono de OBS: no se pudieron listar las "
+                      f"pestañas del Panel de OBS, {exc}")
+            return
+        nombres = [str(pagina).strip().lower() for pagina in paginas]
+        if "audio" not in nombres:
+            res.fallo("Micrófono de OBS: el Panel de OBS no tiene "
+                      "pestaña Audio")
+            return
+        app.pedir("pestanas", ventana="Panel de OBS",
+                  indice=nombres.index("audio"))
+        if not ventanas_obs.esperar_habilitado(
+                app, faltan_habilitados, "Elegir micrófono", 30, res):
+            return
+        try:
+            app.pedir("pulsar", ventana="Panel de OBS",
+                      nombre="Elegir micrófono", responder_ya=True,
+                      tiempo=3.0)
+        except Exception as exc:
+            res.fallo("Micrófono de OBS: no se pudo pulsar «Elegir "
+                      f"micrófono» en la pestaña Audio, {exc}")
+            return
+        if app.esperar_ventana("Micrófono de OBS", segundos=15) is None:
+            res.fallo("Micrófono de OBS: el botón de Audio no abrió el cuadro")
+            return
+        res.nota("Micrófono de OBS: abre desde el botón de la pestaña Audio "
+                 "del Panel de OBS")
+        _auditar_dialogo_abierto(
+            app, res, "Micrófono de OBS", 8, esperados)
+    finally:
+        app.pedir("cerrar_ventana", ventana="Panel de OBS")
+        if app.esperar_ventana("Panel de OBS", segundos=4) is not None:
+            res.fallo("Panel de OBS: la ventana no cerró")
+
+
+def _auditar_dialogo_abierto(app, res, titulo, vueltas_tab, esperados):
+    """Audita un diálogo que ya está abierto y lo cierra."""
+    controles = app.arbol(titulo)
+    revisar_nombres(controles, res, titulo)
+    juntos = " ".join(
+        ((control.get("nombre") or "") + " "
+         + (control.get("etiqueta") or ""))
+        for control in controles).replace("&", "").lower()
+    for esperado in esperados:
+        if esperado.lower() not in juntos:
+            res.fallo(f"{titulo}: no aparece nada llamado «{esperado}»")
+    orden = recorrer_tab(app, res, titulo, vueltas=vueltas_tab,
+                         ventana=titulo)
+    res.nota(f"{titulo}, orden de Tab, {len(orden)} paradas: "
+             + " > ".join(orden))
+    recorrido = " ".join(orden).replace("&", "").lower()
+    for esperado in esperados:
+        if esperado.lower() not in recorrido:
+            res.fallo(f"{titulo}: «{esperado}» no aparece en el orden de Tab")
+    app.pedir("cerrar_ventana", ventana=titulo)
+    if app.esperar_ventana(titulo, segundos=4) is not None:
+        res.fallo(f"{titulo}: el diálogo no cerró")
 
 
 def _avisos(propia, desde):

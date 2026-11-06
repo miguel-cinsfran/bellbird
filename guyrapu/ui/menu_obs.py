@@ -9,6 +9,7 @@ from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.obs import obs_entradas_audio
 from guyrapu.obs import obs_ventana
+from guyrapu.ui import encuadre_camara
 from guyrapu.ui.accesibilidad import anunciar
 
 
@@ -27,16 +28,27 @@ def abrir_obs(frame) -> None:
         frame, frame, pestana=obs_ventana.PESTANA_GENERAL)
 
 
+def _agregar_encuadre(frame, m):
+    """La sección de encuadre: anuncio a pedido y casilla de avisos."""
+    m.AppendSeparator()
+    frame.mi_anunciar_encuadre = m.Append(
+        wx.ID_ANY, _("Anunciar en&cuadre de cámara") + frame._accel("anunciar_encuadre"))
+    frame.mi_avisos_encuadre = m.AppendCheckItem(
+        wx.ID_ANY, _("A&visar si el rostro sale del encuadre") + frame._accel("avisos_encuadre"))
+    frame.mi_avisos_encuadre.Check(bool(frame._config.get("avisar_encuadre", False)))
+    frame._bind_menu(frame.mi_anunciar_encuadre,
+                     encuadre_camara.anunciar_encuadre, frame)
+    frame._bind_menu(frame.mi_avisos_encuadre,
+                     encuadre_camara.alternar_avisos, frame)
+    encuadre_camara.sincronizar(frame)
+    m.AppendSeparator()
+
+
 def _agregar_comandos(m, frame):
     """Arma los comandos del menú OBS en su orden."""
     frame.mi_obs_panel = m.Append(
         wx.ID_ANY, _("Panel de &OBS…") + frame._accel("abrir_obs"))
     frame._bind_menu(frame.mi_obs_panel, abrir_obs, frame)
-    frame.mi_obs_micro = m.AppendCheckItem(
-        wx.ID_ANY, _("Silenciar &micrófono de OBS") + frame._accel("obs_micro"))
-    frame.mi_micro_obs = m.Append(wx.ID_ANY, _("&Elegir micrófono…"))
-    frame.mi_mostrar_obs = m.Append(
-        wx.ID_ANY, _("Mos&trar OBS") + frame._accel("mostrar_obs"))
     frame.mi_obs_grabar = m.Append(
         wx.ID_ANY,
         _("Iniciar o detener g&rabación") + frame._accel("obs_grabar"))
@@ -45,7 +57,11 @@ def _agregar_comandos(m, frame):
         _("Pa&usar o reanudar grabación") + frame._accel("obs_pausar_grabacion"))
     frame.mi_obs_guardar_clip = m.Append(
         wx.ID_ANY, _("Guardar cl&ip") + frame._accel("guardar_clip"))
-    m.AppendSeparator()
+    frame.mi_obs_micro = m.AppendCheckItem(
+        wx.ID_ANY, _("Silenciar &micrófono de OBS") + frame._accel("obs_micro"))
+    _agregar_encuadre(frame, m)
+    frame.mi_mostrar_obs = m.Append(
+        wx.ID_ANY, _("Mos&trar OBS") + frame._accel("mostrar_obs"))
     frame.mi_avisos_sobrecarga = m.AppendCheckItem(
         wx.ID_ANY,
         _("&Avisar si OBS se sobrecarga") + frame._accel("avisos_sobrecarga"))
@@ -64,9 +80,7 @@ def _enlazar(frame, m):
     """Conecta el menú OBS ya armado con sus manejadores."""
     from guyrapu.ui import comandos_clips
     from guyrapu.ui import comandos_grabacion
-    from guyrapu.ui import gui_microfono
     frame.Bind(wx.EVT_MENU, frame._on_obs_micro, frame.mi_obs_micro)
-    frame._bind_menu(frame.mi_micro_obs, gui_microfono.abrir_microfono_obs, frame)
     frame.Bind(wx.EVT_MENU_OPEN, lambda e: _al_abrir_obs(frame, m, e))
     frame._bind_menu(frame.mi_mostrar_obs, mostrar_obs)
     frame._bind_menu(frame.mi_obs_grabar,

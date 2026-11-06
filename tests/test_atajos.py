@@ -438,7 +438,7 @@ class TestParsearAtajos(unittest.TestCase):
         from guyrapu.ui import menu_transmision
         fuente = inspect.getsource(gui_menu.construir_menu)
         fuente += inspect.getsource(menu_transmision.construir)
-        fuente += inspect.getsource(menu_transmision._agregar_encuadre)
+        fuente += inspect.getsource(menu_obs._agregar_encuadre)
         fuente += inspect.getsource(menu_obs.construir)
         fuente += inspect.getsource(menu_obs._agregar_comandos)
         fuente += inspect.getsource(gui_menu._construir_menu_ver)

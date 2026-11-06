@@ -14,10 +14,8 @@ from guyrapu.core.comando_clip import COMANDO as COMANDO_CLIP
 from guyrapu.core.idioma import N_, _
 from guyrapu.obs import obs_activacion
 from guyrapu.obs import obs_cliente
-from guyrapu.obs.obs_panel import GestorPanelObs
 from guyrapu.ui.accesibilidad import ContadorAccesible, anunciar
-from guyrapu.ui.preferencias_comun import (
-    crear_panel, fila_label, opciones_con_elegida)
+from guyrapu.ui.preferencias_comun import crear_panel, fila_label
 
 
 logger = diagnostico.obtener_logger(__name__)
@@ -101,21 +99,6 @@ class PaginaTransmision:
 
         self._agregar_puerto(p, vs)
 
-        vs.Add(fila_label(p, _("&Micrófono de OBS:")),
-               0, wx.LEFT | wx.RIGHT, 10)
-        guardado = str(self._config.get("obs_microfono", ""))
-        opciones = opciones_con_elegida(
-            _("Elegir automáticamente"), guardado, [])
-        self.cho_microfono_obs = wx.Choice(p, choices=opciones, name=_("Micrófono de OBS"))
-        self.cho_microfono_obs.SetSelection(1 if guardado else 0)
-        vs.Add(self.cho_microfono_obs, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
-
-        self.btn_buscar_microfonos = wx.Button(
-            p, label=_("&Buscar micrófonos en OBS"),
-            name=_("Buscar micrófonos en OBS"))
-        vs.Add(self.btn_buscar_microfonos, 0, wx.ALL, 10)
-        self.btn_buscar_microfonos.Bind(wx.EVT_BUTTON, self._buscar_microfonos)
-
         self.btn_activar_servidor_websocket_obs = wx.Button(
             p, label=_("&Activar servidor WebSocket de OBS"),
             name=_("Activar servidor WebSocket de OBS"))
@@ -125,36 +108,6 @@ class PaginaTransmision:
 
         p.SetSizer(vs)
         return p
-
-    def _buscar_microfonos(self, event):
-        # Consultar OBS puede tardar o no responder, por eso nunca corre en la interfaz.
-        def consultar():
-            gestor = None
-            try:
-                gestor = GestorPanelObs(ajustes=obs_cliente.leer_ajustes())
-                gestor.conectar()
-                wx.CallAfter(self._microfonos_encontrados, gestor.fuentes_audio())
-            except Exception as exc:
-                wx.CallAfter(anunciar, obs_cliente.mensaje_de_fallo_obs(exc))
-            finally:
-                if gestor is not None:
-                    try:
-                        gestor.cerrar()
-                    except Exception as error:
-                        logger.debug("no se pudo cerrar el gestor de OBS: %s", error)
-
-        diagnostico.crear_hilo(consultar, "MicrofonosPrefs").start()
-
-    def _microfonos_encontrados(self, fuentes):
-        if not self._ventana:   # el diálogo pudo cerrarse mientras OBS respondía
-            return
-        elegido = self.cho_microfono_obs.GetStringSelection()
-        opciones = opciones_con_elegida(
-            _("Elegir automáticamente"), elegido, fuentes)
-        # La fuente guardada se conserva aunque OBS no responda o ya no la vea.
-        self.cho_microfono_obs.Set(opciones)
-        self.cho_microfono_obs.SetStringSelection(elegido or opciones[0])
-        anunciar(_("Se encontraron {cantidad} micrófonos en OBS").format(cantidad=len(fuentes)))
 
     def _activar_servidor_websocket_obs(self, event):
         def activar():
@@ -173,10 +126,6 @@ class PaginaTransmision:
         diagnostico.crear_hilo(activar, "ActivarWebsocketObs").start()
 
     def guardar(self, fijar, en_memoria):
-        microfono_obs = ("" if self.cho_microfono_obs.GetSelection() == 0
-                         else self.cho_microfono_obs.GetStringSelection())
-        fijar("obs", "microfono", microfono_obs)
-        en_memoria["obs_microfono"] = microfono_obs
         segundos = OPCIONES_CLIPS[max(0, self.cho_clips.GetSelection())][0]
         fijar("transmision", "clips", str(segundos))
         en_memoria["clips"] = segundos

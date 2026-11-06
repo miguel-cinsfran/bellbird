@@ -250,6 +250,7 @@ INTERNAS = {
     ("musica", "mostrar_filtros"): "la recuerdan los filtros de la ventana Música (musica_memoria.py, musica_filtros.py)",
     ("musica", "orden"): "la recuerdan los filtros de la ventana Música (musica_memoria.py, musica_filtros.py)",
     ("musica", "artista"): "la recuerdan los filtros de la ventana Música (musica_memoria.py, musica_filtros.py)",
+    ("obs", "microfono"): "lo elige el cuadro Elegir micrófono del Panel de OBS (gui_microfono._guardar_fuente)",
     ("overlay", "activo"): "la enciende la ventana Transmisión (gui_transmitir.py:32 y 37)",
     ("sesion", "silenciar_lectura"): "la cambia F4 en la ventana principal (gui.py:1340)",
     ("sesion", "version_atajos"): "la escribe la migración de atajos (atajos.py:303)",

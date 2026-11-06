@@ -7,7 +7,7 @@ su estado.
 import wx
 
 from guyrapu.core.idioma import _
-from guyrapu.ui import encuadre_camara
+from guyrapu.obs import transmision_directa
 
 
 def abrir_restream(frame) -> None:
@@ -27,23 +27,16 @@ def abrir_restream(frame) -> None:
         eventos=cuenta.eventos, estadisticas=cuenta.estadisticas)
 
 
-def _agregar_encuadre(frame, m):
-    """La sección de encuadre: anuncio a pedido y casilla de avisos."""
-    m.AppendSeparator()
-    frame.mi_anunciar_encuadre = m.Append(
-        wx.ID_ANY, _("Anunciar en&cuadre de cámara") + frame._accel("anunciar_encuadre"))
-    frame.mi_avisos_encuadre = m.AppendCheckItem(
-        wx.ID_ANY, _("A&visar si el rostro sale del encuadre") + frame._accel("avisos_encuadre"))
-    frame.mi_avisos_encuadre.Check(bool(frame._config.get("avisar_encuadre", False)))
-    frame._bind_menu(frame.mi_anunciar_encuadre,
-                     encuadre_camara.anunciar_encuadre, frame)
-    frame._bind_menu(frame.mi_avisos_encuadre,
-                     encuadre_camara.alternar_avisos, frame)
-    encuadre_camara.sincronizar(frame)
+def _pulsar_directo(frame):
+    """El comando del menú hace lo mismo que el botón de la ventana."""
+    frame._boton_directo.pulsar()
 
 
 def construir(frame, mb):
     m = wx.Menu()
+    etiqueta, _nombre = transmision_directa.etiqueta(False)
+    frame.mi_directo = m.Append(wx.ID_ANY, etiqueta)
+    frame._bind_menu(frame.mi_directo, _pulsar_directo, frame)
     frame.mi_restream = m.Append(
         wx.ID_ANY, _("Re&stream…") + frame._accel("abrir_restream"))
     frame._bind_menu(frame.mi_restream, abrir_restream, frame)
@@ -51,9 +44,9 @@ def construir(frame, mb):
         wx.ID_ANY, _("&Grabar también al transmitir"))
     frame.mi_grabar_al_transmitir.Check(
         bool(frame._config.get("grabar_al_transmitir", False)))
-    _agregar_encuadre(frame, m)
     mb.Append(m, _("&Transmisión"))
     _enlazar(frame, m)
+    frame._actualizar_boton_directo()
 
 
 def _enlazar(frame, m):

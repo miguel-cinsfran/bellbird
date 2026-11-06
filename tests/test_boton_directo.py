@@ -227,6 +227,8 @@ class TestActualizarDeteniendoSinVentana(unittest.TestCase):
         boton._conectar = mock.Mock()
         boton._transmitiendo = False
         boton._deteniendo = False
+        boton._marco = mock.Mock()
+        boton._marco.mi_directo = None
         boton.boton = mock.Mock()
         boton.boton.GetParent.return_value = mock.Mock()
         boton.boton.HasFocus.return_value = False
@@ -247,6 +249,127 @@ class TestActualizarDeteniendoSinVentana(unittest.TestCase):
         boton.actualizar(False, False, False, True)
         self.assertFalse(boton._deteniendo)
         boton.boton.SetLabel.assert_called_once_with("&Finalizar directo")
+
+    def test_actualizar_copia_la_etiqueta_al_comando_del_menu(self):
+        boton = self._boton()
+        item = mock.Mock()
+        boton._marco.mi_directo = item
+        boton.actualizar(False, False, True, False)
+        item.SetItemLabel.assert_called_once_with("Transm&itir en directo")
+
+    def test_el_comando_dice_lo_mismo_que_el_boton_en_cada_estado(self):
+        for argumentos, etiqueta in (
+                ((False, False, True, False), "Transm&itir en directo"),
+                ((False, False, True, True), "&Finalizar directo"),
+                ((False, False, True, True, True), "Finalizando el directo")):
+            with self.subTest(etiqueta=etiqueta):
+                boton = self._boton()
+                item = mock.Mock()
+                boton._marco.mi_directo = item
+                boton.actualizar(*argumentos)
+                item.SetItemLabel.assert_called_once_with(etiqueta)
+
+    def test_actualizar_deshabilita_el_comando_cuando_el_boton_se_oculta(self):
+        boton = self._boton()
+        item = mock.Mock()
+        boton._marco.mi_directo = item
+        boton.actualizar(True, False, False, False)
+        boton.boton.Hide.assert_called_once()
+        item.Enable.assert_called_once_with(False)
+
+    def test_actualizar_vuelve_a_habilitar_el_comando(self):
+        boton = self._boton()
+        item = mock.Mock()
+        boton._marco.mi_directo = item
+        boton.actualizar(False, False, False, False)
+        item.Enable.assert_called_once_with(True)
+
+
+class TestPulsarSinVentana(unittest.TestCase):
+    # Sin ventana: pulsar es el único camino que comparten el botón y el menú.
+
+    def _boton(self, transmitiendo=False, deteniendo=False):
+        from guyrapu.ui import boton_directo
+        boton = boton_directo.BotonDirecto.__new__(boton_directo.BotonDirecto)
+        boton._transmitiendo = transmitiendo
+        boton._deteniendo = deteniendo
+        boton._marco = mock.Mock()
+        boton.boton = mock.Mock()
+        return boton
+
+    def test_pulsar_sin_directo_transmite(self):
+        boton = self._boton()
+        with mock.patch.object(boton, "_transmitir") as transmitir:
+            boton.pulsar()
+        transmitir.assert_called_once_with()
+
+    def test_pulsar_transmitiendo_finaliza(self):
+        boton = self._boton(transmitiendo=True)
+        with mock.patch.object(boton, "_finalizar") as finalizar:
+            boton.pulsar()
+        finalizar.assert_called_once_with()
+
+    def test_pulsar_deteniendo_solo_avisa(self):
+        from guyrapu.ui import boton_directo
+        boton = self._boton(transmitiendo=True, deteniendo=True)
+        with (
+                mock.patch.object(boton, "_finalizar") as finalizar,
+                mock.patch.object(boton, "_transmitir") as transmitir,
+                mock.patch.object(boton_directo, "anunciar") as anunciar,
+        ):
+            boton.pulsar()
+        finalizar.assert_not_called()
+        transmitir.assert_not_called()
+        anunciar.assert_called_once_with(
+            "Deteniendo la transmisión. Esperando a que OBS confirme.")
+
+    def test_al_pulsar_delega_en_pulsar(self):
+        boton = self._boton()
+        with mock.patch.object(boton, "pulsar") as pulsar:
+            boton._al_pulsar(mock.Mock())
+        pulsar.assert_called_once_with()
+
+
+class TestMenuDirectoSinVentana(unittest.TestCase):
+    # Sin ventana: el comando del menú llama a pulsar, el mismo camino.
+
+    def _frame(self, boton):
+        from guyrapu.ui import menu_transmision
+
+        class Menu:
+            def __init__(self):
+                self.items = []
+
+            def Append(self, *args):
+                item = mock.Mock()
+                self.items.append(item)
+                return item
+
+            def AppendCheckItem(self, *args):
+                item = mock.Mock()
+                self.items.append(item)
+                return item
+
+            def AppendSeparator(self):
+                self.items.append(None)
+
+        enlaces = {}
+        frame = mock.Mock()
+        frame._config = {"grabar_al_transmitir": False}
+        frame._accel.return_value = ""
+        frame._bind_menu.side_effect = lambda item, fn, *a: enlaces.__setitem__(
+            item, (fn, a))
+        frame._boton_directo = boton
+        with mock.patch.object(menu_transmision.wx, "Menu", Menu):
+            menu_transmision.construir(frame, mock.Mock())
+        return frame, enlaces
+
+    def test_elegir_mi_directo_llama_a_pulsar(self):
+        boton = mock.Mock()
+        frame, enlaces = self._frame(boton)
+        fn, args = enlaces[frame.mi_directo]
+        fn(*args)
+        boton.pulsar.assert_called_once_with()
 
 
 class TestAlPulsarDeteniendoSinVentana(unittest.TestCase):

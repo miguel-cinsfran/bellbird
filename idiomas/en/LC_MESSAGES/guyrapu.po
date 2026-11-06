@@ -3309,7 +3309,7 @@ msgstr ""
 msgid "La fuente {nombre} no está en la escena actual."
 msgstr "Source {nombre} is not in the current scene."
 
-#: guyrapu/obs/obs_camara.py guyrapu/ui/preferencias_camara.py
+#: guyrapu/obs/obs_camara.py
 msgid "No hay ninguna cámara en OBS."
 msgstr "There is no camera in OBS."
 
@@ -8073,7 +8073,7 @@ msgstr "&Music"
 msgid "{fuente}: {estado}."
 msgstr "{fuente}: {estado}."
 
-#: guyrapu/ui/gui_microfono.py guyrapu/ui/preferencias_transmision.py
+#: guyrapu/ui/gui_microfono.py
 msgid "Micrófono de OBS"
 msgstr "OBS microphone"
 
@@ -8134,22 +8134,6 @@ msgid "General"
 msgstr "General"
 
 #: guyrapu/ui/gui_preferencias.py
-msgid "Voces"
-msgstr "Voices"
-
-#: guyrapu/ui/gui_preferencias.py
-msgid "Lectura"
-msgstr "Reading"
-
-#: guyrapu/ui/gui_preferencias.py
-msgid "Eventos del directo"
-msgstr "Live events"
-
-#: guyrapu/ui/gui_preferencias.py
-msgid "Cola de lectura"
-msgstr "Reading queue"
-
-#: guyrapu/ui/gui_preferencias.py
 msgid "Interfaz"
 msgstr "Interface"
 
@@ -8158,12 +8142,25 @@ msgstr "Interface"
 msgid "Sonidos"
 msgstr "Sounds"
 
-#. Traductores: título de la ventana de música; una sola palabra.
-#. Traductores: título del diálogo que confirma el borrado; una sola palabra.
-#: guyrapu/ui/gui_preferencias.py guyrapu/ui/musica_ventana.py
-#: guyrapu/ui/musica_ventana_acciones.py guyrapu/youtube/emision.py
-msgid "Música"
-msgstr "Music"
+#: guyrapu/ui/gui_preferencias.py
+msgid "Atajos"
+msgstr "Shortcuts"
+
+#: guyrapu/ui/gui_preferencias.py
+msgid "Voces"
+msgstr "Voices"
+
+#: guyrapu/ui/gui_preferencias.py
+msgid "Lectura"
+msgstr "Reading"
+
+#: guyrapu/ui/gui_preferencias.py
+msgid "Cola de lectura"
+msgstr "Reading queue"
+
+#: guyrapu/ui/gui_preferencias.py
+msgid "Eventos del directo"
+msgstr "Live events"
 
 #: guyrapu/ui/gui_preferencias.py
 msgid "Filtros"
@@ -8174,20 +8171,23 @@ msgid "Estado (F2)"
 msgstr "Status (F2)"
 
 #: guyrapu/ui/gui_preferencias.py
-msgid "Atajos"
-msgstr "Shortcuts"
-
-#: guyrapu/ui/gui_preferencias.py
 msgid "API y sesión"
 msgstr "API and session"
 
-#: guyrapu/ui/gui_preferencias.py
-msgid "OBS"
-msgstr "OBS"
+#. Traductores: título de la ventana de música; una sola palabra.
+#. Traductores: título del diálogo que confirma el borrado; una sola palabra.
+#: guyrapu/ui/gui_preferencias.py guyrapu/ui/musica_ventana.py
+#: guyrapu/ui/musica_ventana_acciones.py guyrapu/youtube/emision.py
+msgid "Música"
+msgstr "Music"
 
 #: guyrapu/ui/gui_preferencias.py
 msgid "Inteligencia artificial"
 msgstr "Artificial intelligence"
+
+#: guyrapu/ui/gui_preferencias.py
+msgid "OBS"
+msgstr "OBS"
 
 #: guyrapu/ui/gui_preferencias.py guyrapu/ui/musica_editor_lista.py
 #: guyrapu/ui/restream_perfil.py
@@ -8728,20 +8728,16 @@ msgstr[0] "The chat has {n} message."
 msgstr[1] "The chat has {n} messages."
 
 #: guyrapu/ui/menu_obs.py
+msgid "Anunciar en&cuadre de cámara"
+msgstr "Announce camera &framing"
+
+#: guyrapu/ui/menu_obs.py guyrapu/ui/preferencias_camara.py
+msgid "A&visar si el rostro sale del encuadre"
+msgstr "Warn when the face &leaves the frame"
+
+#: guyrapu/ui/menu_obs.py
 msgid "Panel de &OBS…"
 msgstr "&OBS panel…"
-
-#: guyrapu/ui/menu_obs.py
-msgid "Silenciar &micrófono de OBS"
-msgstr "Mute OBS &microphone"
-
-#: guyrapu/ui/menu_obs.py
-msgid "&Elegir micrófono…"
-msgstr "&Choose microphone…"
-
-#: guyrapu/ui/menu_obs.py
-msgid "Mos&trar OBS"
-msgstr "S&how OBS"
 
 #: guyrapu/ui/menu_obs.py
 msgid "Iniciar o detener g&rabación"
@@ -8756,20 +8752,20 @@ msgid "Guardar cl&ip"
 msgstr "Save cl&ip"
 
 #: guyrapu/ui/menu_obs.py
+msgid "Silenciar &micrófono de OBS"
+msgstr "Mute OBS &microphone"
+
+#: guyrapu/ui/menu_obs.py
+msgid "Mos&trar OBS"
+msgstr "S&how OBS"
+
+#: guyrapu/ui/menu_obs.py
 msgid "&Avisar si OBS se sobrecarga"
 msgstr "&Warn if OBS is overloaded"
 
 #: guyrapu/ui/menu_obs.py
 msgid "&OBS"
 msgstr "OB&S"
-
-#: guyrapu/ui/menu_transmision.py
-msgid "Anunciar en&cuadre de cámara"
-msgstr "Announce camera &framing"
-
-#: guyrapu/ui/menu_transmision.py guyrapu/ui/preferencias_camara.py
-msgid "A&visar si el rostro sale del encuadre"
-msgstr "Warn when the face &leaves the frame"
 
 #: guyrapu/ui/menu_transmision.py
 msgid "Re&stream…"
@@ -9198,29 +9194,13 @@ msgstr "Shortcuts reset to factory defaults. They apply when you press Save."
 msgid "Cá&mara de OBS:"
 msgstr "&OBS camera:"
 
-#: guyrapu/ui/preferencias_camara.py guyrapu/ui/preferencias_transmision.py
+#: guyrapu/ui/preferencias_camara.py
 msgid "Elegir automáticamente"
 msgstr "Choose automatically"
 
 #: guyrapu/ui/preferencias_camara.py
 msgid "Cámara de OBS"
 msgstr "OBS camera"
-
-#: guyrapu/ui/preferencias_camara.py
-msgid "&Buscar cámaras en OBS"
-msgstr "&Find cameras in OBS"
-
-#: guyrapu/ui/preferencias_camara.py
-msgid "Buscar cámaras en OBS"
-msgstr "Find cameras in OBS"
-
-#: guyrapu/ui/preferencias_camara.py
-msgid "&Agregar cámara a OBS…"
-msgstr "&Add camera to OBS…"
-
-#: guyrapu/ui/preferencias_camara.py
-msgid "Agregar cámara a OBS…"
-msgstr "Add camera to OBS…"
 
 #: guyrapu/ui/preferencias_camara.py
 msgid "&Invertir izquierda y derecha"
@@ -9246,15 +9226,6 @@ msgstr "8-bit"
 #: guyrapu/ui/preferencias_camara.py
 msgid "Sonido de la guía"
 msgstr "Guide sound"
-
-#: guyrapu/ui/preferencias_camara.py
-msgid "Se encontró una cámara en OBS."
-msgstr "Found one camera in OBS."
-
-#: guyrapu/ui/preferencias_camara.py
-#, python-brace-format
-msgid "Se encontraron {cantidad} cámaras en OBS."
-msgstr "Found {cantidad} cameras in OBS."
 
 #: guyrapu/ui/preferencias_descargas.py
 msgid "Carpeta de &descargas:"
@@ -9989,29 +9960,12 @@ msgid "Puerto del chat en el vídeo"
 msgstr "Chat on video port"
 
 #: guyrapu/ui/preferencias_transmision.py
-msgid "&Micrófono de OBS:"
-msgstr "OBS &microphone:"
-
-#: guyrapu/ui/preferencias_transmision.py
-msgid "&Buscar micrófonos en OBS"
-msgstr "&Find microphones in OBS"
-
-#: guyrapu/ui/preferencias_transmision.py
-msgid "Buscar micrófonos en OBS"
-msgstr "Find microphones in OBS"
-
-#: guyrapu/ui/preferencias_transmision.py
 msgid "&Activar servidor WebSocket de OBS"
 msgstr "&Enable the OBS WebSocket server"
 
 #: guyrapu/ui/preferencias_transmision.py
 msgid "Activar servidor WebSocket de OBS"
 msgstr "Enable the OBS WebSocket server"
-
-#: guyrapu/ui/preferencias_transmision.py
-#, python-brace-format
-msgid "Se encontraron {cantidad} micrófonos en OBS"
-msgstr "Found {cantidad} microphones in OBS"
 
 #: guyrapu/ui/preferencias_transmision.py
 #, python-brace-format

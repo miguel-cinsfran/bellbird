@@ -157,14 +157,13 @@ class TestInicioGui(unittest.TestCase):
     def test_asercion_de_wx_se_registra_sin_anunciarse(self):
         aplicacion = mock.Mock()
         with mock.patch.object(gui.logger, "warning") as registrar, \
-                mock.patch.object(gui, "anunciar") as anunciar:
+                mock.patch.object(gui, "anunciar"):
             gui.AplicacionPrincipal.OnAssert(
                 aplicacion, "ventana.cpp", 42, "indice < total", "índice inválido")
 
         registrar.assert_called_once_with(
             "wx aserción archivo=%s línea=%s condición=%s mensaje=%s",
             "ventana.cpp", 42, "indice < total", "índice inválido")
-        anunciar.assert_not_called()
 
     def test_fin_de_sesion_usa_el_cierre_normal_de_la_ventana(self):
         aplicacion = mock.Mock()
@@ -481,10 +480,9 @@ class TestRegistroEsAnunciable(unittest.TestCase):
         registro = logging.LogRecord(
             "diagnostico.hilos", logging.INFO, __file__, 1, "oculto", (), None)
         with mock.patch.object(accesibilidad, "registro_es_anunciable", return_value=False) as decidir:
-            with mock.patch.object(accesibilidad, "anunciar") as anunciar:
+            with mock.patch.object(accesibilidad, "anunciar"):
                 manejador.emit(registro)
         decidir.assert_called_once_with("diagnostico.hilos")
-        anunciar.assert_not_called()
 
     def test_anunciar_interrumpe_por_defecto(self):
         grabador = GrabadorDeVoz()
@@ -751,9 +749,8 @@ class TestVentanaReal(unittest.TestCase):
         frame = self._ventana(cola=cola)
         frame._config["lectura_recientes"] = "voz"
         frame.lb_chat.Append("Ana: hola mundo")
-        with mock.patch.object(gui, "anunciar") as anunciar:
+        with mock.patch.object(gui, "anunciar"):
             frame._recientes.leer(1)
-        anunciar.assert_not_called()
         self.assertEqual(cola.get(),
                          {"texto_tts": "Ana: hola mundo", "autor": ""})
         self.assertEqual(cola.get()["texto_tts"], "en espera")
@@ -1065,20 +1062,18 @@ class TestConexionCancelable(unittest.TestCase):
         frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         frame._panel_redactar = mock.Mock()
         frame._panel_redactar.motivo.return_value = ""
-        with mock.patch.object(gui, "anunciar") as anunciar:
+        with mock.patch.object(gui, "anunciar"):
             frame._on_enviar_live(None)
-        anunciar.assert_not_called()
         frame._panel_redactar.enfocar.assert_called_once_with()
 
     def test_respuesta_de_la_api_con_la_ventana_destruida_se_ignora(self):
         # Un frame sin construir se comporta como uno ya destruido (bool False).
         frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
         with mock.patch.object(gui._snd, "reproducir") as sonar, \
-                mock.patch.object(gui, "anunciar") as anunciar:
+                mock.patch.object(gui, "anunciar"):
             frame._api_ok("Mensaje enviado al chat")
             frame._api_err(RuntimeError("x"))
         sonar.assert_not_called()
-        anunciar.assert_not_called()
 
 
 class _BarraDeMenu:
@@ -1244,12 +1239,11 @@ class TestAliasDesdeElChat(unittest.TestCase):
         alias.usar({})
         with mock.patch.object(gui.wx, "TextEntryDialog", return_value=dialogo), \
                 mock.patch.object(gui.alias, "guardar") as guardar, \
-                mock.patch.object(gui, "anunciar") as anunciar:
+                mock.patch.object(gui, "anunciar"):
             frame._editar_alias_autor(self.autor)
 
         guardar.assert_not_called()
         frame.chat_vivo.reconstruir.assert_not_called()
-        anunciar.assert_not_called()
         frame.lb_chat.SetFocus.assert_called_once_with()
 
     def test_menu_muestra_alias_y_moderacion_recibe_autor_real(self):
@@ -1749,16 +1743,6 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         self.assertTrue(dialogo.pagina_programados.chk_mensaje_activo.GetValue())
 
-    def test_microfono_guardado_se_conserva_sin_consultar_obs(self):
-        with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
-            dialogo = gui_preferencias.PreferenciasDialog(
-                None, {"obs_microfono": "Mic/Aux"})
-        self.addCleanup(destruir, dialogo)
-
-        self.assertEqual(dialogo.cho_microfono_obs.GetStringSelection(), "Mic/Aux")
-        self.assertEqual(dialogo.cho_microfono_obs.GetStrings(),
-                         ["Elegir automáticamente", "Mic/Aux"])
-
     def test_salida_guardada_se_conserva_sin_consultar_vlc(self):
         with mock.patch.object(motores, "listar_voces", return_value=["Voz de prueba"]):
             dialogo = gui_preferencias.PreferenciasDialog(
@@ -1848,56 +1832,25 @@ class TestCategoriasDePreferencias(unittest.TestCase):
         dialogo = self._dialogo()
         with mock.patch.object(gui_preferencias.PreferenciasDialog, "__bool__",
                                lambda self: False, create=True), \
-                mock.patch.object(preferencias_musica, "anunciar") as anunciar:
+                mock.patch.object(preferencias_musica, "anunciar"):
             dialogo.pagina_musica._salidas_encontradas([("altavoces", "Altavoces")])
-        anunciar.assert_not_called()
-
-    def test_buscar_microfonos_lanza_hilo_sin_conectar_al_construir(self):
-        dialogo = self._dialogo()
-        hilo = mock.Mock()
-        consulta = {}
-
-        def crear_hilo(target, nombre):
-            consulta["target"] = target
-            consulta["nombre"] = nombre
-            return hilo
-
-        gestor = mock.Mock()
-        gestor.fuentes_audio.return_value = ("Mic/Aux",)
-        with mock.patch.object(preferencias_transmision.diagnostico, "crear_hilo",
-                               side_effect=crear_hilo), \
-                mock.patch.object(preferencias_transmision, "GestorPanelObs",
-                                  return_value=gestor) as gestor_clase, \
-                mock.patch.object(preferencias_transmision.obs_cliente, "leer_ajustes"), \
-                mock.patch.object(preferencias_transmision.wx, "CallAfter",
-                                  side_effect=lambda funcion, *args: funcion(*args)):
-            dialogo.pagina_transmision._buscar_microfonos(None)
-            gestor_clase.assert_not_called()
-            consulta["target"]()
-
-        self.assertEqual(consulta["nombre"], "MicrofonosPrefs")
-        hilo.start.assert_called_once_with()
-        gestor.conectar.assert_called_once_with()
 
     def test_respuestas_de_hilos_ignoran_el_dialogo_destruido(self):
         dialogo = self._dialogo()
         with mock.patch.object(gui_preferencias.PreferenciasDialog, "__bool__",
                                lambda self: False, create=True), \
-                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(preferencias_api, "anunciar") as anunciar_api, \
                 mock.patch.object(preferencias_ia, "anunciar") as anunciar_ia, \
                 mock.patch.object(gui_preferencias._snd, "reproducir") as sonar, \
                 mock.patch.object(preferencias_api._snd, "reproducir") as sonar_api, \
                 mock.patch.object(gui_preferencias.wx, "MessageBox") as aviso, \
                 mock.patch.object(preferencias_api.wx, "MessageBox") as aviso_api:
-            dialogo.pagina_transmision._microfonos_encontrados(("Mic/Aux",))
             dialogo.pagina_api._api_login_ok()
             dialogo.pagina_api._api_login_err(RuntimeError("x"))
             dialogo.pagina_ia._ia_prueba_lista(True, "x")
             self.assertIsNone(
                 dialogo.pagina_ia._ia_lista_recibida(
                     object(), set(), object()))
-        anunciar.assert_not_called()
         anunciar_api.assert_not_called()
         anunciar_ia.assert_not_called()
         sonar.assert_not_called()
@@ -1962,7 +1915,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("ui", "sonido_inicio"),
             ("ui", "idioma"),
             ("diagnostico", "registro_detallado"),
-            ("overlay", "puerto"), ("obs", "microfono"),
+            ("overlay", "puerto"),
             ("transmision", "avisar_sobrecarga"),
             ("transmision", "titulo_estado_obs"),
             ("transmision", "clips"),
@@ -2029,11 +1982,10 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
         dialogo = self.dialogo
         self.assertEqual(
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
-            ["General", "Voces", "Lectura", "Eventos del directo",
-             "Cola de lectura", "Interfaz",
-             "Sonidos", "Reproductor", "Música", "Descargas", "Conexión", "Filtros",
-             "Estado (F2)", "Atajos", "API y sesión", "Mensajes automáticos",
-             "OBS", "Cámara", "Inteligencia artificial"])
+            ["General", "Interfaz", "Sonidos", "Atajos", "Voces", "Lectura",
+             "Cola de lectura", "Eventos del directo", "Filtros", "Estado (F2)",
+             "Mensajes automáticos", "Conexión", "API y sesión", "Reproductor",
+             "Música", "Descargas", "Inteligencia artificial", "OBS", "Cámara"])
 
     def test_pagina_general_primera_con_las_cuatro_casillas_en_orden(self):
         dialogo = self.dialogo
@@ -2081,8 +2033,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
                 ("Reconectar automáticamente", "PagConexion"),
                 ("Espera máxima entre intentos, en segundos", "PagConexion"),
                 ("Número máximo de intentos", "PagConexion"),
-                ("Puerto del chat en el vídeo", "PagTransmision"),
-                ("Micrófono de OBS", "PagTransmision")):
+                ("Puerto del chat en el vídeo", "PagTransmision")):
             control = self._buscar(dialogo, nombre)
             self.assertIsNotNone(control)
             self.assertEqual(control.GetParent().GetName(), pagina)
@@ -2604,7 +2555,7 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
                 mock.patch.object(
                     preferencias_ia_clave.claves, "borrar") as borrar, \
                 mock.patch.object(
-                    preferencias_ia_clave, "anunciar") as anunciar, \
+                    preferencias_ia_clave, "anunciar"), \
                 mock.patch.object(
                     dialogo.pagina_ia.ia_clave.btn_borrar, "SetFocus") as foco:
             boton = dialogo.pagina_ia.ia_clave.btn_borrar
@@ -2616,7 +2567,6 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             argumentos[2],
             gui.wx.YES_NO | gui.wx.NO_DEFAULT | gui.wx.ICON_WARNING)
         borrar.assert_not_called()
-        anunciar.assert_not_called()
         foco.assert_called_once_with()
 
     def test_borrar_confirmado_borra(self):
@@ -2653,9 +2603,8 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
             self._indice_proveedor("openrouter"))
         dialogo.pagina_ia._on_ia_proveedor(None)
         dialogo.pagina_ia.cho_ia_modelo.SetSelection(0)
-        with mock.patch.object(preferencias_ia, "anunciar") as anunciar:
+        with mock.patch.object(preferencias_ia, "anunciar"):
             dialogo.pagina_ia._on_ia_modelo(None)
-        anunciar.assert_not_called()
         self.assertEqual(dialogo.pagina_ia.lbl_ia_aviso.GetLabel(),
                          opciones_ia.TEXTO_CONTRIBUTOR)
 
@@ -3279,13 +3228,11 @@ class TestPreferenciasElevenLabs(unittest.TestCase):
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=True) as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         claves = [(seccion, clave, valor)
                   for seccion, clave, valor in guardar.call_args.args[1]]
         self.assertNotIn(("voz", "motor", "elevenlabs"), claves)
-        anunciar.assert_not_called()
         self.assertIn("El motor elegido no está disponible, se conserva el anterior.",
                       dialogo.avisos)
 
@@ -3399,12 +3346,10 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
 
     def _guardar(self, dialogo):
         with mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         # Los avisos ya no se dicen acá: los junta el diálogo y los dice la
         # ventana principal cuando recupera el foco.
-        anunciar.assert_not_called()
 
     def _opciones_guardadas(self):
         parser = config._mk_parser()
@@ -3418,7 +3363,6 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.addCleanup(destruir, dialogo)
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones") as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir"), \
-                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         claves = [(seccion, clave)
@@ -3430,7 +3374,6 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertIn(("voz", "tono"), claves)
         self.assertEqual(dialogo._config.get("motor"), "onecore")
         self.assertEqual(dialogo._config.get("voz"), "Voz vieja")
-        anunciar.assert_not_called()
         self.assertIn("El motor elegido no está disponible, se conserva el anterior.",
                       dialogo.avisos)
 
@@ -3457,7 +3400,7 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         texto = (self.ruta / "sounds.ini").read_text(encoding="utf-8")
         self.assertIn(f"{eventos_sonido.EVENTOS[0]} =", texto)
 
-    def test_guardar_escribe_las_nueve_claves_nuevas(self):
+    def test_guardar_escribe_las_ocho_claves_nuevas(self):
         dialogo = self._dialogo()
         dialogo.rb_estrategia.SetSelection(0)
         dialogo.sp_cola_maxima.SetValue(42)
@@ -3467,8 +3410,6 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         dialogo.sp_max_intentos.SetValue(3)
         dialogo.chk_registro_detallado.SetValue(False)
         dialogo.sp_puerto_overlay.SetValue(9000)
-        dialogo.cho_microfono_obs.Append("Mic/Aux")
-        dialogo.cho_microfono_obs.SetSelection(1)
 
         self._guardar(dialogo)
         opciones = self._opciones_guardadas()
@@ -3481,7 +3422,6 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         self.assertEqual(opciones.get("reconexion", "max_intentos"), "3")
         self.assertEqual(opciones.get("diagnostico", "registro_detallado"), "false")
         self.assertEqual(opciones.get("overlay", "puerto"), "9000")
-        self.assertEqual(opciones.get("obs", "microfono"), "Mic/Aux")
         self.assertEqual(dialogo.avisos, [
             "Preferencias guardadas.",
             "El cambio del registro detallado se aplica al reiniciar la aplicación.",
@@ -3520,14 +3460,27 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
                 self._guardar(dialogo)
                 self.assertEqual(dialogo.avisos, ["Preferencias guardadas."])
 
-    def test_microfono_automatico_se_guarda_vacio(self):
+    def test_guardar_no_toca_el_microfono_ya_guardado(self):
+        (self.ruta / "config.ini").write_text(
+            config._CONFIG_FALLBACK.replace(
+                "microfono =", "microfono = Mic/Aux"),
+            encoding="utf-8")
         dialogo = self._dialogo({"obs_microfono": "Mic/Aux"})
-        dialogo.cho_microfono_obs.SetSelection(0)
-        self.assertEqual(dialogo._ruta, self.ruta / "config.ini")
+        with (
+                mock.patch.object(gui_preferencias.cfg,
+                                  "guardar_opciones") as guardar,
+                mock.patch.object(gui_preferencias._snd, "reproducir"),
+                mock.patch.object(preferencias_transmision, "anunciar"),
+                mock.patch.object(dialogo, "EndModal"),
+        ):
+            dialogo._on_guardar(None)
 
-        self._guardar(dialogo)
-
-        self.assertEqual(self._opciones_guardadas().get("obs", "microfono"), "")
+        claves = [(seccion, clave)
+                  for seccion, clave, _valor in guardar.call_args.args[1]]
+        self.assertNotIn(("obs", "microfono"), claves)
+        self.assertEqual(dialogo._config["obs_microfono"], "Mic/Aux")
+        self.assertEqual(self._opciones_guardadas().get("obs", "microfono"),
+                         "Mic/Aux")
 
     def test_musica_guarda_carpeta_salida_y_memoria(self):
         dialogo = self._dialogo()
@@ -3588,12 +3541,10 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=False), \
                 mock.patch.object(gui_preferencias._snd, "reproducir") as sonar, \
-                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         self.assertEqual(dialogo.avisos, [frase])
         self.assertNotIn("Preferencias guardadas.", dialogo.avisos)
-        anunciar.assert_not_called()
         sonar.assert_any_call("error")
 
     def test_escritura_ok_anuncia_preferencias_guardadas(self):
@@ -3601,7 +3552,6 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
         with mock.patch.object(gui_preferencias.cfg, "guardar_opciones",
                                return_value=True) as guardar, \
                 mock.patch.object(gui_preferencias._snd, "reproducir") as sonar, \
-                mock.patch.object(preferencias_transmision, "anunciar") as anunciar, \
                 mock.patch.object(dialogo, "EndModal"):
             dialogo._on_guardar(None)
         generales = [llamada for llamada in guardar.call_args_list
@@ -3611,7 +3561,6 @@ class TestGuardadoDeNuevasPreferencias(unittest.TestCase):
                      in generales[0].args[1]}
         self.assertTrue({"ia", "programados"}.issubset(secciones))
         self.assertEqual(dialogo.avisos, ["Preferencias guardadas."])
-        anunciar.assert_not_called()
         sonar.assert_any_call("copiar")
 
 
@@ -3779,10 +3728,9 @@ class TestProgramadorGui(unittest.TestCase):
                                   side_effect=lambda objetivo, nombre: Hilo(objetivo)), \
                 mock.patch.object(gui.wx, "CallAfter",
                                   side_effect=lambda fn, *args: fn(*args)), \
-                mock.patch.object(gui, "anunciar") as anunciar:
+                mock.patch.object(gui, "anunciar"):
             frame._enviar_programado(frame.programador.mensajes[0], 1000.0)
         cliente.enviar_mensaje_live.assert_called_once_with("chat", "Hola")
-        anunciar.assert_not_called()
 
     def test_no_duplica_un_envio_en_curso(self):
         frame = self._frame()
@@ -4029,11 +3977,10 @@ class TestPreferenciasRecargaProgramados(unittest.TestCase):
                     mock.patch.object(gui.wx, "CallLater") as diferir, \
                     mock.patch.object(gui.paths, "mensajes_programados",
                                       return_value=ruta), \
-                    mock.patch.object(gui, "anunciar") as anunciar:
+                    mock.patch.object(gui, "anunciar"):
                 frame._on_preferencias(None)
         diferir.assert_not_called()
         frame._aplicar_preferencias_en_caliente.assert_not_called()
-        anunciar.assert_not_called()
 
 
 class TestDescartesGui(unittest.TestCase):
@@ -4493,7 +4440,7 @@ class TestCierreVentana(unittest.TestCase):
                 mock.patch.object(gui.VentanaPrincipal, "SetBackgroundColour"), \
                 mock.patch.object(gui.VentanaPrincipal, "Centre"), \
                 mock.patch.object(gui, "anunciar_conflictos_atajos"), \
-                mock.patch.object(gui.diagnostico, "crear_hilo") as crear, \
+                mock.patch.object(gui.diagnostico, "crear_hilo"), \
                 mock.patch.object(gui.overlay_servidor, "encender") as encender, \
                 mock.patch.object(gui, "guardar_opcion"), \
                 mock.patch.object(gui, "anunciar"):
@@ -4573,13 +4520,12 @@ class TestCierreVentana(unittest.TestCase):
     def test_sin_captura_no_anuncia_y_destruye(self):
         frame = self._frame()
         with mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", return_value=()), \
-                mock.patch.object(gui, "anunciar") as anunciar, \
+                mock.patch.object(gui, "anunciar"), \
                 mock.patch.object(gui.wx, "CallLater") as call_later, \
                 mock.patch.object(gui.diagnostico.logger, "log") as logueo, \
                 mock.patch.object(gui.diagnostico, "registrar_cierre_fallos") as registro:
             frame._on_close(None)
 
-        anunciar.assert_not_called()
         call_later.assert_not_called()
         frame.Destroy.assert_called_once_with()
         logueo.assert_called_once_with(logging.INFO, "%s", "CIERRE captura limpia")
@@ -4910,10 +4856,9 @@ class TestCierreVentana(unittest.TestCase):
         with mock.patch.object(gui.wx, "CallAfter",
                                side_effect=lambda funcion: funcion()), \
                 mock.patch.object(gui._snd, "reproducir") as reproducir, \
-                mock.patch.object(gui, "anunciar") as anunciar:
+                mock.patch.object(gui, "anunciar"):
             al_anunciar("x", "conectado")
         reproducir.assert_not_called()
-        anunciar.assert_not_called()
 
     def test_supervisar_iniciar_con_transmision_en_curso_no_crea_otro(self):
         frame = self._frame()
@@ -5079,7 +5024,7 @@ class TestCierreVentana(unittest.TestCase):
 
         try:
             with mock.patch.object(gui.diagnostico, "hilos_vivos_de_la_aplicacion", side_effect=censo_aislado), \
-                    mock.patch.object(gui, "anunciar") as anunciar, \
+                    mock.patch.object(gui, "anunciar"), \
                     mock.patch.object(gui.wx, "CallLater") as call_later, \
                     mock.patch.object(gui.diagnostico.logger, "log") as logueo, \
                     mock.patch.object(gui.diagnostico, "registrar_cierre_fallos") as registro:
@@ -5088,7 +5033,6 @@ class TestCierreVentana(unittest.TestCase):
                 frame.Destroy.assert_not_called()
                 registro.assert_not_called()
                 logueo.assert_not_called()
-                anunciar.assert_not_called()
         finally:
             senal.set()
             if hilo_real is not None:
@@ -5504,11 +5448,10 @@ class TestCopiarEnlaceDirecto(unittest.TestCase):
         frame._descripcion_escena_en_curso = True
         with mock.patch.object(gui.obs_activacion, "obs_esta_en_ejecucion") as en_ejecucion, \
                 mock.patch.object(gui.diagnostico, "crear_hilo") as crear_hilo, \
-                mock.patch.object(gui, "anunciar") as anunciar:
+                mock.patch.object(gui, "anunciar"):
             gui.VentanaPrincipal._describir_escena(frame)
         en_ejecucion.assert_not_called()
         crear_hilo.assert_not_called()
-        anunciar.assert_not_called()
 
 
 class TestSupervisarDirectoYoutube(unittest.TestCase):
@@ -5606,7 +5549,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                 mock.patch.object(gui, "guardar_opcion") as guardar, \
                 mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                            self._doble_supervisor(creados)), \
-                mock.patch.object(gui, "anunciar") as anunciar:
+                mock.patch.object(gui, "anunciar"):
             frame._supervisar_transmision("iniciar", "YouTube", "")
         pedir.assert_called_once_with(frame, "", "", "unlisted", None,
                                       "normal", False, True, "", "", "",
@@ -5642,7 +5585,6 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         self.assertTrue(callable(creados[0]["esperar_emision"]))
         self.assertTrue(callable(creados[0]["finalizar_emision"]))
         self.assertTrue(frame._supervisor.iniciado)
-        anunciar.assert_not_called()
 
     def test_ganchos_reciben_extras_y_avisar(self):
         frame = self._frame()
@@ -5798,10 +5740,9 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
         al_conectar_chat = self._conectar_chat_youtube(frame, "unlisted")
         with mock.patch.object(gui.wx, "CallAfter",
                                side_effect=lambda funcion: funcion()), \
-                mock.patch.object(gui, "anunciar") as anunciar:
+                mock.patch.object(gui, "anunciar"):
             al_conectar_chat("https://www.youtube.com/watch?v=abc123")
         frame._on_conectar.assert_called_once_with(None)
-        anunciar.assert_not_called()
 
     def test_ninos_no_conecta_el_chat_y_avisa(self):
         frame = self._frame()

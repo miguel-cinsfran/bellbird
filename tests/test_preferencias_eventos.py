@@ -96,12 +96,12 @@ class BaseEventos(unittest.TestCase):
 
 
 class TestCategoriaEventos(BaseEventos):
-    def test_la_categoria_va_justo_despues_de_lectura(self):
+    def test_la_categoria_va_justo_despues_de_la_cola_de_lectura(self):
         dialogo = self._dialogo()
         textos = [dialogo.nb.GetPageText(i)
                   for i in range(dialogo.nb.GetPageCount())]
-        self.assertIn("Lectura", textos)
-        self.assertEqual(textos[textos.index("Lectura") + 1],
+        self.assertIn("Cola de lectura", textos)
+        self.assertEqual(textos[textos.index("Cola de lectura") + 1],
                          "Eventos del directo")
 
     def test_la_pagina_tiene_las_listas_y_agrupaciones_en_orden_de_tab(self):

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import wx
 
-from guyrapu.core.idioma import N_, _
+from guyrapu.core.idioma import N_, _, ngettext
 from guyrapu.obs import disenos_fabrica, disenos_guardados, obs_disposicion
 from guyrapu.obs.disenos_escena import ESQUINAS, Diseno
 from guyrapu.ui import paleta
@@ -253,13 +253,15 @@ class DisenoEscenaDialog(wx.Dialog):
         pedidas = len(disenos_fabrica.lugares(clase))
         presentes = sum(1 for fuente in self._fuentes
                         if fuente.tipo != "chat")
+        texto = ngettext("una fuente", "{n} fuentes", pedidas).format(
+            n=pedidas)
         if presentes == 0:
-            return _("{diseno} necesita {n} fuentes y esta escena no tiene "
+            return _("{diseno} necesita {pedidas} y esta escena no tiene "
                      "ninguna. Agrega una con Agregar fuente.").format(
-                         diseno=nombre, n=pedidas)
-        return _("{diseno} necesita {n} fuentes y esta escena tiene {m}. "
+                         diseno=nombre, pedidas=texto)
+        return _("{diseno} necesita {pedidas} y esta escena tiene {m}. "
                  "Agrega otra con Agregar fuente.").format(
-                     diseno=nombre, n=pedidas, m=presentes)
+                     diseno=nombre, pedidas=texto, m=presentes)
 
     def _al_cambiar_chat(self, event):
         self._actualizar_visibilidad()

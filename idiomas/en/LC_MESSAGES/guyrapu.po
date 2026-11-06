@@ -6280,18 +6280,25 @@ msgstr "&Cancel"
 
 #: guyrapu/ui/escena_disenos.py
 #, python-brace-format
-msgid ""
-"{diseno} necesita {n} fuentes y esta escena no tiene ninguna. Agrega una "
-"con Agregar fuente."
-msgstr "{diseno} needs {n} sources and this scene has none. Add one with Add source."
+msgid "una fuente"
+msgid_plural "{n} fuentes"
+msgstr[0] "one source"
+msgstr[1] "{n} sources"
 
 #: guyrapu/ui/escena_disenos.py
 #, python-brace-format
 msgid ""
-"{diseno} necesita {n} fuentes y esta escena tiene {m}. Agrega otra con "
+"{diseno} necesita {pedidas} y esta escena no tiene ninguna. Agrega una con "
+"Agregar fuente."
+msgstr "{diseno} needs {pedidas} and this scene has none. Add one with Add source."
+
+#: guyrapu/ui/escena_disenos.py
+#, python-brace-format
+msgid ""
+"{diseno} necesita {pedidas} y esta escena tiene {m}. Agrega otra con "
 "Agregar fuente."
 msgstr ""
-"{diseno} needs {n} sources and this scene has {m}. Add another with Add "
+"{diseno} needs {pedidas} and this scene has {m}. Add another with Add "
 "source."
 
 #: guyrapu/ui/escena_disenos.py

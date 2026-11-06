@@ -213,6 +213,15 @@ class DisenoEscenaDialogTest(unittest.TestCase):
             ["Imagen en imagen necesita 2 fuentes y esta escena no tiene "
              "ninguna. Agrega una con Agregar fuente."])
 
+    def test_pantalla_completa_sin_fuentes_usa_el_singular(self):
+        dialogo = self._dialogo(fuentes=[
+            disenos_escena.Fuente(NOMBRE_FUENTE, "chat", 460, 620)])
+        self._elegir(dialogo, _indice("pantalla_completa"))
+        self.assertEqual(
+            self.anuncios,
+            ["Pantalla completa necesita una fuente y esta escena no tiene "
+             "ninguna. Agrega una con Agregar fuente."])
+
     def test_aceptar_con_fuentes_faltantes_avisa_y_no_cierra(self):
         dialogo = self._dialogo(
             fuentes=[disenos_escena.Fuente("Juego", "otra", 1600, 900)])

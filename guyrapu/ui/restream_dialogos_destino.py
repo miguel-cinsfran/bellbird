@@ -17,7 +17,30 @@ from guyrapu.ui.preferencias_comun import nombre_de_etiqueta
 from guyrapu.ui.restream_perfil import _rotulo
 
 
-class DialogoMetaDestino(wx.Dialog):
+class DialogoDestinoBase(wx.Dialog):
+    """Botones Aceptar y Cancelar y Escape, comunes a los cuadros de destino."""
+
+    def _agregar_botones(self, vs):
+        fila = wx.BoxSizer(wx.HORIZONTAL)
+        etiqueta = _("&Aceptar")
+        self.btn_aceptar = wx.Button(
+            self, wx.ID_OK, etiqueta, name=nombre_de_etiqueta(etiqueta))
+        self.btn_cancelar = wx.Button(
+            self, wx.ID_CANCEL, _("Cancelar"), name=_("Cancelar"))
+        for boton in (self.btn_aceptar, self.btn_cancelar):
+            nombre_accesible(boton, boton.GetName())
+        fila.Add(self.btn_aceptar, 0, wx.RIGHT, 6)
+        fila.Add(self.btn_cancelar, 0)
+        vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
+
+    def _al_tecla(self, evento):
+        if evento.GetKeyCode() == wx.WXK_ESCAPE:
+            self.EndModal(wx.ID_CANCEL)
+            return
+        evento.Skip()
+
+
+class DialogoMetaDestino(DialogoDestinoBase):
     """Título y descripción de un destino de la cuenta."""
 
     def __init__(self, parent, meta):
@@ -53,19 +76,6 @@ class DialogoMetaDestino(wx.Dialog):
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
         self.txt_titulo.SetFocus()
 
-    def _agregar_botones(self, vs):
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        etiqueta = _("&Aceptar")
-        self.btn_aceptar = wx.Button(
-            self, wx.ID_OK, etiqueta, name=nombre_de_etiqueta(etiqueta))
-        self.btn_cancelar = wx.Button(
-            self, wx.ID_CANCEL, _("Cancelar"), name=_("Cancelar"))
-        for boton in (self.btn_aceptar, self.btn_cancelar):
-            nombre_accesible(boton, boton.GetName())
-        fila.Add(self.btn_aceptar, 0, wx.RIGHT, 6)
-        fila.Add(self.btn_cancelar, 0)
-        vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
-
     def datos(self):
         """El título y la descripción aceptados, o None si no se aceptó."""
         return self._resultado
@@ -75,14 +85,8 @@ class DialogoMetaDestino(wx.Dialog):
                            self.txt_descripcion.GetValue())
         self.EndModal(wx.ID_OK)
 
-    def _al_tecla(self, evento):
-        if evento.GetKeyCode() == wx.WXK_ESCAPE:
-            self.EndModal(wx.ID_CANCEL)
-            return
-        evento.Skip()
 
-
-class DialogoDestinoManual(wx.Dialog):
+class DialogoDestinoManual(DialogoDestinoBase):
     """Plataforma, nombre, servidor y clave de un destino manual."""
 
     def __init__(self, parent, plataformas):
@@ -126,19 +130,6 @@ class DialogoDestinoManual(wx.Dialog):
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
         self.cho_plataforma.SetFocus()
 
-    def _agregar_botones(self, vs):
-        fila = wx.BoxSizer(wx.HORIZONTAL)
-        etiqueta = _("&Aceptar")
-        self.btn_aceptar = wx.Button(
-            self, wx.ID_OK, etiqueta, name=nombre_de_etiqueta(etiqueta))
-        self.btn_cancelar = wx.Button(
-            self, wx.ID_CANCEL, _("Cancelar"), name=_("Cancelar"))
-        for boton in (self.btn_aceptar, self.btn_cancelar):
-            nombre_accesible(boton, boton.GetName())
-        fila.Add(self.btn_aceptar, 0, wx.RIGHT, 6)
-        fila.Add(self.btn_cancelar, 0)
-        vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
-
     def datos(self):
         """(plataforma, nombre, servidor, clave) aceptados, o None."""
         return self._resultado
@@ -166,9 +157,3 @@ class DialogoDestinoManual(wx.Dialog):
             clave,
         )
         self.EndModal(wx.ID_OK)
-
-    def _al_tecla(self, evento):
-        if evento.GetKeyCode() == wx.WXK_ESCAPE:
-            self.EndModal(wx.ID_CANCEL)
-            return
-        evento.Skip()

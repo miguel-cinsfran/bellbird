@@ -397,6 +397,22 @@ class TestClaveCuenta(_BaseApi):
         self.assertEqual("rtmp://live.restream.io/live", datos.servidor)
         self.assertNotIn(SECRETO, repr(datos))
 
+    def test_p1_falla_si_la_clave_falta_o_viene_vacia(self):
+        for cuerpo in ({}, {"streamKey": ""}):
+            with self.subTest(cuerpo=cuerpo):
+                def manejar(_pedido, cuerpo=cuerpo):
+                    return httpx.Response(200, json=cuerpo)
+
+                with self.assertLogs(api.logger, level="WARNING"):
+                    with self.assertRaises(api.ErrorApi) as contexto:
+                        api.clave_cuenta(TOKEN, self._cliente(manejar))
+
+                self.assertIn(
+                    "No se pudo leer la clave de transmisión de Restream.",
+                    str(contexto.exception))
+                self.assertIn("Vuelve a intentarlo.",
+                              str(contexto.exception))
+
 
 class TestActivarCanal(_BaseApi):
 
@@ -496,6 +512,23 @@ class TestAgregarCanalManual(_BaseApi):
         self.assertEqual(67, canal.plataforma_id)
         self.assertEqual("TikTok", canal.plataforma)
         self.assertEqual("mi canal", canal.nombre)
+
+    def test_p4_acepta_una_respuesta_201(self):
+        def manejar(pedido):
+            if pedido.url.path == "/v2/platform/all":
+                return httpx.Response(200, json=PLATAFORMAS)
+            return httpx.Response(201, json={
+                "id": 22, "platformId": 67, "displayName": "creado",
+                "channelUrl": "https://tiktok.com/@z"})
+
+        canal = api.agregar_canal_manual(
+            TOKEN, 67, "creado", "rtmp://servidor", "clave",
+            self._cliente(manejar))
+
+        self.assertEqual(22, canal.id)
+        self.assertEqual(67, canal.plataforma_id)
+        self.assertEqual("TikTok", canal.plataforma)
+        self.assertEqual("creado", canal.nombre)
 
     def test_p4_un_campo_vacio_no_se_manda(self):
         visto = {}

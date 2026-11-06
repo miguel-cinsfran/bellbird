@@ -124,20 +124,9 @@ def _pedir(cliente, url, cabeceras=None, metodo="GET", cuerpo=None,
         raise ErrorApi(mensaje) from None
 
 
-def _leer(respuesta, mensaje=None):
-    if respuesta.status_code != 200:
-        logger.warning("la API de Restream respondió %s",
-                       respuesta.status_code)
-        raise ErrorApi(mensaje)
-    try:
-        return respuesta.json()
-    except ValueError:
-        logger.warning("la API de Restream no devolvió JSON")
-        raise ErrorApi(mensaje) from None
-
-
-def _leer_creado(respuesta, mensaje=None):
-    if not 200 <= respuesta.status_code < 300:
+def _leer(respuesta, mensaje=None, aceptar_2xx=False):
+    validas = range(200, 300) if aceptar_2xx else (200,)
+    if respuesta.status_code not in validas:
         logger.warning("la API de Restream respondió %s",
                        respuesta.status_code)
         raise ErrorApi(mensaje)
@@ -257,7 +246,11 @@ def clave_cuenta(token, cliente=None) -> ClaveCuenta:
     if not isinstance(datos, dict):
         logger.warning("la clave de Restream no es un objeto")
         raise ErrorApi(mensaje)
-    return ClaveCuenta(clave=_texto(datos.get("streamKey")))
+    clave = _texto(datos.get("streamKey"))
+    if not clave:
+        logger.warning("la API de Restream no devolvió la clave de transmisión")
+        raise ErrorApi(mensaje)
+    return ClaveCuenta(clave=clave)
 
 
 def activar_canal(token, identificador, activo, cliente=None) -> None:
@@ -331,7 +324,7 @@ def agregar_canal_manual(token, plataforma_id, nombre, servidor, clave,
     cabeceras = {"Authorization": f"Bearer {token}"}
     respuesta = _pedir(cliente, CANALES_USUARIO, cabeceras, metodo="POST",
                        cuerpo=campos, mensaje=mensaje)
-    datos = _leer_creado(respuesta, mensaje)
+    datos = _leer(respuesta, mensaje, aceptar_2xx=True)
     canal = _canal(datos, mapa)
     if canal is None:
         logger.warning("la API de Restream no devolvió el canal creado")

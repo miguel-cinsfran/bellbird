@@ -200,8 +200,8 @@ class TestVentanaIAVentana(unittest.TestCase):
                                    return_value="clave"), \
                 mock.patch.object(ventana.consulta, "preparar",
                                    return_value=preparada), \
-                mock.patch.object(ventana.wx, "MessageBox",
-                                   return_value=wx.NO), \
+                mock.patch.object(ventana.ia_privacidad.confirmaciones,
+                                   "preguntar", return_value=False), \
                 mock.patch.object(ventana.ia_privacidad.ajustes_ia,
                                    "guardar_privacidad_aceptada") as guardar, \
                 mock.patch.object(ventana.diagnostico,
@@ -233,8 +233,8 @@ class TestVentanaIAVentana(unittest.TestCase):
                                    return_value=preparada), \
                 mock.patch.object(ventana.envio_ia, "enviar",
                                    return_value=respuesta), \
-                mock.patch.object(ventana.wx, "MessageBox",
-                                   return_value=wx.YES), \
+                mock.patch.object(ventana.ia_privacidad.confirmaciones,
+                                   "preguntar", return_value=True), \
                 mock.patch.object(ventana.ia_privacidad.ajustes_ia,
                                    "guardar_privacidad_aceptada",
                                    return_value=True) as guardar, \
@@ -261,7 +261,8 @@ class TestVentanaIAVentana(unittest.TestCase):
                                    return_value=preparada), \
                 mock.patch.object(ventana.envio_ia, "enviar",
                                    return_value=respuesta), \
-                mock.patch.object(ventana.wx, "MessageBox") as caja, \
+                mock.patch.object(ventana.ia_privacidad.confirmaciones,
+                                   "preguntar") as caja, \
                 mock.patch.object(ventana, "anunciar"), \
                 mock.patch.object(ventana, "reproducir"):
             dialogo._al_enviar(None)

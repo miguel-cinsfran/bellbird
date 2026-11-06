@@ -304,7 +304,7 @@ class GestorPanelObsTest(unittest.TestCase):
             "Escena actual: Escena. 2 fuentes, de adelante hacia atrás.\n"
             "1: Juego, captura de juego, ocupa todo el vídeo, se ve.\n"
             "2: Chat en el vídeo, navegador, abajo a la izquierda, "
-            "460 por 620 píxeles, visible en OBS, pero no aparece en "
+            "29 por ciento del ancho, visible en OBS, pero no aparece en "
             "el vídeo: la tapa entera Juego.")
 
     def test_descripcion_de_una_escena_pedida_usa_su_nombre(self):

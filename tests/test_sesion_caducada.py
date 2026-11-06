@@ -215,23 +215,32 @@ class TestAbrirEnPagina(unittest.TestCase):
 class TestOfrecerIniciarSesion(unittest.TestCase):
 
     def test_si_abre_preferencias_en_api_y_sesion(self):
-        with mock.patch.object(gui_preferencias.wx, "MessageBox",
-                               return_value=wx.YES) as caja, \
+        dialogo = mock.Mock()
+        dialogo.ShowModal.return_value = wx.ID_OK
+        with mock.patch.object(gui_preferencias.confirmar, "MessageDialog",
+                               return_value=dialogo) as caja, \
                 mock.patch.object(gui_preferencias, "abrir_preferencias",
                                   return_value=True) as abrir:
             self.assertTrue(gui_preferencias.ofrecer_iniciar_sesion(
                 "padre", {"clave": 1}))
-        texto = caja.call_args.args[0]
+        args, _kwargs = caja.call_args
+        self.assertEqual(args[0], "padre")
         self.assertIn("¿Abrir Preferencias para volver a iniciar sesión?",
-                      texto)
-        self.assertEqual(caja.call_args.args[1], "Sesión caducada")
-        self.assertTrue(caja.call_args.args[2] & wx.YES_NO)
+                      args[1])
+        self.assertEqual(args[2], "Sesión caducada")
+        self.assertTrue(args[3] & wx.OK)
+        self.assertTrue(args[3] & wx.CANCEL)
+        dialogo.SetOKCancelLabels.assert_called_once_with(
+            "&Abrir Preferencias", "Ahora &no")
+        dialogo.Destroy.assert_called_once_with()
         abrir.assert_called_once_with("padre", {"clave": 1},
                                       pagina="API y sesión")
 
     def test_no_no_abre_preferencias(self):
-        with mock.patch.object(gui_preferencias.wx, "MessageBox",
-                               return_value=wx.NO), \
+        dialogo = mock.Mock()
+        dialogo.ShowModal.return_value = wx.ID_CANCEL
+        with mock.patch.object(gui_preferencias.confirmar, "MessageDialog",
+                               return_value=dialogo), \
                 mock.patch.object(gui_preferencias, "abrir_preferencias") as abrir:
             self.assertFalse(gui_preferencias.ofrecer_iniciar_sesion(
                 "padre", {}))

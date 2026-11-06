@@ -7,8 +7,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from guyrapu.core import paths
-from guyrapu.youtube import credenciales
+from guyrapu.core import idioma, paths
+from guyrapu.youtube import credenciales, youtube_api
 from tests.rutas_temporales import redirigir_rutas
 
 
@@ -388,6 +388,45 @@ class TestApiLoginClienteApp(unittest.TestCase):
         pagina._api_refrescar_estado()
         texto = pagina.lbl_estado_api.SetLabel.call_args.args[0]
         self.assertNotIn("cliente de Google", texto)
+
+
+class TestIniciarSesionIdioma(unittest.TestCase):
+    """El consentimiento de Google se pide en el idioma de la interfaz."""
+
+    def tearDown(self):
+        idioma._reiniciar()
+
+    def _correr(self, codigo):
+        registro = {}
+
+        class _Credenciales:
+            def to_json(self):
+                return "{}"
+
+        class _Flujo:
+            @classmethod
+            def from_client_config(cls, configuración, scopes):
+                return cls()
+
+            def run_local_server(self, **opciones):
+                registro.update(opciones)
+                return _Credenciales()
+
+        idioma.instalar(codigo)
+        with mock.patch("google_auth_oauthlib.flow.InstalledAppFlow",
+                        _Flujo):
+            youtube_api.iniciar_sesion("ID", "SECRETO")
+        return registro
+
+    def test_en_ingles_usa_hl_en(self):
+        opciones = self._correr("en")
+        self.assertEqual(opciones.get("hl"), "en")
+        self.assertEqual(opciones.get("prompt"), "consent")
+        self.assertEqual(opciones.get("port"), 0)
+
+    def test_en_espanol_usa_hl_es(self):
+        opciones = self._correr("es")
+        self.assertEqual(opciones.get("hl"), "es")
 
 
 if __name__ == "__main__":

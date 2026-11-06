@@ -19,7 +19,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from guyrapu.core import diagnostico
-from guyrapu.core.idioma import N_, _
+from guyrapu.core.idioma import N_, _, idioma_actual
 from guyrapu.youtube import cuota
 
 logger = diagnostico.obtener_logger(__name__)
@@ -232,7 +232,7 @@ def iniciar_sesion(client_id: str, client_secret: str) -> str:
     # sin él, to_json() lo omitía y toda escritura fallaba con «Authorized
     # user info was not in the expected format».
     creds = flow.run_local_server(port=0, open_browser=True,
-                                  prompt="consent",
+                                  prompt="consent", hl=idioma_actual(),
                                   authorization_prompt_message="",
                                    success_message=_("Sesión iniciada. Ya puedes "
                                                      "volver a la aplicación."))

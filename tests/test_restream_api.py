@@ -1,5 +1,6 @@
 """Pruebas de lo que se le pide a la API REST de Restream."""
 
+import json
 import os
 import unittest
 from unittest import mock
@@ -12,6 +13,7 @@ from guyrapu.restream import api
 TOKEN = "token-secreto-de-prueba"
 ID_EVENTO = "fa2f5c54-4de5-4118-a4b0-925c648c49d6"
 ID_HISTORIA = "0b6b1f7e-2f34-4d0a-9c11-4c3f7d2a5e10"
+SECRETO = "clave-que-no-debe-salir"
 
 PLATAFORMAS = [
     {"id": 1, "name": "Twitch"},
@@ -360,6 +362,219 @@ class TestEventos(unittest.TestCase):
         self.assertNotIn(TOKEN, str(contexto.exception))
 
 
+class _BaseApi(unittest.TestCase):
+
+    def setUp(self):
+        self._cache = mock.patch.object(api, "_PLATAFORMAS", None)
+        self._cache.start()
+        self.addCleanup(self._cache.stop)
+
+    def _cliente(self, manejar):
+        cliente = httpx.Client(transport=httpx.MockTransport(manejar))
+        self.addCleanup(cliente.close)
+        return cliente
+
+
+class TestClaveCuenta(_BaseApi):
+
+    def test_p1_lee_la_clave_y_devuelve_el_servidor(self):
+        visto = {}
+
+        def manejar(pedido):
+            visto["metodo"] = pedido.method
+            visto["url"] = str(pedido.url)
+            visto["autorizacion"] = pedido.headers.get("authorization")
+            return httpx.Response(200, json={"streamKey": SECRETO,
+                                             "srtUrl": "srt://x"})
+
+        datos = api.clave_cuenta(TOKEN, self._cliente(manejar))
+
+        self.assertEqual("GET", visto["metodo"])
+        self.assertEqual("https://api.restream.io/v2/user/streamKey",
+                         visto["url"])
+        self.assertEqual(f"Bearer {TOKEN}", visto["autorizacion"])
+        self.assertEqual(SECRETO, datos.clave)
+        self.assertEqual("rtmp://live.restream.io/live", datos.servidor)
+        self.assertNotIn(SECRETO, repr(datos))
+
+
+class TestActivarCanal(_BaseApi):
+
+    def test_p2_manda_patch_con_active(self):
+        for activo in (True, False):
+            with self.subTest(activo=activo):
+                visto = {}
+
+                def manejar(pedido):
+                    visto["metodo"] = pedido.method
+                    visto["url"] = str(pedido.url)
+                    visto["autorizacion"] = pedido.headers.get(
+                        "authorization")
+                    visto["cuerpo"] = json.loads(pedido.content)
+                    return httpx.Response(200, json={})
+
+                api.activar_canal(TOKEN, 10, activo, self._cliente(manejar))
+
+                self.assertEqual("PATCH", visto["metodo"])
+                self.assertEqual(
+                    "https://api.restream.io/v2/user/channel/10",
+                    visto["url"])
+                self.assertEqual(f"Bearer {TOKEN}", visto["autorizacion"])
+                self.assertEqual({"active": activo}, visto["cuerpo"])
+
+
+class TestMetaCanal(_BaseApi):
+
+    def test_p3_lee_titulo_y_descripcion(self):
+        visto = {}
+
+        def manejar(pedido):
+            visto["metodo"] = pedido.method
+            visto["url"] = str(pedido.url)
+            visto["autorizacion"] = pedido.headers.get("authorization")
+            return httpx.Response(200, json={
+                "title": "Live with Restream", "description": ""})
+
+        datos = api.leer_meta(TOKEN, 10, self._cliente(manejar))
+
+        self.assertEqual("GET", visto["metodo"])
+        self.assertEqual(
+            "https://api.restream.io/v2/user/channel-meta/10", visto["url"])
+        self.assertEqual(f"Bearer {TOKEN}", visto["autorizacion"])
+        self.assertEqual("Live with Restream", datos.titulo)
+        self.assertEqual("", datos.descripcion)
+
+    def test_p3_cambiar_manda_patch_con_titulo_y_descripcion(self):
+        visto = {}
+
+        def manejar(pedido):
+            visto["metodo"] = pedido.method
+            visto["url"] = str(pedido.url)
+            visto["autorizacion"] = pedido.headers.get("authorization")
+            visto["cuerpo"] = json.loads(pedido.content)
+            return httpx.Response(200, json={})
+
+        api.cambiar_meta(TOKEN, 10, "Nuevo título", "Una descripción",
+                         self._cliente(manejar))
+
+        self.assertEqual("PATCH", visto["metodo"])
+        self.assertEqual(
+            "https://api.restream.io/v2/user/channel-meta/10", visto["url"])
+        self.assertEqual(f"Bearer {TOKEN}", visto["autorizacion"])
+        self.assertEqual({"title": "Nuevo título",
+                          "description": "Una descripción"}, visto["cuerpo"])
+
+
+class TestAgregarCanalManual(_BaseApi):
+
+    def test_p4_manda_los_campos_sin_espacios_y_devuelve_el_canal(self):
+        visto = {}
+
+        def manejar(pedido):
+            if pedido.url.path == "/v2/platform/all":
+                return httpx.Response(200, json=PLATAFORMAS)
+            visto["metodo"] = pedido.method
+            visto["url"] = str(pedido.url)
+            visto["autorizacion"] = pedido.headers.get("authorization")
+            visto["cuerpo"] = json.loads(pedido.content)
+            return httpx.Response(200, json={
+                "id": 20, "platformId": 67, "displayName": "mi canal",
+                "channelUrl": "https://tiktok.com/@x", "enabled": True})
+
+        canal = api.agregar_canal_manual(
+            TOKEN, 67, "  mi canal  ", " rtmp://servidor ", " clave ",
+            self._cliente(manejar))
+
+        self.assertEqual("POST", visto["metodo"])
+        self.assertEqual("https://api.restream.io/v2/user/channels",
+                         visto["url"])
+        self.assertEqual(f"Bearer {TOKEN}", visto["autorizacion"])
+        self.assertEqual({"platformId": 67, "displayName": "mi canal",
+                          "streamUrl": "rtmp://servidor",
+                          "streamKey": "clave"}, visto["cuerpo"])
+        self.assertEqual(20, canal.id)
+        self.assertEqual(67, canal.plataforma_id)
+        self.assertEqual("TikTok", canal.plataforma)
+        self.assertEqual("mi canal", canal.nombre)
+
+    def test_p4_un_campo_vacio_no_se_manda(self):
+        visto = {}
+
+        def manejar(pedido):
+            if pedido.url.path == "/v2/platform/all":
+                return httpx.Response(200, json=PLATAFORMAS)
+            visto["cuerpo"] = json.loads(pedido.content)
+            return httpx.Response(200, json={
+                "id": 21, "platformId": 67, "displayName": "sin url",
+                "channelUrl": "https://tiktok.com/@y"})
+
+        api.agregar_canal_manual(
+            TOKEN, 67, "sin url", "   ", "", self._cliente(manejar))
+
+        self.assertEqual({"platformId": 67, "displayName": "sin url"},
+                         visto["cuerpo"])
+
+
+class TestMensajesDeError(_BaseApi):
+
+    def _operaciones(self, cliente):
+        return [
+            ("clave", lambda: api.clave_cuenta(TOKEN, cliente),
+             "No se pudo leer la clave de transmisión de Restream."),
+            ("activar", lambda: api.activar_canal(TOKEN, 10, True, cliente),
+             "No se pudo activar el destino."),
+            ("desactivar", lambda: api.activar_canal(TOKEN, 10, False,
+                                                     cliente),
+             "No se pudo desactivar el destino."),
+            ("leer meta", lambda: api.leer_meta(TOKEN, 10, cliente),
+             "No se pudo leer el título del destino."),
+            ("cambiar meta",
+             lambda: api.cambiar_meta(TOKEN, 10, "t", "d", cliente),
+             "No se pudo cambiar el título del destino."),
+            ("agregar",
+             lambda: api.agregar_canal_manual(TOKEN, 67, "n", "s", "c",
+                                              cliente),
+             "No se pudo agregar el destino."),
+        ]
+
+    def _comprobar(self, respuesta):
+        for nombre, operacion, mensaje in self._operaciones(
+                self._cliente(respuesta)):
+            with self.subTest(operacion=nombre):
+                with self.assertLogs(api.logger, level="WARNING") as registro:
+                    with self.assertRaises(api.ErrorApi) as contexto:
+                        operacion()
+
+                self.assertIn(mensaje, str(contexto.exception))
+                self.assertIn("Vuelve a intentarlo.",
+                              str(contexto.exception))
+                self.assertNotIn(TOKEN, str(contexto.exception))
+                self.assertNotIn(TOKEN, "\n".join(registro.output))
+
+    def test_p6_una_respuesta_400_dice_que_fallo(self):
+        def manejar(_pedido):
+            return httpx.Response(400, json={"error": "x"})
+
+        self._comprobar(manejar)
+
+    def test_p6_un_fallo_de_red_dice_que_fallo(self):
+        def manejar(_pedido):
+            raise httpx.ConnectError("sin red")
+
+        self._comprobar(manejar)
+
+    def test_p6_la_clave_no_sale_en_el_registro_ni_en_el_error(self):
+        def manejar(_pedido):
+            return httpx.Response(400, json={"streamKey": SECRETO})
+
+        with self.assertLogs(api.logger, level="WARNING") as registro:
+            with self.assertRaises(api.ErrorApi) as contexto:
+                api.clave_cuenta(TOKEN, self._cliente(manejar))
+
+        self.assertNotIn(SECRETO, str(contexto.exception))
+        self.assertNotIn(SECRETO, "\n".join(registro.output))
+
+
 @unittest.skipUnless(os.environ.get("GUYRAPU_PRUEBAS_CON_RED") == "1",
                      "necesita la cuenta real de Restream")
 class TestContraRestreamReal(unittest.TestCase):
@@ -415,6 +630,18 @@ class TestContraRestreamReal(unittest.TestCase):
         leidas = api.estadisticas(token, historial[0].id)
         self.assertGreaterEqual(leidas.vistas, 0)
         self.assertGreaterEqual(leidas.tiempo_visto, 0)
+
+    def test_la_clave_de_transmision_de_verdad(self):
+        from guyrapu.restream import cuenta
+
+        token = cuenta.sesion().token()
+        if not token:
+            self.skipTest("no hay una cuenta de Restream conectada")
+
+        datos = api.clave_cuenta(token)
+
+        self.assertTrue(datos.clave)
+        self.assertEqual(api.SERVIDOR_RTMP, datos.servidor)
 
 
 if __name__ == "__main__":

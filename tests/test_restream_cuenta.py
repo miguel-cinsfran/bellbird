@@ -224,6 +224,49 @@ class TestCuenta(unittest.TestCase):
 
         leer.assert_called_once_with(ACCESO, 7, "cliente")
 
+    def test_clave_cuenta_usa_el_token_vigente(self):
+        self._sesion_conectada()
+
+        with mock.patch.object(api, "clave_cuenta", return_value="clave") as leer:
+            self.assertEqual("clave", cuenta.clave_cuenta("cliente"))
+
+        leer.assert_called_once_with(ACCESO, "cliente")
+
+    def test_activar_canal_usa_el_token_vigente(self):
+        self._sesion_conectada()
+
+        with mock.patch.object(api, "activar_canal") as activar:
+            cuenta.activar_canal(7, False, "cliente")
+
+        activar.assert_called_once_with(ACCESO, 7, False, "cliente")
+
+    def test_leer_meta_usa_el_token_vigente(self):
+        self._sesion_conectada()
+
+        with mock.patch.object(api, "leer_meta", return_value="meta") as leer:
+            self.assertEqual("meta", cuenta.leer_meta(7, "cliente"))
+
+        leer.assert_called_once_with(ACCESO, 7, "cliente")
+
+    def test_cambiar_meta_usa_el_token_vigente(self):
+        self._sesion_conectada()
+
+        with mock.patch.object(api, "cambiar_meta") as cambiar:
+            cuenta.cambiar_meta(7, "título", "descripción", "cliente")
+
+        cambiar.assert_called_once_with(ACCESO, 7, "título", "descripción",
+                                        "cliente")
+
+    def test_agregar_canal_manual_usa_el_token_vigente(self):
+        self._sesion_conectada()
+
+        with mock.patch.object(api, "agregar_canal_manual") as agregar:
+            cuenta.agregar_canal_manual(67, "nombre", "servidor", "clave",
+                                        "cliente")
+
+        agregar.assert_called_once_with(ACCESO, 67, "nombre", "servidor",
+                                        "clave", "cliente")
+
 
 if __name__ == "__main__":
     unittest.main()

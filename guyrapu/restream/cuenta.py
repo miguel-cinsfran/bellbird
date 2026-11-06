@@ -72,6 +72,34 @@ def eliminar_canal(identificador, cliente=None):
     return api.eliminar_canal(sesion().token(), identificador, cliente)
 
 
+def clave_cuenta(cliente=None):
+    """Servidor y clave de transmisión de la cuenta, con el token vigente."""
+    return api.clave_cuenta(sesion().token(), cliente)
+
+
+def activar_canal(identificador, activo, cliente=None):
+    """Activa o desactiva un canal de la cuenta, con el token vigente."""
+    return api.activar_canal(sesion().token(), identificador, activo, cliente)
+
+
+def leer_meta(identificador, cliente=None):
+    """Título y descripción de un canal, con el token vigente."""
+    return api.leer_meta(sesion().token(), identificador, cliente)
+
+
+def cambiar_meta(identificador, titulo, descripcion, cliente=None):
+    """Cambia el título y la descripción de un canal, con el token vigente."""
+    return api.cambiar_meta(sesion().token(), identificador, titulo,
+                            descripcion, cliente)
+
+
+def agregar_canal_manual(plataforma_id, nombre, servidor, clave,
+                         cliente=None):
+    """Agrega un canal manual, con el token vigente."""
+    return api.agregar_canal_manual(sesion().token(), plataforma_id, nombre,
+                                    servidor, clave, cliente)
+
+
 def eventos(tipo, cliente=None):
     """Eventos del tipo pedido, con el token vigente."""
     return api.eventos(sesion().token(), tipo, cliente)

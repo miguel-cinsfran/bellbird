@@ -4778,6 +4778,30 @@ msgstr "Could not read the Restream destinations. Try again."
 msgid "Plataforma {id}"
 msgstr "Platform {id}"
 
+#: guyrapu/restream/api.py
+msgid "No se pudo leer la clave de transmisión de Restream. Vuelve a intentarlo."
+msgstr "Could not read the Restream stream key. Try again."
+
+#: guyrapu/restream/api.py
+msgid "No se pudo activar el destino. Vuelve a intentarlo."
+msgstr "Could not enable the destination. Try again."
+
+#: guyrapu/restream/api.py
+msgid "No se pudo desactivar el destino. Vuelve a intentarlo."
+msgstr "Could not disable the destination. Try again."
+
+#: guyrapu/restream/api.py
+msgid "No se pudo leer el título del destino. Vuelve a intentarlo."
+msgstr "Could not read the destination title. Try again."
+
+#: guyrapu/restream/api.py
+msgid "No se pudo cambiar el título del destino. Vuelve a intentarlo."
+msgstr "Could not change the destination title. Try again."
+
+#: guyrapu/restream/api.py
+msgid "No se pudo agregar el destino. Vuelve a intentarlo."
+msgstr "Could not add the destination. Try again."
+
 #: guyrapu/restream/canal_youtube.py
 #, python-brace-format
 msgid "YouTube en Restream: {canales}, el mismo canal de la sesión de {app}."

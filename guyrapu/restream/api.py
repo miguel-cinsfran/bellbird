@@ -21,7 +21,12 @@ logger = logging.getLogger(__name__)
 PLATAFORMAS = "https://api.restream.io/v2/platform/all"
 CANALES = "https://api.restream.io/v2/user/channel/all"
 PERFIL = "https://api.restream.io/v2/user/profile"
-ELIMINAR_CANAL = "https://api.restream.io/v2/user/channels/{id}"
+CANAL = "https://api.restream.io/v2/user/channel/{id}"
+CLAVE_CUENTA = "https://api.restream.io/v2/user/streamKey"
+META_CANAL = "https://api.restream.io/v2/user/channel-meta/{id}"
+CANALES_USUARIO = "https://api.restream.io/v2/user/channels"
+ELIMINAR_CANAL = CANALES_USUARIO + "/{id}"
+SERVIDOR_RTMP = "rtmp://live.restream.io/live"
 EVENTOS = {
     eventos_restream.TIPO_PROXIMOS:
         "https://api.restream.io/v2/user/events/upcoming?source=2",
@@ -40,12 +45,13 @@ _PLATAFORMAS = None
 
 
 class ErrorApi(Exception):
-    """No se pudieron leer los destinos de Restream."""
+    """No se pudo completar la operación con Restream."""
 
-    def __init__(self):
-        super().__init__(
-            _("No se pudieron leer los destinos de Restream. "
-              "Vuelve a intentarlo."))
+    def __init__(self, mensaje=None):
+        if mensaje is None:
+            mensaje = _("No se pudieron leer los destinos de Restream. "
+                        "Vuelve a intentarlo.")
+        super().__init__(mensaje)
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,6 +79,26 @@ class DatosCuenta:
     usuario: str
 
 
+@dataclass(frozen=True, slots=True, repr=False)
+class ClaveCuenta:
+    """La clave de transmisión de la cuenta, con su servidor RTMP."""
+
+    clave: str
+    servidor: str = SERVIDOR_RTMP
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(servidor={self.servidor!r}, " \
+               "clave=<oculta>)"
+
+
+@dataclass(frozen=True, slots=True)
+class MetaCanal:
+    """El título y la descripción de un canal."""
+
+    titulo: str
+    descripcion: str
+
+
 def _entero(valor, defecto=None):
     if isinstance(valor, bool) or not isinstance(valor, int):
         return defecto
@@ -83,28 +109,43 @@ def _texto(valor):
     return valor if isinstance(valor, str) else ""
 
 
-def _pedir(cliente, url, cabeceras=None, metodo="GET"):
+def _pedir(cliente, url, cabeceras=None, metodo="GET", cuerpo=None,
+           mensaje=None):
+    opciones = {"headers": cabeceras, "timeout": ESPERA}
+    if cuerpo is not None:
+        opciones["json"] = cuerpo
     try:
         if cliente is None:
             with httpx.Client() as propio:
-                return propio.request(metodo, url, headers=cabeceras,
-                                      timeout=ESPERA)
-        return cliente.request(metodo, url, headers=cabeceras, timeout=ESPERA)
+                return propio.request(metodo, url, **opciones)
+        return cliente.request(metodo, url, **opciones)
     except httpx.HTTPError:
         logger.warning("no se pudo hablar con la API de Restream")
-        raise ErrorApi() from None
+        raise ErrorApi(mensaje) from None
 
 
-def _leer(respuesta):
+def _leer(respuesta, mensaje=None):
     if respuesta.status_code != 200:
         logger.warning("la API de Restream respondió %s",
                        respuesta.status_code)
-        raise ErrorApi()
+        raise ErrorApi(mensaje)
     try:
         return respuesta.json()
     except ValueError:
         logger.warning("la API de Restream no devolvió JSON")
-        raise ErrorApi() from None
+        raise ErrorApi(mensaje) from None
+
+
+def _leer_creado(respuesta, mensaje=None):
+    if not 200 <= respuesta.status_code < 300:
+        logger.warning("la API de Restream respondió %s",
+                       respuesta.status_code)
+        raise ErrorApi(mensaje)
+    try:
+        return respuesta.json()
+    except ValueError:
+        logger.warning("la API de Restream no devolvió JSON")
+        raise ErrorApi(mensaje) from None
 
 
 def plataformas(cliente=None) -> dict:
@@ -204,6 +245,98 @@ def eliminar_canal(token, identificador, cliente=None) -> None:
         logger.warning("la API de Restream respondió %s al eliminar un canal",
                        respuesta.status_code)
         raise ErrorApi()
+
+
+def clave_cuenta(token, cliente=None) -> ClaveCuenta:
+    """Servidor y clave de transmisión de la cuenta."""
+    mensaje = _("No se pudo leer la clave de transmisión de Restream. "
+                "Vuelve a intentarlo.")
+    cabeceras = {"Authorization": f"Bearer {token}"}
+    datos = _leer(_pedir(cliente, CLAVE_CUENTA, cabeceras, mensaje=mensaje),
+                  mensaje)
+    if not isinstance(datos, dict):
+        logger.warning("la clave de Restream no es un objeto")
+        raise ErrorApi(mensaje)
+    return ClaveCuenta(clave=_texto(datos.get("streamKey")))
+
+
+def activar_canal(token, identificador, activo, cliente=None) -> None:
+    """Activa o desactiva un canal de la cuenta."""
+    if activo:
+        mensaje = _("No se pudo activar el destino. Vuelve a intentarlo.")
+    else:
+        mensaje = _("No se pudo desactivar el destino. Vuelve a intentarlo.")
+    cabeceras = {"Authorization": f"Bearer {token}"}
+    url = CANAL.format(id=identificador)
+    respuesta = _pedir(cliente, url, cabeceras, metodo="PATCH",
+                       cuerpo={"active": bool(activo)}, mensaje=mensaje)
+    if not 200 <= respuesta.status_code < 300:
+        logger.warning("la API de Restream respondió %s al activar un canal",
+                       respuesta.status_code)
+        raise ErrorApi(mensaje)
+
+
+def leer_meta(token, identificador, cliente=None) -> MetaCanal:
+    """Título y descripción de un canal de la cuenta."""
+    mensaje = _("No se pudo leer el título del destino. "
+                "Vuelve a intentarlo.")
+    cabeceras = {"Authorization": f"Bearer {token}"}
+    url = META_CANAL.format(id=identificador)
+    datos = _leer(_pedir(cliente, url, cabeceras, mensaje=mensaje), mensaje)
+    if not isinstance(datos, dict):
+        logger.warning("la meta de Restream no es un objeto")
+        raise ErrorApi(mensaje)
+    return MetaCanal(
+        titulo=_texto(datos.get("title")),
+        descripcion=_texto(datos.get("description")),
+    )
+
+
+def cambiar_meta(token, identificador, titulo, descripcion,
+                 cliente=None) -> None:
+    """Cambia el título y la descripción de un canal de la cuenta."""
+    mensaje = _("No se pudo cambiar el título del destino. "
+                "Vuelve a intentarlo.")
+    cabeceras = {"Authorization": f"Bearer {token}"}
+    url = META_CANAL.format(id=identificador)
+    respuesta = _pedir(
+        cliente, url, cabeceras, metodo="PATCH",
+        cuerpo={"title": titulo, "description": descripcion},
+        mensaje=mensaje)
+    if not 200 <= respuesta.status_code < 300:
+        logger.warning("la API de Restream respondió %s al cambiar la meta",
+                       respuesta.status_code)
+        raise ErrorApi(mensaje)
+
+
+def _campos_canal_manual(plataforma_id, nombre, servidor, clave):
+    campos = {"platformId": plataforma_id}
+    for campo, valor in (("displayName", nombre), ("streamUrl", servidor),
+                         ("streamKey", clave)):
+        texto = _texto(valor).strip()
+        if texto:
+            campos[campo] = texto
+    return campos
+
+
+def agregar_canal_manual(token, plataforma_id, nombre, servidor, clave,
+                         cliente=None) -> Canal:
+    """Agrega un canal manual y devuelve el canal creado."""
+    mensaje = _("No se pudo agregar el destino. Vuelve a intentarlo.")
+    try:
+        mapa = plataformas(cliente)
+    except ErrorApi:
+        raise ErrorApi(mensaje) from None
+    campos = _campos_canal_manual(plataforma_id, nombre, servidor, clave)
+    cabeceras = {"Authorization": f"Bearer {token}"}
+    respuesta = _pedir(cliente, CANALES_USUARIO, cabeceras, metodo="POST",
+                       cuerpo=campos, mensaje=mensaje)
+    datos = _leer_creado(respuesta, mensaje)
+    canal = _canal(datos, mapa)
+    if canal is None:
+        logger.warning("la API de Restream no devolvió el canal creado")
+        raise ErrorApi(mensaje)
+    return canal
 
 
 def eventos(token, tipo, cliente=None) -> list:

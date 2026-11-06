@@ -5869,11 +5869,11 @@ msgstr "Before broadcasting"
 #: guyrapu/ui/confirmar_transmision.py guyrapu/ui/descargas_acciones.py
 #: guyrapu/ui/escena_captura_ventana.py guyrapu/ui/escena_edicion_fuente.py
 #: guyrapu/ui/escena_filtros.py guyrapu/ui/escena_pagina_escena.py
-#: guyrapu/ui/escena_tamano.py guyrapu/ui/gui.py guyrapu/ui/gui_envio_chat.py
-#: guyrapu/ui/gui_preferencias.py guyrapu/ui/gui_redactar.py
-#: guyrapu/ui/ia_privacidad.py guyrapu/ui/musica_ventana_acciones.py
-#: guyrapu/ui/preferencias_general.py guyrapu/ui/preferencias_ia_clave.py
-#: guyrapu/ui/restream_pagina_destinos.py
+#: guyrapu/ui/escena_propiedades.py guyrapu/ui/escena_tamano.py guyrapu/ui/gui.py
+#: guyrapu/ui/gui_envio_chat.py guyrapu/ui/gui_preferencias.py
+#: guyrapu/ui/gui_redactar.py guyrapu/ui/ia_privacidad.py
+#: guyrapu/ui/musica_ventana_acciones.py guyrapu/ui/preferencias_general.py
+#: guyrapu/ui/preferencias_ia_clave.py guyrapu/ui/restream_pagina_destinos.py
 msgid "&Cancelar"
 msgstr "&Cancel"
 
@@ -6404,8 +6404,9 @@ msgid "No hay ventanas para capturar."
 msgstr "There are no windows to capture."
 
 #: guyrapu/ui/escena_captura_ventana.py guyrapu/ui/escena_disenos.py
-#: guyrapu/ui/escena_filtros.py guyrapu/ui/escena_tamano.py
-#: guyrapu/ui/preferencias_general.py guyrapu/ui/restream_dialogos_destino.py
+#: guyrapu/ui/escena_filtros.py guyrapu/ui/escena_propiedades.py
+#: guyrapu/ui/escena_tamano.py guyrapu/ui/preferencias_general.py
+#: guyrapu/ui/restream_dialogos_destino.py
 msgid "&Aceptar"
 msgstr "&Accept"
 
@@ -6900,8 +6901,8 @@ msgid "Cambios deshechos"
 msgstr "Changes undone"
 
 #: guyrapu/ui/escena_propiedades.py
-msgid "&Capturar:"
-msgstr "&Capture:"
+msgid "Cap&turar:"
+msgstr "Cap&ture:"
 
 #: guyrapu/ui/escena_propiedades.py
 msgid "Cualquier juego a pantalla completa"
@@ -6912,7 +6913,7 @@ msgid "Una ventana"
 msgstr "A window"
 
 #: guyrapu/ui/escena_propiedades.py
-msgid "&Archivo:"
+msgid "Arch&ivo:"
 msgstr "&File:"
 
 #: guyrapu/ui/escena_propiedades.py
@@ -6942,6 +6943,10 @@ msgstr "&Text:"
 #: guyrapu/ui/escena_propiedades.py
 msgid "Tamaño de letra:"
 msgstr "Font size:"
+
+#: guyrapu/ui/escena_propiedades.py
+msgid "&Pantalla:"
+msgstr "&Display:"
 
 #: guyrapu/ui/escena_propiedades.py
 msgid "No hay pantallas para capturar."

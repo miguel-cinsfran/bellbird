@@ -23,11 +23,11 @@ _TAMANO_INICIAL = 72
 class DialogoBase(wx.Dialog):
     """Título, controles, Aceptar y Cancelar al final, Escape cancela."""
 
-    def __init__(self, padre, titulo, nombre, aceptar="&Aceptar",
-                 cancelar="&Cancelar"):
+    def __init__(self, padre, titulo, nombre, aceptar=None,
+                 cancelar=None):
         super().__init__(padre, title=titulo, name=nombre)
-        self._etiqueta_aceptar = aceptar
-        self._etiqueta_cancelar = cancelar
+        self._etiqueta_aceptar = aceptar or _("&Aceptar")
+        self._etiqueta_cancelar = cancelar or _("&Cancelar")
         self._valores = None
         self.vertical = wx.BoxSizer(wx.VERTICAL)
         self._crear_controles()
@@ -92,8 +92,8 @@ class DialogoEleccion(DialogoBase):
     """Una lista con su rótulo y el mensaje que se muestra si está vacía."""
 
     def __init__(self, padre, titulo, nombre, etiqueta, opciones,
-                 actual="", vacio="", aceptar="&Aceptar",
-                 cancelar="&Cancelar"):
+                 actual="", vacio="", aceptar=None,
+                 cancelar=None):
         self._etiqueta = etiqueta
         self._lista_valores = [valor for _texto, valor in opciones or ()]
         self._opciones = tuple(opciones or ())
@@ -144,13 +144,12 @@ class DialogoJuego(DialogoBase):
         valores = valores or {}
         self._modo = valores.get("modo") or "any_fullscreen"
         self._ventana = valores.get("ventana") or ""
-        super().__init__(padre, _("Captura de juego"), "DialogoJuego",
-                         cancelar="Cancelar")
+        super().__init__(padre, _("Captura de juego"), "DialogoJuego")
 
     def _crear_controles(self):
-        self.rotulo_modo = wx.StaticText(self, label=_("&Capturar:"))
+        self.rotulo_modo = wx.StaticText(self, label=_("Cap&turar:"))
         self.cho_modo = lista_con_nombre(
-            self, _("&Capturar:"), [_("Cualquier juego a pantalla completa"),
+            self, _("Cap&turar:"), [_("Cualquier juego a pantalla completa"),
                                     _("Una ventana")])
         self.cho_modo.SetSelection(1 if self._modo == "window" else 0)
         fila_campo(self.vertical, self.rotulo_modo, self.cho_modo)
@@ -215,14 +214,13 @@ class DialogoArchivo(DialogoBase):
         self._archivo = (valores or {}).get("archivo", "")
         self._repetir = bool((valores or {}).get("repetir", False))
         super().__init__(padre, _("Archivo multimedia") if clave == "multimedia"
-                         else _("Imagen"), "DialogoArchivo",
-                         aceptar="Aceptar", cancelar="Cancelar")
+                         else _("Imagen"), "DialogoArchivo")
 
     def _crear_controles(self):
-        self.rotulo_archivo = wx.StaticText(self, label=_("&Archivo:"))
+        self.rotulo_archivo = wx.StaticText(self, label=_("Arch&ivo:"))
         self.txt_archivo = wx.TextCtrl(
             self, value=self._archivo,
-            name=nombre_de_etiqueta(_("&Archivo:")))
+            name=nombre_de_etiqueta(_("Arch&ivo:")))
         nombre_accesible(self.txt_archivo, self.txt_archivo.GetName())
         self.btn_examinar = boton(
             self, _("&Examinar…"), nombre_de_etiqueta(_("&Examinar…")))
@@ -302,7 +300,8 @@ def pedir(padre, clave, opciones=None, valores=None):
     valores = valores or {}
     if clave == "pantalla":
         return _eleccion(
-            padre, "&Pantalla:", _("Captura de pantalla"), "DialogoPantalla",
+            padre, _("&Pantalla:"), _("Captura de pantalla"),
+            "DialogoPantalla",
             opciones, valores.get("pantalla", ""),
             _("No hay pantallas para capturar."), "pantalla")
     if clave == "juego":

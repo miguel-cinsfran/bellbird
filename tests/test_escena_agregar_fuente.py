@@ -43,6 +43,7 @@ class Gestor:
     def __init__(self, filas=()):
         self.llamadas = []
         self.filas = list(filas)
+        self.ventana = None
 
     def _pedir(self, tipo, datos=None, parada=None):
         self.llamadas.append((tipo, dict(datos or {})))
@@ -54,6 +55,13 @@ class Gestor:
 
     def filas_escena(self, escena, parada=None):
         return tuple(self.filas)
+
+    def fuentes(self, escena):
+        return ("Cámara", "Chat en el vídeo")
+
+    def usar_ventana(self, escena, valor, parada=None, nombre=""):
+        self.ventana = (escena, valor, nombre)
+        return "Ahora se captura Champions, de juego.exe."
 
 
 class Lista:
@@ -191,6 +199,16 @@ class AgregarTest(unittest.TestCase):
             escena_agregar_fuente.agregar(pagina, "otra_escena")
         self.assertIn("No hay fuentes de otras escenas para agregar.",
                       anuncios)
+
+
+class VentanaTest(unittest.TestCase):
+    def test_el_nombre_elegido_llega_a_usar_ventana(self):
+        pagina = Pagina()
+        escena_agregar_fuente._usar_ventana_y_leer(
+            pagina, "Principal", "Champions:Ventana:juego.exe", "Mi captura")
+        self.assertEqual(
+            pagina._gestor.ventana,
+            ("Principal", "Champions:Ventana:juego.exe", "Mi captura"))
 
 
 class PropiedadesTest(unittest.TestCase):

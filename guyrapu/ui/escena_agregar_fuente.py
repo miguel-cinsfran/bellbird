@@ -6,7 +6,7 @@ import wx
 
 from guyrapu.core.idioma import _
 from guyrapu.obs import (
-    consultas_transmision, fuente_nueva, obs_captura, tipos_fuente)
+    consultas_transmision, fuente_nueva, tipos_fuente)
 from guyrapu.ui import (
     agregar_camara, escena_captura_ventana, escena_propiedades)
 from guyrapu.ui.accesibilidad import anunciar
@@ -180,12 +180,7 @@ def _abrir_ventana(pagina, escena, datos):
 
 
 def _usar_ventana_y_leer(pagina, escena, valor, nombre):
-    cliente = getattr(pagina._gestor, "_cliente", None)
-    if cliente is not None:
-        frase = obs_captura.usar_ventana(
-            cliente, escena, valor, nombre=nombre)
-    else:
-        frase = pagina._gestor.usar_ventana(escena, valor)
+    frase = pagina._gestor.usar_ventana(escena, valor, nombre=nombre)
     fuente = consultas_transmision.elegir_fuente(
         pagina._gestor.fuentes(escena))
     filas = consultas_transmision.leer_filas(pagina._gestor, escena)

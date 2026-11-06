@@ -93,6 +93,10 @@ class GestorConCapas(GestorFalso):
     def fuentes(self, escena):
         return tuple(self.escenas_por_nombre.get(escena, ()))
 
+    def usar_ventana(self, escena, valor, parada=None, nombre=""):
+        self.llamadas.append(("usar_ventana", escena, valor))
+        return "Ahora se captura Champions, de juego.exe."
+
     def elementos(self, escena, parada=None):
         return [{"sceneItemId": indice + 1, "sourceName": nombre,
                  "sceneItemIndex": indice, "sceneItemEnabled": True,

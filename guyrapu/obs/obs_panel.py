@@ -142,8 +142,9 @@ class GestorPanelObs:
     def ventanas(self, escena, parada=None):
         return obs_captura.ventanas(self._cliente, escena, parada)
 
-    def usar_ventana(self, escena, item_value, parada=None):
-        return obs_captura.usar_ventana(self._cliente, escena, item_value, parada)
+    def usar_ventana(self, escena, item_value, parada=None, nombre=""):
+        extra = {"nombre": nombre} if nombre else {}
+        return obs_captura.usar_ventana(self._cliente, escena, item_value, parada, **extra)
 
     def elementos(self, escena, parada=None):
         datos = self._pedir("GetSceneItemList", {"sceneName": escena}, parada)

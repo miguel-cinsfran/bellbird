@@ -371,6 +371,45 @@ class TestLetrasAccesoPropiedades(unittest.TestCase):
             self.assertEqual(letras_repetidas(dialogo), {})
 
 
+class TestTextosEnInglesPropiedades(unittest.TestCase):
+    def setUp(self):
+        self.app = app_de_prueba()
+
+    def test_botones_y_pantalla_en_ingles(self):
+        with ingles():
+            dialogo = escena_propiedades.DialogoEleccion(
+                None, "Display capture", "DialogoPantalla",
+                escena_propiedades._("&Pantalla:"),
+                (("HP", "hp"),), "", "")
+            self.addCleanup(destruir, dialogo)
+            self.assertEqual(dialogo.rotulo.GetLabel(), "&Display:")
+            self.assertEqual(dialogo.btn_aceptar.GetLabel(), "&Accept")
+            self.assertEqual(dialogo.btn_cancelar.GetLabel(), "&Cancel")
+
+    def test_pedir_envuelve_la_etiqueta_de_pantalla(self):
+        class Falso:
+            etiqueta = ""
+
+            def __init__(self, _padre, _titulo, _nombre, etiqueta,
+                         _opciones, _actual, _vacio):
+                Falso.etiqueta = etiqueta
+
+            def ShowModal(self):
+                return 0
+
+            def valor(self):
+                return None
+
+            def Destroy(self):
+                pass
+
+        with ingles():
+            with mock.patch.object(
+                    escena_propiedades, "DialogoEleccion", Falso):
+                escena_propiedades.pedir(None, "pantalla")
+        self.assertEqual(Falso.etiqueta, "&Display:")
+
+
 class TestLetrasAccesoDisenos(unittest.TestCase):
     def setUp(self):
         self.app = app_de_prueba()

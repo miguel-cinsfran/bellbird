@@ -50,7 +50,7 @@ class AccionesFuente:
             self._atajo_de_orden(codigo)
             return True
         if codigo == wx.WXK_SPACE:
-            return self._tecla_espacio(codigo)
+            return self._tecla_espacio()
         if self._atajo_propiedades(event, codigo):
             return True
         if codigo == wx.WXK_F2:
@@ -64,9 +64,7 @@ class AccionesFuente:
             return True
         return False
 
-    def _tecla_espacio(self, codigo):
-        if codigo != wx.WXK_SPACE:
-            return False
+    def _tecla_espacio(self):
         fila = self._fila()
         if fila is None:
             self._sin_seleccion()

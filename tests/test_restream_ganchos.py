@@ -26,12 +26,13 @@ def _canal(identificador, plataforma, activo=True, url="", nombre=""):
 class CuentaFalsa:
 
     def __init__(self, canales, clave=None, fallo_clave=None,
-                 sesion_conectada=True):
+                 sesion_conectada=True, fallo_canales=None):
         self._canales = list(canales)
         self._clave = clave or api.ClaveCuenta(
             clave="clave-secreta", servidor=api.SERVIDOR_RTMP)
         self._fallo_clave = fallo_clave
         self._conectada = sesion_conectada
+        self._fallo_canales = fallo_canales
         self.llamadas = []
         self.fallar_restauracion = False
 
@@ -40,6 +41,8 @@ class CuentaFalsa:
 
     def canales(self):
         self.llamadas.append(("canales",))
+        if self._fallo_canales is not None:
+            raise self._fallo_canales
         return list(self._canales)
 
     def activar_canal(self, identificador, activo):
@@ -69,13 +72,15 @@ class EscritorFalso:
             raise self._fallo
 
 
-def _armar(opcion, cuenta, perfil, escritor=None):
+def _armar(opcion, cuenta, perfil, canales=None, escritor=None):
+    if canales is None:
+        canales = cuenta.canales()
     anuncios = []
-    preparar, restaurar, contexto = ganchos.armar(
+    preparar, restaurar = ganchos.armar(
         opcion, lambda frase, sonido: anuncios.append((frase, sonido)),
-        cuenta_mod=cuenta, perfiles=[perfil],
+        canales, cuenta_mod=cuenta, perfiles=[perfil],
         escribir=escritor or EscritorFalso())
-    return preparar, restaurar, contexto, anuncios
+    return preparar, restaurar, anuncios
 
 
 class TestCuentaConectada(unittest.TestCase):
@@ -98,8 +103,8 @@ class TestPrepararEmision(unittest.TestCase):
                    _canal(3, "YouTube", True)]
         cuenta = CuentaFalsa(canales)
         escritor = EscritorFalso()
-        preparar, _restaurar, contexto, anuncios = _armar(
-            "restream:Uno", cuenta, perfil, escritor)
+        preparar, _restaurar, anuncios = _armar(
+            "restream:Uno", cuenta, perfil, escritor=escritor)
 
         self.assertIsNone(preparar(None))
 
@@ -115,43 +120,15 @@ class TestPrepararEmision(unittest.TestCase):
         ])
         self.assertEqual(escritor.llamadas,
                          [("TikTok", api.SERVIDOR_RTMP, "clave-secreta")])
-        self.assertEqual(contexto.destino, "TikTok")
-        self.assertFalse(contexto.sin_tiktok)
 
     def test_el_titulo_no_se_toca_si_el_perfil_no_lo_tiene(self):
         perfil = _perfil(canales=(1,), titulo="")
         canales = [_canal(1, "YouTube", False)]
         cuenta = CuentaFalsa(canales)
-        preparar, _restaurar, _contexto, _anuncios = _armar(
+        preparar, _restaurar, _anuncios = _armar(
             "restream:Uno", cuenta, perfil)
         preparar(None)
         self.assertNotIn("meta", [llamada[0] for llamada in cuenta.llamadas])
-
-    def test_el_usuario_sale_del_canal_de_tiktok_del_perfil(self):
-        perfil = _perfil("Uno", "vertical", (1, 2))
-        canales = [
-            _canal(1, "YouTube", False),
-            _canal(2, "TikTok", False,
-                   url="https://www.tiktok.com/@amigo"),
-        ]
-        cuenta = CuentaFalsa(canales)
-        preparar, _restaurar, contexto, _anuncios = _armar(
-            "restream:Uno", cuenta, perfil)
-        preparar(None)
-        self.assertEqual(contexto.destino, "TikTok")
-        self.assertEqual(contexto.usuario, "amigo")
-        self.assertFalse(contexto.sin_tiktok)
-
-    def test_sin_tiktok_usa_el_destino_de_obs_y_usuario_vacio(self):
-        perfil = _perfil("Uno", "horizontal", (1,))
-        canales = [_canal(1, "YouTube", False)]
-        cuenta = CuentaFalsa(canales)
-        preparar, _restaurar, contexto, _anuncios = _armar(
-            "restream:Uno", cuenta, perfil)
-        preparar(None)
-        self.assertEqual(contexto.destino, "YouTube")
-        self.assertEqual(contexto.usuario, "")
-        self.assertTrue(contexto.sin_tiktok)
 
     def test_falla_la_clave_restaura_lo_cambiado_y_no_escribe_obs(self):
         perfil = _perfil(canales=(1, 2))
@@ -161,8 +138,8 @@ class TestPrepararEmision(unittest.TestCase):
                    "Vuelve a intentarlo.")
         cuenta = CuentaFalsa(canales, fallo_clave=api.ErrorApi(mensaje))
         escritor = EscritorFalso()
-        preparar, restaurar, _contexto, _anuncios = _armar(
-            "restream:Uno", cuenta, perfil, escritor)
+        preparar, restaurar, _anuncios = _armar(
+            "restream:Uno", cuenta, perfil, escritor=escritor)
 
         with self.assertRaises(EmisionError) as contexto_error:
             preparar(None)
@@ -184,8 +161,8 @@ class TestPrepararEmision(unittest.TestCase):
         cuenta = CuentaFalsa(canales)
         escritor = EscritorFalso(fallo=obs_cliente.ObsError(
             "OBS no aplicó el destino. Vuelve a intentarlo."))
-        preparar, _restaurar, _contexto, _anuncios = _armar(
-            "restream:Uno", cuenta, perfil, escritor)
+        preparar, _restaurar, _anuncios = _armar(
+            "restream:Uno", cuenta, perfil, escritor=escritor)
 
         with self.assertRaises(EmisionError):
             preparar(None)
@@ -200,7 +177,7 @@ class TestRestauracion(unittest.TestCase):
         canales = [_canal(1, "YouTube", False), _canal(2, "TikTok", False),
                    _canal(3, "YouTube", True)]
         cuenta = CuentaFalsa(canales)
-        preparar, restaurar, _contexto, _anuncios = _armar(
+        preparar, restaurar, _anuncios = _armar(
             "restream:Uno", cuenta, perfil)
         preparar(None)
 
@@ -217,7 +194,7 @@ class TestRestauracion(unittest.TestCase):
         perfil = _perfil(canales=(1,))
         canales = [_canal(1, "YouTube", False)]
         cuenta = CuentaFalsa(canales)
-        preparar, restaurar, _contexto, _anuncios = _armar(
+        preparar, restaurar, _anuncios = _armar(
             "restream:Uno", cuenta, perfil)
         preparar(None)
         cuenta.fallar_restauracion = True
@@ -235,42 +212,20 @@ class TestRestauracion(unittest.TestCase):
 
 class TestAvisos(unittest.TestCase):
 
-    def test_armar_reusa_el_contexto_que_leen_los_avisos(self):
-        perfil = _perfil(canales=(1,))
-        cuenta = CuentaFalsa([_canal(1, "YouTube", False)])
-        anuncios = []
-        contexto = ganchos.Contexto()
-        envoltura = ganchos.envolver_anunciar(
-            lambda frase, sonido: anuncios.append((frase, sonido)), contexto)
-
-        preparar, _restaurar, devuelto = ganchos.armar(
-            "restream:Uno", envoltura, cuenta_mod=cuenta, perfiles=[perfil],
-            escribir=EscritorFalso(), contexto=contexto)
-        preparar(None)
-        envoltura("OBS está enviando la señal a YouTube.", "conectado")
-
-        self.assertIs(devuelto, contexto)
-        self.assertIn((ganchos._(ganchos.MENSAJE_NO_TIKTOK), "al_aire"),
-                      anuncios)
-
     def test_sin_tiktok_avisa_al_aire_cuando_obs_ya_transmite(self):
         anuncios = []
-        contexto = ganchos.Contexto()
-        contexto.sin_tiktok = True
-        contexto.destino_sup = "YouTube"
+        contexto = ganchos.Contexto(destino="Restream")
         anunciar = ganchos.envolver_anunciar(
             lambda frase, sonido: anuncios.append((frase, sonido)), contexto)
 
-        anunciar("OBS está enviando la señal a YouTube.", "conectado")
+        anunciar("OBS está enviando la señal a Restream.", "conectado")
 
         self.assertIn((ganchos._(ganchos.MENSAJE_NO_TIKTOK), "al_aire"),
                       anuncios)
 
     def test_con_tiktok_no_avisa_la_conexion_manual(self):
         anuncios = []
-        contexto = ganchos.Contexto()
-        contexto.sin_tiktok = False
-        contexto.destino_sup = "TikTok"
+        contexto = ganchos.Contexto(destino="TikTok")
         anunciar = ganchos.envolver_anunciar(
             lambda frase, sonido: anuncios.append((frase, sonido)), contexto)
 
@@ -283,7 +238,6 @@ class TestAvisos(unittest.TestCase):
     def test_no_repite_el_anuncio_de_youtube_antes_de_preparar(self):
         anuncios = []
         contexto = ganchos.Contexto()
-        contexto.sin_tiktok = True
         anunciar = ganchos.envolver_anunciar(
             lambda frase, sonido: anuncios.append((frase, sonido)), contexto)
 
@@ -293,22 +247,116 @@ class TestAvisos(unittest.TestCase):
         self.assertEqual(anuncios,
                          [("Preparando Restream para Uno.", "conectando")])
 
-    def test_sin_tiktok_en_vertical_descarta_el_aviso_de_usuario(self):
+
+class HiloInmediato:
+
+    def __init__(self, target, _nombre=""):
+        self.target = target
+
+    def start(self):
+        self.target()
+
+
+class TestSupervisarRestream(unittest.TestCase):
+
+    def _supervisar(self, perfil, canales, fallo_canales=None):
+        frame = SimpleNamespace(
+            _alive=True, _supervisor=None, _config={},
+            _actualizar_boton_directo=mock.Mock(),
+            _al_terminar_supervisor=mock.Mock())
+        cuenta = CuentaFalsa(canales, fallo_canales=fallo_canales)
         anuncios = []
-        contexto = ganchos.Contexto()
-        contexto.sin_tiktok = True
-        contexto.destino_sup = "TikTok"
-        anunciar = ganchos.envolver_anunciar(
-            lambda frase, sonido: anuncios.append((frase, sonido)), contexto)
+        creados = []
 
-        anunciar("OBS está enviando la señal a Restream.", "conectado")
-        anunciar("No hay usuario de TikTok guardado: conecta el chat "
-                 "manualmente.", None)
+        class SupervisorFalso:
+            def __init__(self, destino, usuario, **kwargs):
+                self.destino = destino
+                self.usuario = usuario
+                self.kwargs = kwargs
+                self.iniciado = False
+                creados.append(self)
 
-        self.assertEqual(
-            [texto for texto, _sonido in anuncios],
-            ["OBS está enviando la señal a Restream.",
-             ganchos._(ganchos.MENSAJE_NO_TIKTOK)])
+            def iniciar(self):
+                self.iniciado = True
+
+        with mock.patch.object(ganchos, "cargar_perfiles",
+                               return_value=[perfil]), \
+                mock.patch.object(
+                    ganchos, "_anunciar_de_frame",
+                    return_value=lambda frase, sonido:
+                    anuncios.append((frase, sonido))), \
+                mock.patch.object(
+                    ganchos, "_en_interfaz",
+                    side_effect=lambda f, funcion, *args: funcion(*args)), \
+                mock.patch.object(ganchos, "_parametros_supervisor",
+                                  return_value={}), \
+                mock.patch.object(ganchos.diagnostico, "crear_hilo",
+                                  side_effect=lambda f, n: HiloInmediato(f)), \
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
+                           SupervisorFalso):
+            ganchos.supervisar_restream(
+                frame, "restream:" + perfil.nombre, cuenta_mod=cuenta)
+        return frame, cuenta, creados, anuncios
+
+    def test_tiktok_con_usuario_crea_el_supervisor_con_tiktok(self):
+        perfil = _perfil("Uno", "vertical", (1,))
+        canales = [_canal(1, "TikTok", url="https://www.tiktok.com/@amigo")]
+        frame, _cuenta, creados, _anuncios = self._supervisar(perfil, canales)
+
+        self.assertEqual((creados[0].destino, creados[0].usuario),
+                         ("TikTok", "amigo"))
+        self.assertIs(frame._supervisor, creados[0])
+        self.assertTrue(creados[0].iniciado)
+        frame._actualizar_boton_directo.assert_called_once_with()
+
+    def test_sin_tiktok_el_destino_del_supervisor_es_restream(self):
+        perfil = _perfil("Uno", "horizontal", (1,))
+        canales = [_canal(1, "YouTube")]
+        _frame, _cuenta, creados, _anuncios = self._supervisar(perfil, canales)
+
+        self.assertEqual((creados[0].destino, creados[0].usuario),
+                         ("Restream", ""))
+
+    def test_tiktok_sin_usuario_legible_queda_en_restream(self):
+        perfil = _perfil("Uno", "vertical", (1,))
+        canales = [_canal(1, "TikTok", url="", nombre="")]
+        _frame, _cuenta, creados, _anuncios = self._supervisar(perfil, canales)
+
+        self.assertEqual((creados[0].destino, creados[0].usuario),
+                         ("Restream", ""))
+
+    def test_fallo_al_leer_canales_avisa_y_no_crea_el_supervisor(self):
+        perfil = _perfil("Uno", "vertical", (1,))
+        fallo = api.ErrorApi(
+            "No se pudieron leer los destinos de Restream. "
+            "Vuelve a intentarlo.")
+        frame, _cuenta, creados, anuncios = self._supervisar(
+            perfil, [], fallo_canales=fallo)
+
+        self.assertEqual(creados, [])
+        self.assertIsNone(frame._supervisor)
+        self.assertIn((str(fallo), "transmision_problema"), anuncios)
+        frame._actualizar_boton_directo.assert_not_called()
+
+    def test_al_terminar_restaura_los_canales_cambiados(self):
+        perfil = _perfil("Uno", "horizontal", (1, 2))
+        canales = [_canal(1, "YouTube", False), _canal(2, "TikTok", False),
+                   _canal(3, "YouTube", True)]
+        with mock.patch.object(ganchos.obs_destinos, "preparar_destino"):
+            frame, cuenta, creados, _anuncios = self._supervisar(perfil,
+                                                                 canales)
+            supervisor = creados[0]
+            supervisor.kwargs["preparar_emision"](None)
+
+        self.assertEqual(cuenta.llamadas.count(("canales",)), 1)
+        supervisor.kwargs["al_terminar"]()
+
+        self.assertEqual(cuenta.llamadas[-3:], [
+            ("activar", 1, False),
+            ("activar", 2, False),
+            ("activar", 3, True),
+        ])
+        frame._al_terminar_supervisor.assert_called_once_with()
 
 
 if __name__ == "__main__":

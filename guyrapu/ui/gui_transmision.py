@@ -5,13 +5,11 @@ from __future__ import annotations
 import wx
 
 from guyrapu.core.idioma import N_, _, pgettext
-from guyrapu.core import paths
 from guyrapu.obs import (consultas_transmision, obs_lanzador,
                           overlay_servidor, transmision_directa)
 from guyrapu.obs.estado_panel import resumir
 from guyrapu.obs.obs_panel import NOMBRE_FUENTE
-from guyrapu.restream import perfiles as perfiles_restream
-from guyrapu.restream import transmitir
+from guyrapu.restream import ganchos, transmitir
 from guyrapu.ui import gui_microfono, menu_transmision, tema
 from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
 from guyrapu.ui.directo_panel import DirectoPanel
@@ -23,10 +21,6 @@ _PUERTO_PANEL_DEFECTO = 8730
 _RUTA_PANEL_CHAT = "/chat"
 
 _ETIQUETA_CHAT = N_("Mostrar &chat en el vídeo")
-
-
-def _perfiles_guardados():
-    return perfiles_restream.cargar(paths.perfiles_restream())
 
 
 class PaginaTransmision(wx.Panel):
@@ -59,7 +53,7 @@ class PaginaTransmision(wx.Panel):
         config = getattr(self._principal, "_config", None) or {}
         self._usuario_tiktok = config.get("tiktok_usuario", "") or ""
         self._destino_guardado = config.get("transmision_destino", "") or ""
-        self._perfiles = _perfiles_guardados()
+        self._perfiles = ganchos.cargar_perfiles()
         self._opciones = transmitir.opciones(self._perfiles)
 
     def _crear_controles(self):
@@ -149,7 +143,7 @@ class PaginaTransmision(wx.Panel):
 
         Conserva la opción elegida si sigue existiendo y no mueve el foco.
         """
-        perfiles = _perfiles_guardados()
+        perfiles = ganchos.cargar_perfiles()
         opciones = transmitir.opciones(perfiles)
         if opciones == self._opciones:
             return

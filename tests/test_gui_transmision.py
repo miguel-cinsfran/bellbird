@@ -297,7 +297,7 @@ class TestPanelTransmision(unittest.TestCase):
                               lambda funcion, *args: funcion(*args)),
             mock.patch.object(obs_ventana, "anunciar", anunciar),
             mock.patch.object(gui_transmision, "anunciar", anunciar),
-            mock.patch.object(gui_transmision, "_perfiles_guardados",
+            mock.patch.object(gui_transmision.ganchos, "cargar_perfiles",
                               return_value=[]),
             mock.patch.object(operaciones_obs, "anunciar", anunciar),
             mock.patch.object(control_grabacion, "anunciar", anunciar),
@@ -738,7 +738,7 @@ class TestPanelTransmision(unittest.TestCase):
             "amigo")
 
     def _con_perfiles(self, *perfiles):
-        return mock.patch.object(gui_transmision, "_perfiles_guardados",
+        return mock.patch.object(gui_transmision.ganchos, "cargar_perfiles",
                                  return_value=list(perfiles))
 
     def _elegir_en(self, pagina, texto):
@@ -887,7 +887,7 @@ class TestPseudoTransmisionVentana(unittest.TestCase):
             mock.patch.object(directo_panel, "anunciar",
                               lambda *args, **kwargs: None),
             mock.patch.object(directo_panel.sound_player, "reproducir"),
-            mock.patch.object(gui_transmision, "_perfiles_guardados",
+            mock.patch.object(gui_transmision.ganchos, "cargar_perfiles",
                               return_value=[]),
         ]
         for parche in self.parches:
@@ -931,7 +931,7 @@ class TestEnfocarInicialDeLaPagina(unittest.TestCase):
         marco = wx.Frame(None)
         self.addCleanup(destruir, marco)
         with mock.patch.object(gui_transmision, "anunciar") as anunciar, \
-                mock.patch.object(gui_transmision, "_perfiles_guardados",
+                mock.patch.object(gui_transmision.ganchos, "cargar_perfiles",
                                   return_value=[]), \
                 mock.patch.object(gui_transmision.overlay_servidor,
                                   "esta_encendido", return_value=False):

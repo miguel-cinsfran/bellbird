@@ -9,17 +9,11 @@ from __future__ import annotations
 
 import wx
 
-from guyrapu.core import paths
 from guyrapu.obs.obs_destinos import DESTINOS
 from guyrapu.core.idioma import _
-from guyrapu.restream import perfiles as perfiles_restream
-from guyrapu.restream import transmitir
+from guyrapu.restream import ganchos, transmitir
 from guyrapu.ui import paleta
 from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
-
-
-def _perfiles_guardados():
-    return perfiles_restream.cargar(paths.perfiles_restream())
 
 
 def destino_inicial(destino_guardado, opciones=None) -> str:
@@ -60,7 +54,7 @@ class DialogoElegirDestino(wx.Dialog):
     def __init__(self, padre, destino="", usuario="", perfiles=None):
         super().__init__(padre, title=_("Transmitir a"),
                          name="DialogoElegirDestino")
-        perfiles = (_perfiles_guardados() if perfiles is None
+        perfiles = (ganchos.cargar_perfiles() if perfiles is None
                     else list(perfiles))
         self._opciones = transmitir.opciones(perfiles)
         destino = destino_inicial(destino, self._opciones)

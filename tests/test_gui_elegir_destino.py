@@ -80,7 +80,7 @@ class TestDialogoElegirDestinoVentana(unittest.TestCase):
 
     def setUp(self):
         self.app = app_de_prueba()
-        parche = mock.patch.object(elegir, "_perfiles_guardados",
+        parche = mock.patch.object(elegir.ganchos, "cargar_perfiles",
                                    return_value=[])
         parche.start()
         self.addCleanup(parche.stop)
@@ -194,7 +194,7 @@ class TestPseudoElegirDestino(unittest.TestCase):
 
     def setUp(self):
         self.app = app_de_prueba()
-        parche = mock.patch.object(elegir, "_perfiles_guardados",
+        parche = mock.patch.object(elegir.ganchos, "cargar_perfiles",
                                    return_value=[])
         parche.start()
         self.addCleanup(parche.stop)

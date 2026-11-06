@@ -1,9 +1,10 @@
 """Ganchos para transmitir con un perfil de Restream.
 
-Prepara los canales de la cuenta y el perfil de OBS antes de que el
-supervisor inicie la transmisión, elige el destino y el usuario con los que
-el supervisor confirma el chat, y devuelve los canales a su estado anterior
-al terminar. Sin wx en el módulo: lo que toca la interfaz se pide al frame.
+Lee los canales de la cuenta, prepara los canales y el perfil de OBS antes
+de que el supervisor inicie la transmisión, elige el destino y el usuario
+con los que se crea el supervisor, y devuelve los canales a su estado
+anterior al terminar. Sin wx en el módulo: lo que toca la interfaz se pide
+al frame.
 """
 
 from __future__ import annotations
@@ -29,14 +30,10 @@ MENSAJE_NO_TIKTOK = N_(
 
 @dataclass
 class Contexto:
-    """Lo que el gancho descubre y el supervisor necesita después."""
+    """El destino y el usuario con los que se crea el supervisor."""
 
-    supervisor: object = None
     destino: str = ""
     usuario: str = ""
-    sin_tiktok: bool = False
-    destino_sup: str = ""
-    omitir_siguiente: bool = False
 
 
 class Restaurador:
@@ -102,32 +99,12 @@ def _cambiar_titulo(perfil, canales, cuenta_mod) -> None:
         cuenta_mod.cambiar_meta(canal.id, perfil.titulo, perfil.descripcion)
 
 
-def _elegir_supervisor(perfil, canales, contexto) -> None:
-    tiene_tiktok = any(
-        canal.plataforma == "TikTok"
-        for canal in transmitir.canales_del_perfil(perfil, canales))
-    usuario = transmitir.usuario_tiktok(perfil, canales)
-    if tiene_tiktok:
-        destino = "TikTok"
-    else:
-        destino = transmitir.destino_obs(
-            transmitir.PREFIJO + perfil.nombre, (perfil,))
-    contexto.destino = destino
-    contexto.usuario = usuario
-    contexto.sin_tiktok = not usuario
-    contexto.destino_sup = destino
-    if contexto.supervisor is not None:
-        contexto.supervisor._destino = destino
-        contexto.supervisor._usuario = usuario
-
-
-def _preparar_emision(perfil, al_anunciar, cuenta_mod, restaurador, contexto,
+def _preparar_emision(perfil, canales, al_anunciar, cuenta_mod, restaurador,
                       escribir):
     def preparar(cliente, parada=None):
         al_anunciar(_(MENSAJE_PREPARANDO).format(nombre=perfil.nombre),
                     "conectando")
         try:
-            canales = cuenta_mod.canales()
             _aplicar_cambios(perfil, canales, cuenta_mod, restaurador)
             _cambiar_titulo(perfil, canales, cuenta_mod)
             clave = cuenta_mod.clave_cuenta()
@@ -138,28 +115,25 @@ def _preparar_emision(perfil, al_anunciar, cuenta_mod, restaurador, contexto,
         except Exception as error:
             restaurador.restaurar()
             raise EmisionError(str(error)) from error
-        _elegir_supervisor(perfil, canales, contexto)
         return None
     return preparar
 
 
-def armar(opcion, al_anunciar, cuenta_mod=None, perfiles=None, escribir=None,
-          contexto=None):
+def armar(opcion, al_anunciar, canales, cuenta_mod=None, perfiles=None,
+          escribir=None):
     """Arma el gancho de preparación y la restauración de una opción.
 
-    Devuelve `(preparar_emision, restaurar, contexto)`. El contexto se
-    completa cuando el supervisor llama al gancho. Si llega uno, se usa para
-    que los avisos y el gancho compartan el mismo estado.
+    Los canales ya vienen leídos por el hilo que arma la transmisión.
+    Devuelve `(preparar_emision, restaurar)`.
     """
     modulo_cuenta = cuenta_mod or _cuenta()
     lista = perfiles if perfiles is not None else cargar_perfiles()
     perfil = transmitir.perfil_de_opcion(opcion, lista)
     restaurador = Restaurador(modulo_cuenta)
-    contexto = contexto if contexto is not None else Contexto()
     preparar = _preparar_emision(
-        perfil, al_anunciar, modulo_cuenta, restaurador, contexto,
+        perfil, canales, al_anunciar, modulo_cuenta, restaurador,
         escribir or obs_destinos.preparar_destino)
-    return preparar, restaurador.restaurar, contexto
+    return preparar, restaurador.restaurar
 
 
 def envolver_anunciar(al_anunciar, contexto):
@@ -167,13 +141,8 @@ def envolver_anunciar(al_anunciar, contexto):
     def anunciar(frase, sonido):
         if not sonido and frase == _("Creando el directo en YouTube."):
             return
-        if contexto.omitir_siguiente and not sonido:
-            contexto.omitir_siguiente = False
-            return
         al_anunciar(frase, sonido)
-        if contexto.sin_tiktok and sonido == "conectado":
-            if contexto.destino_sup == "TikTok":
-                contexto.omitir_siguiente = True
+        if contexto.destino == "Restream" and sonido == "conectado":
             al_anunciar(_(MENSAJE_NO_TIKTOK), "al_aire")
     return anunciar
 
@@ -223,13 +192,58 @@ def _al_terminar(frame, restaurar):
     return al_terminar
 
 
-def supervisar_restream(frame, opcion, revision=None) -> None:
-    """Arranca el supervisor para un perfil de Restream."""
-    del revision
+def _en_interfaz(frame, funcion, *args):
+    if not getattr(frame, "_alive", True):
+        return
+    from guyrapu.ui import gui as _gui
+    _gui.wx.CallAfter(funcion, *args)
+
+
+def _destino_supervisor(perfil, canales):
+    usuario = transmitir.usuario_tiktok(perfil, canales)
+    return ("TikTok", usuario) if usuario else ("Restream", "")
+
+
+def _crear_supervisor(frame, modulo_cuenta, opcion, lista, perfil, destino,
+                      usuario, canales):
     from guyrapu.core import paths
     from guyrapu.obs.obs_supervisor import SupervisorTransmision
 
-    modulo_cuenta = _cuenta()
+    if not getattr(frame, "_alive", True):
+        return
+    contexto = Contexto(destino=destino, usuario=usuario)
+    al_anunciar = _anunciar_de_frame(frame)
+    envoltura = envolver_anunciar(al_anunciar, contexto)
+    preparar, restaurar = armar(
+        opcion, envoltura, canales, cuenta_mod=modulo_cuenta, perfiles=lista)
+    supervisor = SupervisorTransmision(
+        destino, usuario,
+        al_anunciar=envoltura,
+        al_conectar_chat=_conectar_chat(frame),
+        al_terminar=_al_terminar(frame, restaurar),
+        ruta_fin_pendiente=paths.fin_pendiente(),
+        **_parametros_supervisor(frame, envoltura),
+        preparar_emision=preparar)
+    frame._supervisor = supervisor
+    supervisor.iniciar()
+    frame._actualizar_boton_directo()
+
+
+def _leer_canales(frame, modulo_cuenta, opcion, lista, perfil):
+    try:
+        canales = modulo_cuenta.canales()
+    except Exception as error:
+        _anunciar_de_frame(frame)(str(error), "transmision_problema")
+        return
+    destino, usuario = _destino_supervisor(perfil, canales)
+    _en_interfaz(frame, _crear_supervisor, frame, modulo_cuenta, opcion,
+                 lista, perfil, destino, usuario, canales)
+
+
+def supervisar_restream(frame, opcion, revision=None, cuenta_mod=None) -> None:
+    """Lee los canales y crea el supervisor con el destino ya elegido."""
+    del revision
+    modulo_cuenta = cuenta_mod or _cuenta()
     if not cuenta_conectada(modulo_cuenta):
         _anunciar_de_frame(frame)(_(MENSAJE_SIN_CUENTA),
                                   "transmision_problema")
@@ -241,23 +255,9 @@ def supervisar_restream(frame, opcion, revision=None) -> None:
             _("Elige primero a dónde transmitir, en Transmitir a."),
             "transmision_problema")
         return
-    contexto = Contexto()
-    al_anunciar = _anunciar_de_frame(frame)
-    envoltura = envolver_anunciar(al_anunciar, contexto)
-    preparar, restaurar, contexto = armar(
-        opcion, envoltura, modulo_cuenta, lista, contexto=contexto)
-    supervisor = SupervisorTransmision(
-        transmitir.destino_obs(opcion, lista), "",
-        al_anunciar=envoltura,
-        al_conectar_chat=_conectar_chat(frame),
-        al_terminar=_al_terminar(frame, restaurar),
-        ruta_fin_pendiente=paths.fin_pendiente(),
-        **_parametros_supervisor(frame, envoltura),
-        preparar_emision=preparar)
-    contexto.supervisor = supervisor
-    frame._supervisor = supervisor
-    supervisor.iniciar()
-    frame._actualizar_boton_directo()
+    diagnostico.crear_hilo(
+        lambda: _leer_canales(frame, modulo_cuenta, opcion, lista, perfil),
+        "PrepararRestream").start()
 
 
 def _parametros_supervisor(frame, al_anunciar):

@@ -55,22 +55,28 @@ def limpiar_transformacion(transformacion) -> dict:
 
 
 def centro_de(transformacion) -> tuple:
-    """El centro visible de la fuente, ya con el giro aplicado."""
-    ancho, alto = _ancho_alto(transformacion)
-    alineacion = int(transformacion.get("alignment") or 0)
+    """El centro visible de la fuente, con la escala y el giro de OBS."""
+    dx, dy = _desplazamiento_del_centro(transformacion)
     x = float(transformacion.get("positionX") or 0)
     y = float(transformacion.get("positionY") or 0)
-    if alineacion & 2:
-        x -= ancho
-    elif not alineacion & 1:
-        x -= ancho / 2
-    if alineacion & 8:
-        y -= alto
-    elif not alineacion & 4:
-        y -= alto / 2
     coseno, seno = _cos_sin(transformacion.get("rotation") or 0)
-    return (x + ancho / 2 * coseno - alto / 2 * seno,
-            y + ancho / 2 * seno + alto / 2 * coseno)
+    return (x + dx * coseno - dy * seno,
+            y + dx * seno + dy * coseno)
+
+
+def caja_visible(transformacion) -> tuple:
+    """La caja que ocupa la fuente: izquierda, arriba, ancho y alto."""
+    ancho, alto = _extension_firmada(transformacion)
+    ax, ay = _anclas(transformacion)
+    xs = (ancho * -ax, ancho * (1 - ax))
+    ys = (alto * -ay, alto * (1 - ay))
+    puntos = [_punto_visible(transformacion, x, y)
+              for x in xs for y in ys]
+    izquierda = min(punto[0] for punto in puntos)
+    arriba = min(punto[1] for punto in puntos)
+    return (izquierda, arriba,
+            max(punto[0] for punto in puntos) - izquierda,
+            max(punto[1] for punto in puntos) - arriba)
 
 
 def centrar(transformacion, lienzo_ancho, lienzo_alto) -> dict:
@@ -156,46 +162,49 @@ def _con_cuadro(transformacion, lienzo_ancho, lienzo_alto, tipo):
 
 
 def _conservando_centro(original, nueva):
-    ancho, alto = _ancho_alto(original)
     centro = centro_de(original)
     nueva["positionX"], nueva["positionY"] = _posicion_para_centro(
-        nueva, ancho, alto, centro)
+        nueva, centro)
     return nueva
 
 
-def _posicion_para_centro(transformacion, ancho, alto, centro):
-    alineacion = int(transformacion.get("alignment") or 0)
-    if alineacion & 2:
-        dx = -ancho / 2
-    elif alineacion & 1:
-        dx = ancho / 2
-    else:
-        dx = 0
-    if alineacion & 8:
-        dy = -alto / 2
-    elif alineacion & 4:
-        dy = alto / 2
-    else:
-        dy = 0
+def _posicion_para_centro(transformacion, centro):
+    dx, dy = _desplazamiento_del_centro(transformacion)
     coseno, seno = _cos_sin(transformacion.get("rotation") or 0)
     return (centro[0] - (dx * coseno - dy * seno),
             centro[1] - (dx * seno + dy * coseno))
 
 
-def _ancho_alto(transformacion):
+def _desplazamiento_del_centro(transformacion):
+    ancho, alto = _extension_firmada(transformacion)
+    ax, ay = _anclas(transformacion)
+    return ancho * (0.5 - ax), alto * (0.5 - ay)
+
+
+def _extension_firmada(transformacion):
+    escala_x = _escala(transformacion.get("scaleX"))
+    escala_y = _escala(transformacion.get("scaleY"))
     if _tiene_cuadro(transformacion):
-        ancho = abs(float(transformacion.get("boundsWidth") or 0))
-        alto = abs(float(transformacion.get("boundsHeight") or 0))
-        if ancho > 0 and alto > 0:
-            return ancho, alto
-    ancho = abs(float(transformacion.get("width") or 0))
-    alto = abs(float(transformacion.get("height") or 0))
-    if ancho <= 0 or alto <= 0:
-        ancho = abs(float(transformacion.get("sourceWidth") or 0)
-                    * _escala(transformacion.get("scaleX")))
-        alto = abs(float(transformacion.get("sourceHeight") or 0)
-                   * _escala(transformacion.get("scaleY")))
+        ancho = float(transformacion.get("boundsWidth") or 0) * _signo(escala_x)
+        alto = float(transformacion.get("boundsHeight") or 0) * _signo(escala_y)
+        return ancho, alto
+    ancho = escala_x * float(transformacion.get("sourceWidth") or 0)
+    alto = escala_y * float(transformacion.get("sourceHeight") or 0)
     return ancho, alto
+
+
+def _punto_visible(transformacion, x, y):
+    coseno, seno = _cos_sin(transformacion.get("rotation") or 0)
+    return (
+        float(transformacion.get("positionX") or 0) + x * coseno - y * seno,
+        float(transformacion.get("positionY") or 0) + x * seno + y * coseno)
+
+
+def _anclas(transformacion):
+    alineacion = int(transformacion.get("alignment") or 0)
+    ax = 0 if alineacion & 1 else 1 if alineacion & 2 else 0.5
+    ay = 0 if alineacion & 4 else 1 if alineacion & 8 else 0.5
+    return ax, ay
 
 
 def _tiene_cuadro(transformacion):
@@ -216,6 +225,10 @@ def _sin_cuadro(transformacion):
 def _escala(valor):
     numero = float(valor or 1)
     return numero if numero else 1.0
+
+
+def _signo(valor):
+    return -1.0 if float(valor) < 0 else 1.0
 
 
 def _cos_sin(grados):

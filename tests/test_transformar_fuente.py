@@ -20,6 +20,12 @@ def fuente(**cambios):
     return datos
 
 
+def fuente_medida():
+    return fuente(
+        positionX=300.0, positionY=200.0, width=400.0, height=200.0,
+        sourceWidth=400.0, sourceHeight=200.0)
+
+
 class TextoDeTamanoTest(unittest.TestCase):
 
     def test_una_fraccion_comun_se_dice_con_palabras(self):
@@ -110,6 +116,46 @@ class TransformacionesTest(unittest.TestCase):
                 nueva = transformar_fuente.girar(original, grados)
                 self.assertCentro(
                     centro, transformar_fuente.centro_de(nueva))
+
+    def test_voltear_horizontal_deja_la_posicion_medida(self):
+        nueva = transformar_fuente.voltear_horizontal(fuente_medida())
+        self.assertEqual(nueva["positionX"], 700)
+        self.assertEqual(nueva["positionY"], 200)
+
+    def test_voltear_vertical_deja_la_posicion_medida(self):
+        nueva = transformar_fuente.voltear_vertical(fuente_medida())
+        self.assertEqual(nueva["positionX"], 300)
+        self.assertEqual(nueva["positionY"], 400)
+
+    def test_girar_90_deja_la_posicion_medida(self):
+        nueva = transformar_fuente.girar(fuente_medida(), 90)
+        self.assertEqual(nueva["rotation"], 90)
+        self.assertEqual(nueva["positionX"], 600)
+        self.assertEqual(nueva["positionY"], 100)
+
+    def test_caja_visible_usa_la_misma_formula(self):
+        self.assertEqual(
+            transformar_fuente.caja_visible(fuente_medida()),
+            (300, 200, 400, 200))
+
+    def test_la_caja_conserva_el_centro_al_voltear_y_girar(self):
+        base = fuente_medida()
+        ya_volteada_y_girada = transformar_fuente.girar(
+            transformar_fuente.voltear_horizontal(base), 90)
+        con_cuadro = transformar_fuente.ajustar(base, 1600, 900)
+        for original in (base, ya_volteada_y_girada, con_cuadro):
+            centro = self._centro_de_caja(original)
+            for nueva in (
+                    transformar_fuente.voltear_horizontal(original),
+                    transformar_fuente.voltear_vertical(original),
+                    transformar_fuente.girar(original, 90)):
+                self.assertCentro(
+                    centro, self._centro_de_caja(nueva))
+
+    def _centro_de_caja(self, transformacion):
+        izquierda, arriba, ancho, alto = transformar_fuente.caja_visible(
+            transformacion)
+        return (izquierda + ancho / 2, arriba + alto / 2)
 
     def test_cuatro_giros_a_la_derecha_vuelven_al_principio(self):
         original = fuente()

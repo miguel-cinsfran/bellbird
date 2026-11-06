@@ -1036,6 +1036,17 @@ class TestVentanaObs(unittest.TestCase):
         eliminar.assert_not_called()
         self.assertEqual(pagina.fuente(), "Juego")
 
+    def test_eliminar_pregunta_con_cancelar_por_defecto(self):
+        pagina = self.dialogo._pagina_fuentes
+        with mock.patch.object(
+                escena_edicion_fuente.confirmar, "preguntar",
+                return_value=True) as preguntar:
+            self.assertTrue(
+                pagina.acciones_fuente._edicion._confirmar_eliminar("Cámara"))
+        preguntar.assert_called_once_with(
+            pagina, "¿Eliminar Cámara de esta escena?", "Eliminar fuente",
+            "&Eliminar", "&Cancelar", predeterminado_si=False)
+
     def test_duplicar_copia_y_selecciona_la_copia(self):
         pagina = self.dialogo._pagina_fuentes
         self._elegir_fuente(pagina, "Juego")

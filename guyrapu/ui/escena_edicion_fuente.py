@@ -7,7 +7,7 @@ import wx
 from guyrapu.core.idioma import _
 from guyrapu.obs import consultas_transmision, fuentes_obs
 from guyrapu.obs.obs_panel import NOMBRE_FUENTE
-from guyrapu.ui import preferencias_camara
+from guyrapu.ui import confirmar, preferencias_camara
 from guyrapu.ui.accesibilidad import anunciar
 
 
@@ -136,16 +136,11 @@ class AccionesEdicion:
         return ""
 
     def _confirmar_eliminar(self, fuente):
-        dialogo = wx.MessageDialog(
+        return confirmar.preguntar(
             self._pagina,
             _("¿Eliminar {fuente} de esta escena?").format(fuente=fuente),
-            _("Eliminar fuente"),
-            wx.YES_NO | wx.NO_DEFAULT | wx.ICON_QUESTION)
-        try:
-            dialogo.SetYesNoLabels(_("&Eliminar"), _("&Cancelar"))
-            return dialogo.ShowModal() == wx.ID_YES
-        finally:
-            dialogo.Destroy()
+            _("Eliminar fuente"), _("&Eliminar"), _("&Cancelar"),
+            predeterminado_si=False)
 
     def _eliminar_en_hilo(self, escena, fuente):
         fuentes_obs.eliminar(self._gestor, escena, fuente)

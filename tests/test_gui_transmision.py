@@ -213,6 +213,14 @@ def _asegurar_sin_obs(*args, **kwargs):
     return False
 
 
+def _avisar_de(anunciar, sonar):
+    def _avisar(texto, sonido=None, *, error=False):
+        anunciar(texto)
+        if sonido:
+            sonar(sonido)
+    return _avisar
+
+
 def _asegurar_conecta(probar_conexion, al_anunciar=None, parada=None):
     return probar_conexion()
 
@@ -286,6 +294,7 @@ class TestPanelTransmision(unittest.TestCase):
         self.app = app_de_prueba()
         self.anuncios = []
         self.categorias = []
+        self.sonar = mock.Mock()
         def anunciar(texto, categoria=""):
             self.anuncios.append(texto)
             self.categorias.append(categoria)
@@ -300,15 +309,18 @@ class TestPanelTransmision(unittest.TestCase):
             mock.patch.object(gui_transmision.ganchos, "cargar_perfiles",
                               return_value=[]),
             mock.patch.object(operaciones_obs, "anunciar", anunciar),
-            mock.patch.object(control_grabacion, "anunciar", anunciar),
             mock.patch.object(gui_microfono, "anunciar", anunciar),
             mock.patch.object(escena_pagina_escena, "anunciar", anunciar),
             mock.patch.object(escena_pagina_fuentes, "anunciar", anunciar),
             mock.patch.object(escena_captura_ventana, "anunciar", anunciar),
             mock.patch.object(mover_con_flechas, "anunciar", anunciar),
             mock.patch.object(directo_panel, "anunciar", anunciar),
-            mock.patch.object(operaciones_obs.sound_player, "reproducir"),
-            mock.patch.object(control_grabacion.sound_player, "reproducir"),
+            mock.patch.object(operaciones_obs, "avisar",
+                              _avisar_de(anunciar, self.sonar)),
+            mock.patch.object(control_grabacion, "avisar",
+                              _avisar_de(anunciar, self.sonar)),
+            mock.patch.object(directo_panel, "avisar",
+                              _avisar_de(anunciar, self.sonar)),
             mock.patch.object(directo_panel.sound_player, "reproducir"),
             mock.patch.object(gui_grabaciones.grabaciones, "existentes",
                               return_value=[]),
@@ -805,17 +817,16 @@ class TestPanelTransmision(unittest.TestCase):
         pagina = ventana._pagina_transmision
         self._elegir_en(pagina, "Restream: Uno")
         self.assertFalse(pagina.txt_usuario_tiktok.IsShown())
-        self.anuncios.clear()
         with mock.patch.object(directo_panel.ganchos, "cuenta_conectada",
                                return_value=False), \
-                mock.patch.object(directo_panel.sound_player,
-                                  "reproducir") as sonido:
+                mock.patch.object(directo_panel, "avisar") as avisar:
             self._pulsar(pagina.btn_directo)
-        self.assertIn(
+        self.assertEqual(
+            avisar.call_args.args[0],
             "Para transmitir con un perfil de Restream hace falta conectar "
-            "la cuenta, en el cuadro Restream, pestaña Cuenta.",
-            self.anuncios)
-        sonido.assert_called_once_with("transmision_problema")
+            "la cuenta, en el cuadro Restream, pestaña Cuenta.")
+        self.assertEqual(avisar.call_args.args[1], "transmision_problema")
+        self.assertTrue(avisar.call_args.kwargs["error"])
         self.principal.supervisar.assert_not_called()
 
     def test_elegir_restream_prepara_obs_y_supervisa_los_ganchos(self):
@@ -874,19 +885,21 @@ class TestPseudoTransmisionVentana(unittest.TestCase):
 
     def setUp(self):
         self.app = app_de_prueba()
+        self.sonar = mock.Mock()
         self.parches = [
             mock.patch.object(threading, "Thread", HiloInmediato),
             mock.patch.object(gui_transmision.wx, "CallAfter",
                               lambda funcion, *args: funcion(*args)),
             mock.patch.object(gui_transmision, "anunciar",
                               lambda *args, **kwargs: None),
-            mock.patch.object(operaciones_obs, "anunciar",
+            mock.patch.object(operaciones_obs, "avisar",
                               lambda *args, **kwargs: None),
-            mock.patch.object(operaciones_obs.sound_player, "reproducir"),
-            mock.patch.object(control_grabacion.sound_player, "reproducir"),
+            mock.patch.object(control_grabacion, "avisar",
+                              lambda *args, **kwargs: None),
             mock.patch.object(directo_panel, "anunciar",
                               lambda *args, **kwargs: None),
-            mock.patch.object(directo_panel.sound_player, "reproducir"),
+            mock.patch.object(directo_panel, "avisar",
+                              lambda *args, **kwargs: None),
             mock.patch.object(gui_transmision.ganchos, "cargar_perfiles",
                               return_value=[]),
         ]

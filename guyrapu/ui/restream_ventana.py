@@ -21,6 +21,7 @@ from guyrapu.ui import paleta
 from guyrapu.ui import restream_acciones_destino
 from guyrapu.ui.accesibilidad import anunciar, enlazar_anuncio_de_pestana, nombre_accesible
 from guyrapu.ui.aviso_importante import avisar
+from guyrapu.voice import sound_player as _snd
 from guyrapu.ui.restream_pagina_cuenta import PaginaCuenta
 from guyrapu.ui.restream_pagina_destinos import PaginaDestinos
 from guyrapu.ui.restream_pagina_eventos import PaginaEventos

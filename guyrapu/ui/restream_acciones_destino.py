@@ -16,7 +16,7 @@ from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.restream import api, cuenta
 from guyrapu.ui.accesibilidad import anunciar
-from guyrapu.ui import aviso_importante
+from guyrapu.ui.aviso_importante import avisar
 from guyrapu.ui.gui import copiar_al_portapapeles
 from guyrapu.ui.restream_dialogos_destino import (
     DialogoDestinoManual,
@@ -24,15 +24,6 @@ from guyrapu.ui.restream_dialogos_destino import (
 )
 from guyrapu.voice import sound_player as _snd
 
-
-def _avisar(texto, sonido=None, *, error=False):
-    """Avisa por el camino central, o por el local si el cuadro está apagado."""
-    if aviso_importante._casilla_activa():
-        aviso_importante.avisar(texto, sonido, error=error)
-        return
-    if sonido:
-        _snd.reproducir(sonido)
-    anunciar(texto)
 
 abrir_navegador = webbrowser.open
 
@@ -83,7 +74,7 @@ def _fallo(ventana, error):
         "No se pudo completar la acción con Restream. Vuelve a intentarlo.")
     ventana._error_destinos = texto
     ventana._actualizar_cuenta()
-    _avisar(texto, "error", error=True)
+    avisar(texto, "error", error=True)
 
 
 def _estado_cambiado(ventana, destino, nuevo):
@@ -94,9 +85,9 @@ def _estado_cambiado(ventana, destino, nuevo):
     ventana._pagina_destinos.mostrar(ventana._destinos)
     ventana._actualizar_cuenta()
     if nuevo:
-        _avisar(_("{destino} activado").format(destino=destino.texto))
+        avisar(_("{destino} activado").format(destino=destino.texto))
     else:
-        _avisar(_("{destino} desactivado").format(destino=destino.texto))
+        avisar(_("{destino} desactivado").format(destino=destino.texto))
 
 
 def _pedir_titulo(ventana, destino, meta):
@@ -117,7 +108,7 @@ def _pedir_titulo(ventana, destino, meta):
 def _titulo_cambiado(ventana):
     ventana._error_destinos = ""
     ventana._actualizar_cuenta()
-    _avisar(_("Título cambiado."))
+    avisar(_("Título cambiado."))
 
 
 def _pedir_manual(ventana, plataformas):
@@ -141,7 +132,7 @@ def _destino_agregado(ventana, canal):
     ventana._pagina_destinos.mostrar(ventana._destinos, elegido=canal.id)
     ventana._pagina_eventos.actualizar_nombres()
     ventana._actualizar_cuenta()
-    _avisar(_("Destino agregado."))
+    avisar(_("Destino agregado."))
 
 
 def abrir_enlace(ventana):

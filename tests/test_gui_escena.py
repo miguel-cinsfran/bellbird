@@ -179,9 +179,16 @@ class TestVentanaObs(unittest.TestCase):
         self.anuncios = []
         self.categorias = []
 
+        self.sonar = mock.Mock()
+
         def anunciar(texto, categoria=""):
             self.anuncios.append(texto)
             self.categorias.append(categoria)
+
+        def avisar(texto, sonido=None, *, error=False):
+            anunciar(texto)
+            if sonido:
+                self.sonar.reproducir(sonido)
 
         self.asegurar = mock.Mock(side_effect=_asegurar_obs)
         self.parches = [
@@ -199,10 +206,9 @@ class TestVentanaObs(unittest.TestCase):
             mock.patch.object(escena_captura_ventana, "anunciar", anunciar),
             mock.patch.object(gui_microfono, "anunciar", anunciar),
             mock.patch.object(mover_con_flechas, "anunciar", anunciar),
-            mock.patch.object(operaciones_obs, "anunciar", anunciar),
+            mock.patch.object(operaciones_obs, "avisar", avisar),
             mock.patch.object(gui_grabaciones.grabaciones, "existentes",
                               return_value=[]),
-            mock.patch.object(operaciones_obs.sound_player, "reproducir"),
             mock.patch.object(gui_microfono, "abrir_microfono_obs"),
         ]
         for parche in self.parches:
@@ -642,7 +648,7 @@ class TestVentanaObs(unittest.TestCase):
             self._pulsar(pagina.btn_agregar)
         self.assertEqual(pagina.lst_escenas.GetStrings(), antes)
         self.assertIn("OBS no respondió", self.anuncios)
-        operaciones_obs.sound_player.reproducir.assert_any_call("error")
+        self.sonar.reproducir.assert_any_call("error")
 
     def test_cada_accion_de_fuentes_llama_al_gestor(self):
         pagina = self.dialogo._pagina_fuentes

@@ -779,7 +779,7 @@ class PruebaVentanaRestream(unittest.TestCase):
                                   "anunciar") as anunciar, \
                 mock.patch.object(restream_acciones_destino._snd,
                                   "reproducir") as sonar, \
-                mock.patch.object(restream_acciones_destino, "_avisar",
+                mock.patch.object(restream_acciones_destino, "avisar",
                                   _avisar_de(anunciar, sonar)):
             pagina._activar()
             self.assertTrue(_esperar(lambda: llamadas))

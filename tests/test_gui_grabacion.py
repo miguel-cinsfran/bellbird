@@ -90,7 +90,7 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
             mock.patch.object(obs_ventana.obs_lanzador, "asegurar_obs",
                               _asegurar_sin_conectar),
             mock.patch.object(obs_ventana, "anunciar", anunciar),
-            mock.patch.object(control_grabacion, "_avisar",
+            mock.patch.object(control_grabacion, "avisar",
                               _avisar_de(anunciar, self.sonar)),
             mock.patch.object(gui_grabaciones.grabaciones, "existentes",
                               return_value=[]),

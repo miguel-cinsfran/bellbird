@@ -248,9 +248,8 @@ class TestLetrasAccesoTransmision(unittest.TestCase):
                               lambda funcion, *args: funcion(*args)),
             mock.patch.object(gui_transmision, "anunciar",
                               lambda *args, **kwargs: None),
-            mock.patch.object(operaciones_obs, "anunciar",
+            mock.patch.object(operaciones_obs, "avisar",
                               lambda *args, **kwargs: None),
-            mock.patch.object(control_grabacion.sound_player, "reproducir"),
         ]
         for parche in self.parches:
             parche.start()
@@ -299,12 +298,10 @@ class TestLetrasAccesoPanelObs(unittest.TestCase):
                               lambda *args, **kwargs: None),
             mock.patch.object(mover_con_flechas, "anunciar",
                               lambda *args, **kwargs: None),
-            mock.patch.object(operaciones_obs, "anunciar",
+            mock.patch.object(operaciones_obs, "avisar",
                               lambda *args, **kwargs: None),
-            mock.patch.object(operaciones_obs.sound_player, "reproducir"),
-            mock.patch.object(control_grabacion, "anunciar",
+            mock.patch.object(control_grabacion, "avisar",
                               lambda *args, **kwargs: None),
-            mock.patch.object(control_grabacion.sound_player, "reproducir"),
             mock.patch.object(gui_grabaciones, "anunciar",
                               lambda *args, **kwargs: None),
             mock.patch.object(gui_grabaciones.sound_player, "reproducir"),

@@ -258,6 +258,7 @@ class PruebaAccionesDestino(unittest.TestCase):
         with mock.patch.object(acciones.cuenta, "activar_canal",
                                side_effect=activar), \
                 mock.patch.object(acciones, "anunciar") as anunciar, \
+                mock.patch.object(acciones, "avisar", lambda texto, sonido=None, **k: (anunciar(texto), sonido and acciones._snd.reproducir(sonido))), \
                 mock.patch.object(acciones._snd,
                                   "reproducir") as sonar:
             acciones.alternar(ventana)
@@ -280,7 +281,8 @@ class PruebaAccionesDestino(unittest.TestCase):
 
         with mock.patch.object(acciones.cuenta, "activar_canal",
                                side_effect=activar), \
-                mock.patch.object(acciones, "anunciar") as anunciar:
+                mock.patch.object(acciones, "anunciar") as anunciar, \
+                mock.patch.object(acciones, "avisar", lambda texto, sonido=None, **k: anunciar(texto)):
             acciones.alternar(ventana)
             self.assertTrue(_completar(ventana))
 
@@ -296,6 +298,7 @@ class PruebaAccionesDestino(unittest.TestCase):
         with mock.patch.object(acciones.cuenta, "activar_canal",
                                side_effect=error), \
                 mock.patch.object(acciones, "anunciar") as anunciar, \
+                mock.patch.object(acciones, "avisar", lambda texto, sonido=None, **k: (anunciar(texto), sonido and acciones._snd.reproducir(sonido))), \
                 mock.patch.object(acciones._snd,
                                   "reproducir") as sonar:
             acciones.alternar(ventana)
@@ -342,7 +345,8 @@ class PruebaAccionesDestino(unittest.TestCase):
                                   _DialogoFalso), \
                 mock.patch.object(ventana._pagina_destinos.lista,
                                   "SetFocus") as foco, \
-                mock.patch.object(acciones, "anunciar") as anunciar:
+                mock.patch.object(acciones, "anunciar") as anunciar, \
+                mock.patch.object(acciones, "avisar", lambda texto, sonido=None, **k: anunciar(texto)):
             acciones.cambiar_titulo(ventana)
             self.assertTrue(_completar(ventana, veces=2))
 
@@ -393,7 +397,8 @@ class PruebaAccionesDestino(unittest.TestCase):
                                   side_effect=agregar), \
                 mock.patch.object(acciones, "DialogoDestinoManual",
                                   _DialogoFalso), \
-                mock.patch.object(acciones, "anunciar") as anunciar:
+                mock.patch.object(acciones, "anunciar") as anunciar, \
+                mock.patch.object(acciones, "avisar", lambda texto, sonido=None, **k: anunciar(texto)):
             acciones.agregar_manual(ventana)
             self.assertTrue(_completar(ventana, veces=2))
 

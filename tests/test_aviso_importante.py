@@ -23,12 +23,14 @@ from guyrapu.ui import boton_directo
 from guyrapu.ui import buscador_acciones
 from guyrapu.ui import confirmar
 from guyrapu.ui import control_grabacion
+from guyrapu.ui import directo_panel
 from guyrapu.ui import gui
 from guyrapu.ui import gui_comentarios
 from guyrapu.ui import gui_directo_huerfano
 from guyrapu.ui import gui_musica
 from guyrapu.ui import operaciones_obs
 from guyrapu.ui import preferencias_api
+from guyrapu.ui import restream_acciones_destino
 from guyrapu.restream import ganchos
 from tests import cuadros_reales_permitidos
 from tests.rutas_temporales import redirigir_rutas
@@ -221,6 +223,14 @@ class TestCableado(unittest.TestCase):
         self.assertEqual(self._texto(cuadro), _("Transmisión detenida."))
         sonar.assert_any_call("desconectado")
 
+    def test_b_directo_panel_detener(self):
+        instancia = object.__new__(directo_panel.DirectoPanel)
+        instancia._mostrar_transmision = lambda activa: None
+        cuadro, _anunciar, sonar = self._pedir(
+            lambda: instancia._finalizada(None))
+        self.assertEqual(self._texto(cuadro), _("Transmisión detenida."))
+        sonar.assert_any_call("desconectado")
+
     def test_c_resultado_de_grabacion(self):
         instancia = object.__new__(control_grabacion.ControlGrabacion)
         instancia._al_cambiar = lambda: None
@@ -238,6 +248,12 @@ class TestCableado(unittest.TestCase):
             "Comentario publicado. Recuerda que YouTube puede tardar o "
             "retenerlo.")
         sonar.assert_any_call("comentario")
+
+    def test_e_titulo_de_destino_restream(self):
+        ventana = SimpleNamespace(_actualizar_cuenta=lambda: None)
+        cuadro, _anunciar, _sonar = self._pedir(
+            lambda: restream_acciones_destino._titulo_cambiado(ventana))
+        self.assertEqual(self._texto(cuadro), _("Título cambiado."))
 
     def test_e_sesion_cerrada(self):
         instancia = SimpleNamespace(_api_refrescar_estado=lambda: None)

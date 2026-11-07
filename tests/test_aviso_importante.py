@@ -23,6 +23,7 @@ from guyrapu.ui import boton_directo
 from guyrapu.ui import buscador_acciones
 from guyrapu.ui import confirmar
 from guyrapu.ui import control_grabacion
+from guyrapu.ui import gui
 from guyrapu.ui import gui_comentarios
 from guyrapu.ui import gui_directo_huerfano
 from guyrapu.ui import gui_musica
@@ -120,6 +121,24 @@ class TestAvisar(unittest.TestCase):
         self.assertEqual(anunciar.call_args_list,
                          [mock.call("Segundo.")])
         self.assertEqual(diferir.call_count, 1)
+
+    def test_lee_la_casilla_de_la_ventana_principal(self):
+        with mock.patch.object(confirmar, "avisar") as cuadro,                 mock.patch.object(aviso_importante, "anunciar") as anunciar,                 mock.patch.object(aviso_importante.sound_player,
+                                  "reproducir"),                 mock.patch.object(aviso_importante.wx, "CallAfter",
+                                  side_effect=lambda f, *a: f(*a)):
+            with mock.patch.object(
+                    gui, "_gui_frame",
+                    SimpleNamespace(_config={"avisos_cuadro": True})):
+                aviso_importante.avisar("Listo.")
+            anunciar.assert_not_called()
+            cuadro.assert_called_once()
+            _limpiar_cuadro()
+            with mock.patch.object(
+                    gui, "_gui_frame",
+                    SimpleNamespace(_config={"avisos_cuadro": False})):
+                aviso_importante.avisar("Listo.")
+        anunciar.assert_called_once_with("Listo.")
+        cuadro.assert_called_once()
 
     def test_desde_otro_hilo_el_cuadro_se_pide_por_callafter(self):
         with mock.patch.object(aviso_importante, "_casilla_activa",

@@ -15,10 +15,13 @@ import threading
 import wx
 
 from guyrapu.core import config
+from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.ui import confirmar
 from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.voice import sound_player
+
+logger = diagnostico.obtener_logger(__name__)
 
 CUADRO = "cuadro"
 ANUNCIO = "anuncio"
@@ -42,7 +45,8 @@ def _casilla_activa() -> bool:
         if frame is None:
             return False
         return bool(frame._config.get("avisos_cuadro", False))
-    except Exception:
+    except Exception as exc:
+        logger.debug("No se pudo leer la casilla de avisos: %s", exc)
         return False
 
 
@@ -50,7 +54,8 @@ def _padre():
     """La ventana activa de la app o, si no hay, la principal."""
     try:
         activa = wx.GetActiveWindow()
-    except Exception:
+    except Exception as exc:
+        logger.debug("No se pudo leer la ventana activa: %s", exc)
         activa = None
     if activa is not None:
         return activa
@@ -61,7 +66,8 @@ def _padre():
             return frame
         app = wx.GetApp()
         return app.GetTopWindow() if app is not None else None
-    except Exception:
+    except Exception as exc:
+        logger.debug("No se pudo resolver la ventana principal: %s", exc)
         return None
 
 
@@ -71,8 +77,9 @@ def _mostrar(texto: str, error: bool) -> None:
         confirmar.avisar(
             _padre(), texto, config.APP_NAME, _("Aceptar"),
             icono=confirmar.ICON_ERROR if error else confirmar.ICON_INFORMATION)
-    except Exception:
+    except Exception as exc:
         # Si el cuadro no llegó a abrirse, el aviso no se pierde: se anuncia.
+        logger.debug("No se pudo mostrar el cuadro de aviso: %s", exc)
         anunciar(texto)
     finally:
         with _cerrojo:
@@ -95,7 +102,8 @@ def avisar(texto: str, sonido: str | None = None, *, error: bool = False) -> Non
         return
     try:
         wx.CallAfter(_mostrar, texto, error)
-    except Exception:
+    except Exception as exc:
+        logger.debug("No se pudo diferir el cuadro de aviso: %s", exc)
         with _cerrojo:
             _cuadro_abierto = False
         anunciar(texto)

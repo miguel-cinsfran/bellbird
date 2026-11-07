@@ -1610,7 +1610,8 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         pagina = self._pagina_buscada(dialogo, items)
         with mock.patch.object(buscador_contenido, "contenido",
                                return_value=_respuesta_contenido()), \
-                mock.patch.object(buscador_contenido, "anunciar"),                 mock.patch.object(pagina, "_agregar_urls", return_value=1):
+                mock.patch.object(buscador_contenido, "anunciar"), \
+                mock.patch.object(pagina, "_agregar_urls", return_value=1):
             self._seleccionar_solo(pagina, 1)
             pagina._on_activar(None)
         self.assertTrue(pagina._vista.activa)

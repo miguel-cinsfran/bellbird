@@ -615,11 +615,12 @@ def escenario_cierre(app: Aplicacion, args, res: Resultado):
         if not mensaje_salir_es_de_chat(textos):
             res.fallo("cierre: la pregunta «Salir» no trae el mensaje del chat "
                       "conectado: %s" % " / ".join(textos[:2]))
-        elif not pulsar_boton_nativo(dlg, "Sí"):
-            res.fallo("cierre: la pregunta «Salir» no ofrece ningún botón «Sí»")
+        elif not pulsar_boton_nativo(dlg, "Salir"):
+            res.fallo("cierre: la pregunta «Salir» no ofrece ningún botón "
+                      "«Salir»")
         else:
             res.nota("cierre: apareció la pregunta «Salir» con el mensaje del "
-                     "chat conectado y se contestó Sí")
+                     "chat conectado y se contestó Salir")
             limite = time.time() + 4.0
             while time.time() < limite:
                 if dialogo_nativo("Salir", segundos=1.0) is None:

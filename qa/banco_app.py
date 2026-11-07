@@ -607,7 +607,8 @@ def _boton_nativo(dlg, nombre):
 
     Compara sin marca de mnemónico y sin mayúsculas, como
     `_boton_dejarlo_en_curso`, pero con el nombre por parámetro: la pregunta
-    «Salir» pide «Sí» y No es el botón por defecto, así que Enter no sirve.
+    «Salir» ofrece «Salir» y Cancelar es el botón por defecto, así que Enter
+    no sirve.
     """
     objetivo = (nombre or "").replace("&", "").strip().lower()
     try:
@@ -655,16 +656,16 @@ def mensaje_salir_es_de_chat(textos: list) -> bool:
 
 
 def contestar_salir_si_aparece(segundos: float = 8.0) -> bool:
-    """Contesta Sí a la pregunta «Salir» si está abierta. False si no aparece.
+    """Pulsa «Salir» en la pregunta «Salir» si está abierta. False si no aparece.
 
     Mira desde fuera con `dialogo_nativo`, como `escenario_directo_sin_imagen`:
     un `wx.MessageDialog` no sale en `wx.GetTopLevelWindows()` y la sonda no lo
-    ve. Nunca pulsa Enter: el botón por defecto es No y cerraría sin salir.
+    ve. Nunca pulsa Enter: el botón por defecto es Cancelar y cerraría sin salir.
     """
     dlg = dialogo_nativo("Salir", segundos=segundos)
     if dlg is None:
         return False
-    if not pulsar_boton_nativo(dlg, "Sí"):
+    if not pulsar_boton_nativo(dlg, "Salir"):
         return False
     limite = time.time() + 4.0
     while time.time() < limite:

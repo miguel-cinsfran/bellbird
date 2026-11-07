@@ -10,6 +10,7 @@ import wx
 
 from guyrapu.core.idioma import N_, _
 from guyrapu.obs import grabaciones, obs_estado, obs_grabacion
+from guyrapu.ui import aviso_importante
 from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.ui.preferencias_comun import mostrar_control, nombre_de_etiqueta
 from guyrapu.voice import sound_player
@@ -19,6 +20,15 @@ _INICIAR_GRABACION = N_("Iniciar &grabación")
 _DETENER_GRABACION = N_("Detener &grabación")
 _PAUSAR_GRABACION = N_("&Pausar grabación")
 _REANUDAR_GRABACION = N_("&Reanudar grabación")
+
+
+def _avisar(frase, sonido, *, error=False):
+    """Avisa por el camino central, o por el local si el cuadro está apagado."""
+    if aviso_importante._casilla_activa():
+        aviso_importante.avisar(frase, sonido, error=error)
+        return
+    sound_player.reproducir(sonido)
+    anunciar(frase)
 
 
 def _crear_botones(padre):
@@ -65,8 +75,8 @@ class ControlGrabacion:
         if activa:
             self._resultado("grabacion_iniciada")
             return
-        sound_player.reproducir(obs_estado.sonido_resultado("grabacion_detenida"))
-        anunciar(grabaciones.anotar_y_decir(ruta))
+        _avisar(grabaciones.anotar_y_decir(ruta),
+                obs_estado.sonido_resultado("grabacion_detenida"))
         self._al_cambiar()
 
     def _alternar_pausa(self, event):
@@ -76,14 +86,14 @@ class ControlGrabacion:
     def _pausa_alternada(self, resultado):
         cambio, en_pausa = resultado
         if cambio is None:
-            sound_player.reproducir("error")
-            anunciar(obs_grabacion.frase_fallo_pausa(en_pausa))
+            _avisar(obs_grabacion.frase_fallo_pausa(en_pausa), "error",
+                    error=True)
             return
         self.fijar(self.grabando, cambio)
         accion = "grabacion_en_pausa" if cambio else "grabacion_reanudada"
         self._resultado(accion)
 
     def _resultado(self, accion):
-        sound_player.reproducir(obs_estado.sonido_resultado(accion))
-        anunciar(obs_estado.frase_resultado(accion))
+        _avisar(obs_estado.frase_resultado(accion),
+                obs_estado.sonido_resultado(accion))
         self._al_cambiar()

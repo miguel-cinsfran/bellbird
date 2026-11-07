@@ -10,18 +10,17 @@ from guyrapu.core.idioma import _
 from guyrapu.obs import obs_cliente, obs_clips
 from guyrapu.obs import grabaciones
 from guyrapu.obs.obs_panel import GestorPanelObs
-from guyrapu.ui.accesibilidad import anunciar
-from guyrapu.voice import sound_player
+from guyrapu.ui.aviso_importante import avisar
 
 logger = diagnostico.obtener_logger(__name__)
 
 
 def _avisar(frase, sonido):
-    """Anuncia y suena en el hilo de la interfaz."""
-    def _decir():
-        anunciar(frase)
-        sound_player.reproducir(sonido)
-    wx.CallAfter(_decir)
+    """Anuncia y suena, desde el hilo que sea."""
+    if sonido in ("error", "transmision_problema"):
+        avisar(frase, sonido, error=True)
+    else:
+        avisar(frase, sonido)
 
 
 def _ejecutar_en_obs(operacion):

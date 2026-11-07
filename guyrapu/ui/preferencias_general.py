@@ -29,6 +29,7 @@ from guyrapu.ui.tema import _tc
 # mismo orden.
 OPCIONES_GENERAL = (
     ("cho_idioma", "ui", "idioma", "idioma", str, "windows"),
+    ("chk_avisos_cuadro", "ui", "avisos_cuadro", "avisos_cuadro", bool, False),
 )
 
 
@@ -72,10 +73,22 @@ class PaginaGeneral:
         self.cho_idioma = EleccionTexto(p, idioma.idiomas_disponibles(),
                                         name=_("Idioma"))
         vs.Add(self.cho_idioma, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
+        self._avisos_cuadro(p, vs)
         self._casillas(p, vs)
         self._botones(p, vs)
         p.SetSizer(vs)
         return p
+
+    def _avisos_cuadro(self, p, vs):
+        self.chk_avisos_cuadro = wx.CheckBox(
+            p, label=_("Mostrar a&visos importantes también en un cuadro de "
+                       "mensaje"),
+            name=_("Mostrar avisos importantes también en un cuadro de "
+                   "mensaje"))
+        vs.Add(self.chk_avisos_cuadro, 0, wx.ALL, 10)
+        # La tabla de opciones simples del diálogo lee el control por este
+        # nombre; la página lo deja puesto al construirse.
+        self._ventana.chk_avisos_cuadro = self.chk_avisos_cuadro
 
     def _casillas(self, p, vs):
         self.chk_buscar_actualizaciones = wx.CheckBox(

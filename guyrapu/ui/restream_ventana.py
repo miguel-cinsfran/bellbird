@@ -20,11 +20,11 @@ from guyrapu.restream.api import ErrorApi
 from guyrapu.ui import paleta
 from guyrapu.ui import restream_acciones_destino
 from guyrapu.ui.accesibilidad import anunciar, enlazar_anuncio_de_pestana, nombre_accesible
+from guyrapu.ui.aviso_importante import avisar
 from guyrapu.ui.restream_pagina_cuenta import PaginaCuenta
 from guyrapu.ui.restream_pagina_destinos import PaginaDestinos
 from guyrapu.ui.restream_pagina_eventos import PaginaEventos
 from guyrapu.ui.restream_pagina_perfiles import PaginaPerfiles
-from guyrapu.voice import sound_player as _snd
 
 
 logger = diagnostico.obtener_logger(__name__)
@@ -197,23 +197,20 @@ class VentanaRestream(wx.Dialog):
     def _fallo_cuenta(self, error):
         mensaje = str(error).strip() or _("No se pudo conectar con Restream.")
         self._error_cuenta = mensaje
-        _snd.reproducir("error")
         self._actualizar_cuenta()
-        anunciar(mensaje)
+        avisar(mensaje, "error", error=True)
 
     def _fin_conectar(self):
-        _snd.reproducir("conectado")
         self._error_cuenta = ""
         self._error_destinos = ""
         self._error_perfil = ""
         self._actualizar_cuenta()
-        anunciar(_("Cuenta de Restream conectada."))
+        avisar(_("Cuenta de Restream conectada."), "conectado")
         self._pagina_eventos.reiniciar()
         self._leer_canales()
         self._leer_perfil()
 
     def _fin_desconectar(self):
-        _snd.reproducir("desconectado")
         self._error_cuenta = ""
         self._error_destinos = ""
         self._error_perfil = ""
@@ -223,7 +220,7 @@ class VentanaRestream(wx.Dialog):
         self._pagina_destinos.mostrar([])
         self._pagina_eventos.reiniciar()
         self._actualizar_cuenta()
-        anunciar(_("Cuenta de Restream desconectada."))
+        avisar(_("Cuenta de Restream desconectada."), "desconectado")
 
     def _en_hilo_principal(self, funcion, *args):
         def _envoltura():
@@ -344,9 +341,8 @@ class VentanaRestream(wx.Dialog):
     def _fallo_eliminar(self, _error):
         texto = _("No se pudo eliminar el destino. Vuelve a intentarlo.")
         self._error_destinos = texto
-        _snd.reproducir("error")
         self._actualizar_cuenta()
-        anunciar(texto)
+        avisar(texto, "error", error=True)
 
     def _destino_eliminado(self, identificador):
         self._destinos = [destino for destino in self._destinos

@@ -66,6 +66,14 @@ def _destinos():
             Canal(2, 5, "YouTube", "dos", "", True)]
 
 
+def _avisar_de(anunciar, sonar):
+    def _avisar(texto, sonido=None, *, error=False):
+        anunciar(texto)
+        if sonido:
+            sonar(sonido)
+    return _avisar
+
+
 def _esperar(prueba, limite=5.0):
     """Atiende eventos de wx hasta que se cumpla la condición o venza."""
     fin = time.monotonic() + limite
@@ -208,9 +216,10 @@ class PruebaVentanaRestream(unittest.TestCase):
 
         dialogo = self._ventana(
             cuenta=cuenta, al_conectar=conectar, canales=leer_canales)
+        sonar = mock.Mock()
         with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
-                mock.patch.object(restream_ventana._snd,
-                                  "reproducir") as sonar:
+                mock.patch.object(restream_ventana, "avisar",
+                                  _avisar_de(anunciar, sonar)):
             dialogo._conectar()
 
             self.assertIn(
@@ -260,9 +269,10 @@ class PruebaVentanaRestream(unittest.TestCase):
             raise ValueError("Credenciales rechazadas")
 
         dialogo = self._ventana(cuenta=cuenta, al_conectar=conectar)
+        sonar = mock.Mock()
         with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
-                mock.patch.object(restream_ventana._snd,
-                                  "reproducir") as sonar:
+                mock.patch.object(restream_ventana, "avisar",
+                                  _avisar_de(anunciar, sonar)):
             dialogo._conectar()
             self.assertTrue(_esperar(lambda: sonar.called))
 
@@ -281,9 +291,10 @@ class PruebaVentanaRestream(unittest.TestCase):
         dialogo = self._ventana(
             cuenta=CuentaFalsa(False),
             al_conectar=_falla_sin_mensaje)
+        sonar = mock.Mock()
         with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
-                mock.patch.object(restream_ventana._snd,
-                                  "reproducir") as sonar:
+                mock.patch.object(restream_ventana, "avisar",
+                                  _avisar_de(anunciar, sonar)):
             dialogo._conectar()
             self.assertTrue(_esperar(lambda: sonar.called))
 
@@ -301,9 +312,10 @@ class PruebaVentanaRestream(unittest.TestCase):
         dialogo = self._ventana(
             cuenta=cuenta, al_reautorizar=lambda _parada: None,
             al_desconectar=desconectar)
+        sonar = mock.Mock()
         with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
-                mock.patch.object(restream_ventana._snd,
-                                  "reproducir") as sonar:
+                mock.patch.object(restream_ventana, "avisar",
+                                  _avisar_de(anunciar, sonar)):
             dialogo._reautorizar()
             self.assertIn(
                 "Abriendo el navegador para iniciar sesión en Restream. "
@@ -339,8 +351,7 @@ class PruebaVentanaRestream(unittest.TestCase):
         dialogo = self._ventana(cuenta=cuenta, al_conectar=conectar)
         with mock.patch.object(restream_ventana.wx, "CallAfter",
                                side_effect=diferir), \
-                mock.patch.object(restream_ventana, "anunciar"), \
-                mock.patch.object(restream_ventana._snd, "reproducir"):
+                mock.patch.object(restream_ventana, "anunciar"):
             dialogo._conectar()
             self.assertTrue(_esperar(lambda: recibidas))
             wx.Yield()
@@ -359,9 +370,10 @@ class PruebaVentanaRestream(unittest.TestCase):
 
         dialogo = self._ventana(
             cuenta=CuentaFalsa(True), canales=canales)
+        sonar = mock.Mock()
         with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
-                mock.patch.object(restream_ventana._snd,
-                                  "reproducir") as sonar:
+                mock.patch.object(restream_ventana, "avisar",
+                                  _avisar_de(anunciar, sonar)):
             self.assertTrue(_esperar(
                 lambda: "No se pudieron leer los destinos."
                 in dialogo._pagina_cuenta.txt_estado.GetValue()))
@@ -766,7 +778,9 @@ class PruebaVentanaRestream(unittest.TestCase):
                 mock.patch.object(restream_acciones_destino,
                                   "anunciar") as anunciar, \
                 mock.patch.object(restream_acciones_destino._snd,
-                                  "reproducir") as sonar:
+                                  "reproducir") as sonar, \
+                mock.patch.object(restream_acciones_destino, "_avisar",
+                                  _avisar_de(anunciar, sonar)):
             pagina._activar()
             self.assertTrue(_esperar(lambda: llamadas))
             self.assertTrue(_esperar(lambda: anunciar.called))
@@ -890,11 +904,12 @@ class PruebaVentanaRestream(unittest.TestCase):
         self.assertTrue(_esperar(lambda: pagina.lista.GetCount() == 1))
         pagina.lista.SetSelection(0)
 
+        sonar = mock.Mock()
         with mock.patch.object(pagina, "confirmar", return_value=True), \
                 mock.patch.object(restream_ventana,
                                   "anunciar") as anunciar, \
-                mock.patch.object(restream_ventana._snd,
-                                  "reproducir") as sonar:
+                mock.patch.object(restream_ventana, "avisar",
+                                  _avisar_de(anunciar, sonar)):
             dialogo._eliminar_destino()
             self.assertTrue(_esperar(lambda: sonar.called))
             self.assertTrue(_esperar(lambda: anunciar.called))
@@ -986,9 +1001,10 @@ class PruebaVentanaRestream(unittest.TestCase):
             raise ValueError("sin red")
 
         destinos = [Canal(1, 5, "YouTube", "uno", "", True, "UCsesion")]
+        sonar = mock.Mock()
         with mock.patch.object(restream_ventana, "anunciar") as anunciar, \
-                mock.patch.object(restream_ventana._snd,
-                                  "reproducir") as sonar, \
+                mock.patch.object(restream_ventana, "avisar",
+                                  _avisar_de(anunciar, sonar)), \
                 self.assertLogs(restream_ventana.logger, level="WARNING"):
             dialogo = self._ventana(
                 cuenta=CuentaFalsa(True), destinos=lambda: list(destinos),

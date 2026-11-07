@@ -78,30 +78,24 @@ class TestComandosGrabacion(unittest.TestCase):
                                return_value=gestor), \
                 mock.patch.object(comandos_grabacion.diagnostico,
                                   "crear_hilo", HiloInmediato), \
-                mock.patch.object(comandos_grabacion.wx, "CallAfter",
-                                  side_effect=_llamada_inmediata), \
-                mock.patch.object(comandos_grabacion, "anunciar") as anunciar, \
-                mock.patch.object(comandos_grabacion.sound_player,
-                                  "reproducir") as sonar:
+                mock.patch.object(comandos_grabacion, "avisar") as avisar:
             funcion(SimpleNamespace())
-        return gestor, anunciar, sonar
+        return gestor, avisar
 
     def test_alternar_grabacion_inicia_y_avisa_como_el_panel(self):
-        gestor, anunciar, sonar = self._correr(
+        gestor, avisar = self._correr(
             comandos_grabacion.alternar_grabacion,
             GestorGrabacionFalso(grabando=False))
         self.assertTrue(gestor.grabando)
-        anunciar.assert_called_once_with("Grabación iniciada")
-        sonar.assert_called_once_with("grabacion_iniciada")
+        avisar.assert_called_once_with("Grabación iniciada", "grabacion_iniciada")
         self.assertTrue(gestor.cerrado)
 
     def test_alternar_grabacion_detiene_y_avisa_como_el_panel(self):
-        gestor, anunciar, sonar = self._correr(
+        gestor, avisar = self._correr(
             comandos_grabacion.alternar_grabacion,
             GestorGrabacionFalso(grabando=True))
         self.assertFalse(gestor.grabando)
-        anunciar.assert_called_once_with("Grabación detenida")
-        sonar.assert_called_once_with("grabacion_detenida")
+        avisar.assert_called_once_with("Grabación detenida", "grabacion_detenida")
         self.assertTrue(gestor.cerrado)
 
     def test_detener_con_ruta_anuncia_el_archivo_y_lo_anota(self):
@@ -111,36 +105,32 @@ class TestComandosGrabacion(unittest.TestCase):
                 grabando=True, ruta_grabacion="C:/Videos/x.mp4")
             with mock.patch.object(grabaciones.paths, "grabaciones",
                                    return_value=ruta):
-                gestor, anunciar, sonar = self._correr(
+                gestor, avisar = self._correr(
                     comandos_grabacion.alternar_grabacion, gestor)
             self.assertEqual(grabaciones.leer(ruta),
                              [{"ruta": "C:/Videos/x.mp4", "fecha": mock.ANY}])
-        anunciar.assert_called_once_with("Grabación guardada: x.mp4")
-        sonar.assert_called_once_with("grabacion_detenida")
+        avisar.assert_called_once_with("Grabación guardada: x.mp4", "grabacion_detenida")
 
     def test_pausar_avisa_y_suena_como_el_panel(self):
-        gestor, anunciar, sonar = self._correr(
+        gestor, avisar = self._correr(
             comandos_grabacion.alternar_pausa_grabacion,
             GestorGrabacionFalso(grabando=True, en_pausa=False))
         self.assertTrue(gestor.en_pausa)
-        anunciar.assert_called_once_with("Grabación en pausa")
-        sonar.assert_called_once_with("grabacion_en_pausa")
+        avisar.assert_called_once_with("Grabación en pausa", "grabacion_en_pausa")
 
     def test_reanudar_avisa_y_suena_como_el_panel(self):
-        gestor, anunciar, sonar = self._correr(
+        gestor, avisar = self._correr(
             comandos_grabacion.alternar_pausa_grabacion,
             GestorGrabacionFalso(grabando=True, en_pausa=True))
         self.assertFalse(gestor.en_pausa)
-        anunciar.assert_called_once_with("Grabación reanudada")
-        sonar.assert_called_once_with("grabacion_reanudada")
+        avisar.assert_called_once_with("Grabación reanudada", "grabacion_reanudada")
 
     def test_pausar_sin_grabacion_avisa_y_no_toca_obs(self):
-        gestor, anunciar, sonar = self._correr(
+        gestor, avisar = self._correr(
             comandos_grabacion.alternar_pausa_grabacion,
             GestorGrabacionFalso(grabando=False))
         self.assertEqual(gestor.llamadas, ["conectar", "estado_grabacion"])
-        anunciar.assert_called_once_with("No hay ninguna grabación en curso.")
-        sonar.assert_called_once_with("error")
+        avisar.assert_called_once_with("No hay ninguna grabación en curso.", "error", error=True)
 
     def test_pausa_sin_cambio_avisa_el_fallo_segun_el_estado(self):
         casos = (
@@ -153,10 +143,9 @@ class TestComandosGrabacion(unittest.TestCase):
                                               en_pausa=en_pausa)
                 gestor.alternar_pausa_grabacion = mock.Mock(
                     return_value=(None, en_pausa))
-                gestor, anunciar, sonar = self._correr(
+                gestor, avisar = self._correr(
                     comandos_grabacion.alternar_pausa_grabacion, gestor)
-                anunciar.assert_called_once_with(frase)
-                sonar.assert_called_once_with("error")
+                avisar.assert_called_once_with(frase, "error", error=True)
 
     def test_si_cerrar_falla_igual_avisa_el_resultado(self):
         gestor = GestorGrabacionFalso(grabando=False)
@@ -167,10 +156,9 @@ class TestComandosGrabacion(unittest.TestCase):
 
         gestor.cerrar = cerrar
         with self.assertLogs(comandos_grabacion.logger, level="DEBUG"):
-            gestor, anunciar, sonar = self._correr(
+            gestor, avisar = self._correr(
                 comandos_grabacion.alternar_grabacion, gestor)
-        anunciar.assert_called_once_with("Grabación iniciada")
-        sonar.assert_called_once_with("grabacion_iniciada")
+        avisar.assert_called_once_with("Grabación iniciada", "grabacion_iniciada")
         self.assertTrue(gestor.cerrado)
 
     def test_sin_obs_avisa_su_mensaje_y_no_lo_abre(self):
@@ -180,12 +168,12 @@ class TestComandosGrabacion(unittest.TestCase):
                 error = obs_cliente.ObsError("No se pudo conectar con OBS.")
                 with mock.patch(
                         "guyrapu.obs.obs_lanzador.asegurar_obs") as asegurar:
-                    gestor, anunciar, sonar = self._correr(
+                    gestor, avisar = self._correr(
                         funcion, GestorGrabacionFalso(fallo=error))
                 asegurar.assert_not_called()
-                anunciar.assert_called_once_with(
-                    obs_cliente.mensaje_de_fallo_obs(error))
-                sonar.assert_called_once_with("error")
+                avisar.assert_called_once_with(
+                    obs_cliente.mensaje_de_fallo_obs(error), "error",
+                    error=True)
                 self.assertTrue(gestor.cerrado)
 
     def test_la_interfaz_no_espera_a_obs(self):

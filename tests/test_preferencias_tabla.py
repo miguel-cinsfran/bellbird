@@ -1,6 +1,6 @@
 """Pruebas de la tabla de opciones simples de Preferencias.
 
-La lista de 48 va literal en este módulo, no se lee de la tabla nueva:
+La lista de 52 va literal en este módulo, no se lee de la tabla nueva:
 así protege la tabla en vez de repetirla.
 """
 
@@ -30,6 +30,7 @@ OPCIONES_ESPERADAS = [
     ("chk_botones_rep", "ui", "mostrar_botones_reproductor", "mostrar_botones_reproductor", bool),
     ("sp_cache_video", "ui", "cache_video_mb", "cache_video_mb", int),
     ("cho_idioma", "ui", "idioma", "idioma", str),
+    ("chk_avisos_cuadro", "ui", "avisos_cuadro", "avisos_cuadro", bool),
     ("chk_emojis", "texto", "limpiar_emojis", "limpiar_emojis", bool),
     ("chk_urls", "texto", "eliminar_urls", "eliminar_urls", bool),
     ("cho_evento_superchat", "eventos", "superchat", "evento_superchat", str),
@@ -132,9 +133,9 @@ class TestTablaOpcionesSimples(unittest.TestCase):
 
     def test_tabla_tiene_51_filas_sin_repetir_y_cada_atributo_existe(self):
         tabla = gui_preferencias._OPCIONES_SIMPLES
-        self.assertEqual(len(tabla), 51)
+        self.assertEqual(len(tabla), 52)
         atributos = [fila[0] for fila in tabla]
-        self.assertEqual(len(set(atributos)), 51)
+        self.assertEqual(len(set(atributos)), 52)
         dialogo = self._dialogo()
         for atributo in atributos:
             with self.subTest(atributo=atributo):

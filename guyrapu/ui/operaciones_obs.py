@@ -8,6 +8,7 @@ from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.obs import obs_cliente
 from guyrapu.ui.accesibilidad import anunciar
+from guyrapu.ui import aviso_importante
 from guyrapu.voice import sound_player
 
 logger = diagnostico.obtener_logger(__name__)
@@ -64,8 +65,11 @@ class OperacionesObs:
             return
         self._activar(False)
         self._escribir_fallo(mensaje)
-        sound_player.reproducir("error")
-        anunciar(mensaje)
+        if aviso_importante._casilla_activa():
+            aviso_importante.avisar(mensaje, "error", error=True)
+        else:
+            sound_player.reproducir("error")
+            anunciar(mensaje)
         self._enfocar_tras_fallo()
 
     def cerrar(self):

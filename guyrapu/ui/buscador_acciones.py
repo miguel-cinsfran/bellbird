@@ -14,6 +14,7 @@ import wx
 from guyrapu.core import diagnostico
 from guyrapu.core.config import APP_NAME
 from guyrapu.core.idioma import _
+from guyrapu.ui.aviso_importante import avisar
 from guyrapu.ui.gui import anunciar, copiar_al_portapapeles
 from guyrapu.voice import sound_player as _snd
 
@@ -93,11 +94,7 @@ def anunciar_agregados(cuantos, titulo=None, hay_turno=True) -> None:
     """Avisa lo que pasó al agregar, si entró algo, con su sonido."""
     if not cuantos:
         return
-    anunciar(texto_agregados(cuantos, titulo, hay_turno))
-    try:
-        _snd.reproducir("descarga_encolada")
-    except Exception as error:
-        logger.debug("sin sonido: %s", error)
+    avisar(texto_agregados(cuantos, titulo, hay_turno), "descarga_encolada")
 
 
 def titulo_para_anunciar(resultados):

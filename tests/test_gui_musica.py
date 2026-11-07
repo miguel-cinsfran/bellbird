@@ -147,6 +147,12 @@ def _entorno(fabrica=None):
     snd = _SndFalso()
     creados = []
     programador = _ProgramadorFalso()
+    anunciar = mock.Mock()
+
+    def _avisar(texto, sonido=None, *, error=False):
+        anunciar(texto)
+        if sonido:
+            snd.reproducir(sonido)
 
     def fabrica_por_defecto(**kwargs):
         adaptador = _AdaptadorFalso(**kwargs)
@@ -166,7 +172,8 @@ def _entorno(fabrica=None):
                 mock.patch.object(gui_musica.wx, "CallLater", programador), \
                 mock.patch.object(gui_musica.anuncio_ajuste, "COMPARTIDO",
                                    gui_musica.anuncio_ajuste.AnuncioAjuste()), \
-                mock.patch.object(gui_musica, "anunciar") as anunciar, \
+                mock.patch.object(gui_musica, "anunciar", anunciar), \
+                mock.patch.object(gui_musica, "avisar", _avisar), \
                 mock.patch.object(musica_memoria.paths, "estado_musica",
                                    return_value=ruta_memoria), \
                 mock.patch.object(musica_indice.paths, "cache_etiquetas_musica",

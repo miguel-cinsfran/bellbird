@@ -79,7 +79,7 @@ def _armar(opcion, cuenta, perfil, canales=None, escritor=None):
         canales = cuenta.canales()
     anuncios = []
     preparar, restaurar = ganchos.armar(
-        opcion, lambda frase, sonido: anuncios.append((frase, sonido)),
+        opcion, lambda frase, sonido, importante=False: anuncios.append((frase, sonido)),
         canales, cuenta_mod=cuenta, perfiles=[perfil],
         escribir=escritor or EscritorFalso())
     return preparar, restaurar, anuncios
@@ -250,7 +250,7 @@ class TestAvisos(unittest.TestCase):
         anuncios = []
         contexto = ganchos.Contexto(destino="Restream")
         anunciar = ganchos.envolver_anunciar(
-            lambda frase, sonido: anuncios.append((frase, sonido)), contexto)
+            lambda frase, sonido, importante=False: anuncios.append((frase, sonido)), contexto)
 
         anunciar("OBS está enviando la señal a Restream.", "conectado")
 
@@ -261,7 +261,7 @@ class TestAvisos(unittest.TestCase):
         anuncios = []
         contexto = ganchos.Contexto(destino="TikTok")
         anunciar = ganchos.envolver_anunciar(
-            lambda frase, sonido: anuncios.append((frase, sonido)), contexto)
+            lambda frase, sonido, importante=False: anuncios.append((frase, sonido)), contexto)
 
         anunciar("OBS está enviando la señal a Restream.", "conectado")
 
@@ -273,7 +273,7 @@ class TestAvisos(unittest.TestCase):
         anuncios = []
         contexto = ganchos.Contexto()
         anunciar = ganchos.envolver_anunciar(
-            lambda frase, sonido: anuncios.append((frase, sonido)), contexto)
+            lambda frase, sonido, importante=False: anuncios.append((frase, sonido)), contexto)
 
         anunciar("Creando el directo en YouTube.", None)
         anunciar("Preparando Restream para Uno.", "conectando")
@@ -317,7 +317,7 @@ class TestSupervisarRestream(unittest.TestCase):
                                return_value=[perfil]), \
                 mock.patch.object(
                     ganchos, "_anunciar_de_frame",
-                    return_value=lambda frase, sonido:
+                    return_value=lambda frase, sonido, importante=False:
                     anuncios.append((frase, sonido))), \
                 mock.patch.object(
                     ganchos, "_en_interfaz",

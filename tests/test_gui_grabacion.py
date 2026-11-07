@@ -12,7 +12,6 @@ from guyrapu.ui import control_grabacion
 from guyrapu.ui import gui_grabaciones
 from guyrapu.ui import gui_transmitir
 from guyrapu.ui import obs_ventana
-from guyrapu.ui import operaciones_obs
 from tests.test_gui_transmision import GestorFalso, HiloInmediato
 from tests.ventanas_prueba import app_de_prueba, destruir
 
@@ -54,6 +53,14 @@ def setUpModule():
     _APP = app_de_prueba()
 
 
+def _avisar_de(anunciar, sonar):
+    def _avisar(texto, sonido=None, *, error=False):
+        anunciar(texto)
+        if sonido:
+            sonar(sonido)
+    return _avisar
+
+
 def _asegurar_obs(probar_conexion, al_anunciar=None, parada=None):
     return probar_conexion()
 
@@ -71,6 +78,7 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
     def setUp(self):
         self.app = app_de_prueba()
         self.anuncios = []
+        self.sonar = mock.Mock()
 
         def anunciar(texto, categoria=""):
             self.anuncios.append(texto)
@@ -82,10 +90,8 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
             mock.patch.object(obs_ventana.obs_lanzador, "asegurar_obs",
                               _asegurar_sin_conectar),
             mock.patch.object(obs_ventana, "anunciar", anunciar),
-            mock.patch.object(operaciones_obs, "anunciar", anunciar),
-            mock.patch.object(operaciones_obs.sound_player, "reproducir"),
-            mock.patch.object(control_grabacion, "anunciar", anunciar),
-            mock.patch.object(control_grabacion.sound_player, "reproducir"),
+            mock.patch.object(control_grabacion, "_avisar",
+                              _avisar_de(anunciar, self.sonar)),
             mock.patch.object(gui_grabaciones.grabaciones, "existentes",
                               return_value=[]),
         ]
@@ -190,12 +196,12 @@ class TestPanelObsEnGrabacion(unittest.TestCase):
 
     def test_los_botones_suenan_y_anuncian_como_el_panel(self):
         self._pulsar(self.dialogo._pagina_grabacion._grabacion.boton)
-        control_grabacion.sound_player.reproducir.assert_called_with(
+        self.sonar.assert_called_with(
             "grabacion_iniciada")
         self.assertIn("Grabación iniciada", self.anuncios)
-        control_grabacion.sound_player.reproducir.reset_mock()
+        self.sonar.reset_mock()
         self._pulsar(self.dialogo._pagina_grabacion._grabacion.pausar)
-        control_grabacion.sound_player.reproducir.assert_called_with(
+        self.sonar.assert_called_with(
             "grabacion_en_pausa")
         self.assertIn("Grabación en pausa", self.anuncios)
 

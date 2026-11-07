@@ -208,7 +208,7 @@ class EnvolverEsperarSalidaTest(unittest.TestCase):
 
         grabacion = GrabacionAlTransmitir(
             activa=lambda: activa,
-            al_anunciar=lambda frase, sonido: anuncios.append((frase, sonido)),
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append((frase, sonido)),
             crear_gestor=crear_gestor)
         return grabacion, registro, creados, anuncios
 
@@ -313,7 +313,7 @@ class EnvolverCrearGestorTest(unittest.TestCase):
 
         grabacion = GrabacionAlTransmitir(
             activa=lambda: True,
-            al_anunciar=lambda frase, sonido: anuncios.append((frase, sonido)),
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append((frase, sonido)),
             crear_gestor=crear_gestor)
         return grabacion, registro, creados, anuncios
 
@@ -454,11 +454,11 @@ class CableadoSupervisorTest(unittest.TestCase):
 
         grabacion = GrabacionAlTransmitir(
             activa=lambda: grabar,
-            al_anunciar=lambda frase, sonido: anuncios.append((frase, sonido)),
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append((frase, sonido)),
             crear_gestor=crear_obs)
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append((frase, sonido)),
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append((frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=grabacion.envolver_crear_gestor(crear_obs),
             esperar_salida=grabacion.envolver_esperar_salida(
@@ -517,7 +517,7 @@ class TestPseudoTextos(unittest.TestCase):
 
         grabacion = GrabacionAlTransmitir(
             activa=lambda: True,
-            al_anunciar=lambda frase, sonido: anuncios.append((frase, sonido)),
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append((frase, sonido)),
             crear_gestor=crear_gestor)
         with con_pseudo():
             envoltura = grabacion.envolver_esperar_salida(

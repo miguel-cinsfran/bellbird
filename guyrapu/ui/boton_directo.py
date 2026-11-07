@@ -19,6 +19,7 @@ from guyrapu.obs import transmision_directa
 from guyrapu.obs.obs_panel import GestorPanelObs
 from guyrapu.restream import ganchos, transmitir
 from guyrapu.ui.accesibilidad import anunciar
+from guyrapu.ui.aviso_importante import avisar
 from guyrapu.ui.confirmar_transmision import (
     confirmar_finalizar, confirmar_transmision)
 from guyrapu.ui.tema import _T, _pintar
@@ -103,8 +104,8 @@ class BotonDirecto:
                 logger.warning("no se pudo guardar el usuario de TikTok: %s", error)
         if transmitir.es_restream(destino):
             if not ganchos.cuenta_conectada():
-                _snd.reproducir("transmision_problema")
-                anunciar(_(ganchos.MENSAJE_SIN_CUENTA))
+                avisar(_(ganchos.MENSAJE_SIN_CUENTA), "transmision_problema",
+                       error=True)
                 return
         _snd.reproducir("conectando")
         anunciar(_("Revisando OBS antes de transmitir."))
@@ -129,8 +130,7 @@ class BotonDirecto:
         if not self._marco._alive:
             return
         self.boton.Enable()
-        _snd.reproducir("error")
-        anunciar(obs_cliente.mensaje_de_fallo_obs(error))
+        avisar(obs_cliente.mensaje_de_fallo_obs(error), "error", error=True)
 
     def _revision_lista(self, preparacion, destino, destino_obs, usuario):
         marco = self._marco
@@ -234,19 +234,16 @@ class BotonDirecto:
         if not marco._alive:
             return
         marco._obs_transmitiendo = False
-        _snd.reproducir("desconectado")
-        anunciar(_("Transmisión detenida."))
+        avisar(_("Transmisión detenida."), "desconectado")
         marco._actualizar_boton_directo()
 
     def _finalizada_con_error(self, error):
         if not self._marco._alive:
             return
         if isinstance(error, transmision_directa.FalloCierreYoutube):
-            _snd.reproducir("error")
-            anunciar(str(error))
+            avisar(str(error), "error", error=True)
             logger.warning(
                 "cierre en YouTube sin supervisor: %s",
                 error.__cause__ or error)
             return
-        _snd.reproducir("error")
-        anunciar(obs_cliente.mensaje_de_fallo_obs(error))
+        avisar(obs_cliente.mensaje_de_fallo_obs(error), "error", error=True)

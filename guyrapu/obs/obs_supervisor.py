@@ -197,7 +197,7 @@ class SupervisorTransmision:
                 # sigue sin responder.
                 activa = True
             if not activa:
-                self._anunciar(_("Transmisión detenida."), "transmision_detenida")
+                self._anunciar(_("Transmisión detenida."), "transmision_detenida", True)
                 return
             try:
                 gestor.detener_transmision()
@@ -219,7 +219,7 @@ class SupervisorTransmision:
                 self._anunciar_obs_sin_respuesta(error)
                 return
             if not activa:
-                self._anunciar(_("Transmisión detenida."), "transmision_detenida")
+                self._anunciar(_("Transmisión detenida."), "transmision_detenida", True)
                 return
             transcurrido = self._reloj() - inicio
             if not avisado and transcurrido >= AVISO_ESPERA_OBS:
@@ -229,7 +229,7 @@ class SupervisorTransmision:
             if transcurrido >= LIMITE_ESPERA_OBS:
                 self._anunciar(
                     _("OBS sigue transmitiendo. Detén la transmisión en OBS."),
-                    "transmision_problema")
+                    "transmision_problema", True)
                 return
             self._dormir(INTERVALO_ESPERA_OBS)
 
@@ -243,9 +243,9 @@ class SupervisorTransmision:
         if corre:
             self._anunciar(
                 _("No se pudo conectar con OBS para detener la transmisión."),
-                "transmision_problema")
+                "transmision_problema", True)
         else:
-            self._anunciar(_("Transmisión detenida."), "transmision_detenida")
+            self._anunciar(_("Transmisión detenida."), "transmision_detenida", True)
 
     def _cerrar_gestor(self, gestor) -> None:
         if gestor is None:
@@ -273,9 +273,10 @@ class SupervisorTransmision:
         else:
             self._dormir(segundos)
 
-    def _anunciar(self, frase, sonido) -> None:
+    def _anunciar(self, frase, sonido, importante=False) -> None:
         self._ultima_frase = frase if isinstance(frase, str) else ""
-        self._al_anunciar(frase, sonido)
+        marcado = importante or "YouTube no confirmó el fin" in (frase if isinstance(frase, str) else "")
+        self._al_anunciar(frase, sonido, marcado)
 
     def _panel_tapado(self, gestor):
         # Los dobles viejos de las pruebas no tienen el método y se salta.
@@ -335,7 +336,7 @@ class SupervisorTransmision:
                     self._id_video = self._preparar_emision(
                         cliente, self._parada)
                 except emision.EmisionError as error:
-                    self._anunciar(str(error), "transmision_problema")
+                    self._anunciar(str(error), "transmision_problema", True)
                     return
             nombre = self._panel_tapado(gestor)
             if nombre:
@@ -348,7 +349,7 @@ class SupervisorTransmision:
                 return
             frase = obs_salida.frase_salida(veredicto, self._destino)
             if veredicto != "enviando":
-                self._anunciar(frase, "transmision_problema")
+                self._anunciar(frase, "transmision_problema", True)
                 return
             self._anunciar(frase, "conectado")
             if self._destino == "TikTok" and self._usuario:
@@ -366,8 +367,7 @@ class SupervisorTransmision:
             if self._parada.is_set():
                 return
             try:
-                self._anunciar(
-                    obs_cliente.mensaje_de_fallo_obs(error), "transmision_problema")
+                self._anunciar(obs_cliente.mensaje_de_fallo_obs(error), "transmision_problema", True)
             except Exception as error_anuncio:
                 logger.debug("no se pudo anunciar el fallo de OBS: %s", error_anuncio)
         finally:
@@ -391,12 +391,12 @@ class SupervisorTransmision:
             return False
         if resultado.en_vivo:
             self._destino_confirmado = True
-            self._anunciar(_("Directo iniciado en TikTok"), "al_aire")
+            self._anunciar(_("Directo iniciado en TikTok"), "al_aire", True)
             self._al_conectar_chat(
                 tiktok_vivo.url_directo(self._usuario))
         else:
             self._destino_confirmado = False
-            self._anunciar(*tiktok_vivo.aviso_espera(resultado, self._usuario))
+            self._anunciar(*tiktok_vivo.aviso_espera(resultado, self._usuario), importante=True)
         return True
 
     def _confirmar_youtube(self) -> bool:
@@ -407,13 +407,13 @@ class SupervisorTransmision:
             return False
         if ok:
             self._destino_confirmado = True
-            self._anunciar(_("Directo iniciado en YouTube"), "al_aire")
+            self._anunciar(_("Directo iniciado en YouTube"), "al_aire", True)
             self._al_conectar_chat(
                 emision.url_video(self._id_video))
         else:
             self._destino_confirmado = False
             self._anunciar(_("OBS está transmitiendo, pero YouTube todavía no muestra "
-                             "el directo."), "transmision_problema")
+                             "el directo."), "transmision_problema", True)
         return True
 
     def _finalizar_youtube_si_toca(self) -> None:

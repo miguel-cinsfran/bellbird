@@ -132,7 +132,7 @@ class BaseSupervisor(unittest.TestCase):
 
         supervisor = SupervisorTransmision(
             destino, usuario,
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=chats.append,
             crear_gestor=crear_gestor,
@@ -389,7 +389,7 @@ class ReconexionPorEstadoRealTest(unittest.TestCase):
         anuncios = []
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=lambda: obs_panel.GestorPanelObs(cliente),
@@ -562,7 +562,7 @@ class DetenerTest(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
@@ -618,7 +618,7 @@ class DetenerRapidoTest(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
@@ -668,7 +668,7 @@ class DeteniendoTest(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: None,
+            al_anunciar=lambda frase, sonido, importante=False: None,
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
             esperar_salida=lambda cliente, parada=None: "enviando",
@@ -692,7 +692,7 @@ class DeteniendoTest(BaseSupervisor):
         terminados = []
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: None,
+            al_anunciar=lambda frase, sonido, importante=False: None,
             al_conectar_chat=lambda url: None,
             crear_gestor=lambda: GestorFalso([muestra(False)]),
             esperar_salida=lambda cliente, parada=None: "enviando",
@@ -719,7 +719,7 @@ class AbandonarTest(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
@@ -855,7 +855,7 @@ class AlTerminarTest(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: None,
+            al_anunciar=lambda frase, sonido, importante=False: None,
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
             esperar_salida=lambda cliente, parada=None: "enviando",
@@ -1020,7 +1020,7 @@ class YouTubeEmisionTest(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=chats.append,
             crear_gestor=crear_gestor,
@@ -1117,7 +1117,7 @@ class FinalizarYoutubeTest(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
@@ -1217,7 +1217,7 @@ class FinalizarYoutubeTest(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "TikTok", "amigo",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
@@ -1289,7 +1289,7 @@ class PanelAdelanteTest(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
@@ -1339,7 +1339,7 @@ class PanelAdelanteTest(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
@@ -1372,7 +1372,7 @@ class EsperaObsTest(unittest.TestCase):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
@@ -1482,7 +1482,7 @@ class FinPendienteTest(unittest.TestCase):
         reloj = RelojFalso()
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=lambda: GestorFalso([muestra(False)]),
@@ -1618,7 +1618,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=crear_gestor,
@@ -1635,7 +1635,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
         reloj = RelojFalso()
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=lambda url: None,
             crear_gestor=lambda: GestorFalso([muestra(False)]),
@@ -1663,7 +1663,7 @@ class TestPseudoAnunciosSupervisor(BaseSupervisor):
 
         supervisor = SupervisorTransmision(
             "YouTube", "",
-            al_anunciar=lambda frase, sonido: anuncios.append(
+            al_anunciar=lambda frase, sonido, importante=False: anuncios.append(
                 (frase, sonido)),
             al_conectar_chat=chats.append,
             crear_gestor=crear_gestor,

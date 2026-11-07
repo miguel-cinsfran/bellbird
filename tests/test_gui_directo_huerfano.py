@@ -246,6 +246,9 @@ class TestPseudoAnunciosHuerfano(unittest.TestCase):
         self.captados = []
         parches = [
             mock.patch.object(huerfano, "anunciar", self.captados.append),
+            mock.patch.object(huerfano, "avisar",
+                              lambda texto, sonido=None, **k:
+                              self.captados.append(texto)),
             mock.patch.object(huerfano._snd, "reproducir"),
         ]
         for parche in parches:

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 from guyrapu.core.idioma import _
 from guyrapu.restream import transmitir
+from guyrapu.ui.aviso_importante import avisar
 
 
 def cambiar_overlay(frame, encender):
@@ -211,6 +212,17 @@ def _deteniendo(supervisor) -> bool:
     return getattr(supervisor, "deteniendo", False) is True
 
 
+def _decir_anuncio(frame, frase, sonido, importante):
+    from guyrapu.ui import gui as _gui
+    if not frame._alive:
+        return
+    if importante:
+        return avisar(frase, sonido,
+                      error=sonido in ("error", "transmision_problema"))
+    _gui._snd.reproducir(sonido)
+    _gui.anunciar(frase)
+
+
 def _parametros_supervisor(frame, al_anunciar):
     """Arma los enganches del supervisor que leen la configuración del frame."""
     from guyrapu.obs import obs_grabacion, obs_salida
@@ -316,7 +328,7 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                     ninos=guardados.get("ninos", False),
                     dvr=guardados.get("dvr", True))
             except emision.EmisionError as exc:
-                _gui.anunciar(str(exc))
+                avisar(str(exc), error=True)
                 return
             extras = {"categoria": guardados.get("categoria", ""),
                       "etiquetas": guardados.get("etiquetas", []),
@@ -334,14 +346,8 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
         from guyrapu.obs.obs_supervisor import SupervisorTransmision
         from guyrapu.core import paths
 
-        def al_anunciar(frase, sonido):
-            def _decir():
-                if not frame._alive:
-                    return
-                if sonido:
-                    _gui._snd.reproducir(sonido)
-                _gui.anunciar(frase)
-            _gui.wx.CallAfter(_decir)
+        def al_anunciar(frase, sonido, importante=False):
+            _gui.wx.CallAfter(lambda: _decir_anuncio(frame, frase, sonido, importante))
 
         def al_conectar_chat(url):
             def _conectar():

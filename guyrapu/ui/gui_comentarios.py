@@ -23,6 +23,7 @@ from guyrapu.voice import sound_player as _snd
 from guyrapu.capture import redaccion
 from guyrapu.ui.gui_redactar import DialogoRedactar
 from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
+from guyrapu.ui.aviso_importante import avisar
 from guyrapu.ui.busqueda_teclado import instalar_busqueda_tipo
 from guyrapu.ui.gui import copiar_al_portapapeles
 from guyrapu.ui.tema import _T, _tc, _pintar
@@ -438,8 +439,7 @@ class ComentariosPanel(wx.Panel):
         diagnostico.crear_hilo(_run, "ComentarAPI").start()
 
     def _escritura_ok(self, mensaje):
-        _snd.reproducir("comentario")
-        anunciar(_("{mensaje}. Recuerda que YouTube puede tardar o retenerlo.").format(mensaje=mensaje))
+        avisar(_("{mensaje}. Recuerda que YouTube puede tardar o retenerlo.").format(mensaje=mensaje), "comentario")
 
     def _escritura_err(self, exc):
         if youtube_api.sesion_caducada(exc):

@@ -16,6 +16,7 @@ from guyrapu.downloads.busqueda_youtube import (
 from guyrapu.downloads.textos_busqueda import texto_detalles
 from guyrapu.downloads import busquedas_recientes
 from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
+from guyrapu.ui.aviso_importante import avisar
 from guyrapu.ui import buscador_acciones, buscador_escucha
 from guyrapu.ui.buscador_acciones import AccionesResultado
 from guyrapu.ui import buscador_contenido
@@ -290,8 +291,7 @@ class PaginaBuscador(wx.Panel):
                     if 0 <= i < len(self._resultados)]
         urls, rechazos = buscador_acciones.reparto_para_agregar(elegidos)
         for mensaje in rechazos:
-            buscador_tandas.sonar("error")
-            anunciar(mensaje)
+            avisar(mensaje, "error", error=True)
         if urls:
             self._agregar_urls(urls, titulo=buscador_acciones.titulo_para_anunciar(elegidos))
 

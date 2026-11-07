@@ -138,21 +138,26 @@ def armar(opcion, al_anunciar, canales, cuenta_mod=None, perfiles=None,
 
 def envolver_anunciar(al_anunciar, contexto):
     """Ajusta los avisos del supervisor para un perfil de Restream."""
-    def anunciar(frase, sonido):
+    def anunciar(frase, sonido, importante=False):
         if not sonido and frase == _("Creando el directo en YouTube."):
             return
-        al_anunciar(frase, sonido)
+        al_anunciar(frase, sonido, importante)
         if contexto.destino == "Restream" and sonido == "conectado":
-            al_anunciar(_(MENSAJE_NO_TIKTOK), "al_aire")
+            al_anunciar(_(MENSAJE_NO_TIKTOK), "al_aire", True)
     return anunciar
 
 
 def _anunciar_de_frame(frame):
-    def al_anunciar(frase, sonido):
+    def al_anunciar(frase, sonido, importante=False):
         from guyrapu.ui import gui as _gui
+        from guyrapu.ui.aviso_importante import avisar
 
         def _decir():
             if not getattr(frame, "_alive", True):
+                return
+            if importante:
+                avisar(frase, sonido,
+                       error=sonido in ("error", "transmision_problema"))
                 return
             if sonido:
                 _gui._snd.reproducir(sonido)
@@ -246,14 +251,14 @@ def supervisar_restream(frame, opcion, revision=None, cuenta_mod=None) -> None:
     modulo_cuenta = cuenta_mod or _cuenta()
     if not cuenta_conectada(modulo_cuenta):
         _anunciar_de_frame(frame)(_(MENSAJE_SIN_CUENTA),
-                                  "transmision_problema")
+                                  "transmision_problema", True)
         return
     lista = cargar_perfiles()
     perfil = transmitir.perfil_de_opcion(opcion, lista)
     if perfil is None:
         _anunciar_de_frame(frame)(
             _("Elige primero a dónde transmitir, en Transmitir a."),
-            "transmision_problema")
+            "transmision_problema", True)
         return
     diagnostico.crear_hilo(
         lambda: _leer_canales(frame, modulo_cuenta, opcion, lista, perfil),

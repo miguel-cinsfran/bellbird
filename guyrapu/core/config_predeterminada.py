@@ -77,6 +77,7 @@ _ORDEN: list[tuple[str, list[tuple[str, str]]]] = [
         ("confirmar_salida", "true"),
         ("sonido_inicio", "true"),
         ("idioma", "windows"),
+        ("avisos_cuadro", "false"),
     ]),
     ("sesion", [
         ("silenciar_lectura", "false"),
@@ -240,6 +241,7 @@ _COMENTARIOS: dict[str, str] = {
         "# confirmar_salida pregunta antes de salir con chat o\n"
         "# transmisión en curso; sonido_inicio suena al arrancar.\n"
         "# idioma: windows o un código (es, en); se aplica al reiniciar.\n"
+        "# avisos_cuadro muestra también en un cuadro los resultados importantes.\n"
     ),
     "sesion": "# Silenciar lectura al arrancar.\n",
     "tiktok": "# Usuario de TikTok. Los avisos de cada evento van en [eventos].\n",

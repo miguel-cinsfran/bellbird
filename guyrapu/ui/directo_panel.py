@@ -15,11 +15,21 @@ from guyrapu.obs import obs_estado
 from guyrapu.obs import transmision_directa
 from guyrapu.restream import ganchos, transmitir
 from guyrapu.ui.accesibilidad import anunciar
+from guyrapu.ui import aviso_importante
 from guyrapu.ui.confirmar_transmision import (
     confirmar_finalizar, confirmar_transmision)
 from guyrapu.voice import sound_player
 
 logger = diagnostico.obtener_logger(__name__)
+
+
+def _avisar(frase, sonido, *, error=False):
+    """Avisa por el camino central, o por el local si el cuadro está apagado."""
+    if aviso_importante._casilla_activa():
+        aviso_importante.avisar(frase, sonido, error=error)
+        return
+    sound_player.reproducir(sonido)
+    anunciar(frase)
 
 
 class DirectoPanel:
@@ -89,8 +99,8 @@ class DirectoPanel:
         if not transmitir.es_restream(opcion):
             return self._normalizar_usuario(opcion, usuario)
         if not ganchos.cuenta_conectada():
-            sound_player.reproducir("transmision_problema")
-            anunciar(_(ganchos.MENSAJE_SIN_CUENTA))
+            _avisar(_(ganchos.MENSAJE_SIN_CUENTA), "transmision_problema",
+                    error=True)
             return None
         return ""
 
@@ -129,7 +139,7 @@ class DirectoPanel:
             self._mostrar_transmision(False)
             return
         if decision == transmision_directa.FALTA_DESTINO:
-            anunciar(_("Elige primero a dónde transmitir, en Transmitir a."))
+            _avisar(_("Elige primero a dónde transmitir, en Transmitir a."), "transmision_problema", error=True)
             return
         if decision == transmision_directa.FALTA_USUARIO:
             anunciar(_("Escribe tu usuario de TikTok en Usuario de TikTok."))
@@ -202,8 +212,8 @@ class DirectoPanel:
     def _transmision_alternada(self, activa) -> None:
         self._mostrar_transmision(activa)
         accion = "transmision_iniciada" if activa else "transmision_detenida"
-        sound_player.reproducir(obs_estado.sonido_resultado(accion))
-        anunciar(obs_estado.frase_resultado(accion))
+        _avisar(obs_estado.frase_resultado(accion),
+                obs_estado.sonido_resultado(accion))
 
     def _finalizar(self) -> None:
         if not confirmar_finalizar(self._ventana):
@@ -229,8 +239,7 @@ class DirectoPanel:
 
     def _finalizada(self, _resultado) -> None:
         self._mostrar_transmision(False)
-        sound_player.reproducir("desconectado")
-        anunciar(_("Transmisión detenida."))
+        _avisar(_("Transmisión detenida."), "desconectado")
 
     def _al_temporizador(self, event) -> None:
         if not self._deteniendo:

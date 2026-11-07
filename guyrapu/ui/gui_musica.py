@@ -26,6 +26,7 @@ from guyrapu.music.transporte import (
 from guyrapu.music.normalizado import Normalizado
 from guyrapu.ui import atajos_globales
 from guyrapu.ui.accesibilidad import anunciar
+from guyrapu.ui.aviso_importante import avisar
 from guyrapu.ui.musica_cola import ColaMusica
 from guyrapu.ui.musica_enlaces import EnlacesMusica
 from guyrapu.ui.musica_indice import IndiceMusica, TEXTO_CARPETA_INEXISTENTE
@@ -392,11 +393,10 @@ class ControlMusica(ColaMusica, EnlacesMusica, IndiceMusica, SonoridadMusica,
     def _avisar(self, aviso) -> None:
         if aviso is None:
             return
+        if aviso.importante:
+            return avisar(aviso.texto, aviso.sonido)
         if aviso.sonido:
-            try:
-                _snd.reproducir(aviso.sonido)
-            except Exception:
-                logger.debug("No se pudo reproducir el sonido %s", aviso.sonido)
+            _snd.reproducir(aviso.sonido)
         if aviso.texto:
             anunciar(aviso.texto)
 

@@ -15,6 +15,7 @@ from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.ui import confirmar
 from guyrapu.ui.accesibilidad import anunciar
+from guyrapu.ui.aviso_importante import avisar
 from guyrapu.ui.tema import _T, _tc
 from guyrapu.voice import sound_player as _snd
 
@@ -132,8 +133,7 @@ class SeccionClaveIA:
         problema = opciones_ia.problema_de_clave(
             self._proveedor_actual(), clave)
         if problema:
-            _snd.reproducir("ia_error")
-            anunciar(problema)
+            avisar(problema, "ia_error", error=True)
             self.txt_clave.SetFocus()
             return
         proveedor = self._proveedor_actual()
@@ -141,8 +141,8 @@ class SeccionClaveIA:
             claves.guardar(proveedor.id, clave)
         except Exception as exc:
             logger.warning("IA: no se pudo guardar la clave: %s", exc)
-            _snd.reproducir("ia_error")
-            anunciar(opciones_ia.TEXTO_CLAVE_NO_GUARDADA)
+            avisar(opciones_ia.TEXTO_CLAVE_NO_GUARDADA, "ia_error",
+                   error=True)
             return
         self.txt_clave.SetValue("")
         self._escribiendo = False
@@ -165,8 +165,8 @@ class SeccionClaveIA:
             claves.borrar(proveedor.id)
         except Exception as exc:
             logger.warning("IA: no se pudo borrar la clave: %s", exc)
-            _snd.reproducir("ia_error")
-            anunciar(opciones_ia.TEXTO_CLAVE_NO_BORRADA)
+            avisar(opciones_ia.TEXTO_CLAVE_NO_BORRADA, "ia_error",
+                   error=True)
             return
         self.txt_clave.SetValue("")
         self._escribiendo = False

@@ -15,6 +15,14 @@ def _llamada_inmediata(funcion, *args, **kwargs):
     return funcion(*args, **kwargs)
 
 
+def _avisar_de(anunciar, sonar):
+    def _avisar(texto, sonido=None, *, error=False):
+        anunciar(texto)
+        if sonido:
+            sonar(sonido)
+    return _avisar
+
+
 class HiloInmediato:
     """Doble de `diagnostico.crear_hilo` que ejecuta el objetivo al arrancar."""
 
@@ -85,9 +93,8 @@ class TestComandosClips(unittest.TestCase):
                               HiloInmediato),
             mock.patch.object(comandos_clips.wx, "CallAfter",
                               side_effect=_llamada_inmediata),
-            mock.patch.object(comandos_clips, "anunciar", anunciar),
-            mock.patch.object(comandos_clips.sound_player,
-                              "reproducir", sonar),
+            mock.patch.object(comandos_clips, "avisar",
+                              _avisar_de(anunciar, sonar)),
         ])
         for aplicado in parches:
             aplicado.start()
@@ -199,9 +206,8 @@ class TestComandosClips(unittest.TestCase):
                               HiloInmediato),
             mock.patch.object(comandos_clips.wx, "CallAfter",
                               side_effect=_llamada_inmediata),
-            mock.patch.object(comandos_clips, "anunciar", anunciar),
-            mock.patch.object(comandos_clips.sound_player,
-                              "reproducir", sonar),
+            mock.patch.object(comandos_clips, "avisar",
+                              _avisar_de(anunciar, sonar)),
         ])
         for aplicado in parches:
             aplicado.start()

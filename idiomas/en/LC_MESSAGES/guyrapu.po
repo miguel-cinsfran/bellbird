@@ -11432,3 +11432,15 @@ msgstr "Delete profile"
 msgid "&Abrir el directo"
 msgstr "&Open live"
 
+#: guyrapu/ui/aviso_importante.py
+msgid "Aceptar"
+msgstr "OK"
+
+#: guyrapu/ui/preferencias_general.py
+msgid "Mostrar a&visos importantes también en un cuadro de mensaje"
+msgstr "Also show important &notices in a message box"
+
+#: guyrapu/ui/preferencias_general.py
+msgid "Mostrar avisos importantes también en un cuadro de mensaje"
+msgstr "Also show important notices in a message box"
+

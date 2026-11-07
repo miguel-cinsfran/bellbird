@@ -14,6 +14,7 @@ from guyrapu.core import diagnostico
 from guyrapu.core.config import URL_REPOSITORIO
 from guyrapu.core.idioma import _
 from guyrapu.ui.accesibilidad import anunciar
+from guyrapu.ui.aviso_importante import avisar
 from guyrapu.ui.tema import _T, _tc
 from guyrapu.ui.preferencias_comun import ANCHO_NOTA, crear_panel
 from guyrapu.voice import sound_player as _snd
@@ -117,8 +118,7 @@ class PaginaApi:
         credenciales.guardar_campo("api_key", self.txt_api.GetValue().strip())
         credenciales.guardar_campo("oauth_client_id", self.txt_cid.GetValue().strip())
         credenciales.guardar_campo("oauth_client_secret", self.txt_secret.GetValue().strip())
-        _snd.reproducir("copiar")
-        anunciar(_("Claves guardadas"))
+        avisar(_("Claves guardadas"), "copiar")
         self._api_refrescar_estado()
 
     def _api_login(self, event):
@@ -160,8 +160,7 @@ class PaginaApi:
             return
         self._login_en_curso = False
         self.btn_api_login.Enable()
-        _snd.reproducir("conectado")
-        anunciar(_("Sesión iniciada correctamente."))
+        avisar(_("Sesión iniciada correctamente."), "conectado")
         self._api_refrescar_estado()
 
     def _api_login_err(self, exc):
@@ -176,6 +175,5 @@ class PaginaApi:
 
     def _api_logout(self, event):
         credenciales.cerrar_sesion()
-        _snd.reproducir("desconectado")
-        anunciar(_("Sesión cerrada."))
+        avisar(_("Sesión cerrada."), "desconectado")
         self._api_refrescar_estado()

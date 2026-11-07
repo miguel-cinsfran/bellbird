@@ -115,10 +115,9 @@ TEXTO_CONFIRMAR_BORRAR_LISTA = N_("¿Eliminar la lista {nombre}?")
 
 @dataclass(frozen=True)
 class Aviso:
-    """Lo que se anuncia por la música: el texto y, si toca, el sonido."""
-
     texto: str
     sonido: str | None = None
+    importante: bool = False
 
 
 def nombre_tema(tema, incluir_artista: bool) -> str:
@@ -334,27 +333,27 @@ def aviso_faltantes(nombres) -> Aviso:
 
 def aviso_agregado_a_lista(nombre: str) -> Aviso:
     """Confirmación de que el tema elegido se sumó a una lista."""
-    return Aviso(_(TEXTO_AGREGADO_A_LISTA).format(nombre=nombre))
+    return Aviso(_(TEXTO_AGREGADO_A_LISTA).format(nombre=nombre), importante=True)
 
 
 def aviso_lista_creada(nombre: str) -> Aviso:
     """Confirmación de una lista vacía nueva."""
-    return Aviso(_(TEXTO_LISTA_CREADA).format(nombre=nombre))
+    return Aviso(_(TEXTO_LISTA_CREADA).format(nombre=nombre), importante=True)
 
 
 def aviso_lista_renombrada(nombre: str) -> Aviso:
     """Confirmación del nombre nuevo de una lista."""
-    return Aviso(_(TEXTO_LISTA_RENOMBRADA).format(nombre=nombre))
+    return Aviso(_(TEXTO_LISTA_RENOMBRADA).format(nombre=nombre), importante=True)
 
 
 def aviso_lista_borrada(nombre: str) -> Aviso:
     """Confirmación de que una lista se eliminó."""
-    return Aviso(_(TEXTO_LISTA_BORRADA).format(nombre=nombre))
+    return Aviso(_(TEXTO_LISTA_BORRADA).format(nombre=nombre), importante=True)
 
 
 def aviso_lista_guardada(nombre: str) -> Aviso:
     """Confirmación de que la cola se guardó como lista."""
-    return Aviso(_(TEXTO_LISTA_GUARDADA).format(nombre=nombre))
+    return Aviso(_(TEXTO_LISTA_GUARDADA).format(nombre=nombre), importante=True)
 
 
 def aviso_tema_movido(posicion: int, total: int) -> Aviso:
@@ -364,17 +363,17 @@ def aviso_tema_movido(posicion: int, total: int) -> Aviso:
 
 def aviso_tema_quitado() -> Aviso:
     """Confirmación de que un tema salió de la lista."""
-    return Aviso(_(TEXTO_TEMA_QUITADO))
+    return Aviso(_(TEXTO_TEMA_QUITADO), importante=True)
 
 
 def aviso_sin_cola() -> Aviso:
     """No hay cola que guardar como lista."""
-    return Aviso(_(TEXTO_COLA_SIN_TEMAS))
+    return Aviso(_(TEXTO_COLA_SIN_TEMAS), importante=True)
 
 
 def aviso_error_listas(mensaje: str) -> Aviso:
     """Fallo al trabajar con las listas: el mensaje y el sonido de error."""
-    return Aviso(mensaje, SONIDO_ERROR)
+    return Aviso(mensaje, SONIDO_ERROR, importante=True)
 
 
 def aviso_leyendo_enlace() -> Aviso:
@@ -384,12 +383,12 @@ def aviso_leyendo_enlace() -> Aviso:
 
 def aviso_enlace_no_youtube() -> Aviso:
     """La dirección pedida no es de YouTube, con el sonido de error."""
-    return Aviso(_(TEXTO_ENLACE_NO_YOUTUBE), SONIDO_ERROR)
+    return Aviso(_(TEXTO_ENLACE_NO_YOUTUBE), SONIDO_ERROR, importante=True)
 
 
 def aviso_error_enlace(mensaje: str) -> Aviso:
     """No se pudo leer el enlace: el mensaje y el sonido de error."""
-    return Aviso(mensaje, SONIDO_ERROR)
+    return Aviso(mensaje, SONIDO_ERROR, importante=True)
 
 
 def aviso_atajos_globales_fallo(fallidos) -> Aviso:

@@ -7,6 +7,14 @@ aquí solo se corre TestGuardarDestino, sin ventana.
 import queue
 import threading
 import unittest
+
+
+def _avisar_de(anunciar, sonar):
+    def _avisar(texto, sonido=None, *, error=False):
+        anunciar(texto)
+        if sonido:
+            sonar(sonido)
+    return _avisar
 from types import SimpleNamespace
 from unittest import mock
 
@@ -139,6 +147,8 @@ class TestTransmitirSinVentana(unittest.TestCase):
                 mock.patch.object(boton_directo, "anunciar") as anunciar, \
                 mock.patch.object(boton_directo._snd,
                                   "reproducir") as sonido, \
+                mock.patch.object(boton_directo, "avisar",
+                                  _avisar_de(anunciar, sonido)), \
                 mock.patch.object(boton_directo.diagnostico,
                                   "crear_hilo") as hilos:
             boton._transmitir()
@@ -583,6 +593,9 @@ class TestPseudoAnunciosBotonDirecto(unittest.TestCase):
         parches = [
             mock.patch.object(boton_directo, "anunciar",
                               self.captados.append),
+            mock.patch.object(boton_directo, "avisar",
+                              lambda texto, sonido=None, **k:
+                              self.captados.append(texto)),
             mock.patch.object(boton_directo._snd, "reproducir"),
         ]
         for parche in parches:

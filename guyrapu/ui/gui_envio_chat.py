@@ -23,6 +23,7 @@ from __future__ import annotations
 
 from guyrapu.core.idioma import _
 from guyrapu.ui import confirmar
+from guyrapu.ui.aviso_importante import avisar
 
 
 def on_enviar_live(frame, event):
@@ -64,11 +65,9 @@ def accion_api(frame, accion, mensaje_ok: str, sonido: str = "enviado") -> None:
 
 
 def api_ok(frame, mensaje, sonido: str = "enviado"):
-    from guyrapu.ui import gui as _gui
     if not frame:   # la ventana pudo cerrarse mientras respondía la API
         return
-    _gui._snd.reproducir(sonido)
-    _gui.anunciar(mensaje)
+    avisar(mensaje, sonido)
 
 
 def api_err(frame, exc):

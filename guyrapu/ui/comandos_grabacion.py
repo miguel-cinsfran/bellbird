@@ -1,23 +1,20 @@
 """Comandos de grabación del menú OBS, sin abrir el panel."""
 
-import wx
-
 from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.obs import grabaciones, obs_cliente, obs_estado, obs_grabacion
 from guyrapu.obs.obs_panel import GestorPanelObs
-from guyrapu.ui.accesibilidad import anunciar
-from guyrapu.voice import sound_player
+from guyrapu.ui.aviso_importante import avisar
 
 logger = diagnostico.obtener_logger(__name__)
 
 
 def _avisar(frase, sonido):
-    """Anuncia y suena en el hilo de la interfaz."""
-    def _decir():
-        anunciar(frase)
-        sound_player.reproducir(sonido)
-    wx.CallAfter(_decir)
+    """Anuncia y suena, desde el hilo que sea."""
+    if sonido in ("error", "transmision_problema"):
+        avisar(frase, sonido, error=True)
+    else:
+        avisar(frase, sonido)
 
 
 def _ejecutar_en_obs(operacion):

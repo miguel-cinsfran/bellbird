@@ -1914,6 +1914,7 @@ class TestCategoriasDePreferencias(unittest.TestCase):
             ("ui", "confirmar_salida"),
             ("ui", "sonido_inicio"),
             ("ui", "idioma"),
+            ("ui", "avisos_cuadro"),
             ("diagnostico", "registro_detallado"),
             ("overlay", "puerto"),
             ("transmision", "avisar_sobrecarga"),
@@ -1996,7 +1997,8 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
                     if isinstance(h, gui.wx.CheckBox)]
         self.assertEqual(
             casillas,
-            ["Buscar actualizaciones al iniciar",
+            ["Mostrar avisos importantes también en un cuadro de mensaje",
+             "Buscar actualizaciones al iniciar",
              "Preguntar antes de salir si hay un chat conectado "
              "o una transmisión en curso",
              "Reproducir sonido de inicio",
@@ -2490,15 +2492,13 @@ class TestPaginaInteligenciaArtificial(unittest.TestCase):
         with mock.patch.object(
                 preferencias_ia_clave.claves, "guardar") as guardar, \
                 mock.patch.object(
-                    preferencias_ia_clave._snd, "reproducir") as sonar, \
-                mock.patch.object(
-                    preferencias_ia_clave, "anunciar") as anunciar, \
+                    preferencias_ia_clave, "avisar") as avisar, \
                 mock.patch.object(
                     dialogo.pagina_ia.ia_clave.txt_clave, "SetFocus") as foco:
             boton.GetEventHandler().ProcessEvent(self._evento_boton(boton))
         guardar.assert_not_called()
-        sonar.assert_called_once_with("ia_error")
-        anunciar.assert_called_once_with(opciones_ia.TEXTO_CLAVE_CORTA)
+        avisar.assert_called_once_with(
+            opciones_ia.TEXTO_CLAVE_CORTA, "ia_error", error=True)
         foco.assert_called_once_with()
         self.assertEqual(dialogo.pagina_ia.ia_clave.txt_clave.GetValue(), "asdf")
 
@@ -3594,8 +3594,8 @@ class TestPreferenciasArchivoBotones(unittest.TestCase):
         hijos = pagina.GetChildren()
         self.assertEqual(
             [type(h).__name__ for h in hijos],
-            ["StaticText", "EleccionTexto", "CheckBox", "StaticText",
-             "Choice"] + ["CheckBox"] * 3 + ["Button"] * 4)
+            ["StaticText", "EleccionTexto", "CheckBox", "CheckBox",
+             "StaticText", "Choice"] + ["CheckBox"] * 3 + ["Button"] * 4)
         self.assertEqual(
             [h.GetName() for h in hijos if isinstance(h, gui.wx.Button)],
             ["Abrir carpeta de datos",
@@ -5654,9 +5654,11 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                            return_value=pedido), \
                 mock.patch.object(gui, "guardar_opcion"), \
                 mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
-                mock.patch.object(gui, "anunciar") as anunciar:
+                mock.patch.object(gui, "anunciar") as anunciar,                 mock.patch("guyrapu.ui.gui_transmitir.avisar",
+                           anunciar):
             frame._supervisar_transmision("iniciar", "YouTube", "")
-        anunciar.assert_called_once_with("Falta el título del directo.")
+        anunciar.assert_called_once_with("Falta el título del directo.",
+                                         error=True)
         fabrica.assert_not_called()
         self.assertIsNone(frame._supervisor)
 

@@ -591,12 +591,12 @@ class TestPaginaUnica(unittest.TestCase):
         dialogo = self._dialogo()
         with mock.patch.object(gui_descargas.cfg, "guardar_opciones_descarga"), \
                 mock.patch.object(dialogo._gestor, "encolar") as encolar, \
-                mock.patch.object(buscador_acciones, "anunciar") as anunciar:
+                mock.patch.object(buscador_acciones, "avisar") as avisar:
             agregados = dialogo.agregar_urls(["https://youtu.be/abc"])
         encolar.assert_called_once()
         self.assertEqual(encolar.call_args.args[0], "https://youtu.be/abc")
         self.assertEqual(agregados, 1)
-        anunciar.assert_called_once_with("Descargando")
+        avisar.assert_called_once_with("Descargando", "descarga_encolada")
 
     def test_agregar_urls_sin_turno_anuncia_en_cola(self):
         from guyrapu.downloads.opciones_formato import SIMULTANEAS_DEFECTO
@@ -605,11 +605,11 @@ class TestPaginaUnica(unittest.TestCase):
             "simultaneas", SIMULTANEAS_DEFECTO)
         with mock.patch.object(gui_descargas.cfg, "guardar_opciones_descarga"), \
                 mock.patch.object(dialogo._gestor, "encolar"), \
-                mock.patch.object(buscador_acciones, "anunciar") as anunciar:
+                mock.patch.object(buscador_acciones, "avisar") as avisar:
             agregados = dialogo.agregar_urls(
                 ["https://youtu.be/abc"], titulo="Mi vídeo")
         self.assertEqual(agregados, 1)
-        anunciar.assert_called_once_with("En cola: Mi vídeo")
+        avisar.assert_called_once_with("En cola: Mi vídeo", "descarga_encolada")
 
     def test_cambiar_formato_llena_calidad_y_deshabilita(self):
         dialogo = self._dialogo()
@@ -759,6 +759,14 @@ class TestBuscador(unittest.TestCase):
         anunciar_tanda = mock.patch.object(buscador_tandas, "anunciar")
         anunciar_tanda.start()
         self.addCleanup(anunciar_tanda.stop)
+        def _avisar(texto, sonido=None, *, error=False):
+            if sonido:
+                buscador_tandas._snd.reproducir(sonido)
+
+        avisar = mock.patch.object(descargas_buscador, "avisar",
+                                   side_effect=_avisar)
+        avisar.start()
+        self.addCleanup(avisar.stop)
         sonido = mock.patch.object(buscador_tandas._snd, "reproducir")
         sonido.start()
         self.addCleanup(sonido.stop)
@@ -767,6 +775,8 @@ class TestBuscador(unittest.TestCase):
     def _dichos(self):
         return [llamada.args[0]
                 for llamada in descargas_buscador.anunciar.call_args_list] + \
+               [llamada.args[0]
+                for llamada in descargas_buscador.avisar.call_args_list] + \
                [llamada.args[0]
                 for llamada in buscador_tandas.anunciar.call_args_list]
 
@@ -1337,6 +1347,14 @@ class TestMenuYVistaBuscador(unittest.TestCase):
         anunciar_tanda = mock.patch.object(buscador_tandas, "anunciar")
         anunciar_tanda.start()
         self.addCleanup(anunciar_tanda.stop)
+        def _avisar(texto, sonido=None, *, error=False):
+            if sonido:
+                buscador_tandas._snd.reproducir(sonido)
+
+        avisar = mock.patch.object(descargas_buscador, "avisar",
+                                   side_effect=_avisar)
+        avisar.start()
+        self.addCleanup(avisar.stop)
         sonido = mock.patch.object(buscador_tandas._snd, "reproducir")
         sonido.start()
         self.addCleanup(sonido.stop)
@@ -2112,40 +2130,27 @@ class TestAnunciarAgregados(unittest.TestCase):
             "3 descargas agregadas")
 
     def test_sin_entradas_no_suena_ni_anuncia(self):
-        with mock.patch.object(buscador_acciones._snd,
-                               "reproducir") as sonido, \
-                mock.patch.object(buscador_acciones,
-                                   "anunciar") as anunciar:
+        with mock.patch.object(buscador_acciones, "avisar") as avisar:
             buscador_acciones.anunciar_agregados(0)
-        sonido.assert_not_called()
-        anunciar.assert_not_called()
+        avisar.assert_not_called()
 
     def test_uno_suena_encolada(self):
-        with mock.patch.object(buscador_acciones._snd,
-                               "reproducir") as sonido, \
-                mock.patch.object(buscador_acciones,
-                                   "anunciar") as anunciar:
+        with mock.patch.object(buscador_acciones, "avisar") as avisar:
             buscador_acciones.anunciar_agregados(1, "Mi vídeo", True)
-        anunciar.assert_called_once_with("Descargando: Mi vídeo")
-        sonido.assert_called_once_with("descarga_encolada")
+        avisar.assert_called_once_with("Descargando: Mi vídeo",
+                                       "descarga_encolada")
 
     def test_uno_sin_turno_suena_encolada(self):
-        with mock.patch.object(buscador_acciones._snd,
-                               "reproducir") as sonido, \
-                mock.patch.object(buscador_acciones,
-                                   "anunciar") as anunciar:
+        with mock.patch.object(buscador_acciones, "avisar") as avisar:
             buscador_acciones.anunciar_agregados(1, "Mi vídeo", False)
-        anunciar.assert_called_once_with("En cola: Mi vídeo")
-        sonido.assert_called_once_with("descarga_encolada")
+        avisar.assert_called_once_with("En cola: Mi vídeo",
+                                       "descarga_encolada")
 
     def test_varios_suenan_encolada(self):
-        with mock.patch.object(buscador_acciones._snd,
-                               "reproducir") as sonido, \
-                mock.patch.object(buscador_acciones,
-                                   "anunciar") as anunciar:
+        with mock.patch.object(buscador_acciones, "avisar") as avisar:
             buscador_acciones.anunciar_agregados(3)
-        anunciar.assert_called_once_with("3 descargas agregadas")
-        sonido.assert_called_once_with("descarga_encolada")
+        avisar.assert_called_once_with("3 descargas agregadas",
+                                       "descarga_encolada")
 
 
 class TestFinDeCola(unittest.TestCase):

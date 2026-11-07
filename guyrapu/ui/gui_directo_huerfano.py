@@ -22,6 +22,7 @@ from guyrapu.obs import obs_activacion
 from guyrapu.obs.obs_panel import GestorPanelObs
 from guyrapu.ui import confirmar
 from guyrapu.ui.accesibilidad import anunciar
+from guyrapu.ui.aviso_importante import avisar
 from guyrapu.voice import sound_player as _snd
 from guyrapu.youtube import credenciales, emision, fin_pendiente, youtube_api
 
@@ -260,18 +261,17 @@ def _finalizar(frame, huerfanos) -> None:
 def _anunciar_fin(frame, cuantos) -> None:
     if not getattr(frame, "_alive", False):
         return
-    _snd.reproducir("desconectado")
     if cuantos == 1:
-        anunciar(_("Directo finalizado en YouTube."))
+        avisar(_("Directo finalizado en YouTube."), "desconectado")
     else:
-        anunciar(_("Directos finalizados en YouTube."))
+        avisar(_("Directos finalizados en YouTube."), "desconectado")
 
 
 def _anunciar_fallo(frame) -> None:
     if not getattr(frame, "_alive", False):
         return
-    _snd.reproducir("error")
-    anunciar(_("YouTube no confirmó el fin del directo. Finalízalo en YouTube Studio."))
+    avisar(_("YouTube no confirmó el fin del directo. Finalízalo en YouTube Studio."),
+           "error", error=True)
 
 
 def _anunciar_fin_pendiente(frame) -> None:
@@ -293,5 +293,5 @@ def _anunciar_fallo_pendiente(frame) -> None:
 def _anunciar_reintento_pendiente(frame) -> None:
     if not getattr(frame, "_alive", False):
         return
-    _snd.reproducir("transmision_problema")
-    anunciar(_("YouTube no confirmó el fin del directo. Se reintentará durante 10 minutos."))
+    avisar(_("YouTube no confirmó el fin del directo. Se reintentará durante 10 minutos."),
+           "transmision_problema", error=True)

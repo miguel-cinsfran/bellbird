@@ -72,4 +72,5 @@ def opciones_ui_booleans(p) -> dict:
         "confirmar_salida": leer_booleano(p, "ui", "confirmar_salida"),
         "sonido_inicio": leer_booleano(p, "ui", "sonido_inicio"),
         "silenciar_sonidos": leer_booleano(p, "ui", "silenciar_sonidos"),
+        "avisos_cuadro": leer_booleano(p, "ui", "avisos_cuadro"),
     }

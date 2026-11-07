@@ -22,7 +22,8 @@ from guyrapu.core.atajos import (
     parsear_atajos, detectar_conflictos_atajos, migrar_atajos_config,
 )  # noqa: F401  (reexport para quien importa desde config)
 from guyrapu.core.config_descargas import guardar_opciones_descarga, obtener_opciones_descarga
-from guyrapu.core.config_lectura import opciones_lectura, opciones_tiktok
+from guyrapu.core.config_lectura import (opciones_lectura, opciones_tiktok,
+    opciones_ui, opciones_ui_booleans)
 from guyrapu.core.config_musica import opciones_musica
 from guyrapu.core.config_transmision import opciones_transmision
 from guyrapu.core.config_voz import opciones_voz
@@ -361,10 +362,6 @@ def cargar_configuracion() -> dict:
         if activo:
             estado_toggles.add(comp)
 
-    filtro_activo = leer_texto(p, "ui", "filtro_activo").lower()
-    if filtro_activo not in ("todos", "texto", "superchat", "miembro", "avisos"):
-        filtro_activo = "todos"
-
     return {
         **_opciones_voz(p, ruta), **avisos_tiktok.opciones_eventos(p),
         "estrategia": estrategia, "tamanio_maximo": leer_entero(p, "cola", "tamanio_maximo", lo=1),
@@ -378,17 +375,7 @@ def cargar_configuracion() -> dict:
         "limpiar_emojis": leer_booleano(p, "texto", "limpiar_emojis"),
         "eliminar_urls": leer_booleano(p, "texto", "eliminar_urls"),
         "max_longitud_mensaje": leer_entero(p, "texto", "max_longitud_mensaje"),
-        "tamanio_fuente_chat": leer_entero(p, "ui", "tamanio_fuente_chat", lo=8, hi=24),
-        "mostrar_total_superchats": leer_booleano(p, "ui", "mostrar_total_superchats"),
-        "autoplay_reproductor": leer_booleano(p, "ui", "autoplay_reproductor"),
-        "reproductor_solo_audio": leer_booleano(p, "ui", "reproductor_solo_audio"),
-        "mostrar_botones_reproductor": leer_booleano(p, "ui", "mostrar_botones_reproductor"),
-        "cache_video_mb": leer_entero(p, "ui", "cache_video_mb", lo=0, hi=20000),
-        "mostrar_metadatos": leer_booleano(p, "ui", "mostrar_metadatos"),
-        "confirmar_salida": leer_booleano(p, "ui", "confirmar_salida"),
-        "sonido_inicio": leer_booleano(p, "ui", "sonido_inicio"),
-        "idioma": leer_texto(p, "ui", "idioma"), "filtro_activo": filtro_activo,
-        "silenciar_sonidos": leer_booleano(p, "ui", "silenciar_sonidos"),
+        **opciones_ui(p), **opciones_ui_booleans(p),
         "silenciar_lectura": leer_booleano(p, "sesion", "silenciar_lectura"),
         **opciones_tiktok(p),
         **_opciones_transmision(p),

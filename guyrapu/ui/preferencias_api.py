@@ -1,4 +1,4 @@
-"""Página API y sesión del diálogo de Preferencias.
+"""Página YouTube del diálogo de Preferencias.
 
 Dueña de sus campos, del inicio y del cierre de sesión. El diálogo la
 construye por composición y no copia ninguno de sus controles.
@@ -28,7 +28,7 @@ URL_GUIA = f"{URL_REPOSITORIO}/blob/main/docs/CONFIGURACION_API.md"
 
 
 class PaginaApi:
-    """Página API y sesión: claves, inicio y cierre de sesión."""
+    """Página YouTube: claves, inicio y cierre de sesión."""
 
     def __init__(self, ventana):
         self._ventana = ventana

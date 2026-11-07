@@ -22,8 +22,8 @@ FUENTES = ("Mic/Aux", "Audio USB")
 PARES = (("Predeterminado", "default"), ("Micrófono (USB)", "{usb}"))
 
 SIN_OBS = "OBS no pudo completar la operación. Vuelve a intentarlo."
-AVISO_SIN_MICROFONO = ("OBS no tiene ningún micrófono. Elige uno en "
-                       "Preferencias, categoría Transmisión, Micrófono de OBS.")
+AVISO_SIN_MICROFONO = ("OBS no tiene ningún micrófono. Elige uno en el "
+                       "Panel de OBS, pestaña Audio, Elegir micrófono.")
 
 
 def _hilo_sincrono():

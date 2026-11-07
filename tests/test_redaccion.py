@@ -52,7 +52,7 @@ class TestRedaccion(unittest.TestCase):
     def test_motivo_chat_detalla_la_causa(self):
         casos = {
             "sin_credenciales": ("Falta la clave de API para saber si este directo permite "
-                                  "escribir. Escríbela en Preferencias, categoría API y sesión."),
+                                  "escribir. Escríbela en Preferencias, categoría YouTube."),
             "sin_video": "No se encontró este vídeo",
             "no_es_directo": "Este vídeo no es un directo",
             "chat_desactivado": "Este directo tiene el chat desactivado",
@@ -103,7 +103,7 @@ class TestRedaccion(unittest.TestCase):
         self.assertEqual(
             redaccion.motivo_lectura_comentarios(True, False, True),
             "Falta la clave de API para leer comentarios. Escríbela en "
-            "Preferencias, categoría API y sesión.")
+            "Preferencias, categoría YouTube.")
 
     def test_motivo_lectura_comentarios_sin_video(self):
         self.assertEqual(redaccion.motivo_lectura_comentarios(True, True, False),

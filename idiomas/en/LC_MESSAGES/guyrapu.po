@@ -1402,19 +1402,17 @@ msgstr[1] "Next automatic message in {minutos} minutes"
 
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: guyrapu/capture/redaccion.py
-msgid ""
-"Inicia sesión en Preferencias, categoría API y sesión, para escribir en el "
-"chat"
-msgstr "Sign in in Preferences, API and session category, to write in the chat"
+msgid "Inicia sesión en Preferencias, categoría YouTube, para escribir en el chat"
+msgstr "Sign in in Preferences, YouTube category, to write in the chat"
 
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: guyrapu/capture/redaccion.py
 msgid ""
 "Falta la clave de API para saber si este directo permite escribir. "
-"Escríbela en Preferencias, categoría API y sesión."
+"Escríbela en Preferencias, categoría YouTube."
 msgstr ""
 "Missing API key to know if this live stream allows writing. Put it in "
-"Preferences, API and session category"
+"Preferences, YouTube category"
 
 #. Traductores: motivo de botón desactivado para escribir en el chat.
 #: guyrapu/capture/redaccion.py
@@ -1468,8 +1466,8 @@ msgstr "This video has comments disabled"
 
 #. Traductores: motivo de botón desactivado para comentar.
 #: guyrapu/capture/redaccion.py
-msgid "Inicia sesión en Preferencias, categoría API y sesión, para comentar"
-msgstr "Sign in in Preferences, API and session category, to comment"
+msgid "Inicia sesión en Preferencias, categoría YouTube, para comentar"
+msgstr "Sign in in Preferences, YouTube category, to comment"
 
 #. Traductores: motivo de botón desactivado para leer comentarios.
 #: guyrapu/capture/redaccion.py
@@ -1484,10 +1482,8 @@ msgstr ""
 #: guyrapu/capture/redaccion.py
 msgid ""
 "Falta la clave de API para leer comentarios. Escríbela en Preferencias, "
-"categoría API y sesión."
-msgstr ""
-"Missing API key to read comments. Put it in Preferences, API and session "
-"category."
+"categoría YouTube."
+msgstr "Missing API key to read comments. Put it in Preferences, YouTube category."
 
 #. Traductores: motivo de botón desactivado para leer comentarios.
 #: guyrapu/capture/redaccion.py
@@ -3802,11 +3798,11 @@ msgstr "Chat on video is not in this scene."
 
 #: guyrapu/obs/obs_entradas_audio.py
 msgid ""
-"OBS no tiene ningún micrófono. Elige uno en Preferencias, categoría "
-"Transmisión, Micrófono de OBS."
+"OBS no tiene ningún micrófono. Elige uno en el Panel de OBS, pestaña Audio,"
+" Elegir micrófono."
 msgstr ""
-"OBS has no microphone. Choose one in Preferences, Broadcast category, OBS "
-"Microphone."
+"OBS has no microphone. Choose one in the OBS panel, Audio tab, Choose a "
+"device"
 
 #: guyrapu/obs/obs_escena.py
 #, python-brace-format
@@ -5119,6 +5115,37 @@ msgstr ", one destination is missing"
 #, python-brace-format
 msgid ", faltan {n} destinos"
 msgstr ", {n} destinations are missing"
+
+#: guyrapu/restream/senal.py
+#, python-brace-format
+msgid "{destino} se desconectó."
+msgstr "{destino} disconnected."
+
+#: guyrapu/restream/senal.py
+#, python-brace-format
+msgid "{destino} vuelve a recibir la transmisión."
+msgstr "{destino} is receiving the stream again."
+
+#: guyrapu/restream/senal.py
+msgid "Restream dejó de recibir la señal de OBS."
+msgstr "Restream stopped receiving the signal from OBS."
+
+#: guyrapu/restream/senal.py
+msgid "Restream vuelve a recibir la señal."
+msgstr "Restream is receiving the signal again."
+
+#: guyrapu/restream/senal.py
+#, python-brace-format
+msgid "Señal débil: a Restream llegan {kbps} kbps."
+msgstr "Weak signal: Restream is receiving {kbps} kbps."
+
+#: guyrapu/restream/senal.py
+msgid "La señal se recuperó."
+msgstr "The signal recovered."
+
+#: guyrapu/restream/senal.py
+msgid "Un destino"
+msgstr "A destination"
 
 #: guyrapu/restream/sesion.py
 msgid "La respuesta del servidor de tokens no trajo un token de acceso."
@@ -8756,6 +8783,12 @@ msgstr "The microphone is muted in OBS."
 msgid "El micrófono recibe sonido."
 msgstr "The microphone is receiving sound."
 
+#. Traductores: nombre de la categoría de Preferencias con la sesión de
+#. YouTube.
+#: guyrapu/ui/gui_preferencias.py
+msgid "YouTube"
+msgstr "YouTube"
+
 #: guyrapu/ui/gui_preferencias.py
 msgid "Preferencias"
 msgstr "Preferences"
@@ -8809,10 +8842,6 @@ msgstr "Filters"
 #: guyrapu/ui/gui_preferencias.py
 msgid "Estado (F2)"
 msgstr "Status (F2)"
-
-#: guyrapu/ui/gui_preferencias.py
-msgid "API y sesión"
-msgstr "API and session"
 
 #. Traductores: título de la ventana de música; una sola palabra.
 #. Traductores: título del diálogo que confirma el borrado; una sola palabra.
@@ -9051,10 +9080,10 @@ msgstr "TikTok &user:"
 #, python-brace-format
 msgid ""
 "No se pudo activar el chat en el vídeo: el puerto {puerto} está en uso. "
-"Cámbialo en Preferencias, categoría Transmisión."
+"Cámbialo en Preferencias, categoría OBS."
 msgstr ""
 "Could not enable chat on video: port {puerto} is in use. Change it in "
-"Preferences, Broadcast category."
+"Preferences, OBS category."
 
 #: guyrapu/ui/gui_transmitir.py
 msgid "Chat en el vídeo activado"
@@ -9087,10 +9116,10 @@ msgstr "A broadcast is already in progress."
 #: guyrapu/ui/gui_transmitir.py
 msgid ""
 "Para transmitir a YouTube hace falta iniciar sesión con Google, en "
-"Preferencias, categoría API y sesión."
+"Preferencias, categoría YouTube."
 msgstr ""
-"To broadcast to YouTube you must sign in with Google, in Preferences, API "
-"and session category."
+"To broadcast to YouTube you must sign in with Google, in Preferences, "
+"YouTube category."
 
 #: guyrapu/ui/gui_transmitir.py
 msgid "El directo está marcado como creado para niños y YouTube no tiene chat."
@@ -11378,10 +11407,10 @@ msgstr ""
 #: guyrapu/youtube/youtube_api.py
 msgid ""
 "Tu sesión de YouTube caducó. Vuelve a iniciar sesión en Preferencias, "
-"categoría API y sesión."
+"categoría YouTube."
 msgstr ""
-"Your YouTube session expired. Sign in again in Preferences, API and session"
-" category."
+"Your YouTube session expired. Sign in again in Preferences, YouTube "
+"category."
 
 #: guyrapu/youtube/youtube_api.py
 msgid ""
@@ -11399,11 +11428,11 @@ msgstr "The video was not found. Check the link or the ID."
 
 #: guyrapu/youtube/youtube_api.py
 msgid ""
-"YouTube no acepta la clave de API. Revísala en Preferencias, categoría API "
-"y sesión."
+"YouTube no acepta la clave de API. Revísala en Preferencias, categoría "
+"YouTube."
 msgstr ""
-"YouTube does not accept the API key. Check it in Preferences, API and "
-"session category."
+"YouTube does not accept the API key. Check it in Preferences, YouTube "
+"category."
 
 #: guyrapu/youtube/youtube_api.py
 msgid ""
@@ -11452,35 +11481,4 @@ msgstr "Signed in. You can go back to the application."
 #: guyrapu/youtube/youtube_api.py
 msgid "Sin título"
 msgstr "Untitled"
-
-#: guyrapu/restream/senal.py
-#, python-brace-format
-msgid "{destino} se desconectó."
-msgstr "{destino} disconnected."
-
-#: guyrapu/restream/senal.py
-#, python-brace-format
-msgid "{destino} vuelve a recibir la transmisión."
-msgstr "{destino} is receiving the stream again."
-
-#: guyrapu/restream/senal.py
-msgid "Restream dejó de recibir la señal de OBS."
-msgstr "Restream stopped receiving the signal from OBS."
-
-#: guyrapu/restream/senal.py
-msgid "Restream vuelve a recibir la señal."
-msgstr "Restream is receiving the signal again."
-
-#: guyrapu/restream/senal.py
-#, python-brace-format
-msgid "Señal débil: a Restream llegan {kbps} kbps."
-msgstr "Weak signal: Restream is receiving {kbps} kbps."
-
-#: guyrapu/restream/senal.py
-msgid "La señal se recuperó."
-msgstr "The signal recovered."
-
-#: guyrapu/restream/senal.py
-msgid "Un destino"
-msgstr "A destination"
 

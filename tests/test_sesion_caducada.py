@@ -13,15 +13,17 @@ from unittest import mock
 
 import wx
 
+from guyrapu.core.idioma import _
 from guyrapu.youtube import youtube_api
 from guyrapu.ui import gui
 from guyrapu.ui import gui_comentarios
 from guyrapu.ui import gui_preferencias
 from guyrapu.ui.sesion_conectada import SesionConectada
+from tests.pseudo_prueba import con_pseudo
 
 
 FRASE_SESION = ("Tu sesión de YouTube caducó. Vuelve a iniciar sesión en "
-                "Preferencias, categoría API y sesión.")
+                "Preferencias, categoría YouTube.")
 FRASE_PROGRAMADO = ("Los mensajes automáticos se detuvieron porque la sesión "
                     "de YouTube caducó.")
 
@@ -170,7 +172,7 @@ class DialogoFalso:
     def __init__(self, parent, config):
         self.nb = mock.Mock()
         self.nb.GetPageCount.return_value = 3
-        self.nb.GetPageText.side_effect = ["Voz", "API y sesión", "Atajos"]
+        self.nb.GetPageText.side_effect = ["Voz", "YouTube", "Atajos"]
         self.__class__.instancias.append(self)
 
     def ShowModal(self):
@@ -192,7 +194,7 @@ class TestAbrirEnPagina(unittest.TestCase):
         with mock.patch.object(gui_preferencias, "PreferenciasDialog",
                                DialogoFalso):
             self.assertTrue(gui_preferencias.abrir_preferencias(
-                "padre", {}, pagina="API y sesión"))
+                "padre", {}, pagina="YouTube"))
         dialogo = DialogoFalso.instancias[0]
         dialogo.nb.SetSelection.assert_called_once_with(1)
 
@@ -234,7 +236,7 @@ class TestOfrecerIniciarSesion(unittest.TestCase):
             "&Abrir Preferencias", "Ahora &no")
         dialogo.Destroy.assert_called_once_with()
         abrir.assert_called_once_with("padre", {"clave": 1},
-                                      pagina="API y sesión")
+                                      pagina="YouTube")
 
     def test_no_no_abre_preferencias(self):
         dialogo = mock.Mock()
@@ -245,6 +247,26 @@ class TestOfrecerIniciarSesion(unittest.TestCase):
             self.assertFalse(gui_preferencias.ofrecer_iniciar_sesion(
                 "padre", {}))
         abrir.assert_not_called()
+
+    def test_aceptado_elige_youtube_con_la_interfaz_traducida(self):
+        class DialogoTraducido(DialogoFalso):
+            instancias = []
+
+            def __init__(self, parent, config):
+                super().__init__(parent, config)
+                self.nb.GetPageCount.return_value = 3
+                self.nb.GetPageText.side_effect = ["Voz", _("YouTube"), "Atajos"]
+
+        dialogo = mock.Mock()
+        dialogo.ShowModal.return_value = wx.ID_OK
+        with con_pseudo(), \
+                mock.patch.object(gui_preferencias.confirmar, "MessageDialog",
+                                  return_value=dialogo), \
+                mock.patch.object(gui_preferencias, "PreferenciasDialog",
+                                  DialogoTraducido):
+            self.assertTrue(gui_preferencias.ofrecer_iniciar_sesion(
+                "padre", {}))
+        DialogoTraducido.instancias[0].nb.SetSelection.assert_called_once_with(1)
 
 
 class TestApiErr(unittest.TestCase):

@@ -269,7 +269,7 @@ class PaginaTransmision(wx.Panel):
         sound_player.reproducir("error")
         anunciar(_("No se pudo activar el chat en el vídeo: el puerto {puerto} "
                    "está en uso. Cámbialo en Preferencias, categoría "
-                   "Transmisión.").format(puerto=puerto))
+                   "OBS.").format(puerto=puerto))
 
     def _abrir_restream(self, event):
         menu_transmision.abrir_restream(self._principal)

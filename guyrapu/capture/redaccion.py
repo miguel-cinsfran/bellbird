@@ -6,12 +6,12 @@ MAXIMO_CHAT = 200
 
 # Traductores: motivo de botón desactivado para escribir en el chat.
 TEXTO_CHAT_SIN_SESION = N_(
-    "Inicia sesión en Preferencias, categoría API y sesión, para "
+    "Inicia sesión en Preferencias, categoría YouTube, para "
     "escribir en el chat")
 # Traductores: motivo de botón desactivado para escribir en el chat.
 TEXTO_CHAT_SIN_CREDENCIALES = N_(
     "Falta la clave de API para saber si este directo permite escribir. "
-    "Escríbela en Preferencias, categoría API y sesión.")
+    "Escríbela en Preferencias, categoría YouTube.")
 
 
 def causa_sin_chat(hay_credenciales, consulta_fallo, hay_video,
@@ -71,7 +71,7 @@ def motivo_comentario(hay_video, hay_sesion, comentarios_cerrados=False) -> str:
         return _("Este vídeo tiene los comentarios desactivados")
     if not hay_sesion:
         # Traductores: motivo de botón desactivado para comentar.
-        return _("Inicia sesión en Preferencias, categoría API y sesión, para "
+        return _("Inicia sesión en Preferencias, categoría YouTube, para "
                  "comentar")
     return ""
 
@@ -84,7 +84,7 @@ def motivo_lectura_comentarios(hay_librerias, hay_api_key, hay_video) -> str:
     if not hay_api_key:
         # Traductores: motivo de botón desactivado para leer comentarios.
         return _("Falta la clave de API para leer comentarios. Escríbela en "
-                 "Preferencias, categoría API y sesión.")
+                 "Preferencias, categoría YouTube.")
     if not hay_video:
         # Traductores: motivo de botón desactivado para leer comentarios.
         return _("Conéctate a un vídeo para poder leer los comentarios")

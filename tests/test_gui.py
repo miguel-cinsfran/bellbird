@@ -416,7 +416,7 @@ class TestComentariosPanel(unittest.TestCase):
         self.assertEqual(panel.lb.GetCount(), 1)
         self.assertEqual(panel.lb.GetString(0),
                          "Falta la clave de API para leer comentarios. Escríbela en "
-                         "Preferencias, categoría API y sesión.")
+                         "Preferencias, categoría YouTube.")
         self.assertEqual(panel._video_id, "unvideo")
         self.assertNotIn("conectate a un video", panel.btn_comentar.GetLabel().lower())
 
@@ -1986,7 +1986,7 @@ class TestCategoriasDePreferenciasSoloLectura(unittest.TestCase):
             [dialogo.nb.GetPageText(i) for i in range(dialogo.nb.GetPageCount())],
             ["General", "Interfaz", "Sonidos", "Atajos", "Voces", "Lectura",
              "Cola de lectura", "Eventos del directo", "Filtros", "Estado (F2)",
-             "Mensajes automáticos", "Conexión", "API y sesión", "Reproductor",
+             "Mensajes automáticos", "Conexión", "YouTube", "Reproductor",
              "Música", "Descargas", "Inteligencia artificial", "OBS", "Cámara"])
 
     def test_pagina_general_primera_con_las_cuatro_casillas_en_orden(self):
@@ -4470,7 +4470,7 @@ class TestCierreVentana(unittest.TestCase):
 
         self.assertFalse(frame._config["overlay_activo"])
         anunciar.assert_called_once_with(
-            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, categoría Transmisión.")
+            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, categoría OBS.")
 
     def test_el_precalentamiento_se_arranca_solo_con_la_ventana_viva(self):
         frame = gui.VentanaPrincipal.__new__(gui.VentanaPrincipal)
@@ -4692,7 +4692,7 @@ class TestCierreVentana(unittest.TestCase):
         self.assertFalse(resultado)
         self.assertFalse(frame._config["overlay_activo"])
         anunciar.assert_called_once_with(
-            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, categoría Transmisión.")
+            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, categoría OBS.")
 
     def test_el_puerto_ocupado_no_guarda_el_cambio_de_esta_sesion(self):
         frame = self._frame()
@@ -5516,7 +5516,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
             frame._supervisar_transmision("iniciar", "YouTube", "")
         anunciar.assert_called_once_with(
             "Para transmitir a YouTube hace falta iniciar sesión con "
-            "Google, en Preferencias, categoría API y sesión.")
+            "Google, en Preferencias, categoría YouTube.")
         pedir.assert_not_called()
         fabrica.assert_not_called()
         self.assertIsNone(frame._supervisor)

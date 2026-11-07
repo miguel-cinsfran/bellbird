@@ -30,7 +30,7 @@ def cambiar_overlay(frame, encender):
         except _gui.overlay_servidor.OverlayPuertoOcupadoError:
             _gui.anunciar(_("No se pudo activar el chat en el vídeo: el puerto {puerto} "
                             "está en uso. Cámbialo en Preferencias, categoría "
-                            "Transmisión.").format(puerto=puerto))
+                            "OBS.").format(puerto=puerto))
             # El puerto ocupado solo afecta esta sesión, no la preferencia guardada.
             frame._config["overlay_activo"] = False
             return False
@@ -284,8 +284,8 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
             datos = _gui.credenciales.cargar()
             if not _gui.credenciales.hay_sesion(datos):
                 _gui.anunciar(_("Para transmitir a YouTube hace falta iniciar "
-                                "sesión con Google, en Preferencias, categoría API "
-                                "y sesión."))
+                                "sesión con Google, en Preferencias, categoría "
+                                "YouTube."))
                 return
             cliente = _gui.youtube_api.ClienteYouTube(
                 _gui.credenciales.efectivas(datos))

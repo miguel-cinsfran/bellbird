@@ -127,7 +127,7 @@ def mensaje_error_api(exc) -> str:
     """Traduce errores de la API a algo legible para el usuario."""
     if sesion_caducada(exc):
         return _("Tu sesión de YouTube caducó. Vuelve a iniciar sesión en "
-                 "Preferencias, categoría API y sesión.")
+                 "Preferencias, categoría YouTube.")
     texto = str(exc)
     low = texto.lower()
     if "quotaexceeded" in low or "quota" in low and "exceeded" in low:
@@ -138,7 +138,7 @@ def mensaje_error_api(exc) -> str:
     if "videonotfound" in low or "video not found" in low:
         return _("No se encontró el vídeo. Comprueba el enlace o el ID.")
     if "keyinvalid" in low or "api key not valid" in low or "badrequest" in low and "key" in low:
-        return _("YouTube no acepta la clave de API. Revísala en Preferencias, categoría API y sesión.")
+        return _("YouTube no acepta la clave de API. Revísala en Preferencias, categoría YouTube.")
     if "livestreamingnotenabled" in low:
         return _("La cuenta de YouTube no tiene los directos activados. "
                  "Se activan en YouTube Studio y pueden tardar hasta 24 horas.")

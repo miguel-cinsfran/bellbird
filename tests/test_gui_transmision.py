@@ -613,7 +613,7 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(
             self.anuncios,
             ["No se pudo activar el chat en el vídeo: el puerto 8730 está en "
-             "uso. Cámbialo en Preferencias, categoría Transmisión."])
+             "uso. Cámbialo en Preferencias, categoría OBS."])
         self.sonido.reproducir.assert_called_once_with("error")
         self.guardar_opcion.assert_not_called()
 

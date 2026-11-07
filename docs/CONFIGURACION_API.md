@@ -8,8 +8,8 @@ Esta guía explica cómo activar las funciones online de Bellbird:
 - **Publicar y responder** comentarios.
 
 **Esta guía es opcional.** La aplicación trae su propio acceso a Google:
-para usar estas funciones basta con pulsar *Iniciar sesión* en *Preferencias,
-API y sesión*, sin crear nada en Google Cloud. Esta guía es para quien
+para usar estas funciones basta con pulsar *Iniciar sesión* en *Preferencias*,
+categoría *YouTube*, sin crear nada en Google Cloud. Esta guía es para quien
 prefiera usar credenciales propias.
 
 > **Por qué alguien querría credenciales propias.** YouTube reparte la cuota de
@@ -109,7 +109,7 @@ Dirección directa:
 > permite restringirla y renombrarla pero **no muestra su valor**.
 
 Con esto ya se pueden **leer comentarios**. En Bellbird: menú Herramientas,
-**Preferencias…**, categoría **API y sesión**, pegar la clave en el campo **Clave
+**Preferencias…**, categoría **YouTube**, pegar la clave en el campo **Clave
 de API**, pulsar **Guardar claves** y cerrar. Quien solo quiera leer ha terminado aquí.
 
 ---
@@ -155,7 +155,7 @@ Dirección directa:
 
 > **La caducidad de 7 días.** Mientras la app esté en estado "Prueba", la
 > sesión caduca cada **7 días** y hay que volver a pulsar "Iniciar sesión" en
-> Preferencias, categoría API y sesión. Es un clic y no se pierde nada. En esa misma página hay un
+> Preferencias, categoría YouTube. Es un clic y no se pierde nada. En esa misma página hay un
 > botón **Publicar app** que quita la caducidad; a cambio, la primera vez
 > aparece un aviso de "app no verificada" que hay que aceptar a mano.
 > Cualquiera de las dos opciones sirve.
@@ -191,7 +191,7 @@ Dirección directa:
 
 ## Paso 6 — Meter los datos en la aplicación
 
-1. Abrir Bellbird, menú Herramientas, **Preferencias…**, categoría **API y sesión**.
+1. Abrir Bellbird, menú Herramientas, **Preferencias…**, categoría **YouTube**.
 2. Pegar la **clave de API** del paso 3, y el **ID de cliente** y el **Secreto de
    cliente** del paso 5, cada uno en su campo.
 3. Pulsar **Guardar claves**.
@@ -209,7 +209,7 @@ En el navegador, la secuencia es de tres pantallas:
 Al terminar, el navegador muestra "Sesión iniciada. Ya puedes volver a la
 aplicación", y la aplicación anuncia que la sesión se inició correctamente.
 
-A partir de aquí, el estado en la categoría API y sesión dice "sesión iniciada" y se
+A partir de aquí, el estado en la categoría YouTube dice "sesión iniciada" y se
 activan la moderación, el envío al chat y publicar comentarios.
 
 ---
@@ -261,7 +261,7 @@ pantalla y hay que desplazar la tabla en horizontal.
   `Mayús+Intro` inserta un salto de línea. `Alt+Intro` lleva el foco al
   cuadro desde cualquier parte de la ventana. Mientras falte algún requisito,
   el botón sigue alcanzándose con el tabulador y su nombre incluye el motivo,
-  por ejemplo "Enviar (inicia sesión en Preferencias, categoría API y sesión,
+  por ejemplo "Enviar (inicia sesión en Preferencias, categoría YouTube,
   para escribir en el chat)".
 
 ---

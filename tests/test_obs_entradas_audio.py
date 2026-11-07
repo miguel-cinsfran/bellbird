@@ -174,8 +174,8 @@ class MicrofonoEspecialTest(unittest.TestCase):
 
 
 class AlternarMicrofonoTest(unittest.TestCase):
-    AVISO_SIN_MICROFONO = ("OBS no tiene ningún micrófono. Elige uno en "
-                           "Preferencias, categoría Transmisión, Micrófono de OBS.")
+    AVISO_SIN_MICROFONO = ("OBS no tiene ningún micrófono. Elige uno en el "
+                           "Panel de OBS, pestaña Audio, Elegir micrófono.")
 
     def test_elige_el_preferido_y_anuncia_su_estado(self):
         gestor = DobleGestor(
@@ -365,8 +365,8 @@ class MicrofonoPorAtajoTest(unittest.TestCase):
             silencio=False)
         _, avisos, medicion, estados = self._ejecutar(gestor)
         self.assertEqual(avisos, [(
-            "OBS no tiene ningún micrófono. Elige uno en Preferencias, "
-            "categoría Transmisión, Micrófono de OBS.", "")])
+            "OBS no tiene ningún micrófono. Elige uno en el Panel de OBS, "
+            "pestaña Audio, Elegir micrófono.", "")])
         medicion.assert_not_called()
         self.assertEqual(estados, [None])
 

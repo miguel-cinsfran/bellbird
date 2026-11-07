@@ -153,10 +153,10 @@ def _elegir_categoria(prefs, nombre) -> None:
 
 
 def iniciar(principal, rec):
-    """Paso 1: abre Preferencias, API and session, y pulsa Sign in."""
+    """Paso 1: abre Preferencias, categoría YouTube, y pulsa Sign in."""
     with paso_de(rec, 1):
         prefs = _abrir_preferencias(principal)
-        _elegir_categoria(prefs, "API and session")
+        _elegir_categoria(prefs, "YouTube")
         dr._control(prefs, "Sign in", "Button").invoke()
     return prefs
 

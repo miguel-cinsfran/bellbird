@@ -16,7 +16,7 @@ from guyrapu.core import diagnostico
 from guyrapu.core import config as cfg
 from guyrapu.core import paths
 from guyrapu.core.ini_tipado import separar_por_comas
-from guyrapu.core.idioma import _
+from guyrapu.core.idioma import N_, _
 from guyrapu.ui import atajos_captura, confirmar
 from guyrapu.capture import estado_sesion
 from guyrapu.voice import sound_player as _snd
@@ -41,6 +41,9 @@ from guyrapu.ui.preferencias_voz import PaginaVoz
 logger = diagnostico.obtener_logger(__name__)
 
 TAMANO_DIALOGO = (720, 600)
+
+# Traductores: nombre de la categoría de Preferencias con la sesión de YouTube.
+CATEGORIA_YOUTUBE = N_("YouTube")
 
 # Opciones que se guardan y se cargan con el mismo molde (leer el control,
 # escribir el texto en el ini y copiar el valor a la config en memoria; y al
@@ -133,7 +136,7 @@ class PreferenciasDialog(wx.Dialog):
         self.chk_programados = self.pagina_programados.chk_programados
         self.nb.AddPage(self._pag_conexion(self.nb), _("Conexión"))
         self.pagina_api = PaginaApi(self)
-        self.nb.AddPage(self.pagina_api.construir(self.nb), _("API y sesión"))
+        self.nb.AddPage(self.pagina_api.construir(self.nb), _(CATEGORIA_YOUTUBE))
         self.nb.AddPage(self._pag_reproductor(self.nb), _("Reproductor"))
         self.pagina_musica = PaginaMusica(self, self._config)
         self.nb.AddPage(self.pagina_musica.construir(self.nb), _("Música"))
@@ -486,11 +489,9 @@ etiqueta_de_accion = atajos_captura.etiqueta_de_accion
 def abrir_preferencias(parent, config: dict, pagina=None, avisos=None) -> bool:
     """Devuelve True si se guardaron cambios (para aplicarlos en caliente).
 
-    Si `pagina` coincide con el texto de una pestaña (p. ej. "API y sesión"),
-    esa queda seleccionada al abrir. Sin `pagina`, igual que siempre.
-    Si se pasa una lista en `avisos`, al cerrar con Guardar se le agregan los
-    avisos que armó el diálogo, para que la ventana principal los diga cuando
-    recupera el foco.
+    Si `pagina` coincide con una pestaña (p. ej. "YouTube"), esa queda elegida;
+    sin `pagina`, igual. Una lista en `avisos` suma sus avisos para que la
+    ventana principal los diga al recuperar el foco.
     """
     idioma_previo = config.get("idioma")
     dlg = PreferenciasDialog(parent, config)
@@ -498,7 +499,7 @@ def abrir_preferencias(parent, config: dict, pagina=None, avisos=None) -> bool:
         if pagina:
             try:
                 for i in range(dlg.nb.GetPageCount()):
-                    if dlg.nb.GetPageText(i) == pagina:
+                    if dlg.nb.GetPageText(i) == _(pagina):
                         dlg.nb.SetSelection(i)
                         break
             except Exception as exc:
@@ -524,4 +525,4 @@ def ofrecer_iniciar_sesion(parent, config) -> bool:
                       "volver a iniciar sesión?"),
             _("Sesión caducada"), _("&Abrir Preferencias"), _("Ahora &no")):
         return False
-    return abrir_preferencias(parent, config, pagina="API y sesión")
+    return abrir_preferencias(parent, config, pagina=CATEGORIA_YOUTUBE)

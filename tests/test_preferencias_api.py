@@ -1,4 +1,4 @@
-"""Pseudotraducción de la página API y sesión de Preferencias.
+"""Pseudotraducción de la página YouTube de Preferencias.
 
 Abre ventanas.
 Comprueba que ningún texto visible de la página queda sin pasar por

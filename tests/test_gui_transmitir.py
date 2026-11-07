@@ -85,7 +85,7 @@ class TestCambiarOverlay(unittest.TestCase):
         self.assertFalse(frame._config["overlay_activo"])
         guardar.assert_not_called()
         anunciar.assert_called_once_with(
-            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, categoría Transmisión.")
+            "No se pudo activar el chat en el vídeo: el puerto 8730 está en uso. Cámbialo en Preferencias, categoría OBS.")
         self._recarga.assert_not_called()
         self.assertEqual(self._hilos, [])
 
@@ -336,7 +336,7 @@ class TestSupervisarTransmision(unittest.TestCase):
                 frame, "iniciar", "YouTube", "")
         anunciar.assert_called_once_with(
             "Para transmitir a YouTube hace falta iniciar "
-            "sesión con Google, en Preferencias, categoría API y sesión.")
+            "sesión con Google, en Preferencias, categoría YouTube.")
         self.assertIsNone(frame._supervisor)
 
     def test_iniciar_tiktok_crea_e_inicia_supervisor(self):

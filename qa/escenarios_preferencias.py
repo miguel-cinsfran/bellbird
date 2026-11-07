@@ -175,7 +175,7 @@ def escenario_preferencias_categorias(app: Aplicacion, args, res: Resultado):
     tocar ningún valor y cerrando sin guardar.
 
     Solo se anota cuántas paradas tuvo cada categoría, sin listarlas: en
-    «API y sesión» los campos muestran la clave y el secreto del dueño, y
+    «YouTube» los campos muestran la clave y el secreto del dueño, y
     eso no puede quedar en el informe ni en la terminal.
     """
     app.pedir("frente")

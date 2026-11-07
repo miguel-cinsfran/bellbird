@@ -400,10 +400,7 @@ class TestPanelTransmision(unittest.TestCase):
             wx.CommandEvent(wx.EVT_BUTTON.typeId, boton_.GetId()))
 
     def _elegir(self, destino):
-        self.dialogo.cho_destino.SetStringSelection(destino)
-        self.dialogo.cho_destino.GetEventHandler().ProcessEvent(
-            wx.CommandEvent(wx.EVT_CHOICE.typeId,
-                            self.dialogo.cho_destino.GetId()))
+        self.dialogo._destino_guardado = destino
 
     def test_boton_directo_se_pinta_como_principal(self):
         if tema.ALTO_CONTRASTE:
@@ -459,32 +456,21 @@ class TestPanelTransmision(unittest.TestCase):
             cajas.extend(self._cajas(hijo))
         return cajas
 
-    def test_orden_de_tab_con_youtube_en_reposo(self):
-        self._elegir("YouTube")
+    def test_orden_de_tab_de_la_pestana(self):
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
-            "Transmitir a", "Transmitir en directo", "Restream…"])
-
-    def test_orden_de_tab_con_tiktok_en_reposo(self):
-        self._elegir("TikTok")
-        self.assertEqual(self._nombres_en_orden(self.dialogo), [
-            "Transmitir a", "Usuario de TikTok",
             "Transmitir en directo", "Restream…"])
 
-    def test_durante_el_directo_se_ocultan_destino_y_usuario(self):
-        self._elegir("TikTok")
-        self.dialogo._directo.sincronizar(True)
-        self.dialogo._aplicar_visibilidad()
-        self.assertFalse(self.dialogo.cho_destino.IsShown())
-        self.assertFalse(self.dialogo.txt_usuario_tiktok.IsShown())
-        self.assertEqual(self.dialogo.btn_directo.GetLabel(),
-                         "&Finalizar directo")
+    def test_la_pestana_no_tiene_lista_ni_campo_de_destino(self):
+        for nombre in ("Transmitir a", "Usuario de TikTok"):
+            with self.subTest(nombre=nombre):
+                self.assertIsNone(
+                    self._control_por_nombre(self.dialogo, nombre))
 
     def test_intro_con_el_foco_en_cualquier_control_no_transmite(self):
         supervisar = mock.Mock(return_value=False)
         ventana = self._crear(supervisar=supervisar)
         pagina = ventana._pagina_transmision
-        for control in (pagina.cho_destino, pagina.btn_directo,
-                        pagina.btn_restream):
+        for control in (pagina.btn_directo, pagina.btn_restream):
             with self.subTest(control=control.GetName()):
                 control.SetFocus()
                 evento = wx.KeyEvent(wx.wxEVT_KEY_DOWN)
@@ -503,15 +489,13 @@ class TestPanelTransmision(unittest.TestCase):
         with mock.patch.object(obs_ventana.VentanaObs, "_inicial_cargada"):
             ventana = self._crear(pestana=obs_ventana.PESTANA_GENERAL)
         ventana.nb.SetSelection(obs_ventana.PESTANA_TRANSMISION)
-        ventana._pagina_transmision.cho_destino.SetFocus()
+        ventana._pagina_transmision.btn_directo.SetFocus()
         ventana._inicial_cargada(ventana._cargar_inicial())
         self.assertIs(ventana.FindFocus(),
-                      ventana._pagina_transmision.cho_destino)
+                      ventana._pagina_transmision.btn_directo)
 
-    def test_al_abrir_en_transmision_enfoca_el_boton_si_el_destino_esta_oculto(self):
+    def test_al_abrir_en_transmision_enfoca_el_boton_del_directo(self):
         pagina = self.dialogo
-        pagina._directo.sincronizar(True)
-        pagina._aplicar_visibilidad()
         with mock.patch.object(pagina.btn_directo, "SetFocus") as foco:
             pagina.enfocar_inicial()
         foco.assert_called_once_with()
@@ -617,13 +601,10 @@ class TestPanelTransmision(unittest.TestCase):
         self.sonido.reproducir.assert_called_once_with("error")
         self.guardar_opcion.assert_not_called()
 
-    def test_la_casilla_del_chat_no_existe_con_youtube_ni_tiktok(self):
+    def test_la_casilla_del_chat_no_existe(self):
         self.assertFalse(hasattr(self.dialogo, "chk_chat"))
-        for destino in ("YouTube", "TikTok"):
-            with self.subTest(destino=destino):
-                self._elegir(destino)
-                self.assertIsNone(self._control_por_nombre(
-                    self.dialogo, "Mostrar chat en el vídeo"))
+        self.assertIsNone(self._control_por_nombre(
+            self.dialogo, "Mostrar chat en el vídeo"))
 
     def test_sin_obs_conectado_no_toca_el_servicio(self):
         self.gestor.fallo = True
@@ -737,20 +718,6 @@ class TestPanelTransmision(unittest.TestCase):
                 return encontrado
         return None
 
-    def test_cada_campo_tiene_su_rotulo_visible_justo_antes(self):
-        casos = [
-            (self.dialogo.cho_destino, "Transmitir &a:"),
-            (self.dialogo.txt_usuario_tiktok, "&Usuario de TikTok:"),
-        ]
-        for control, esperado in casos:
-            with self.subTest(control=control.GetName()):
-                hijos = list(control.GetParent().GetChildren())
-                indice = hijos.index(control)
-                self.assertGreater(indice, 0)
-                rotulo = hijos[indice - 1]
-                self.assertIsInstance(rotulo, wx.StaticText)
-                self.assertEqual(rotulo.GetLabel(), esperado)
-
     def test_letras_de_atajo_unicas_y_ascii(self):
         letras = [self._letra_de_atajo(etiqueta)
                   for etiqueta in self._etiquetas(self.dialogo)]
@@ -774,121 +741,72 @@ class TestPanelTransmision(unittest.TestCase):
             etiquetas.extend(self._etiquetas(hijo))
         return etiquetas
 
-    def test_foco_inicial_en_transmitir_a(self):
-        self.assertIs(self.dialogo.FindFocus(), self.dialogo.cho_destino)
+    def test_foco_inicial_en_el_boton_del_directo(self):
+        self.assertIs(self.dialogo.FindFocus(), self.dialogo.btn_directo)
 
-    def test_controles_de_destino_tienen_nombres_y_opciones(self):
-        self.assertEqual(self.dialogo.cho_destino.GetStrings(),
-                         ["TikTok", "YouTube"])
-        self.assertEqual(self.dialogo.cho_destino.GetName(), "Transmitir a")
-        self.assertEqual(self.dialogo.txt_usuario_tiktok.GetName(),
-                         "Usuario de TikTok")
+    def test_los_botones_tienen_sus_nombres_accesibles(self):
         self.assertEqual(self.dialogo.btn_directo.GetName(),
                          "Transmitir en directo")
         self.assertEqual(self.dialogo.btn_restream.GetName(), "Restream…")
 
-    def test_destino_inicial_muestra_el_perfil_actual_si_es_un_destino(self):
-        self.gestor.perfil = "YouTube"
-        ventana = self._crear()
-        self.assertEqual(
-            ventana._pagina_transmision.cho_destino.GetStringSelection(),
-            "YouTube")
+    def _pedir(self, resultado):
+        return mock.patch.object(gui_transmision, "pedir_destino",
+                                 return_value=resultado)
 
-    def test_destino_inicial_sin_seleccion_si_el_perfil_no_es_un_destino(self):
-        self.gestor.perfil = "N5000-Grabacion"
-        ventana = self._crear()
-        self.assertEqual(
-            ventana._pagina_transmision.cho_destino.GetSelection(),
-            wx.NOT_FOUND)
+    def test_el_boton_abre_el_cuadro_con_lo_guardado(self):
+        pagina = self.dialogo
+        pagina._destino_guardado = "YouTube"
+        pagina._usuario_tiktok = "amigo"
+        with self._pedir(None) as pedir:
+            self._pulsar(pagina.btn_directo)
+        pedir.assert_called_once_with(pagina, "YouTube", "amigo")
 
-    def test_cambiar_la_lista_guarda_el_destino_y_anuncia_el_titular(self):
-        guardar = mock.Mock()
-        ventana = self._crear(guardar_destino=guardar)
-        pagina = ventana._pagina_transmision
-        self.anuncios.clear()
-        pagina.cho_destino.SetStringSelection("YouTube")
-        pagina.cho_destino.GetEventHandler().ProcessEvent(
-            wx.CommandEvent(wx.EVT_CHOICE.typeId,
-                            pagina.cho_destino.GetId()))
-        guardar.assert_called_once_with("YouTube")
-        self.assertIn("Preparado para transmitir a YouTube", self.anuncios)
+    def test_cancelar_no_transmite_anuncia_y_devuelve_el_foco(self):
+        pagina = self.dialogo
+        with self._pedir(None), \
+                mock.patch.object(directo_panel.transmision_directa,
+                                  "preparar") as preparar, \
+                mock.patch.object(pagina.btn_directo, "SetFocus") as foco:
+            self._pulsar(pagina.btn_directo)
+        preparar.assert_not_called()
+        self.assertIn("No se transmitió.", self.anuncios)
+        foco.assert_called_once_with()
+        self.principal.guardar_destino.assert_not_called()
+        self.principal.guardar_usuario.assert_not_called()
 
-    def test_campo_usuario_arranca_con_el_guardado(self):
-        ventana = self._crear(usuario_tiktok="amigo")
-        self.assertEqual(
-            ventana._pagina_transmision.txt_usuario_tiktok.GetValue(),
-            "amigo")
+    def test_continuar_guarda_y_prepara_con_lo_elegido(self):
+        pagina = self.dialogo
+        preparacion = SimpleNamespace(ya_transmitiendo=False,
+                                      revision=mock.sentinel.revision)
+        with self._pedir(("TikTok", "usuario")), \
+                mock.patch.object(directo_panel.transmision_directa,
+                                  "preparar", return_value=preparacion) as preparar, \
+                mock.patch.object(directo_panel, "confirmar_transmision",
+                                  return_value=True):
+            self._pulsar(pagina.btn_directo)
+        self.principal.guardar_destino.assert_any_call("TikTok")
+        self.principal.guardar_usuario.assert_any_call("usuario")
+        args, _ = preparar.call_args
+        self.assertEqual(args[1], "TikTok")
+        self.principal.supervisar.assert_any_call(
+            "iniciar", "TikTok", "usuario")
+
+    def test_destino_actual_usa_el_guardado_y_relee_los_perfiles(self):
+        with self._con_perfiles(_perfil_restream("Uno", "vertical")) as cargar:
+            self.dialogo._destino_guardado = "restream:Uno"
+            self.assertEqual(self.dialogo.destino_actual(), "TikTok")
+            cargar.assert_called()
 
     def _con_perfiles(self, *perfiles):
         return mock.patch.object(gui_transmision.ganchos, "cargar_perfiles",
                                  return_value=list(perfiles))
 
-    def _elegir_en(self, pagina, texto):
-        pagina.cho_destino.SetStringSelection(texto)
-        pagina.cho_destino.GetEventHandler().ProcessEvent(
-            wx.CommandEvent(wx.EVT_CHOICE.typeId, pagina.cho_destino.GetId()))
-
-    def _enfocar_destino(self, pagina):
-        pagina.cho_destino.GetEventHandler().ProcessEvent(
-            wx.FocusEvent(wx.EVT_SET_FOCUS.typeId,
-                          pagina.cho_destino.GetId()))
-
-    def test_los_perfiles_aparecen_despues_de_youtube_y_tiktok(self):
-        with self._con_perfiles(_perfil_restream()):
-            ventana = self._crear()
-        self.assertEqual(
-            ventana._pagina_transmision.cho_destino.GetStrings(),
-            ["TikTok", "YouTube", "Restream: Uno"])
-
-    def test_al_recibir_foco_relee_perfiles_y_conserva_la_seleccion(self):
+    def test_restream_sin_cuenta_no_transmite(self):
         pagina = self.dialogo
-        self._elegir_en(pagina, "YouTube")
         with self._con_perfiles(_perfil_restream()), \
-                mock.patch.object(wx.Choice, "SetFocus") as foco:
-            self._enfocar_destino(pagina)
-        self.assertIn("Restream: Uno", pagina.cho_destino.GetStrings())
-        self.assertEqual(pagina.cho_destino.GetStringSelection(), "YouTube")
-        foco.assert_not_called()
-
-    def test_si_los_perfiles_no_cambiaron_no_toca_el_control(self):
-        pagina = self.dialogo
-        with mock.patch.object(pagina, "_poner_opciones") as poner:
-            self._enfocar_destino(pagina)
-        poner.assert_not_called()
-
-    def test_perfil_guardado_se_recupera_al_abrir(self):
-        self.principal._config["transmision_destino"] = "restream:Uno"
-        with self._con_perfiles(_perfil_restream()):
-            ventana = self._crear()
-        self.assertEqual(
-            ventana._pagina_transmision.cho_destino.GetStringSelection(),
-            "Restream: Uno")
-
-    def test_perfil_guardado_que_ya_no_existe_cae_al_perfil_de_obs(self):
-        self.principal._config["transmision_destino"] = "restream:Viejo"
-        self.gestor.perfil = "YouTube"
-        with self._con_perfiles():
-            ventana = self._crear()
-        self.assertEqual(
-            ventana._pagina_transmision.cho_destino.GetStringSelection(),
-            "YouTube")
-
-    def test_cambiar_a_un_perfil_guarda_la_opcion(self):
-        with self._con_perfiles(_perfil_restream()):
-            ventana = self._crear()
-        pagina = ventana._pagina_transmision
-        self._elegir_en(pagina, "Restream: Uno")
-        self.principal.guardar_destino.assert_called_once_with(
-            "restream:Uno")
-
-    def test_el_perfil_oculta_el_usuario_y_sin_cuenta_no_transmite(self):
-        with self._con_perfiles(_perfil_restream()):
-            ventana = self._crear()
-        pagina = ventana._pagina_transmision
-        self._elegir_en(pagina, "Restream: Uno")
-        self.assertFalse(pagina.txt_usuario_tiktok.IsShown())
-        with mock.patch.object(directo_panel.ganchos, "cuenta_conectada",
-                               return_value=False), \
+                self._pedir(("restream:Uno", "")), \
+                mock.patch.object(directo_panel.ganchos, "cuenta_conectada",
+                                  return_value=False), \
                 mock.patch.object(directo_panel, "avisar") as avisar:
             self._pulsar(pagina.btn_directo)
         self.assertEqual(
@@ -899,15 +817,14 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertTrue(avisar.call_args.kwargs["error"])
         self.principal.supervisar.assert_not_called()
 
-    def test_elegir_restream_prepara_obs_y_supervisa_los_ganchos(self):
-        with self._con_perfiles(_perfil_restream("Vertical", "vertical")):
-            ventana = self._crear()
-        pagina = ventana._pagina_transmision
-        self._elegir_en(pagina, "Restream: Vertical")
+    def test_continuar_con_restream_prepara_y_supervisa(self):
+        pagina = self.dialogo
         preparacion = SimpleNamespace(ya_transmitiendo=False,
                                       revision=mock.sentinel.revision)
-        with mock.patch.object(directo_panel.ganchos, "cuenta_conectada",
-                               return_value=True), \
+        with self._con_perfiles(_perfil_restream("Vertical", "vertical")), \
+                self._pedir(("restream:Vertical", "")), \
+                mock.patch.object(directo_panel.ganchos, "cuenta_conectada",
+                                  return_value=True), \
                 mock.patch.object(directo_panel.transmision_directa,
                                   "preparar",
                                   return_value=preparacion) as preparar:
@@ -916,7 +833,7 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertEqual(args[1], "TikTok")
         self.principal.supervisar.assert_any_call(
             "iniciar", "restream:Vertical", "")
-        self.principal.guardar_destino.assert_called_with("restream:Vertical")
+        self.principal.guardar_destino.assert_any_call("restream:Vertical")
         self.principal.guardar_usuario.assert_not_called()
 
     def test_cerrar_no_anuncia_ni_depende_del_error_de_obs(self):

@@ -123,7 +123,7 @@ class PaginaPerfiles(wx.Panel):
         perfiles.guardar(self._ruta, self._perfiles)
         self.poblar(len(self._perfiles) - 1)
         anunciar(_("Perfil de Restream guardado. Elígelo en Transmitir a, "
-                   "en la pestaña Transmisión."))
+                   "al pulsar Transmitir en directo."))
 
     def editar(self):
         indice = self._indice_seleccionado()

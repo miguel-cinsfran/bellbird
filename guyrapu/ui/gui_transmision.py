@@ -12,11 +12,11 @@ from guyrapu.obs import (chat_en_video, consultas_transmision, obs_lanzador,
 from guyrapu.obs.estado_panel import resumir
 from guyrapu.restream import ganchos, transmitir
 from guyrapu.ui import gui_microfono, menu_transmision, tema
-from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
+from guyrapu.ui.accesibilidad import anunciar
 from guyrapu.ui.directo_panel import DirectoPanel
 from guyrapu.ui.gui import caja_de_grupo
-from guyrapu.ui.preferencias_comun import (
-    boton, fila_campo, mostrar_fila)
+from guyrapu.ui.gui_elegir_destino import pedir_destino
+from guyrapu.ui.preferencias_comun import boton
 from guyrapu.voice import sound_player
 
 
@@ -50,41 +50,19 @@ class PaginaTransmision(wx.Panel):
         config = getattr(self._principal, "_config", None) or {}
         self._usuario_tiktok = config.get("tiktok_usuario", "") or ""
         self._destino_guardado = config.get("transmision_destino", "") or ""
-        self._perfiles = ganchos.cargar_perfiles()
-        self._opciones = transmitir.opciones(self._perfiles)
 
     def _crear_controles(self):
         caja = wx.BoxSizer(wx.VERTICAL)
-        self._filas = {}
         self._crear_grupo_directo(caja)
         self.btn_restream = boton(
             self, pgettext("pestaña Transmisión", "Re&stream…"),
             _("Restream…"))
         caja.Add(self.btn_restream, 0, wx.ALL, 10)
         self.SetSizer(caja)
-        self.acciones = (
-            self.cho_destino, self.txt_usuario_tiktok, self.btn_directo,
-            self.btn_restream)
-
-    def _crear_selector_destino(self, sizer, padre):
-        rotulo_destino = wx.StaticText(padre, label=_("Transmitir &a:"))
-        self.cho_destino = wx.Choice(
-            padre,
-            choices=[transmitir.texto(opcion) for opcion in self._opciones],
-            name=_("Transmitir a"))
-        nombre_accesible(self.cho_destino, _("Transmitir a"))
-        self._filas["destino"] = fila_campo(
-            sizer, rotulo_destino, self.cho_destino)
+        self.acciones = (self.btn_directo, self.btn_restream)
 
     def _crear_grupo_directo(self, contenido):
         sizer, padre = caja_de_grupo(self, _("Directo"))
-        self._crear_selector_destino(sizer, padre)
-        rotulo_usuario = wx.StaticText(padre, label=_("&Usuario de TikTok:"))
-        self.txt_usuario_tiktok = wx.TextCtrl(
-            padre, value=self._usuario_tiktok, name=_("Usuario de TikTok"))
-        nombre_accesible(self.txt_usuario_tiktok, _("Usuario de TikTok"))
-        self._filas["usuario"] = fila_campo(
-            sizer, rotulo_usuario, self.txt_usuario_tiktok)
         etiqueta, nombre = transmision_directa.etiqueta(False)
         self.btn_directo = boton(padre, etiqueta, nombre)
         tema.boton_principal(self.btn_directo)
@@ -93,24 +71,25 @@ class PaginaTransmision(wx.Panel):
 
     def _enlazar_eventos(self):
         self.btn_restream.Bind(wx.EVT_BUTTON, self._abrir_restream)
-        self.cho_destino.Bind(wx.EVT_CHOICE, self._al_cambiar_destino)
-        self.cho_destino.Bind(wx.EVT_SET_FOCUS, self._al_foco_destino)
-
-    def _destino_elegido(self):
-        """La opción elegida: un destino de OBS o «restream:<nombre>»."""
-        seleccion = self.cho_destino.GetSelection()
-        if seleccion == wx.NOT_FOUND or seleccion >= len(self._opciones):
-            return None
-        return self._opciones[seleccion]
 
     def destino_actual(self):
-        return (transmitir.destino_obs(
-            self._destino_elegido() or "", self._perfiles) or "")
+        perfiles = ganchos.cargar_perfiles()
+        return transmitir.destino_obs(self._destino_guardado, perfiles) or ""
 
     def _datos_directo(self):
-        return (self._destino_elegido() or "",
-                self.destino_actual(),
-                self.txt_usuario_tiktok.GetValue())
+        elegido = pedir_destino(
+            self, self._destino_guardado, self._usuario_tiktok)
+        if elegido is None:
+            return None
+        opcion, usuario = elegido
+        if self._guardar_destino is not None:
+            self._guardar_destino(opcion)
+        self._destino_guardado = opcion
+        if opcion == "TikTok":
+            if self._guardar_usuario is not None:
+                self._guardar_usuario(usuario)
+            self._usuario_tiktok = usuario
+        return (opcion, self.destino_actual(), usuario)
 
     def _microfono_preferido(self):
         try:
@@ -118,77 +97,22 @@ class PaginaTransmision(wx.Panel):
         except Exception:
             return ""
 
-    def _al_cambiar_destino(self, event):
-        self._directo.recordar_destino(self._destino_elegido() or "")
-        self._aplicar_visibilidad()
-        self._refrescar_estado(anunciar_titular=True)
-        event.Skip()
-
-    def _al_foco_destino(self, event):
-        self._releer_perfiles()
-        self._aplicar_visibilidad()
-        event.Skip()
-
-    def _releer_perfiles(self):
-        """Relee los perfiles y cambia la lista solo si cambiaron.
-
-        Conserva la opción elegida si sigue existiendo y no mueve el foco.
-        """
-        perfiles = ganchos.cargar_perfiles()
-        opciones = transmitir.opciones(perfiles)
-        if opciones == self._opciones:
-            return
-        elegida = self._destino_elegido()
-        self._perfiles = perfiles
-        self._opciones = opciones
-        self._poner_opciones()
-        self._seleccionar_opcion(elegida)
-
-    def _poner_opciones(self):
-        self.cho_destino.Set(
-            [transmitir.texto(opcion) for opcion in self._opciones])
-
-    def _seleccionar_opcion(self, opcion):
-        if opcion in self._opciones:
-            self.cho_destino.SetSelection(self._opciones.index(opcion))
-        else:
-            self.cho_destino.SetSelection(wx.NOT_FOUND)
-
     def _al_cambiar_directo(self, foco=None):
         self._aplicar_visibilidad()
-        if foco == "usuario" and self.txt_usuario_tiktok.IsShown():
-            self.txt_usuario_tiktok.SetFocus()
         self._refrescar_estado()
 
     def _aplicar_visibilidad(self):
-        opcion = self._destino_elegido()
-        transmitiendo = self._directo.transmitiendo
-        mostrar_fila(self._filas["destino"], not transmitiendo,
-                     self.btn_directo)
-        mostrar_fila(self._filas["usuario"],
-                     opcion == "TikTok" and not transmitiendo,
-                     self.btn_directo)
         self.Layout()
 
     def _en_hilo(self, funcion, al_terminar=None):
         self._operaciones.en_hilo(funcion, al_terminar)
 
     def cargar(self, datos):
-        """Pone el estado y el destino iniciales que leyó la ventana."""
-        self._releer_perfiles()
-        if self._destino_guardado in self._opciones:
-            self._seleccionar_opcion(self._destino_guardado)
-        elif datos.perfil in self._opciones:
-            self._seleccionar_opcion(datos.perfil)
-        else:
-            self.cho_destino.SetSelection(wx.NOT_FOUND)
+        """Pone el estado inicial que leyó la ventana."""
         self._aplicar_datos(datos)
 
     def enfocar_inicial(self):
-        if self.cho_destino.IsShown():
-            self.cho_destino.SetFocus()
-        else:
-            self.btn_directo.SetFocus()
+        self.btn_directo.SetFocus()
 
     def cerrar_directo(self):
         self._directo.cerrar()

@@ -124,34 +124,20 @@ class TestFaltanEnTab(unittest.TestCase):
 
 class TestOrdenDeTransmision(unittest.TestCase):
 
-    def test_el_orden_de_p2_no_esta_descuidado(self):
+    def test_los_dos_botones_estan_en_orden(self):
         self.assertIsNone(ventanas_obs.orden_de_transmision([
-            "Choice: Transmitir a",
             "Button: Transmitir en directo",
             "Button: Restream…"]))
 
-    def test_sin_los_condicionales_el_orden_sigue_valiendo(self):
+    def test_el_recorrido_circular_sigue_en_orden(self):
         self.assertIsNone(ventanas_obs.orden_de_transmision([
-            "Choice: Transmitir a",
-            "Button: Transmitir en directo", "Button: Restream…"]))
-
-    def test_el_recorrido_circular_desde_transmitir_a_sigue_en_orden(self):
-        self.assertIsNone(ventanas_obs.orden_de_transmision([
-            "Button: Transmitir en directo",
             "Button: Restream…",
-            "Choice: Transmitir a"]))
+            "Button: Transmitir en directo"]))
 
-    def test_un_control_fuera_de_orden_se_nombra(self):
-        texto = ventanas_obs.orden_de_transmision([
-            "Button: Transmitir en directo", "Choice: Transmitir a",
-            "Button: Restream…"])
-        self.assertIsNotNone(texto)
-        self.assertIn("transmitir a", texto)
 
     def test_la_marca_de_mnemonico_no_cambia_el_orden(self):
         self.assertIsNone(ventanas_obs.orden_de_transmision([
-            "Choice: Transmitir &a",
-            "Button: Transmitir en directo", "Button: Re&stream…"]))
+            "Button: Transm&itir en directo", "Button: Re&stream…"]))
 
 
 class TestEsperadosDePestana(unittest.TestCase):
@@ -164,7 +150,8 @@ class TestEsperadosDePestana(unittest.TestCase):
 
     def test_transmision_pide_sus_controles(self):
         esperados = ventanas_obs.esperados_de_pestana("Transmisión")
-        self.assertIn("Transmitir a", esperados)
+        self.assertNotIn("Transmitir a", esperados)
+        self.assertNotIn("Usuario de TikTok", esperados)
         self.assertIn("Transmitir en directo", esperados)
         self.assertIn("Restream…", esperados)
         self.assertNotIn("Estado", esperados)

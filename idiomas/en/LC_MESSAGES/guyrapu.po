@@ -9065,16 +9065,8 @@ msgid "Restream…"
 msgstr "Restream…"
 
 #: guyrapu/ui/gui_transmision.py
-msgid "Transmitir &a:"
-msgstr "Broadcast &to:"
-
-#: guyrapu/ui/gui_transmision.py
 msgid "Directo"
 msgstr "Live"
-
-#: guyrapu/ui/gui_transmision.py
-msgid "&Usuario de TikTok:"
-msgstr "TikTok &user:"
 
 #: guyrapu/ui/gui_transmision.py guyrapu/ui/gui_transmitir.py
 #, python-brace-format
@@ -11067,12 +11059,6 @@ msgid "Nuevo perfil"
 msgstr "New profile"
 
 #: guyrapu/ui/restream_pagina_perfiles.py
-msgid ""
-"Perfil de Restream guardado. Elígelo en Transmitir a, en la pestaña "
-"Transmisión."
-msgstr "Restream profile saved. Choose it in Broadcast to, on the Broadcast tab."
-
-#: guyrapu/ui/restream_pagina_perfiles.py
 msgid "Perfil de Restream guardado."
 msgstr "Restream profile saved."
 
@@ -11481,4 +11467,12 @@ msgstr "Signed in. You can go back to the application."
 #: guyrapu/youtube/youtube_api.py
 msgid "Sin título"
 msgstr "Untitled"
+
+#: guyrapu/ui/restream_pagina_perfiles.py
+msgid ""
+"Perfil de Restream guardado. Elígelo en Transmitir a, al pulsar Transmitir "
+"en directo."
+msgstr ""
+"Restream profile saved. Choose it in Broadcast to, when you press Broadcast"
+" live."
 

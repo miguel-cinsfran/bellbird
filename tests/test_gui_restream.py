@@ -515,8 +515,8 @@ class PruebaVentanaRestream(unittest.TestCase):
         self.assertEqual(0,
                          dialogo._pagina_perfiles.lista_perfiles.GetSelection())
         anunciar.assert_called_once_with(
-            "Perfil de Restream guardado. Elígelo en Transmitir a, en la "
-            "pestaña Transmisión.")
+            "Perfil de Restream guardado. Elígelo en Transmitir a, al pulsar "
+            "Transmitir en directo.")
 
     def test_p8_duplicar_escribe_nombre_copia_y_su_numero(self):
         original = _perfil(nombre="Canal")

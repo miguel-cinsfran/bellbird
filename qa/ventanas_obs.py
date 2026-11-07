@@ -25,12 +25,11 @@ PESTANA_GRABACION = 4
 
 ESPERADOS_EN_TODAS = ("Cerrar",)
 
-ORDEN_TRANSMISION = ("Transmitir a", "Usuario de TikTok",
-                     "Transmitir en directo", "Restream…")
+ORDEN_TRANSMISION = ("Transmitir en directo", "Restream…")
 
 ESPERADOS_POR_PESTANA = {
     "General": ("Estado", "Actualizar estado", "Mostrar OBS"),
-    "Transmisión": ("Transmitir a", "Transmitir en directo", "Restream…"),
+    "Transmisión": ("Transmitir en directo", "Restream…"),
     "Escena": ("Escenas", "Cambiar escena", "Agregar escena", "Fuentes",
                "Aplicar diseño", "Agregar fuente",
                "Deshacer todos los cambios"),
@@ -86,8 +85,7 @@ def _nombre_de_parada(parada: str) -> str:
 def orden_de_transmision(orden: list[str]) -> str | None:
     """El desorden de los controles de Transmisión, o `None` si están en orden.
 
-    Solo mira los controles que aparecen, porque el destino y el usuario se
-    ocultan según el estado del directo.
+    Solo mira los controles que aparecen en el recorrido de Tab.
     """
     queridos = [nombre.casefold() for nombre in ORDEN_TRANSMISION]
     vistos = [_nombre_de_parada(parada) for parada in orden]
@@ -235,7 +233,8 @@ def auditar_transmision(app, res, recorrer_tab, revisar_nombres,
         descuadre = descuadre_de_pestanas(paginas)
         if descuadre:
             res.fallo(f"Panel de OBS: {descuadre}")
-        if not esperar_habilitado(app, faltan_habilitados, "Transmitir a",
+        if not esperar_habilitado(app, faltan_habilitados,
+                                  "Transmitir en directo",
                                   SEGUNDOS_CARGA_OBS, res):
             return
         visibles = [c for c in app.arbol(TITULO_VENTANA)

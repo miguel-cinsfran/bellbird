@@ -102,7 +102,12 @@ class DirectoPanel:
             return False
 
     def _transmitir(self) -> None:
-        opcion, destino, usuario = self._datos_directo()
+        datos = self._datos_directo()
+        if datos is None:
+            anunciar(_("No se transmitió."))
+            self._boton.SetFocus()
+            return
+        opcion, destino, usuario = datos
         usuario = self._usuario_para(opcion, usuario)
         if usuario is None:
             return
@@ -113,28 +118,7 @@ class DirectoPanel:
             con_supervisor=lambda: self._preguntar_supervisor("activo"),
             transmitiendo=self._transmitiendo,
             destino=opcion, usuario_tiktok=lambda: usuario)
-        if decision == transmision_directa.ALTERNAR:
-            self._operaciones.en_hilo(
-                self._gestor.alternar_transmision,
-                self._transmision_alternada)
-            return
-        if decision == transmision_directa.ESPERAR_DETENCION:
-            anunciar(_("Deteniendo la transmisión. "
-                       "Esperando a que OBS confirme."))
-            return
-        if decision == transmision_directa.DETENER_SUPERVISADA:
-            try:
-                self._supervisar("detener")
-            except Exception as error:
-                logger.debug("no se pudo detener la supervisión: %s", error)
-            self._mostrar_transmision(False)
-            return
-        if decision == transmision_directa.FALTA_DESTINO:
-            avisar(_("Elige primero a dónde transmitir, en Transmitir a."), "transmision_problema", error=True)
-            return
-        if decision == transmision_directa.FALTA_USUARIO:
-            anunciar(_("Escribe tu usuario de TikTok en Usuario de TikTok."))
-            self._al_cambiar("usuario")
+        if self._atender_decision(decision):
             return
         sound_player.reproducir("conectando")
         anunciar(_("Revisando OBS antes de transmitir."))
@@ -142,6 +126,33 @@ class DirectoPanel:
             lambda: self._preparar(destino),
             lambda preparacion: self._revision_lista(
                 preparacion, opcion, destino, usuario))
+
+    def _atender_decision(self, decision) -> bool:
+        """Resuelve las decisiones que no llegan a preparar OBS."""
+        if decision == transmision_directa.ALTERNAR:
+            self._operaciones.en_hilo(
+                self._gestor.alternar_transmision,
+                self._transmision_alternada)
+            return True
+        if decision == transmision_directa.ESPERAR_DETENCION:
+            anunciar(_("Deteniendo la transmisión. "
+                       "Esperando a que OBS confirme."))
+            return True
+        if decision == transmision_directa.DETENER_SUPERVISADA:
+            try:
+                self._supervisar("detener")
+            except Exception as error:
+                logger.debug("no se pudo detener la supervisión: %s", error)
+            self._mostrar_transmision(False)
+            return True
+        if decision == transmision_directa.FALTA_DESTINO:
+            avisar(_("Elige primero a dónde transmitir, en Transmitir a."), "transmision_problema", error=True)
+            return True
+        if decision == transmision_directa.FALTA_USUARIO:
+            anunciar(_("Escribe tu usuario de TikTok en Usuario de TikTok."))
+            self._al_cambiar("usuario")
+            return True
+        return False
 
     def _preparar(self, destino):
         return transmision_directa.preparar(

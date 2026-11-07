@@ -709,7 +709,7 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
             res.fallo("Panel de OBS: el menú no abrió el panel")
             return False
         if not ventanas_obs.esperar_habilitado(
-                app, faltan_habilitados, "Transmitir a", 15, res):
+                app, faltan_habilitados, "Transmitir en directo", 15, res):
             app.pedir("cerrar_ventana", ventana="Panel de OBS")
             return False
         app.pedir("cerrar_ventana", ventana="Panel de OBS")

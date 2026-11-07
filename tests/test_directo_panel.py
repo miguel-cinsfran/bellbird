@@ -96,6 +96,16 @@ class TestDirectoPanel(unittest.TestCase):
                          self.supervisar.call_args_list)
         self.assertEqual(anunciar.call_args.args[0], "No se transmitió.")
 
+    def test_sin_datos_no_prepara_anuncia_y_devuelve_el_foco(self):
+        self.datos = None
+        with mock.patch.object(transmision_directa, "preparar") as preparar, \
+                mock.patch.object(directo_panel, "anunciar") as anunciar, \
+                mock.patch.object(self.boton, "SetFocus") as foco:
+            self._pulsar()
+        preparar.assert_not_called()
+        anunciar.assert_called_once_with("No se transmitió.")
+        foco.assert_called_once_with()
+
     def test_restream_no_confirma_ni_guarda_usuario(self):
         self.datos = ("restream:Uno", "TikTok", "")
         with mock.patch.object(directo_panel.ganchos, "cuenta_conectada",

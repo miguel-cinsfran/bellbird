@@ -111,6 +111,17 @@ class TestSenalEntrante(unittest.TestCase):
             senal.Aviso("Restream vuelve a recibir la señal.",
                         "restream_senal_vuelve")])
 
+    def test_un_mensaje_atrasado_de_la_misma_sesion_no_avisa_la_vuelta(self):
+        self.senal.recibir(_entrante(suid="uno"))
+        self.senal.recibir(_mensaje("deleteIncoming"))
+
+        self.assertEqual(self.senal.recibir(_entrante(suid="uno")), [])
+        avisos = self.senal.recibir(_entrante(suid="dos"))
+
+        self.assertEqual(avisos, [
+            senal.Aviso("Restream vuelve a recibir la señal.",
+                        "restream_senal_vuelve")])
+
     def test_la_primera_sesion_no_anuncia_vuelta(self):
         self.assertEqual(self.senal.recibir(_entrante()), [])
 

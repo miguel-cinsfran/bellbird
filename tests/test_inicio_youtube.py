@@ -9,6 +9,7 @@ from unittest import mock
 from guyrapu.restream import perfiles
 from guyrapu.restream.perfiles import Perfil
 from guyrapu.ui import inicio_youtube
+from guyrapu.youtube.emision import EmisionError
 
 
 def _perfil(nombre="Uno", youtube=True, directo=None):
@@ -73,6 +74,26 @@ class TestPerfil(unittest.TestCase):
         self.assertEqual({"marca": True}, preparados)
         [guardado] = perfiles.cargar(self.ruta)
         self.assertEqual(NUEVO, guardado.directo)
+
+    def test_p5_las_etiquetas_guardadas_como_texto_no_se_parten(self):
+        _armado, recibido = self._pedir(_perfil(directo={
+            "titulo": "Viejo", "etiquetas": "uno, dos"}))
+
+        self.assertEqual("uno, dos", recibido["etiquetas"])
+
+    def test_un_fallo_al_armar_el_cuerpo_avisa_y_no_transmite(self):
+        with mock.patch.object(inicio_youtube, "hay_sesion", return_value=True),                 mock.patch.object(inicio_youtube, "_cliente",
+                                  return_value=mock.Mock()),                 mock.patch.object(inicio_youtube, "_preparados",
+                                  side_effect=EmisionError(
+                                      "Falta el título del directo.")),                 mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo",
+                           return_value=NUEVO),                 mock.patch("guyrapu.core.paths.perfiles_restream",
+                           return_value=self.ruta),                 mock.patch.object(inicio_youtube, "avisar") as avisar:
+            resultado = inicio_youtube.pedir_y_guardar_perfil(
+                None, None, _perfil(), [_perfil()])
+
+        self.assertIsNone(resultado)
+        avisar.assert_called_once_with("Falta el título del directo.",
+                                       error=True)
 
     def test_p4_sin_youtube_el_cuadro_pide_solo_titulo(self):
         _armado, recibido = self._pedir(_perfil(youtube=False))

@@ -70,7 +70,8 @@ def fila_perfil(perfil, nombres=None, leidos=False):
         nombre=perfil.nombre, orientacion=_(perfil.orientacion))]
     canales = tuple(perfil.canales)
     if not canales:
-        partes.append(_(", sin destinos"))
+        partes.append(": " + _("YouTube") if perfil.youtube
+                      else _(", sin destinos"))
         return "".join(partes)
     conocidos = [nombres[canal] for canal in canales if canal in nombres]
     if conocidos:

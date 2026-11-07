@@ -27,7 +27,6 @@ from guyrapu.youtube.emision import (
     PRIVACIDADES,
     EmisionError,
     error_de_miniatura,
-    etiquetas_de_texto,
     opciones_lista,
     resultado_directo,
     titulo_por_defecto,
@@ -167,7 +166,8 @@ class DialogoDirectoYoutube(wx.Dialog):
         rotulo_latencia = wx.StaticText(zona, label=_("&Latencia:"))
         contenido.Add(rotulo_latencia, 0, wx.LEFT | wx.RIGHT, 10)
         self.cho_latencia = wx.Choice(
-            zona, choices=[_(ETIQUETAS_LATENCIA[l]) for l in LATENCIAS],
+            zona, choices=[_(ETIQUETAS_LATENCIA[latencia])
+                           for latencia in LATENCIAS],
             name=_("Latencia"))
         self.cho_latencia.SetSelection(LATENCIAS.index(latencia))
         nombre_accesible(self.cho_latencia, _("Latencia"))

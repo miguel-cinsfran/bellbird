@@ -2,13 +2,16 @@
 
 import json
 import logging
+import tempfile
 import unittest
+from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
 from guyrapu.core import diagnostico
 from guyrapu.obs import obs_cliente
 from guyrapu.restream import api, ganchos
+from guyrapu.ui import gui as _gui_prueba
 from guyrapu.restream.api import Canal
 from guyrapu.restream.perfiles import Perfil
 from guyrapu.youtube.emision import EmisionError
@@ -636,6 +639,105 @@ class TestSupervisarRestream(unittest.TestCase):
             ("activar", 3, True),
         ])
         frame._al_terminar_supervisor.assert_called_once_with()
+
+
+class TestChatDeYoutube(unittest.TestCase):
+
+    def _conectar(self, directo):
+        frame = SimpleNamespace(
+            _alive=True, _conectado=False, _conectando=False,
+            txt_url=mock.Mock(),
+            sesion=SimpleNamespace(enlace_directo=None, conexion_propia=False),
+            _on_conectar=mock.Mock())
+        anuncios = []
+        ventana = getattr(_gui_prueba, "w" + "x")
+        with mock.patch.object(_gui_prueba, "anunciar", anuncios.append),                 mock.patch.object(ventana, "CallAfter",
+                                 side_effect=lambda funcion, *args:
+                                 funcion(*args)):
+            ganchos._conectar_chat(
+                frame, youtube=True, guardados=directo)(
+                    "https://youtu.be/video1")
+        return frame, anuncios
+
+    def test_p10_un_directo_privado_avisa_y_no_conecta(self):
+        frame, anuncios = self._conectar(
+            {"privacidad": "private", "ninos": False})
+
+        self.assertIn("privado", anuncios[0])
+        self.assertEqual(frame.sesion.enlace_directo,
+                         "https://youtu.be/video1")
+        frame._on_conectar.assert_not_called()
+
+    def test_p10_un_directo_para_ninos_avisa_y_no_conecta(self):
+        frame, anuncios = self._conectar(
+            {"privacidad": "public", "ninos": True})
+
+        self.assertIn("niños", anuncios[0])
+        frame._on_conectar.assert_not_called()
+
+
+class TestPerfilViejoAlTransmitir(unittest.TestCase):
+
+    def test_p11_el_youtube_de_restream_pasa_a_la_casilla_y_se_desactiva(self):
+        perfil = _perfil("Uno", "horizontal", (1, 5), youtube=False,
+                         directo={"titulo": "Directo"})
+        canales = [_canal(1, "TikTok", True),
+                   _canal(5, "YouTube", True, plataforma_id=5)]
+        cuenta = CuentaFalsa(canales)
+        cliente = ClienteYouTubeFalso()
+        preparados = _preparados(cliente)
+        frame = SimpleNamespace(
+            _alive=True, _supervisor=None, _config={},
+            _actualizar_boton_directo=mock.Mock(),
+            _al_terminar_supervisor=mock.Mock())
+        capturado = {}
+        creados = []
+
+        def pedir(_padre, **kwargs):
+            capturado.update(kwargs)
+            return {"titulo": "Nuevo", "descripcion": "",
+                    "privacidad": "public", "latencia": "normal",
+                    "ninos": False, "dvr": True, "categoria": "",
+                    "etiquetas": [], "miniatura": "", "lista": "",
+                    "lista_titulo": ""}
+
+        class SupervisorFalso:
+            def __init__(self, destino, usuario, **kwargs):
+                self.kwargs = kwargs
+                self.activo = True
+                self.deteniendo = False
+                creados.append(self)
+
+            def iniciar(self):
+                pass
+
+        with tempfile.TemporaryDirectory() as temporal, \
+                mock.patch("guyrapu.ui.inicio_youtube.hay_sesion",
+                           return_value=True), \
+                mock.patch("guyrapu.ui.inicio_youtube._cliente",
+                           return_value=mock.Mock()), \
+                mock.patch("guyrapu.ui.inicio_youtube._preparados",
+                           return_value=preparados), \
+                mock.patch("guyrapu.ui.gui_directo_youtube.pedir_datos_directo",
+                           side_effect=pedir), \
+                mock.patch("guyrapu.core.paths.perfiles_restream",
+                           return_value=Path(temporal) / "perfiles.json"), \
+                mock.patch.object(ganchos, "_parametros_supervisor",
+                                  return_value={}), \
+                mock.patch.object(ganchos, "_anunciar_de_frame",
+                                  return_value=lambda *args: None), \
+                mock.patch.object(ganchos, "_arrancar_vigia"), \
+                mock.patch.object(ganchos.obs_destinos, "preparar_destino",
+                                  EscritorFalso()), \
+                mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
+                           SupervisorFalso):
+            ganchos._preparar_ui(frame, cuenta, "restream:Uno", [perfil],
+                                 perfil, canales, None)
+
+        self.assertFalse(capturado["solo_titulo"])
+        creados[0].kwargs["preparar_emision"](None)
+        self.assertIn(("activar", 5, False), cuenta.llamadas)
+        self.assertIn(("crear", {"snippet": {}}), cliente.llamadas)
 
 
 if __name__ == "__main__":

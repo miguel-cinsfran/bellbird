@@ -14,8 +14,10 @@ def _canal(identificador, texto, activo=True):
     return SimpleNamespace(id=identificador, texto=texto, activo=activo)
 
 
-def _perfil(nombre="Canal", canales=(1,), orientacion="horizontal"):
-    return Perfil(nombre=nombre, canales=canales, orientacion=orientacion)
+def _perfil(nombre="Canal", canales=(1,), orientacion="horizontal",
+            youtube=False):
+    return Perfil(nombre=nombre, canales=canales, orientacion=orientacion,
+                  youtube=youtube)
 
 
 class TestResumenCuenta(unittest.TestCase):
@@ -77,6 +79,16 @@ class TestResumenCuenta(unittest.TestCase):
 
 
 class TestFilaPerfil(unittest.TestCase):
+
+    def test_un_perfil_con_solo_youtube_nombra_youtube(self):
+        self.assertEqual(
+            "Canal, horizontal: YouTube",
+            resumen_cuenta.fila_perfil(_perfil(canales=(), youtube=True)))
+
+    def test_un_perfil_sin_destinos_ni_youtube_sigue_sin_destinos(self):
+        self.assertEqual(
+            "Canal, horizontal, sin destinos",
+            resumen_cuenta.fila_perfil(_perfil(canales=())))
 
     def test_nombra_los_destinos_en_orden(self):
         perfil = _perfil(canales=(1, 2))

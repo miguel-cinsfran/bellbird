@@ -36,6 +36,9 @@ def _cliente():
 def _valores(perfil, emision) -> dict:
     """Los valores del cuadro a partir de lo último usado en el perfil."""
     datos = perfil.directo or {}
+    etiquetas = datos.get("etiquetas") or []
+    if not isinstance(etiquetas, str):
+        etiquetas = ", ".join(etiquetas)
     return {
         "titulo": datos.get("titulo", ""),
         "descripcion": datos.get("descripcion", ""),
@@ -44,7 +47,7 @@ def _valores(perfil, emision) -> dict:
         "ninos": datos.get("ninos", False),
         "dvr": datos.get("dvr", True),
         "categoria": datos.get("categoria", ""),
-        "etiquetas": ", ".join(datos.get("etiquetas") or []),
+        "etiquetas": etiquetas,
         "miniatura": datos.get("miniatura", ""),
         "lista": datos.get("lista", ""),
         "lista_titulo": datos.get("lista_titulo", ""),
@@ -113,7 +116,9 @@ def _preparados(cliente, perfil, emision) -> dict:
               "lista": datos.get("lista", ""),
               "titulo": datos["titulo"],
               "descripcion": datos["descripcion"]}
-    guardar = lambda nuevo: _gui.credenciales.guardar_campo("token", nuevo)
+    def guardar(nuevo):
+        _gui.credenciales.guardar_campo("token", nuevo)
+
     _preparar, esperar, finalizar = emision.ganchos_youtube(
         cliente, cuerpo, guardar, extras=extras, avisar=None)
     return {"cliente": cliente, "cuerpo": cuerpo, "extras": extras,
@@ -155,8 +160,12 @@ def pedir_y_guardar_perfil(frame, revision, perfil, lista):
     perfiles.guardar(paths.perfiles_restream(), [
         actualizado if otro.nombre == perfil.nombre else otro
         for otro in lista])
-    preparados = (_preparados(cliente, actualizado, emision)
-                  if actualizado.youtube else None)
+    try:
+        preparados = (_preparados(cliente, actualizado, emision)
+                      if actualizado.youtube else None)
+    except emision.EmisionError as exc:
+        avisar(str(exc), error=True)
+        return None
     return actualizado, preparados
 
 

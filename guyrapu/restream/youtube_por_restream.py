@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from guyrapu.core.idioma import N_
 
+# El nombre no se traduce nunca: así se reconocen los manuales que dejó un cierre inesperado, en cualquier idioma.
 NOMBRE_MANUAL = N_("YouTube de Guyrapu")
 PLATAFORMA_MANUAL = 29
 

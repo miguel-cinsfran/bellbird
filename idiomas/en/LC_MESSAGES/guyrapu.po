@@ -11365,10 +11365,6 @@ msgid "Copiar &información"
 msgstr "Copy &information"
 
 #: guyrapu/ui/restream_menus.py
-msgid "&Abrir directo"
-msgstr "&Open live"
-
-#: guyrapu/ui/restream_menus.py
 msgid "&Estadísticas"
 msgstr "&Statistics"
 
@@ -11431,4 +11427,8 @@ msgstr "Delete the profile {nombre}?"
 #: guyrapu/ui/restream_pagina_perfiles.py
 msgid "Eliminar perfil"
 msgstr "Delete profile"
+
+#: guyrapu/ui/restream_menus.py
+msgid "&Abrir el directo"
+msgstr "&Open live"
 

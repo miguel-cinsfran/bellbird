@@ -698,6 +698,55 @@ class PruebaVentanaRestream(unittest.TestCase):
         menu.assert_called_once_with(pagina._agregar,
                                      pagina._agregar_manual)
 
+    def _destino_con_url(self, url):
+        destinos = [Canal(1, 67, "TikTok", "uno", url, True)]
+        dialogo = self._ventana(
+            cuenta=CuentaFalsa(True), destinos=lambda: list(destinos))
+        self.assertTrue(_esperar(
+            lambda: dialogo._pagina_destinos.lista.GetCount() == 1))
+        dialogo._pagina_destinos.lista.SetSelection(0)
+        return dialogo
+
+    def test_p6_abrir_enlace_usa_la_url_del_destino(self):
+        dialogo = self._destino_con_url("https://a")
+        with mock.patch.object(restream_acciones_destino,
+                               "abrir_navegador") as abrir,                 mock.patch.object(restream_acciones_destino,
+                                  "anunciar") as anunciar:
+            restream_acciones_destino.abrir_enlace(dialogo)
+        abrir.assert_called_once_with("https://a")
+        anunciar.assert_not_called()
+
+    def test_p6_abrir_enlace_vacio_anuncia_y_no_abre(self):
+        dialogo = self._destino_con_url("")
+        with mock.patch.object(restream_acciones_destino,
+                               "abrir_navegador") as abrir,                 mock.patch.object(restream_acciones_destino,
+                                  "anunciar") as anunciar:
+            restream_acciones_destino.abrir_enlace(dialogo)
+        abrir.assert_not_called()
+        anunciar.assert_called_once_with("Este destino no tiene enlace.")
+
+    def test_p6_copiar_enlace_usa_la_url_y_suena(self):
+        dialogo = self._destino_con_url("https://a")
+        with mock.patch.object(restream_acciones_destino,
+                               "copiar_al_portapapeles") as copiar,                 mock.patch.object(restream_acciones_destino,
+                                  "anunciar") as anunciar,                 mock.patch.object(restream_acciones_destino._snd,
+                                  "reproducir") as sonar:
+            restream_acciones_destino.copiar_enlace(dialogo)
+        copiar.assert_called_once_with("https://a")
+        sonar.assert_called_once_with("copiar")
+        anunciar.assert_called_once_with("Enlace copiado.")
+
+    def test_p6_copiar_enlace_vacio_anuncia_y_no_toca_el_portapapeles(self):
+        dialogo = self._destino_con_url("")
+        with mock.patch.object(restream_acciones_destino,
+                               "copiar_al_portapapeles") as copiar,                 mock.patch.object(restream_acciones_destino,
+                                  "anunciar") as anunciar,                 mock.patch.object(restream_acciones_destino._snd,
+                                  "reproducir") as sonar:
+            restream_acciones_destino.copiar_enlace(dialogo)
+        copiar.assert_not_called()
+        sonar.assert_not_called()
+        anunciar.assert_called_once_with("Este destino no tiene enlace.")
+
     def test_p2_activar_desde_la_pestana_actualiza_y_anuncia(self):
         destinos = [Canal(1, 67, "TikTok", "uno", "", True),
                     Canal(2, 5, "YouTube", "dos", "", True)]
@@ -1043,12 +1092,16 @@ class PruebaVentanaRestream(unittest.TestCase):
     def test_p13_sin_cuenta_avisa_una_vez_al_enfocar_las_listas(self):
         dialogo = self._ventana(cuenta=CuentaFalsa(False))
         with mock.patch.object(restream_pagina_destinos,
-                               "anunciar") as anunciar:
+                               "anunciar") as en_destinos, \
+                mock.patch.object(restream_pagina_perfiles,
+                                  "anunciar") as en_perfiles:
             evento = mock.Mock()
             dialogo._pagina_destinos._al_foco(evento)
+            dialogo._pagina_destinos._al_foco(evento)
             dialogo._pagina_perfiles._al_foco(evento)
-        anunciar.assert_called_once_with(
+        en_destinos.assert_called_once_with(
             "Sin cuenta de Restream. Conéctala en la pestaña Cuenta.")
+        en_perfiles.assert_not_called()
         self.assertTrue(evento.Skip.called)
 
     def test_p13_el_cuadro_de_perfil_sin_cuenta_dice_lo_mismo(self):
@@ -1164,7 +1217,7 @@ class PruebaPaginaEventos(unittest.TestCase):
         self.addCleanup(menu.Destroy)
         self.assertEqual(
             ["&Copiar enlaces\tCtrl+C", "Copiar &información",
-             "&Abrir directo", "&Estadísticas\tEnter"],
+             "&Abrir el directo", "&Estadísticas\tEnter"],
             [elemento.GetItemLabel() for elemento in menu.GetMenuItems()])
 
         menu = restream_menus.menu_evento(
@@ -1172,7 +1225,7 @@ class PruebaPaginaEventos(unittest.TestCase):
                        ("YouTube: dos", "https://b")])
         self.addCleanup(menu.Destroy)
         abrir = next(elemento for elemento in menu.GetMenuItems()
-                     if elemento.GetItemLabel() == "&Abrir directo")
+                     if elemento.GetItemLabel() == "&Abrir el directo")
         self.assertIsNotNone(abrir.GetSubMenu())
         self.assertEqual(
             ["TikTok: uno", "YouTube: dos"],

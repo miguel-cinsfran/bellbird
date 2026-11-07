@@ -142,6 +142,7 @@ SUPERFICIES = {
     "restream_pagina_destinos.py": "restream",
     "restream_pagina_cuenta.py": "restream",
     "restream_pagina_eventos.py": "restream",
+    "restream_menus.py": "restream",
     "recientes_inicio.py": "principal",
     "gui_menu.py": "menus",
     "menu_obs.py": "menus",

@@ -41,7 +41,8 @@ def _rotulo(padre, contenido, texto, crear_control):
 
 class DialogoPerfilRestream(wx.Dialog):
 
-    def __init__(self, parent, perfil=None, canales=None, existentes=None):
+    def __init__(self, parent, perfil=None, canales=None, existentes=None,
+                 sin_cuenta=False):
         titulo = (_("Nuevo perfil de Restream") if perfil is None
                   else _("Editar perfil de Restream"))
         super().__init__(parent, title=titulo, size=(560, 640),
@@ -49,6 +50,7 @@ class DialogoPerfilRestream(wx.Dialog):
         self._perfil = perfil
         self._existentes = list(existentes or ())
         self._canales = list(canales or ())
+        self._sin_cuenta = sin_cuenta
         self._ids_validos = {identificador for identificador, _texto
                              in self._canales}
         self._resultado = None
@@ -121,14 +123,15 @@ class DialogoPerfilRestream(wx.Dialog):
             self._textos[identificador] = texto
             sizer.Add(casilla, 0, wx.ALL, 4)
         if not self._canales:
-            sizer.Add(wx.StaticText(padre, label=_(
-                "No hay destinos. Agrégalos en la pestaña Destinos.")), 0,
-                wx.ALL, 4)
+            texto = (_("Sin cuenta de Restream. Conéctala en la pestaña "
+                       "Cuenta.") if self._sin_cuenta else _(
+                "No hay destinos. Agrégalos en la pestaña Destinos."))
+            sizer.Add(wx.StaticText(padre, label=texto), 0, wx.ALL, 4)
         contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
         self._nota_sobrantes = self._crear_nota_sobrantes(zona, contenido)
 
     def _crear_nota_sobrantes(self, zona, contenido):
-        if self._perfil is None:
+        if self._perfil is None or self._sin_cuenta:
             return None
         sobrantes = [identificador for identificador in self._perfil.canales
                      if identificador not in self._ids_validos]
@@ -221,6 +224,62 @@ class DialogoPerfilRestream(wx.Dialog):
             self._casillas[0][1].SetFocus()
         else:
             self.txt_nombre.SetFocus()
+
+    def _al_tecla(self, evento):
+        if evento.GetKeyCode() == wx.WXK_ESCAPE:
+            self.EndModal(wx.ID_CANCEL)
+            return
+        evento.Skip()
+
+
+class DialogoNombrePerfil(wx.Dialog):
+    """Un solo campo para cambiar el nombre de un perfil de Restream."""
+
+    def __init__(self, parent, nombre):
+        super().__init__(parent, title=_("Cambiar nombre"), size=(440, 200),
+                         name="DialogoNombrePerfil")
+        self._resultado = None
+        self._crear_ui(nombre)
+        paleta.pintar_ventana(self)
+        self.Centre()
+
+    def _crear_ui(self, nombre):
+        vs = wx.BoxSizer(wx.VERTICAL)
+        contenido = wx.BoxSizer(wx.VERTICAL)
+        _rotulo(self, contenido, _("&Nombre:"),
+                lambda: wx.TextCtrl(
+                    self, value=nombre, style=wx.TE_PROCESS_ENTER))
+        vs.Add(contenido, 1, wx.EXPAND)
+
+        fila = wx.BoxSizer(wx.HORIZONTAL)
+        etiqueta_guardar = _("&Guardar")
+        self.btn_guardar = wx.Button(
+            self, wx.ID_OK, etiqueta_guardar,
+            name=nombre_de_etiqueta(etiqueta_guardar))
+        self.btn_cancelar = wx.Button(
+            self, wx.ID_CANCEL, _("&Cancelar"),
+            name=nombre_de_etiqueta(_("&Cancelar")))
+        for boton in (self.btn_guardar, self.btn_cancelar):
+            nombre_accesible(boton, boton.GetName())
+        fila.Add(self.btn_guardar, 0, wx.RIGHT, 6)
+        fila.Add(self.btn_cancelar, 0)
+        vs.Add(fila, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
+
+        self.SetSizer(vs)
+        self.btn_guardar.SetDefault()
+        self.btn_guardar.Bind(
+            wx.EVT_BUTTON, lambda evento: self._aceptar())
+        self.btn_cancelar.Bind(
+            wx.EVT_BUTTON, lambda evento: self.EndModal(wx.ID_CANCEL))
+        self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
+        self.txt_nombre.SetFocus()
+
+    def nombre(self):
+        return self._resultado
+
+    def _aceptar(self, _evento=None):
+        self._resultado = self.txt_nombre.GetValue().strip()
+        self.EndModal(wx.ID_OK)
 
     def _al_tecla(self, evento):
         if evento.GetKeyCode() == wx.WXK_ESCAPE:

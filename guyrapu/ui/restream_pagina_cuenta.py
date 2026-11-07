@@ -9,6 +9,8 @@ from __future__ import annotations
 import wx
 
 from guyrapu.core.idioma import _
+from guyrapu.restream import resumen_cuenta
+from guyrapu.ui import confirmar
 from guyrapu.ui.accesibilidad import nombre_accesible
 from guyrapu.ui.preferencias_comun import (
     CampoEstado, fila_horizontal, mostrar_control)
@@ -45,28 +47,15 @@ class PaginaCuenta(wx.Panel):
         self.btn_reautorizar.Bind(
             wx.EVT_BUTTON, lambda evento: self._al_reautorizar())
         self.btn_desconectar.Bind(
-            wx.EVT_BUTTON, lambda evento: self._al_desconectar())
+            wx.EVT_BUTTON, lambda evento: self._desconectar())
         vs.Add(fila_horizontal((self.btn_conectar, self.btn_reautorizar,
                                 self.btn_desconectar)), 0, wx.ALL, 10)
         self.SetSizer(vs)
 
-    def mostrar(self, conectada, nombre, destinos, errores, youtube=""):
-        lineas = []
-        if conectada:
-            if nombre:
-                lineas.append(
-                    _("Cuenta conectada: {nombre}.").format(nombre=nombre))
-            else:
-                lineas.append(_("Cuenta de Restream conectada."))
-            if destinos:
-                lineas.append(_("Destinos: {destinos}.").format(
-                    destinos=", ".join(destinos)))
-            if youtube:
-                lineas.append(youtube)
-        else:
-            lineas.append(_("Sin cuenta de Restream conectada."))
-        lineas.extend(errores)
-        self.txt_estado.SetValue("\n".join(lineas))
+    def mostrar(self, conectada, nombre, destinos, perfiles, youtube="",
+                errores=()):
+        self.txt_estado.SetValue(resumen_cuenta.resumen(
+            conectada, nombre, destinos, perfiles, youtube, errores))
         mostrar_control(self.btn_conectar, not conectada, self)
         mostrar_control(self.btn_reautorizar, conectada, self)
         mostrar_control(self.btn_desconectar, conectada, self)
@@ -76,3 +65,13 @@ class PaginaCuenta(wx.Panel):
         for boton in (self.btn_conectar, self.btn_reautorizar,
                       self.btn_desconectar):
             boton.Enable(habilitados)
+
+    def _desconectar(self):
+        if not confirmar.preguntar(
+                self,
+                _("¿Desconectar la cuenta de Restream? Para volver a usarla "
+                  "hay que iniciar sesión otra vez en el navegador."),
+                _("Desconectar cuenta"), _("&Desconectar"), _("&Cancelar"),
+                predeterminado_si=False):
+            return
+        self._al_desconectar()

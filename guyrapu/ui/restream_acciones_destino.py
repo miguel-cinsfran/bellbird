@@ -7,6 +7,7 @@ cerrar la ventana. La clave de un destino manual no se registra ni se anuncia.
 
 from __future__ import annotations
 
+import webbrowser
 from dataclasses import replace
 
 import wx
@@ -15,11 +16,14 @@ from guyrapu.core import diagnostico
 from guyrapu.core.idioma import _
 from guyrapu.restream import api, cuenta
 from guyrapu.ui.accesibilidad import anunciar
+from guyrapu.ui.gui import copiar_al_portapapeles
 from guyrapu.ui.restream_dialogos_destino import (
     DialogoDestinoManual,
     DialogoMetaDestino,
 )
 from guyrapu.voice import sound_player as _snd
+
+abrir_navegador = webbrowser.open
 
 
 def alternar(ventana):
@@ -128,3 +132,27 @@ def _destino_agregado(ventana, canal):
     ventana._pagina_eventos.actualizar_nombres()
     ventana._actualizar_cuenta()
     anunciar(_("Destino agregado."))
+
+
+def abrir_enlace(ventana):
+    """Abre en el navegador el enlace del destino elegido."""
+    destino = ventana._pagina_destinos.seleccionado()
+    if destino is None:
+        return
+    if not destino.url:
+        anunciar(_("Este destino no tiene enlace."))
+        return
+    abrir_navegador(destino.url)
+
+
+def copiar_enlace(ventana):
+    """Copia el enlace del destino elegido."""
+    destino = ventana._pagina_destinos.seleccionado()
+    if destino is None:
+        return
+    if not destino.url:
+        anunciar(_("Este destino no tiene enlace."))
+        return
+    copiar_al_portapapeles(destino.url)
+    _snd.reproducir("copiar")
+    anunciar(_("Enlace copiado."))

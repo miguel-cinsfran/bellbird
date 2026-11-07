@@ -7,17 +7,23 @@ en un hilo aparte, como las de Destinos.
 
 from __future__ import annotations
 
+import webbrowser
+from types import SimpleNamespace
+
 import wx
 
 from guyrapu.core import diagnostico, sonidos_eventos
 from guyrapu.core.idioma import _
 from guyrapu.restream import eventos as eventos_restream
 from guyrapu.restream.api import ErrorApi
+from guyrapu.ui import restream_menus
 from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
 from guyrapu.ui.busqueda_teclado import instalar_busqueda_tipo
 from guyrapu.ui.gui import copiar_al_portapapeles
 from guyrapu.ui.preferencias_comun import CampoEstado, fila_horizontal
 from guyrapu.voice import sound_player as _snd
+
+abrir_navegador = webbrowser.open
 
 TIPOS_POR_INDICE = (
     eventos_restream.TIPO_PROXIMOS,
@@ -73,6 +79,7 @@ class PaginaEventos(wx.Panel):
                      in range(self.lista.GetCount())])
         self.lista.Bind(wx.EVT_LISTBOX, self._al_elegir)
         self.lista.Bind(wx.EVT_KEY_DOWN, self._al_tecla)
+        self.lista.Bind(wx.EVT_CONTEXT_MENU, self._menu_contextual)
         vs.Add(self.lista, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 8)
 
     def _crear_detalle(self, vs):
@@ -85,23 +92,13 @@ class PaginaEventos(wx.Panel):
         vs.Add(self.detalle, 0, wx.EXPAND | wx.ALL, 8)
 
     def _crear_botones(self, vs):
-        self.btn_copiar = wx.Button(
-            self, label=_("Copiar &enlaces"), name=_("Copiar enlaces"))
-        self.btn_estadisticas = wx.Button(
-            self, label=_("E&stadísticas"), name=_("Estadísticas"))
         self.btn_actualizar = wx.Button(
-            self, label=_("&Actualizar"), name=_("Actualizar"))
-        for boton in (self.btn_copiar, self.btn_estadisticas,
-                      self.btn_actualizar):
-            nombre_accesible(boton, boton.GetName())
-        self.btn_copiar.Bind(
-            wx.EVT_BUTTON, lambda evento: self.copiar_enlaces())
-        self.btn_estadisticas.Bind(
-            wx.EVT_BUTTON, lambda evento: self.estadisticas())
+            self, label=_("A&ctualizar"), name=_("Actualizar"))
+        nombre_accesible(self.btn_actualizar,
+                         self.btn_actualizar.GetName())
         self.btn_actualizar.Bind(
             wx.EVT_BUTTON, lambda evento: self.actualizar())
-        vs.Add(fila_horizontal((self.btn_copiar, self.btn_estadisticas,
-                                self.btn_actualizar)), 0, wx.ALL, 10)
+        vs.Add(fila_horizontal((self.btn_actualizar,)), 0, wx.ALL, 10)
 
     def al_mostrarse(self):
         """La primera vez que se muestra la pestaña, lee la lista."""
@@ -144,6 +141,42 @@ class PaginaEventos(wx.Panel):
         copiar_al_portapapeles("\n".join(enlaces))
         _snd.reproducir("copiar")
         anunciar(_("Enlaces copiados."))
+
+    def copiar_informacion(self):
+        evento = self.seleccionado()
+        if evento is None:
+            anunciar(_("Sin selección"))
+            return
+        copiar_al_portapapeles(self.detalle.GetValue())
+        _snd.reproducir("copiar")
+        anunciar(_("Información copiada."))
+
+    def abrir_directo(self):
+        evento = self.seleccionado()
+        if evento is None:
+            anunciar(_("Sin selección"))
+            return
+        enlaces = self._enlaces_nombrados(evento)
+        if not enlaces:
+            anunciar(_("Este evento no tiene enlaces todavía."))
+            return
+        abrir_navegador(enlaces[0][1])
+
+    def abrir_url(self, url):
+        abrir_navegador(url)
+
+    def _enlaces_nombrados(self, evento):
+        nombres = self._nombres()
+        enlaces = []
+        for destino in evento.destinos:
+            if not destino.enlace:
+                continue
+            nombre = (nombres.get(destino.canal_id)
+                      or nombres.get(destino.id)
+                      or _("Plataforma {id}").format(
+                          id=destino.plataforma_id))
+            enlaces.append((nombre, destino.enlace))
+        return enlaces
 
     def estadisticas(self):
         evento = self.seleccionado()
@@ -267,15 +300,43 @@ class PaginaEventos(wx.Panel):
         except Exception:
             return {}
 
+    def _menu_contextual(self, evento):
+        evento_actual = self.seleccionado()
+        if evento_actual is None:
+            anunciar(_("Sin selección"))
+            return
+        acciones = SimpleNamespace(
+            copiar=self.copiar_enlaces,
+            copiar_informacion=self.copiar_informacion,
+            abrir=self.abrir_directo,
+            abrir_url=self.abrir_url,
+            estadisticas=self.estadisticas)
+        menu = restream_menus.menu_evento(
+            acciones, self._enlaces_nombrados(evento_actual))
+        self.lista.PopupMenu(menu)
+        menu.Destroy()
+        evento.Skip()
+
     def _al_tecla(self, evento):
         lista = evento.GetEventObject()
         try:
             seleccion, total = lista.GetSelection(), lista.GetCount()
         except Exception:
             seleccion, total = -1, 0
-        if sonidos_eventos.es_orilla(evento.GetKeyCode(), seleccion, total):
+        tecla = evento.GetKeyCode()
+        if sonidos_eventos.es_orilla(tecla, seleccion, total):
             _snd.reproducir("orilla")
-        evento.Skip()
+        if tecla == wx.WXK_F5:
+            self.actualizar()
+        elif tecla in (ord("C"), ord("c")) and evento.ControlDown():
+            self.copiar_enlaces()
+        elif tecla in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER):
+            self.estadisticas()
+        elif (tecla == wx.WXK_WINDOWS_MENU
+              or (tecla == wx.WXK_F10 and evento.ShiftDown())):
+            self._menu_contextual(evento)
+        else:
+            evento.Skip()
 
     def _en_principal(self, funcion, *args):
         def _envoltura():

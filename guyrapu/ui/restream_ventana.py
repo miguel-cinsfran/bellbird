@@ -1,22 +1,21 @@
-"""Ventana de Restream: la cuenta, los perfiles, los destinos y los eventos.
+"""Ventana de Restream: la cuenta, los destinos, los perfiles y los eventos.
 
-Cuatro pestañas: Perfiles de Restream, Destinos, Eventos y Cuenta. Cada una
-vive en su módulo y crea sus controles. La ventana guarda lo común, lee la
-cuenta y los destinos en un hilo aparte y conecta, reautoriza o desconecta
-la cuenta.
+Cuatro pestañas en el orden en que se arma todo: Cuenta, Destinos, Perfiles
+y Eventos. Cada una vive en su módulo y crea sus controles. La ventana
+guarda lo común, lee la cuenta y los destinos en un hilo aparte y conecta,
+reautoriza o desconecta la cuenta.
 """
 
 from __future__ import annotations
 
 import threading
-from types import SimpleNamespace
 
 import wx
 
 from guyrapu.core import diagnostico
 from guyrapu.core.config import APP_NAME
 from guyrapu.core.idioma import _
-from guyrapu.restream import canal_youtube
+from guyrapu.restream import canal_youtube, resumen_cuenta
 from guyrapu.restream.api import ErrorApi
 from guyrapu.ui import paleta
 from guyrapu.ui import restream_acciones_destino
@@ -38,13 +37,6 @@ def _id_canal_de_la_sesion():
         return ""
     cliente = youtube_api.ClienteYouTube(credenciales.efectivas())
     return cliente.id_canal_propio() or ""
-
-
-def _como_destino(entrada):
-    if hasattr(entrada, "texto"):
-        return entrada
-    identificador, texto = entrada
-    return SimpleNamespace(id=identificador, texto=texto, activo=True)
 
 
 class VentanaRestream(wx.Dialog):
@@ -116,23 +108,29 @@ class VentanaRestream(wx.Dialog):
 
     def _crear_paginas(self):
         self._pagina_perfiles = PaginaPerfiles(
-            self.nb, self._ruta, lambda: self._canales_leidos)
+            self.nb, self._ruta, lambda: self._canales_leidos,
+            nombres_destinos=self._nombres_destinos,
+            destinos_leidos=lambda: self._pagina_destinos.leidos,
+            esta_conectada=self._cuenta.conectada)
         self._pagina_destinos = PaginaDestinos(
             self.nb, self._agregar_destino, self._eliminar_destino,
-            self._leer_canales,
+            lambda: self._leer_canales(pedido=True),
             lambda: restream_acciones_destino.alternar(self),
             lambda: restream_acciones_destino.cambiar_titulo(self),
-            lambda: restream_acciones_destino.agregar_manual(self))
+            lambda: restream_acciones_destino.agregar_manual(self),
+            lambda: restream_acciones_destino.abrir_enlace(self),
+            lambda: restream_acciones_destino.copiar_enlace(self),
+            esta_conectada=self._cuenta.conectada)
         self._pagina_eventos = PaginaEventos(
             self.nb, self._funcion_eventos, self._funcion_estadisticas,
             self._nombres_destinos, self._cuenta.conectada)
         self._pagina_cuenta = PaginaCuenta(
             self.nb, self._conectar, self._reautorizar, self._desconectar)
-        self.nb.AddPage(self._pagina_perfiles, _("Perfiles de Restream"))
-        self.nb.AddPage(self._pagina_destinos, _("Destinos"))
-        self.nb.AddPage(self._pagina_eventos, _("Eventos"))
         self.nb.AddPage(self._pagina_cuenta, _("Cuenta"))
-        self.nb.SetSelection(0 if self._cuenta.conectada() else 3)
+        self.nb.AddPage(self._pagina_destinos, _("Destinos"))
+        self.nb.AddPage(self._pagina_perfiles, _("Perfiles"))
+        self.nb.AddPage(self._pagina_eventos, _("Eventos"))
+        self.nb.SetSelection(0)
         enlazar_anuncio_de_pestana(self.nb)
         self.nb.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self._al_cambiar_pestana)
 
@@ -146,14 +144,11 @@ class VentanaRestream(wx.Dialog):
 
     def _actualizar_cuenta(self):
         conectada = bool(self._cuenta.conectada())
-        errores = [error for error in
-                   (self._error_cuenta, self._error_destinos,
-                    self._error_perfil) if error]
-        linea_youtube = canal_youtube.texto(self._destinos, self._id_canal)
         self._pagina_cuenta.mostrar(
-            conectada, self._nombre_cuenta,
-            [destino.texto for destino in self._destinos], errores,
-            linea_youtube)
+            conectada, self._nombre_cuenta, self._destinos,
+            self._pagina_perfiles.cantidad(),
+            canal_youtube.texto(self._destinos, self._id_canal),
+            (self._error_cuenta, self._error_destinos, self._error_perfil))
         self._pagina_cuenta.fijar_botones(not self._trabajo_en_curso)
 
     def _conectar(self):
@@ -237,16 +232,17 @@ class VentanaRestream(wx.Dialog):
 
         wx.CallAfter(_envoltura)
 
-    def _leer_canales(self, anunciar_nuevos=False):
+    def _leer_canales(self, anunciar_nuevos=False, pedido=False):
         if self._fuente_destinos is None:
             return
 
         def _correr():
             try:
-                leidos = [_como_destino(destino)
+                leidos = [resumen_cuenta.como_destino(destino)
                           for destino in self._fuente_destinos()]
             except Exception as exc:
-                self._en_hilo_principal(self._fallo_destinos, exc)
+                self._en_hilo_principal(
+                    self._fallo_destinos, exc, pedido)
                 return
             self._en_hilo_principal(
                 self._destinos_listos, leidos, anunciar_nuevos,
@@ -269,6 +265,7 @@ class VentanaRestream(wx.Dialog):
         self._id_canal = id_canal
         self._error_destinos = ""
         self._pagina_destinos.mostrar(self._destinos)
+        self._pagina_perfiles.actualizar()
         self._pagina_eventos.actualizar_nombres()
         self._actualizar_cuenta()
         if anunciar_nuevos:
@@ -277,13 +274,16 @@ class VentanaRestream(wx.Dialog):
                     anunciar(_("Destino agregado: {destino}.").format(
                         destino=destino.texto))
 
-    def _fallo_destinos(self, error):
+    def _fallo_destinos(self, error, pedido=False):
         if isinstance(error, ErrorApi):
             texto = str(error).strip()
         else:
             texto = _("No se pudieron leer los destinos.")
         self._error_destinos = texto
         self._actualizar_cuenta()
+        if pedido:
+            _snd.reproducir("error")
+            anunciar(texto)
 
     def _leer_perfil(self):
         if self._funcion_perfil is None:
@@ -371,10 +371,15 @@ class VentanaRestream(wx.Dialog):
         return super().Destroy()
 
     def _al_tecla_ventana(self, evento):
-        if evento.GetKeyCode() == wx.WXK_ESCAPE:
+        tecla = evento.GetKeyCode()
+        if tecla == wx.WXK_F1:
+            from guyrapu.ui import gui_menu
+            gui_menu.abrir_documento_paquete(
+                self, "MANUAL", _("Manual de uso"))
+        elif tecla == wx.WXK_ESCAPE:
             self._cerrar()
-            return
-        evento.Skip()
+        else:
+            evento.Skip()
 
 
 def abrir_restream(padre, cuenta, canales, ruta_perfiles, al_conectar=None,

@@ -338,6 +338,36 @@ class TestCuadrosDeP1(unittest.TestCase):
             pagina, "¿Eliminar TikTok: uno?", _("Eliminar destino"),
             _("&Eliminar"), _("&Cancelar"), predeterminado_si=False)
 
+    def test_desconectar_la_cuenta_de_restream(self):
+        from guyrapu.ui import restream_pagina_cuenta
+
+        pagina = mock.Mock()
+        with mock.patch.object(restream_pagina_cuenta.confirmar, "preguntar",
+                               return_value=False) as preguntar:
+            restream_pagina_cuenta.PaginaCuenta._desconectar(pagina)
+        preguntar.assert_called_once_with(
+            pagina,
+            _("¿Desconectar la cuenta de Restream? Para volver a usarla hay "
+              "que iniciar sesión otra vez en el navegador."),
+            _("Desconectar cuenta"), _("&Desconectar"), _("&Cancelar"),
+            predeterminado_si=False)
+        pagina._al_desconectar.assert_not_called()
+
+    def test_eliminar_un_perfil_de_restream(self):
+        from guyrapu.ui import restream_pagina_perfiles
+
+        pagina = mock.Mock()
+        perfil = SimpleNamespace(nombre="Canal")
+        with mock.patch.object(restream_pagina_perfiles.confirmar, "preguntar",
+                               return_value=False) as preguntar:
+            self.assertFalse(
+                restream_pagina_perfiles.PaginaPerfiles.confirmar(
+                    pagina, perfil))
+        preguntar.assert_called_once_with(
+            pagina, _("¿Eliminar el perfil {nombre}?").format(nombre="Canal"),
+            _("Eliminar perfil"), _("&Eliminar"), _("&Cancelar"),
+            predeterminado_si=False)
+
     def test_finalizar_el_directo(self):
         from guyrapu.ui import confirmar_transmision
 

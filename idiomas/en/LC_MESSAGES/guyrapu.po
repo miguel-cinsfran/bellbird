@@ -10792,15 +10792,6 @@ msgstr "Account connected: {nombre}."
 msgid "Cuenta de Restream conectada."
 msgstr "Restream account connected."
 
-#: guyrapu/ui/restream_pagina_cuenta.py
-#, python-brace-format
-msgid "Destinos: {destinos}."
-msgstr "Destinations: {destinos}."
-
-#: guyrapu/ui/restream_pagina_cuenta.py
-msgid "Sin cuenta de Restream conectada."
-msgstr "No Restream account connected."
-
 #: guyrapu/ui/restream_pagina_destinos.py
 #, python-brace-format
 msgid "{destino}, desactivado"
@@ -10820,26 +10811,6 @@ msgid "Agregar destino"
 msgstr "Add destination"
 
 #: guyrapu/ui/restream_pagina_destinos.py
-msgid "Agregar destino &manual…"
-msgstr "Add &manual destination…"
-
-#: guyrapu/ui/restream_pagina_destinos.py
-msgid "Ac&tivar destino"
-msgstr "Ac&tivate destination"
-
-#: guyrapu/ui/restream_pagina_destinos.py
-msgid "Activar destino"
-msgstr "Activate destination"
-
-#: guyrapu/ui/restream_pagina_destinos.py
-msgid "Cambiar tít&ulo…"
-msgstr "Change t&itle…"
-
-#: guyrapu/ui/restream_pagina_destinos.py
-msgid "&Eliminar destino"
-msgstr "&Delete destination"
-
-#: guyrapu/ui/restream_pagina_destinos.py
 msgid "Eliminar destino"
 msgstr "Delete destination"
 
@@ -10850,14 +10821,6 @@ msgstr "&Refresh"
 #: guyrapu/ui/restream_pagina_destinos.py guyrapu/ui/restream_pagina_eventos.py
 msgid "Actualizar"
 msgstr "Refresh"
-
-#: guyrapu/ui/restream_pagina_destinos.py
-msgid "Desac&tivar destino"
-msgstr "Deac&tivate destination"
-
-#: guyrapu/ui/restream_pagina_destinos.py
-msgid "Desactivar destino"
-msgstr "Deactivate destination"
 
 #: guyrapu/ui/restream_pagina_destinos.py
 #, python-brace-format
@@ -10889,26 +10852,6 @@ msgid "Detalle del evento"
 msgstr "Event detail"
 
 #: guyrapu/ui/restream_pagina_eventos.py
-msgid "Copiar &enlaces"
-msgstr "Copy &links"
-
-#: guyrapu/ui/restream_pagina_eventos.py
-msgid "Copiar enlaces"
-msgstr "Copy links"
-
-#: guyrapu/ui/restream_pagina_eventos.py
-msgid "E&stadísticas"
-msgstr "S&tatistics"
-
-#: guyrapu/ui/restream_pagina_eventos.py
-msgid "Estadísticas"
-msgstr "Statistics"
-
-#: guyrapu/ui/restream_pagina_eventos.py
-msgid "&Actualizar"
-msgstr "&Update"
-
-#: guyrapu/ui/restream_pagina_eventos.py
 msgid "Este evento no tiene enlaces todavía."
 msgstr "This event does not have links yet."
 
@@ -10932,37 +10875,9 @@ msgstr "Could not read the Restream events. Try again."
 msgid "No se pudieron leer las estadísticas del evento. Vuelve a intentarlo."
 msgstr "Could not read the event statistics. Try again."
 
-#: guyrapu/ui/restream_pagina_perfiles.py guyrapu/ui/restream_ventana.py
-msgid "Perfiles de Restream"
-msgstr "Restream profiles"
-
-#: guyrapu/ui/restream_pagina_perfiles.py
-msgid "&Nuevo…"
-msgstr "&New…"
-
-#: guyrapu/ui/restream_pagina_perfiles.py
-msgid "Nuevo"
-msgstr "New"
-
 #: guyrapu/ui/restream_pagina_perfiles.py
 msgid "&Editar…"
 msgstr "&Edit…"
-
-#: guyrapu/ui/restream_pagina_perfiles.py
-msgid "Editar"
-msgstr "Edit"
-
-#: guyrapu/ui/restream_pagina_perfiles.py
-msgid "D&uplicar"
-msgstr "D&uplicate"
-
-#: guyrapu/ui/restream_pagina_perfiles.py
-msgid "Duplicar"
-msgstr "Duplicate"
-
-#: guyrapu/ui/restream_pagina_perfiles.py
-msgid "Eliminar"
-msgstr "Delete"
 
 #: guyrapu/ui/restream_pagina_perfiles.py
 #, python-brace-format
@@ -10970,11 +10885,6 @@ msgid "{n} destino"
 msgid_plural "{n} destinos"
 msgstr[0] "{n} destination"
 msgstr[1] "{n} destinations"
-
-#: guyrapu/ui/restream_pagina_perfiles.py
-#, python-brace-format
-msgid "{nombre}, {orientacion}, {destinos}"
-msgstr "{nombre}, {orientacion}, {destinos}"
 
 #: guyrapu/ui/restream_pagina_perfiles.py
 msgid "Perfil de Restream guardado."
@@ -10987,11 +10897,6 @@ msgstr "Restream profile duplicated."
 #: guyrapu/ui/restream_pagina_perfiles.py
 msgid "Perfil de Restream eliminado."
 msgstr "Restream profile deleted."
-
-#: guyrapu/ui/restream_pagina_perfiles.py
-#, python-brace-format
-msgid "Copia de {nombre}"
-msgstr "Copy of {nombre}"
 
 #: guyrapu/ui/restream_perfil.py
 msgid "Nuevo perfil de Restream"
@@ -11377,4 +11282,153 @@ msgstr "Signed in. You can go back to the application."
 #: guyrapu/youtube/youtube_api.py
 msgid "Sin título"
 msgstr "Untitled"
+
+#: guyrapu/restream/resumen_cuenta.py
+msgid ""
+"Sin cuenta de Restream conectada. Restream transmite a varias plataformas a"
+" la vez: conecta la cuenta para elegir los destinos y armar perfiles."
+msgstr ""
+"No Restream account connected. Restream broadcasts to several platforms at "
+"once: connect the account to choose the destinations and build profiles."
+
+#: guyrapu/restream/resumen_cuenta.py
+#, python-brace-format
+msgid "{destinos}, {activos}. {perfiles}."
+msgstr "{destinos}, {activos}. {perfiles}."
+
+#: guyrapu/restream/resumen_cuenta.py
+#, python-brace-format
+msgid "{n} activo"
+msgid_plural "{n} activos"
+msgstr[0] "{n} active"
+msgstr[1] "{n} active"
+
+#: guyrapu/restream/resumen_cuenta.py
+#, python-brace-format
+msgid "{n} perfil"
+msgid_plural "{n} perfiles"
+msgstr[0] "{n} profile"
+msgstr[1] "{n} profiles"
+
+#: guyrapu/restream/resumen_cuenta.py
+msgid "Todavía no hay destinos. Agrégalos en la pestaña Destinos."
+msgstr "There are no destinations yet. Add them on the Destinations tab."
+
+#: guyrapu/restream/resumen_cuenta.py
+msgid "Todavía no hay perfiles. Créalos en la pestaña Perfiles."
+msgstr "There are no profiles yet. Create them on the Profiles tab."
+
+#: guyrapu/restream/resumen_cuenta.py
+#, python-brace-format
+msgid "{nombre}, {orientacion}"
+msgstr "{nombre}, {orientacion}"
+
+#: guyrapu/restream/resumen_cuenta.py
+msgid ", sin destinos"
+msgstr ", no destinations"
+
+#: guyrapu/restream/resumen_cuenta.py
+msgid ", falta un destino"
+msgstr ", one destination is missing"
+
+#: guyrapu/restream/resumen_cuenta.py
+#, python-brace-format
+msgid ", faltan {n} destinos"
+msgstr ", {n} destinations are missing"
+
+#: guyrapu/ui/restream_acciones_destino.py
+msgid "Este destino no tiene enlace."
+msgstr "This destination has no link."
+
+#: guyrapu/ui/restream_acciones_destino.py
+msgid "Enlace copiado."
+msgstr "Link copied."
+
+#: guyrapu/ui/restream_menus.py
+msgid "&Activo"
+msgstr "&Active"
+
+#: guyrapu/ui/restream_menus.py
+msgid "Cambiar &título…"
+msgstr "Change t&itle…"
+
+#: guyrapu/ui/restream_menus.py
+msgid "Abrir en el &navegador"
+msgstr "Open in b&rowser"
+
+#: guyrapu/ui/restream_menus.py
+msgid "&Copiar enlaces"
+msgstr "&Copy links"
+
+#: guyrapu/ui/restream_menus.py
+msgid "Copiar &información"
+msgstr "Copy &information"
+
+#: guyrapu/ui/restream_menus.py
+msgid "&Abrir directo"
+msgstr "&Open live"
+
+#: guyrapu/ui/restream_menus.py
+msgid "&Estadísticas"
+msgstr "&Statistics"
+
+#: guyrapu/ui/restream_menus.py
+msgid "Página de &Restream…"
+msgstr "&Restream page…"
+
+#: guyrapu/ui/restream_menus.py
+msgid "&Manual, con servidor y clave…"
+msgstr "&Manual, with server and key…"
+
+#: guyrapu/ui/restream_pagina_cuenta.py
+msgid ""
+"¿Desconectar la cuenta de Restream? Para volver a usarla hay que iniciar "
+"sesión otra vez en el navegador."
+msgstr ""
+"Disconnect the Restream account? To use it again, you must sign in again in"
+" the browser."
+
+#: guyrapu/ui/restream_pagina_cuenta.py
+msgid "Desconectar cuenta"
+msgstr "Disconnect account"
+
+#: guyrapu/ui/restream_pagina_destinos.py guyrapu/ui/restream_pagina_perfiles.py
+#: guyrapu/ui/restream_perfil.py
+msgid "Sin cuenta de Restream. Conéctala en la pestaña Cuenta."
+msgstr "No Restream account. Connect it on the Account tab."
+
+#: guyrapu/ui/restream_pagina_eventos.py
+msgid "Información copiada."
+msgstr "Information copied."
+
+#: guyrapu/ui/restream_pagina_perfiles.py guyrapu/ui/restream_ventana.py
+msgid "Perfiles"
+msgstr "Profiles"
+
+#: guyrapu/ui/restream_pagina_perfiles.py
+msgid "&Nuevo perfil…"
+msgstr "&New profile…"
+
+#: guyrapu/ui/restream_pagina_perfiles.py
+msgid "Nuevo perfil"
+msgstr "New profile"
+
+#: guyrapu/ui/restream_pagina_perfiles.py
+msgid ""
+"Perfil de Restream guardado. Elígelo en Transmitir a, en la pestaña "
+"Transmisión."
+msgstr "Restream profile saved. Choose it in Broadcast to, on the Broadcast tab."
+
+#: guyrapu/ui/restream_pagina_perfiles.py
+msgid "Nombre cambiado."
+msgstr "Name changed."
+
+#: guyrapu/ui/restream_pagina_perfiles.py
+#, python-brace-format
+msgid "¿Eliminar el perfil {nombre}?"
+msgstr "Delete the profile {nombre}?"
+
+#: guyrapu/ui/restream_pagina_perfiles.py
+msgid "Eliminar perfil"
+msgstr "Delete profile"
 

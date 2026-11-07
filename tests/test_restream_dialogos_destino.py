@@ -408,5 +408,47 @@ class PruebaAccionesDestino(unittest.TestCase):
         self.assertFalse(any(secreto in registro for registro in registros))
 
 
+    def test_p6_abrir_enlace_usa_la_url_del_destino(self):
+        destino = Canal(1, 67, "TikTok", "uno", "https://a", True)
+        ventana = _VentanaFalsa([destino], destino)
+        with mock.patch.object(acciones, "abrir_navegador") as abrir, \
+                mock.patch.object(acciones, "anunciar") as anunciar:
+            acciones.abrir_enlace(ventana)
+        abrir.assert_called_once_with("https://a")
+        anunciar.assert_not_called()
+
+    def test_p6_abrir_enlace_vacio_lo_dice_sin_abrir(self):
+        destino = Canal(1, 67, "TikTok", "uno", "", True)
+        ventana = _VentanaFalsa([destino], destino)
+        with mock.patch.object(acciones, "abrir_navegador") as abrir, \
+                mock.patch.object(acciones, "anunciar") as anunciar:
+            acciones.abrir_enlace(ventana)
+        abrir.assert_not_called()
+        anunciar.assert_called_once_with("Este destino no tiene enlace.")
+
+    def test_p6_copiar_enlace_usa_la_url_del_destino(self):
+        destino = Canal(1, 67, "TikTok", "uno", "https://a", True)
+        ventana = _VentanaFalsa([destino], destino)
+        with mock.patch.object(acciones, "copiar_al_portapapeles") as copiar, \
+                mock.patch.object(acciones, "anunciar") as anunciar, \
+                mock.patch.object(acciones._snd, "reproducir") as sonar:
+            acciones.copiar_enlace(ventana)
+        copiar.assert_called_once_with("https://a")
+        sonar.assert_called_once_with("copiar")
+        anunciar.assert_called_once_with("Enlace copiado.")
+
+    def test_p6_copiar_enlace_vacio_lo_dice_sin_copiar(self):
+        destino = Canal(1, 67, "TikTok", "uno", "", True)
+        ventana = _VentanaFalsa([destino], destino)
+        with mock.patch.object(acciones,
+                               "copiar_al_portapapeles") as copiar, \
+                mock.patch.object(acciones, "anunciar") as anunciar, \
+                mock.patch.object(acciones._snd, "reproducir") as sonar:
+            acciones.copiar_enlace(ventana)
+        copiar.assert_not_called()
+        sonar.assert_not_called()
+        anunciar.assert_called_once_with("Este destino no tiene enlace.")
+
+
 if __name__ == "__main__":
     unittest.main()

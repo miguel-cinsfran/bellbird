@@ -26,8 +26,7 @@ PESTANA_GRABACION = 4
 ESPERADOS_EN_TODAS = ("Cerrar",)
 
 ORDEN_TRANSMISION = ("Transmitir a", "Usuario de TikTok",
-                     "Transmitir en directo", "Mostrar chat en el vídeo",
-                     "Restream…")
+                     "Transmitir en directo", "Restream…")
 
 ESPERADOS_POR_PESTANA = {
     "General": ("Estado", "Actualizar estado", "Mostrar OBS"),
@@ -87,7 +86,7 @@ def _nombre_de_parada(parada: str) -> str:
 def orden_de_transmision(orden: list[str]) -> str | None:
     """El desorden de los controles de Transmisión, o `None` si están en orden.
 
-    Solo mira los controles que aparecen, porque el destino y el chat se
+    Solo mira los controles que aparecen, porque el destino y el usuario se
     ocultan según el estado del directo.
     """
     queridos = [nombre.casefold() for nombre in ORDEN_TRANSMISION]

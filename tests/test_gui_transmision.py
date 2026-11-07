@@ -18,6 +18,7 @@ from guyrapu.ui import escena_captura_ventana
 from guyrapu.ui import escena_pagina_escena
 from guyrapu.ui import escena_pagina_fuentes
 from guyrapu.ui import gui_grabaciones
+from guyrapu.ui import gui as modulo_gui
 from guyrapu.ui import gui_microfono
 from guyrapu.ui import gui_transmision
 from guyrapu.ui import menu_transmision
@@ -130,6 +131,8 @@ class GestorFalso:
         return (("Mic/Aux", "wasapi_input_capture"),)
     def microfono_especial(self):
         return ""
+    def _pedir(self, tipo, datos=None, parada=None):
+        return {}
     def silenciada(self, fuente):
         return self.silenciado
     def alternar_silencio(self, fuente):
@@ -298,8 +301,27 @@ class TestPanelTransmision(unittest.TestCase):
         def anunciar(texto, categoria=""):
             self.anuncios.append(texto)
             self.categorias.append(categoria)
+        self.encender = mock.Mock()
+        self.apagar = mock.Mock()
+        self.sonido = mock.Mock()
+        self.recargar = mock.Mock()
+        self.guardar_opcion = mock.Mock()
+        self.diagnostico = mock.Mock()
         self.parches = [
             mock.patch.object(threading, "Thread", HiloInmediato),
+            mock.patch.object(gui_transmision.overlay_servidor,
+                              "esta_encendido", return_value=False),
+            mock.patch.object(gui_transmision.overlay_servidor, "encender",
+                              self.encender),
+            mock.patch.object(gui_transmision.overlay_servidor, "apagar",
+                              self.apagar),
+            mock.patch.object(gui_transmision, "sound_player", self.sonido),
+            mock.patch.object(gui_transmision.obs_panel_recarga,
+                              "recargar_fuente_panel", self.recargar),
+            mock.patch.object(gui_transmision, "diagnostico",
+                              self.diagnostico),
+            mock.patch.object(modulo_gui, "guardar_opcion",
+                              self.guardar_opcion),
             mock.patch.object(obs_ventana.wx, "CallAfter",
                               lambda funcion, *args: funcion(*args)),
             mock.patch.object(gui_transmision.wx, "CallAfter",
@@ -440,8 +462,7 @@ class TestPanelTransmision(unittest.TestCase):
     def test_orden_de_tab_con_youtube_en_reposo(self):
         self._elegir("YouTube")
         self.assertEqual(self._nombres_en_orden(self.dialogo), [
-            "Transmitir a", "Transmitir en directo",
-            "Mostrar chat en el vídeo", "Restream…"])
+            "Transmitir a", "Transmitir en directo", "Restream…"])
 
     def test_orden_de_tab_con_tiktok_en_reposo(self):
         self._elegir("TikTok")
@@ -550,51 +571,78 @@ class TestPanelTransmision(unittest.TestCase):
         self.assertTrue(any("OBS no pudo completar la operación" in aviso
                             for aviso in self.anuncios))
 
-    def test_chat_enciende_y_agrega_la_fuente_solo_si_falta(self):
-        self.gestor.tiene_panel = False
-        self.gestor.llamadas.clear()
-        alternar = mock.Mock(return_value=True)
-        ventana = self._crear(alternar_panel=alternar)
-        pagina = ventana._pagina_transmision
-        pagina.chk_chat.SetValue(True)
+    def _estado_chat(self, tiene_chat):
+        return SimpleNamespace(
+            escena="Principal", transmision={"outputActive": False},
+            grabacion={"outputActive": False}, perfil="", problemas=(),
+            microfono="", silenciado=False, tiene_chat=tiene_chat)
+
+    def test_estado_con_fuente_y_servicio_apagado_enciende_sin_anunciar(self):
+        self.principal._config["overlay_puerto"] = 9100
+        self.anuncios.clear()
         with mock.patch.object(gui_transmision.overlay_servidor,
-                               "puerto_actual", return_value=8730):
-            pagina._alternar_chat(Evento())
-        alternar.assert_called_once_with(True)
-        self.assertIn(("asegurar_fuente", "Principal",
-                       "http://127.0.0.1:8730/chat", 460, 620),
-                      self.gestor.llamadas)
-        self.assertIn("Chat en el vídeo agregado a la escena Principal.",
-                      self.anuncios)
+                               "esta_encendido", return_value=False):
+            self.dialogo.sincronizar_chat(self._estado_chat(True))
+        self.encender.assert_called_once_with(9100)
+        self.assertEqual(self.anuncios, [])
+        self.assertTrue(self.principal._config["overlay_activo"])
+        self.guardar_opcion.assert_called_once_with(
+            modulo_gui.RUTA_CONFIG, "overlay", "activo", "true")
+        self.diagnostico.crear_hilo.assert_called_once_with(
+            self.recargar, "RecargarPanelObs")
 
-    def test_chat_no_repone_la_fuente_si_ya_esta(self):
-        self.gestor.tiene_panel = True
-        self.gestor.llamadas.clear()
-        ventana = self._crear(alternar_panel=mock.Mock(return_value=True))
-        pagina = ventana._pagina_transmision
-        pagina.chk_chat.SetValue(True)
+    def test_estado_sin_fuente_y_servicio_encendido_apaga_y_guarda(self):
+        self.anuncios.clear()
         with mock.patch.object(gui_transmision.overlay_servidor,
-                               "puerto_actual", return_value=8730):
-            pagina._alternar_chat(Evento())
-        self.assertNotIn("asegurar_fuente",
-                         [llamada[0] for llamada in self.gestor.llamadas])
+                               "esta_encendido", return_value=True):
+            self.dialogo.sincronizar_chat(self._estado_chat(False))
+        self.apagar.assert_called_once_with()
+        self.assertEqual(self.anuncios, [])
+        self.assertFalse(self.principal._config["overlay_activo"])
+        self.guardar_opcion.assert_called_once_with(
+            modulo_gui.RUTA_CONFIG, "overlay", "activo", "false")
 
-    def test_apagar_el_chat_no_elimina_la_fuente(self):
-        ventana = self._crear(alternar_panel=mock.Mock(return_value=False))
-        pagina = ventana._pagina_transmision
-        pagina.chk_chat.SetValue(False)
-        pagina._alternar_chat(Evento())
-        self.assertNotIn("eliminar",
-                         [llamada[0] for llamada in self.gestor.llamadas])
+    def test_puerto_ocupado_anuncia_una_sola_vez(self):
+        self.encender.side_effect = (
+            gui_transmision.overlay_servidor.OverlayPuertoOcupadoError("ocupado"))
+        self.anuncios.clear()
+        with mock.patch.object(gui_transmision.overlay_servidor,
+                               "esta_encendido", return_value=False):
+            self.dialogo.sincronizar_chat(self._estado_chat(True))
+            self.dialogo.sincronizar_chat(self._estado_chat(True))
+        self.assertEqual(
+            self.anuncios,
+            ["No se pudo activar el chat en el vídeo: el puerto 8730 está en "
+             "uso. Cámbialo en Preferencias, categoría Transmisión."])
+        self.sonido.reproducir.assert_called_once_with("error")
+        self.guardar_opcion.assert_not_called()
 
-    def test_chat_si_el_puerto_esta_ocupado_queda_apagado(self):
-        ventana = self._crear(alternar_panel=mock.Mock(return_value=False))
-        pagina = ventana._pagina_transmision
-        pagina.chk_chat.SetValue(True)
-        pagina._alternar_chat(Evento())
-        self.assertFalse(pagina.chk_chat.GetValue())
-        self.assertNotIn("asegurar_fuente",
-                         [llamada[0] for llamada in self.gestor.llamadas])
+    def test_la_casilla_del_chat_no_existe_con_youtube_ni_tiktok(self):
+        self.assertFalse(hasattr(self.dialogo, "chk_chat"))
+        for destino in ("YouTube", "TikTok"):
+            with self.subTest(destino=destino):
+                self._elegir(destino)
+                self.assertIsNone(self._control_por_nombre(
+                    self.dialogo, "Mostrar chat en el vídeo"))
+
+    def test_sin_obs_conectado_no_toca_el_servicio(self):
+        self.gestor.fallo = True
+        with mock.patch.object(gui_transmision.overlay_servidor,
+                               "esta_encendido", return_value=False):
+            self.dialogo.sincronizar_chat(self._estado_chat(True))
+        self.encender.assert_not_called()
+        with mock.patch.object(gui_transmision.overlay_servidor,
+                               "esta_encendido", return_value=True):
+            self.dialogo.sincronizar_chat(self._estado_chat(False))
+        self.apagar.assert_not_called()
+
+    def test_una_lectura_de_general_con_fuente_enciende(self):
+        self.anuncios.clear()
+        with mock.patch.object(gui_transmision.overlay_servidor,
+                               "esta_encendido", return_value=False):
+            self.ventana._general_leida((self._estado_chat(True), {}))
+        self.encender.assert_called_once_with(8730)
+        self.assertEqual(self.anuncios, [])
 
     def test_el_estado_de_general_dice_microfono_y_escena_al_aire(self):
         self.ventana._general_leida((SimpleNamespace(
@@ -888,6 +936,12 @@ class TestPseudoTransmisionVentana(unittest.TestCase):
         self.sonar = mock.Mock()
         self.parches = [
             mock.patch.object(threading, "Thread", HiloInmediato),
+            mock.patch.object(gui_transmision.overlay_servidor,
+                              "esta_encendido", return_value=False),
+            mock.patch.object(gui_transmision.overlay_servidor, "encender"),
+            mock.patch.object(gui_transmision.overlay_servidor, "apagar"),
+            mock.patch.object(gui_transmision, "diagnostico"),
+            mock.patch.object(modulo_gui, "guardar_opcion"),
             mock.patch.object(gui_transmision.wx, "CallAfter",
                               lambda funcion, *args: funcion(*args)),
             mock.patch.object(gui_transmision, "anunciar",
@@ -930,6 +984,7 @@ class TestPanelSinConsultasDeFuente(unittest.TestCase):
         gestor.perfil_actual.return_value = ""
         gestor.entradas_audio.return_value = ()
         gestor.microfono_especial.return_value = ""
+        gestor._pedir.return_value = {}
         datos = consultas_transmision.leer_estado(gestor, "")
         self.assertEqual(datos.escena, "Principal")
         gestor.ventanas.assert_not_called()
@@ -1051,8 +1106,8 @@ class TestElegirFuente(unittest.TestCase):
     def test_prefiere_la_del_chat_si_esta(self):
         self.assertEqual(
             consultas_transmision.elegir_fuente(
-                ("Cámara", gui_transmision.NOMBRE_FUENTE)),
-            gui_transmision.NOMBRE_FUENTE)
+                ("Cámara", consultas_transmision.NOMBRE_FUENTE)),
+            consultas_transmision.NOMBRE_FUENTE)
 
     def test_sin_la_del_chat_devuelve_la_primera(self):
         self.assertEqual(

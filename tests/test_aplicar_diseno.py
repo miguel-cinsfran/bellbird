@@ -1,6 +1,7 @@
 """Pruebas de llevar un diseño calculado a una escena de OBS, sin wx."""
 
 import unittest
+from unittest import mock
 
 from guyrapu.obs import (
     aplicar_diseno, disenos_escena, disenos_fabrica, obs_panel)
@@ -219,6 +220,26 @@ class AplicarDisenoTest(unittest.TestCase):
             and llamada[1]["sceneItemId"] == 1)
         self.assertEqual(
             (escritura["boundsWidth"], escritura["boundsHeight"]), (1600, 900))
+
+    def test_aplicar_diseno_agrega_el_chat_que_falta_antes_de_colocarlo(self):
+        sin_chat = [elemento_ for elemento_ in _escena()
+                    if elemento_["sourceName"] != NOMBRE_FUENTE]
+        eventos = []
+        doble = DobleObs(sin_chat)
+        gestor = GestorQueAnota(doble, eventos)
+        with mock.patch.object(aplicar_diseno.overlay_servidor,
+                               "puerto_actual", return_value=8730):
+            resultado, _sin_mover = aplicar_diseno.aplicar_diseno(
+                gestor, RegistroFalso(eventos), "Escena", _diseno())
+        tipos = [llamada[0] for llamada in doble.llamadas]
+        self.assertIn("CreateInput", tipos)
+        self.assertLess(tipos.index("CreateInput"),
+                        tipos.index("SetSceneItemTransform"))
+        self.assertIn((NOMBRE_FUENTE, ""), resultado)
+        ajustes = next(llamada[1] for llamada in doble.llamadas
+                       if llamada[0] == "SetInputSettings")
+        self.assertEqual(ajustes["inputSettings"]["url"],
+                         "http://127.0.0.1:8730/chat")
 
     def test_aplicar_diseno_nombra_la_fuente_que_no_entro(self):
         extra = elemento(4, "Extra", 3)

@@ -674,16 +674,19 @@ def escenario_transmitir_destino(app: Aplicacion, args, res: Resultado):
 
 
 def escenario_overlay(app: Aplicacion, args, res: Resultado):
-    """El panel de chat para transmitir: interruptor, servicio y estado.
+    """La fuente del chat, el servicio que la sirve y el estado.
 
-    La fase 3 de `scripts/smoke_test.py` no llega a este diálogo, y las pruebas unitarias no arrancan la aplicación entera, que es donde se ve si el interruptor está cableado de verdad.
+    La fase 3 de `scripts/smoke_test.py` no llega a este diálogo, y las pruebas unitarias no arrancan la aplicación entera, que es donde se ve si el servicio sigue de verdad a la fuente de OBS.
 
-    Comprueba lo único que el dueño no puede mirar: que cuando dice que está
-    activo, esté sirviendo la página de verdad.
+    Comprueba lo único que el dueño no puede mirar: que mientras OBS tiene
+    la fuente, el puerto sirve la página, y que al quitarla deja de servir.
+    La agrega con la misma función que usa la app y deja OBS como estaba.
     """
     import urllib.request
+    from guyrapu.obs import chat_en_video
+    from guyrapu.obs.fuente_chat import NOMBRE_FUENTE
+    from guyrapu.obs.obs_panel import GestorPanelObs
 
-    etiqueta = "Mostrar chat en el vídeo"
     puerto = 8730
     url = f"http://127.0.0.1:{puerto}/chat"
 
@@ -694,7 +697,7 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
         except Exception:
             return False
 
-    def alternar_panel():
+    def leer_estado():
         try:
             app.abrir_por_menu("OBS > Panel de OBS…")
         except Exception as exc:
@@ -704,62 +707,45 @@ def escenario_overlay(app: Aplicacion, args, res: Resultado):
             res.fallo("Panel de OBS: el menú no abrió el panel")
             return False
         if not ventanas_obs.esperar_habilitado(
-                app, faltan_habilitados, etiqueta, 15, res):
-            app.pedir("cerrar_ventana", ventana="Panel de OBS")
-            return False
-        try:
-            app.pedir("foco", ventana="Panel de OBS", nombre=etiqueta)
-            app.teclas("space")
-        except Exception as exc:
-            res.fallo(f"Panel de OBS: no se pudo alternar «{etiqueta}», {exc}")
+                app, faltan_habilitados, "Transmitir a", 15, res):
             app.pedir("cerrar_ventana", ventana="Panel de OBS")
             return False
         app.pedir("cerrar_ventana", ventana="Panel de OBS")
         return True
 
-    encendido_al_entrar = responde(2.0)
-    if encendido_al_entrar:
-        res.nota("el panel ya venía encendido; se apaga para probar el ciclo")
-        if not alternar_panel():
+    if not leer_estado():
+        return
+    gestor = GestorPanelObs()
+    try:
+        gestor.conectar()
+        escena = gestor.escena_al_aire()
+    except Exception as exc:
+        res.nota(f"Panel de OBS: OBS no contestó, {exc}")
+        return
+    if not escena:
+        res.nota("Panel de OBS: OBS no tiene escena al aire")
+        return
+    try:
+        tenia_fuente = NOMBRE_FUENTE in gestor.fuentes(escena)
+        if not tenia_fuente:
+            chat_en_video.agregar_fuente(gestor, escena, puerto)
+        if not leer_estado():
             return
-        app.esperar_dicho("chat en el vídeo desactivado", 8)
-
-    # Encender
-    antes = len(app.anuncios)
-    if not alternar_panel():
-        return
-    if not app.esperar_dicho("chat en el vídeo activado", 10, desde=antes):
-        dichos = [a["texto"][:60] for a in app.anuncios[antes:]]
-        res.fallo(f"al encender no anunció el puerto; dijo: {dichos}")
-    if not responde():
-        res.fallo(f"anunció el panel activo pero {url} no responde")
-    else:
-        res.nota(f"{url} responde")
-
-    # F2 distingue si alguien muestra el panel: nadie o fuente en OBS
-    antes = len(app.anuncios)
-    app.abrir_por_menu("Anunciar estado")
-    app.esperar_dicho("chat en el vídeo", 8, desde=antes)
-    dicho = " ".join(a["texto"].lower() for a in app.anuncios[antes:])
-    if "chat en el vídeo activado" not in dicho:
-        res.fallo("F2 no menciona el panel estando encendido")
-    elif "nadie lo est" in dicho:
-        res.nota("F2 dice que nadie lo está mostrando")
-    elif "mostr" in dicho:
-        res.nota("F2 dice que el panel se está mostrando")
-    else:
-        res.fallo("F2 no distingue si alguien está mostrando el panel")
-
-    # Apagar
-    antes = len(app.anuncios)
-    if not alternar_panel():
-        return
-    if not app.esperar_dicho("chat en el vídeo desactivado", 10, desde=antes):
-        res.fallo("al apagar no lo anunció")
-    if responde(3.0):
-        res.fallo("apagado, el puerto sigue respondiendo")
-    else:
-        res.nota("apagado, el puerto deja de responder")
-
-    if encendido_al_entrar:
-        alternar_panel()   # se deja como estaba
+        if not responde():
+            res.fallo(f"con la fuente en OBS, {url} no responde")
+        else:
+            res.nota(f"{url} responde con la fuente en OBS")
+        if tenia_fuente:
+            res.nota("la fuente ya estaba; se deja OBS como estaba")
+            return
+        _quitar_fuente_encuadre(gestor, escena, NOMBRE_FUENTE)
+        if not leer_estado():
+            return
+        if responde(3.0):
+            res.fallo("sin la fuente en OBS, el puerto sigue respondiendo")
+        else:
+            res.nota("sin la fuente en OBS, el puerto deja de responder")
+    except Exception as exc:
+        res.fallo(f"Panel de OBS: no se pudo montar la fuente, {exc}")
+    finally:
+        gestor.cerrar()

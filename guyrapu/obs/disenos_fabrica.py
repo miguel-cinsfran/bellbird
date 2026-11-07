@@ -104,11 +104,6 @@ def motivo_para_no_aplicar(diseno, fuentes):
             return (lugar, _("{fuente} está en dos lugares. Elige otra.").format(
                 fuente=nombre))
         vistos.add(nombre)
-    if diseno.chat != "ninguno" and not any(
-            fuente.tipo == "chat" for fuente in fuentes):
-        return ("chat", _("La escena no tiene el chat en el vídeo. Elige Sin "
-                          "chat o activa Mostrar chat en el vídeo en la "
-                          "pestaña Transmisión."))
     return None
 
 

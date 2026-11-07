@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from guyrapu.obs import chat_en_video
 from guyrapu.obs import disenos_escena
+from guyrapu.obs import overlay_servidor
 from guyrapu.obs.fuente_chat import NOMBRE_FUENTE
 
 _TIPO_CAMARA = "dshow_input"
@@ -62,7 +64,7 @@ def aplicar_diseno(gestor, registro, escena, diseno):
     Devuelve los estados de las fuentes colocadas y los nombres de las que
     quedaron como estaban, en el orden de OBS.
     """
-    fuentes, orden_obs = _leer(gestor, escena)
+    fuentes, orden_obs = _leer_con_chat(gestor, escena, diseno)
     if not fuentes:
         raise ValueError("La escena no tiene fuentes")
     lienzo = gestor.instantanea(escena, fuente=fuentes[0].nombre)
@@ -71,6 +73,18 @@ def aplicar_diseno(gestor, registro, escena, diseno):
     estados = aplicar(gestor, registro, escena, colocaciones)
     colocadas = {colocacion["nombre"] for colocacion in colocaciones}
     return estados, [nombre for nombre in orden_obs if nombre not in colocadas]
+
+
+def _leer_con_chat(gestor, escena, diseno):
+    """Las fuentes de la escena, agregando la del chat si el diseño la pide."""
+    fuentes, orden_obs = _leer(gestor, escena)
+    if diseno.chat != "ninguno" and not any(
+            fuente.tipo == "chat" for fuente in fuentes):
+        puerto = (overlay_servidor.puerto_actual()
+                  or chat_en_video.PUERTO_DEFECTO)
+        chat_en_video.agregar_fuente(gestor, escena, puerto)
+        fuentes, orden_obs = _leer(gestor, escena)
+    return fuentes, orden_obs
 
 
 def aplicar(gestor, registro, escena, colocaciones):

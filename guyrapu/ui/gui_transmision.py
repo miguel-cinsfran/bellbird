@@ -4,23 +4,20 @@ from __future__ import annotations
 
 import wx
 
-from guyrapu.core.idioma import N_, _, pgettext
-from guyrapu.obs import (consultas_transmision, obs_lanzador,
-                          overlay_servidor, transmision_directa)
+from guyrapu.core import diagnostico
+from guyrapu.core.idioma import _, pgettext
+from guyrapu.obs import (chat_en_video, consultas_transmision, obs_lanzador,
+                          obs_panel_recarga, overlay_servidor,
+                          transmision_directa)
 from guyrapu.obs.estado_panel import resumir
-from guyrapu.obs.obs_panel import NOMBRE_FUENTE
 from guyrapu.restream import ganchos, transmitir
 from guyrapu.ui import gui_microfono, menu_transmision, tema
 from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
 from guyrapu.ui.directo_panel import DirectoPanel
 from guyrapu.ui.gui import caja_de_grupo
 from guyrapu.ui.preferencias_comun import (
-    boton, fila_campo, mostrar_control, mostrar_fila)
-
-_PUERTO_PANEL_DEFECTO = 8730
-_RUTA_PANEL_CHAT = "/chat"
-
-_ETIQUETA_CHAT = N_("Mostrar &chat en el vídeo")
+    boton, fila_campo, mostrar_fila)
+from guyrapu.voice import sound_player
 
 
 class PaginaTransmision(wx.Panel):
@@ -32,7 +29,7 @@ class PaginaTransmision(wx.Panel):
         self._gestor = gestor
         self._operaciones = operaciones
         self._al_terminar = al_terminar
-        self._alternar_panel = getattr(principal, "_cambiar_overlay", None)
+        self._puerto_ocupado_avisado = False
         self._supervisar = getattr(
             principal, "_supervisar_transmision", None)
         self._guardar_usuario = getattr(
@@ -67,7 +64,7 @@ class PaginaTransmision(wx.Panel):
         self.SetSizer(caja)
         self.acciones = (
             self.cho_destino, self.txt_usuario_tiktok, self.btn_directo,
-            self.chk_chat, self.btn_restream)
+            self.btn_restream)
 
     def _crear_selector_destino(self, sizer, padre):
         rotulo_destino = wx.StaticText(padre, label=_("Transmitir &a:"))
@@ -92,16 +89,10 @@ class PaginaTransmision(wx.Panel):
         self.btn_directo = boton(padre, etiqueta, nombre)
         tema.boton_principal(self.btn_directo)
         sizer.Add(self.btn_directo, 0, wx.ALL, 6)
-        self.chk_chat = wx.CheckBox(
-            padre, label=_(_ETIQUETA_CHAT),
-            name=_("Mostrar chat en el vídeo"))
-        self.chk_chat.SetValue(overlay_servidor.esta_encendido())
-        sizer.Add(self.chk_chat, 0, wx.ALL, 6)
         contenido.Add(sizer, 0, wx.EXPAND | wx.ALL, 10)
 
     def _enlazar_eventos(self):
         self.btn_restream.Bind(wx.EVT_BUTTON, self._abrir_restream)
-        self.chk_chat.Bind(wx.EVT_CHECKBOX, self._alternar_chat)
         self.cho_destino.Bind(wx.EVT_CHOICE, self._al_cambiar_destino)
         self.cho_destino.Bind(wx.EVT_SET_FOCUS, self._al_foco_destino)
 
@@ -177,17 +168,10 @@ class PaginaTransmision(wx.Panel):
         mostrar_fila(self._filas["usuario"],
                      opcion == "TikTok" and not transmitiendo,
                      self.btn_directo)
-        mostrar_control(
-            self.chk_chat,
-            opcion == "YouTube" and self._alternar_panel is not None,
-            self.btn_directo)
         self.Layout()
 
     def _en_hilo(self, funcion, al_terminar=None):
         self._operaciones.en_hilo(funcion, al_terminar)
-
-    def _escena(self):
-        return self._escena_al_aire
 
     def cargar(self, datos):
         """Pone el estado y el destino iniciales que leyó la ventana."""
@@ -198,7 +182,6 @@ class PaginaTransmision(wx.Panel):
             self._seleccionar_opcion(datos.perfil)
         else:
             self.cho_destino.SetSelection(wx.NOT_FOUND)
-        self.chk_chat.SetValue(overlay_servidor.esta_encendido())
         self._aplicar_datos(datos)
 
     def enfocar_inicial(self):
@@ -238,33 +221,55 @@ class PaginaTransmision(wx.Panel):
         escena = getattr(datos, "al_aire", "") or getattr(datos, "escena", "")
         self._escena_al_aire = escena
         self._aplicar_visibilidad()
+        self.sincronizar_chat(datos)
 
-    def _alternar_chat(self, event):
-        if self._alternar_panel is None:
+    def sincronizar_chat(self, datos):
+        """Enciende o apaga el servicio según lo que OBS tenga en ese momento.
+
+        Lo llaman todas las lecturas de estado del panel. Encender o apagar
+        solo no anuncia nada y no mueve el foco.
+        """
+        accion = chat_en_video.decidir(
+            bool(getattr(datos, "tiene_chat", False)),
+            overlay_servidor.esta_encendido(),
+            bool(getattr(self._gestor, "conectado", False)))
+        if accion == chat_en_video.ENCENDER:
+            self._encender_chat()
+        elif accion == chat_en_video.APAGAR:
+            self._apagar_chat()
+
+    def _encender_chat(self):
+        config = getattr(self._principal, "_config", None) or {}
+        puerto = config.get("overlay_puerto", chat_en_video.PUERTO_DEFECTO)
+        try:
+            overlay_servidor.encender(puerto)
+        except overlay_servidor.OverlayPuertoOcupadoError:
+            self._avisar_puerto_ocupado(puerto)
             return
-        encender = self.chk_chat.GetValue()
-        resultado = self._alternar_panel(encender)
-        if not encender or not resultado:
-            self.chk_chat.SetValue(bool(resultado) if not encender else False)
+        self._guardar_chat_activo(True)
+        diagnostico.crear_hilo(
+            obs_panel_recarga.recargar_fuente_panel, "RecargarPanelObs").start()
+
+    def _apagar_chat(self):
+        overlay_servidor.apagar()
+        self._guardar_chat_activo(False)
+
+    def _guardar_chat_activo(self, activo):
+        config = getattr(self._principal, "_config", None)
+        if config is not None:
+            config["overlay_activo"] = bool(activo)
+        from guyrapu.ui import gui as _gui
+        _gui.guardar_opcion(_gui.RUTA_CONFIG, "overlay", "activo",
+                            "true" if activo else "false")
+
+    def _avisar_puerto_ocupado(self, puerto):
+        if self._puerto_ocupado_avisado:
             return
-        escena = self._escena()
-        self._en_hilo(lambda: self._agregar_chat(escena),
-                      self._chat_agregado)
-
-    def _agregar_chat(self, escena):
-        puerto = overlay_servidor.puerto_actual() or _PUERTO_PANEL_DEFECTO
-        if NOMBRE_FUENTE in self._gestor.fuentes(escena):
-            return False, escena
-        url = f"http://127.0.0.1:{puerto}{_RUTA_PANEL_CHAT}"
-        self._gestor.asegurar_fuente(escena, url, 460, 620)
-        return True, escena
-
-    def _chat_agregado(self, resultado):
-        agregado, escena = resultado
-        if agregado:
-            anunciar(_("Chat en el vídeo agregado a la escena {escena}.")
-                     .format(escena=escena))
-        self._refrescar_estado()
+        self._puerto_ocupado_avisado = True
+        sound_player.reproducir("error")
+        anunciar(_("No se pudo activar el chat en el vídeo: el puerto {puerto} "
+                   "está en uso. Cámbialo en Preferencias, categoría "
+                   "Transmisión.").format(puerto=puerto))
 
     def _abrir_restream(self, event):
         menu_transmision.abrir_restream(self._principal)

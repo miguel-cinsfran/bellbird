@@ -27,6 +27,8 @@ def _gestor():
     gestor.descripcion_escena.return_value = mock.sentinel.descripcion
     gestor.filas_escena.return_value = mock.sentinel.filas
     gestor.usar_ventana.return_value = mock.sentinel.frase
+    gestor._pedir.return_value = {"inputs": [
+        {"inputName": "Chat en el vídeo", "inputKind": "browser_source"}]}
     return gestor
 
 
@@ -103,6 +105,7 @@ class TestLeerEstado(unittest.TestCase):
         self.assertEqual(datos.problemas, ("Un problema.",))
         self.assertEqual(datos.microfono, "Mic/Aux")
         self.assertFalse(datos.silenciado)
+        self.assertTrue(datos.tiene_chat)
 
     def test_sin_destino_no_revisa(self):
         gestor = _gestor()
@@ -117,7 +120,7 @@ class TestLeerEstado(unittest.TestCase):
             [llamada[0] for llamada in gestor.mock_calls],
             ["escena_al_aire", "estado_transmision", "estado_grabacion",
              "perfil_actual", "entradas_audio", "microfono_especial",
-             "revisar", "silenciada"])
+             "revisar", "silenciada", "_pedir"])
 
 
 class TestAplicarVentana(unittest.TestCase):

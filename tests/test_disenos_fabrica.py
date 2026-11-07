@@ -206,15 +206,12 @@ class MotivoTest(unittest.TestCase):
                     disenos_fabrica.motivo_para_no_aplicar(diseno, _fuentes()),
                     (lugar, texto))
 
-    def test_chat_sin_panel(self):
+    def test_el_chat_sin_panel_no_impide_aplicar(self):
         fuentes = [disenos_escena.Fuente("Juego", "otra", 1600, 900)]
         diseno = disenos_escena.Diseno(
             clase="pantalla_completa", principal="Juego", chat="franja")
-        self.assertEqual(
-            disenos_fabrica.motivo_para_no_aplicar(diseno, fuentes),
-            ("chat", "La escena no tiene el chat en el vídeo. Elige Sin chat "
-                     "o activa Mostrar chat en el vídeo en la pestaña "
-                     "Transmisión."))
+        self.assertIsNone(
+            disenos_fabrica.motivo_para_no_aplicar(diseno, fuentes))
 
 
 class ResumenTest(unittest.TestCase):

@@ -332,9 +332,6 @@ class DisenoEscenaDialog(wx.Dialog):
         event.Skip()
 
     def _enfocar(self, lugar):
-        if lugar == "chat":
-            self.cho_chat.SetFocus()
-            return
         self._lugares[lugar][2].SetFocus()
 
     def _es_nombre_de_fabrica(self, nombre):

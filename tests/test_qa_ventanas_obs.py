@@ -127,7 +127,7 @@ class TestOrdenDeTransmision(unittest.TestCase):
     def test_el_orden_de_p2_no_esta_descuidado(self):
         self.assertIsNone(ventanas_obs.orden_de_transmision([
             "Choice: Transmitir a",
-            "Button: Transmitir en directo", "CheckBox: Mostrar chat en el vídeo",
+            "Button: Transmitir en directo",
             "Button: Restream…"]))
 
     def test_sin_los_condicionales_el_orden_sigue_valiendo(self):
@@ -138,7 +138,7 @@ class TestOrdenDeTransmision(unittest.TestCase):
     def test_el_recorrido_circular_desde_transmitir_a_sigue_en_orden(self):
         self.assertIsNone(ventanas_obs.orden_de_transmision([
             "Button: Transmitir en directo",
-            "CheckBox: Mostrar chat en el vídeo", "Button: Restream…",
+            "Button: Restream…",
             "Choice: Transmitir a"]))
 
     def test_un_control_fuera_de_orden_se_nombra(self):

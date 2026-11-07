@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from guyrapu.obs import chat_en_video
 from guyrapu.obs import obs_audio
 from guyrapu.obs import obs_disposicion
 from guyrapu.obs.obs_destinos import DESTINOS
@@ -93,6 +94,12 @@ class EstadoLeido:
     problemas: object
     microfono: str
     silenciado: bool
+    tiene_chat: bool = False
+
+
+def _tiene_chat(gestor) -> bool:
+    entradas = gestor._pedir("GetInputList").get("inputs", ()) or ()
+    return chat_en_video.tiene_fuente(entradas)
 
 
 def leer_estado(gestor, destino="", preferido="") -> EstadoLeido:
@@ -105,7 +112,8 @@ def leer_estado(gestor, destino="", preferido="") -> EstadoLeido:
     return EstadoLeido(
         escena=escena, transmision=transmision, grabacion=grabacion,
         perfil=perfil, problemas=_problemas(gestor, destino),
-        microfono=microfono, silenciado=_silencio(gestor, microfono))
+        microfono=microfono, silenciado=_silencio(gestor, microfono),
+        tiene_chat=_tiene_chat(gestor))
 
 
 @dataclass(frozen=True)

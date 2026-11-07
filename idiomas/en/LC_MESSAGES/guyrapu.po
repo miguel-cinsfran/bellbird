@@ -2934,14 +2934,6 @@ msgid "{fuente} está en dos lugares. Elige otra."
 msgstr "{fuente} is in two places. Select another."
 
 #: guyrapu/obs/disenos_fabrica.py
-msgid ""
-"La escena no tiene el chat en el vídeo. Elige Sin chat o activa Mostrar "
-"chat en el vídeo en la pestaña Transmisión."
-msgstr ""
-"The scene does not have the chat on video. Select No chat or turn on Show "
-"chat on video on the Stream tab."
-
-#: guyrapu/obs/disenos_fabrica.py
 #, python-brace-format
 msgid "Diseño aplicado: {nombre}."
 msgstr "Layout applied: {nombre}."
@@ -8932,10 +8924,6 @@ msgid "&{boton}"
 msgstr "&{boton}"
 
 #: guyrapu/ui/gui_transmision.py
-msgid "Mostrar &chat en el vídeo"
-msgstr "Show &chat on video"
-
-#: guyrapu/ui/gui_transmision.py
 msgctxt "pestaña Transmisión"
 msgid "Re&stream…"
 msgstr "Restre&am…"
@@ -8955,15 +8943,6 @@ msgstr "Live"
 #: guyrapu/ui/gui_transmision.py
 msgid "&Usuario de TikTok:"
 msgstr "TikTok &user:"
-
-#: guyrapu/ui/gui_transmision.py
-msgid "Mostrar chat en el vídeo"
-msgstr "Show chat on video"
-
-#: guyrapu/ui/gui_transmision.py
-#, python-brace-format
-msgid "Chat en el vídeo agregado a la escena {escena}."
-msgstr "Chat on video added to scene {escena}."
 
 #: guyrapu/ui/gui_transmitir.py
 #, python-brace-format

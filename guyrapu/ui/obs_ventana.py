@@ -183,6 +183,7 @@ class VentanaObs(wx.Dialog):
 
     def _grabacion_leida(self, datos):
         self._pagina_grabacion.aplicar(datos)
+        self._pagina_transmision.sincronizar_chat(datos)
         self._refrescar_general()
 
     def _mostrar_general(self, estado, estadisticas):
@@ -211,9 +212,11 @@ class VentanaObs(wx.Dialog):
 
     def _general_leida(self, datos):
         self._mostrar_general(*datos)
+        self._pagina_transmision.sincronizar_chat(datos[0])
 
     def _general_actualizada(self, datos):
         self._mostrar_general(*datos)
+        self._pagina_transmision.sincronizar_chat(datos[0])
         anunciar(self._pagina_general.texto())
 
     def _mostrar_obs(self):

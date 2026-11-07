@@ -644,6 +644,28 @@ class TestPanelTransmision(unittest.TestCase):
         self.encender.assert_called_once_with(8730)
         self.assertEqual(self.anuncios, [])
 
+    def test_una_lectura_de_general_actualizada_con_fuente_enciende(self):
+        self.anuncios.clear()
+        with mock.patch.object(gui_transmision.overlay_servidor,
+                               "esta_encendido", return_value=False):
+            self.ventana._general_actualizada((self._estado_chat(True), {}))
+        self.encender.assert_called_once_with(8730)
+
+    def test_una_lectura_de_grabacion_con_fuente_enciende(self):
+        self.anuncios.clear()
+        with mock.patch.object(gui_transmision.overlay_servidor,
+                               "esta_encendido", return_value=False):
+            self.ventana._grabacion_leida(self._estado_chat(True))
+        self.encender.assert_called_once_with(8730)
+
+    def test_al_encender_por_p3_recarga_la_fuente(self):
+        self.diagnostico.crear_hilo.side_effect = (
+            lambda funcion, nombre: HiloInmediato(funcion))
+        with mock.patch.object(gui_transmision.overlay_servidor,
+                               "esta_encendido", return_value=False):
+            self.dialogo.sincronizar_chat(self._estado_chat(True))
+        self.recargar.assert_called_once_with()
+
     def test_el_estado_de_general_dice_microfono_y_escena_al_aire(self):
         self.ventana._general_leida((SimpleNamespace(
             escena="Principal", transmision={"outputActive": False},

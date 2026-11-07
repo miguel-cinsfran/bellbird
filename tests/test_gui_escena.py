@@ -909,6 +909,20 @@ class TestVentanaObs(unittest.TestCase):
             "No se movieron: Cámara, Chat en el vídeo.", self.anuncios)
         foco.assert_called_once_with()
 
+    def test_aplicar_diseno_desde_la_pagina_pasa_el_puerto_guardado(self):
+        pagina = self.dialogo._pagina_fuentes
+        self.principal._config["overlay_puerto"] = 9000
+        diseno = disenos_escena.Diseno(
+            clase="pantalla_completa", principal="Juego")
+        with mock.patch.object(escena_pagina_fuentes.aplicar_diseno,
+                               "aplicar_diseno",
+                               return_value=([], [])) as aplicar, \
+                mock.patch.object(
+                    escena_pagina_fuentes.chat_en_video.overlay_servidor,
+                    "puerto_actual", return_value=None):
+            pagina._aplicar_diseno_elegido("Principal", diseno)
+        self.assertEqual(aplicar.call_args.args[-1], 9000)
+
     def test_sin_fuentes_para_un_diseno_anuncia_y_no_abre_el_cuadro(self):
         pagina = self.dialogo._pagina_fuentes
         with mock.patch.object(

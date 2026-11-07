@@ -95,6 +95,27 @@ def plan_canales(perfil, canales) -> tuple:
     return tuple(cambios)
 
 
+def tiene_tiktok(perfil, canales) -> bool:
+    """¿El perfil tiene algún destino de TikTok?"""
+    return any(canal.plataforma == "TikTok"
+               for canal in canales_del_perfil(perfil, canales))
+
+
+def chat_del_perfil(perfil, canales) -> str:
+    """Qué chat lee Guyrapu: «youtube», «tiktok» o vacío si ninguno.
+
+    El chat elegido manda. Vacío es automático: YouTube si el perfil lo
+    tiene, si no TikTok cuando hay un destino de TikTok, y si no ninguno.
+    """
+    if perfil.chat in ("youtube", "tiktok"):
+        return perfil.chat
+    if perfil.youtube:
+        return "youtube"
+    if tiene_tiktok(perfil, canales):
+        return "tiktok"
+    return ""
+
+
 def usuario_tiktok(perfil, canales) -> str:
     """El usuario de TikTok del primer canal de TikTok del perfil.
 

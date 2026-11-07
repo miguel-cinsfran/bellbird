@@ -8,7 +8,6 @@ from types import SimpleNamespace
 
 from guyrapu.restream import resumen_cuenta
 from guyrapu.restream.perfiles import Perfil
-from guyrapu.youtube.emision import LATENCIA_INICIAL, PRIVACIDAD_INICIAL
 
 
 def _canal(identificador, texto, activo=True):
@@ -16,9 +15,7 @@ def _canal(identificador, texto, activo=True):
 
 
 def _perfil(nombre="Canal", canales=(1,), orientacion="horizontal"):
-    return Perfil(nombre=nombre, canales=canales, orientacion=orientacion,
-                  titulo="", descripcion="", privacidad=PRIVACIDAD_INICIAL,
-                  latencia=LATENCIA_INICIAL)
+    return Perfil(nombre=nombre, canales=canales, orientacion=orientacion)
 
 
 class TestResumenCuenta(unittest.TestCase):

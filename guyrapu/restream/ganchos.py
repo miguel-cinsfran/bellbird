@@ -15,7 +15,8 @@ from dataclasses import dataclass
 from guyrapu.core import diagnostico
 from guyrapu.core.idioma import N_, _
 from guyrapu.obs import obs_destinos
-from guyrapu.restream import transmitir
+from guyrapu.restream import transmitir, youtube_por_restream
+from guyrapu.youtube import emision
 from guyrapu.youtube.emision import EmisionError
 
 logger = diagnostico.obtener_logger(__name__)
@@ -30,27 +31,36 @@ MENSAJE_NO_TIKTOK = N_(
 
 @dataclass
 class Contexto:
-    """El destino y el usuario con los que se crea el supervisor."""
+    """El destino, el usuario y si el perfil tiene YouTube."""
 
     destino: str = ""
     usuario: str = ""
+    youtube: bool = False
 
 
 class Restaurador:
-    """Devuelve los canales cambiados a su estado anterior, de a uno."""
+    """Devuelve los canales a su estado anterior y borra el manual de YouTube."""
 
     def __init__(self, cuenta_mod):
         self._cuenta = cuenta_mod
         self._cambios = []
+        self._manuales = []
         self._candado = threading.Lock()
 
     def anotar(self, cambio) -> None:
         with self._candado:
             self._cambios.append(cambio)
 
+    def anotar_manual(self, identificador) -> None:
+        with self._candado:
+            self._manuales.append(identificador)
+
     def restaurar(self) -> None:
         with self._candado:
             cambios, self._cambios = self._cambios, []
+            manuales, self._manuales = self._manuales, []
+        for identificador in manuales:
+            self._borrar_manual(identificador)
         for cambio in cambios:
             try:
                 self._cuenta.activar_canal(cambio.canal_id, cambio.antes)
@@ -58,6 +68,14 @@ class Restaurador:
                 logger.warning(
                     "no se pudo restaurar el canal %s de Restream: %s",
                     cambio.canal_id, error)
+
+    def _borrar_manual(self, identificador) -> None:
+        try:
+            self._cuenta.eliminar_canal(identificador)
+        except Exception as error:
+            logger.warning(
+                "no se pudo borrar el manual %s de Restream: %s",
+                identificador, error)
 
 
 def _cuenta():
@@ -93,53 +111,94 @@ def _aplicar_cambios(perfil, canales, cuenta_mod, restaurador) -> None:
 
 
 def _cambiar_titulo(perfil, canales, cuenta_mod) -> None:
-    if not perfil.titulo:
+    datos = perfil.directo or {}
+    titulo = datos.get("titulo") or ""
+    if not titulo:
         return
     for canal in transmitir.canales_del_perfil(perfil, canales):
-        cuenta_mod.cambiar_meta(canal.id, perfil.titulo, perfil.descripcion)
+        cuenta_mod.cambiar_meta(canal.id, titulo,
+                                datos.get("descripcion", ""))
+
+
+def _preparar_youtube(perfil, cliente_obs, parada, cuenta_mod, restaurador,
+                      preparados, al_anunciar):
+    def avisar(frase):
+        al_anunciar(frase, None)
+
+    return emision.preparar_en_youtube(
+        preparados["cliente"], cliente_obs, preparados["cuerpo"],
+        parada=parada,
+        preparar_destino=youtube_por_restream.preparar_destino(
+            cuenta_mod, restaurador),
+        guardar_token=preparados.get("guardar_token"),
+        extras=preparados.get("extras"), avisar=avisar)
+
+
+def _borrar_emision(preparados, id_video) -> None:
+    try:
+        emision.finalizar_en_youtube(preparados["cliente"], id_video)
+    except Exception as error:
+        logger.warning("no se pudo borrar la emisión %s: %s", id_video, error)
+
+
+def _revertir(preparados, id_video, restaurador) -> None:
+    if id_video is not None:
+        _borrar_emision(preparados, id_video)
+    restaurador.restaurar()
 
 
 def _preparar_emision(perfil, canales, al_anunciar, cuenta_mod, restaurador,
-                      escribir):
+                      escribir, preparados=None):
     def preparar(cliente, parada=None):
-        al_anunciar(_(MENSAJE_PREPARANDO).format(nombre=perfil.nombre),
-                    "conectando")
+        al_anunciar(_(MENSAJE_PREPARANDO).format(nombre=perfil.nombre), "conectando")
+        id_video = None
         try:
-            _aplicar_cambios(perfil, canales, cuenta_mod, restaurador)
-            _cambiar_titulo(perfil, canales, cuenta_mod)
+            vivos = youtube_por_restream.borrar_sobrantes(cuenta_mod, canales)
+            _aplicar_cambios(perfil, vivos, cuenta_mod, restaurador)
+            _cambiar_titulo(perfil, vivos, cuenta_mod)
+            if perfil.youtube and preparados is not None:
+                id_video = _preparar_youtube(
+                    perfil, cliente, parada, cuenta_mod, restaurador,
+                    preparados, al_anunciar)
             clave = cuenta_mod.clave_cuenta()
-            destino = transmitir.destino_obs(
-                transmitir.PREFIJO + perfil.nombre, (perfil,))
             escribir(cliente, obs_destinos.Destino(
-                destino, clave.servidor, clave.clave), parada=parada)
+                transmitir.destino_obs(
+                    transmitir.PREFIJO + perfil.nombre, (perfil,)),
+                clave.servidor, clave.clave), parada=parada)
         except Exception as error:
-            restaurador.restaurar()
+            _revertir(preparados, id_video, restaurador)
             raise EmisionError(str(error)) from error
-        return None
+        return id_video
     return preparar
 
 
 def armar(opcion, al_anunciar, canales, cuenta_mod=None, perfiles=None,
-          escribir=None):
+          escribir=None, perfil=None, preparados=None):
     """Arma el gancho de preparación y la restauración de una opción.
 
     Los canales ya vienen leídos por el hilo que arma la transmisión.
-    Devuelve `(preparar_emision, restaurar)`.
+    Devuelve `(preparar_emision, restaurar, ganchos_del_supervisor)`.
     """
     modulo_cuenta = cuenta_mod or _cuenta()
     lista = perfiles if perfiles is not None else cargar_perfiles()
-    perfil = transmitir.perfil_de_opcion(opcion, lista)
+    if perfil is None:
+        perfil = transmitir.perfil_de_opcion(opcion, lista)
     restaurador = Restaurador(modulo_cuenta)
     preparar = _preparar_emision(
         perfil, canales, al_anunciar, modulo_cuenta, restaurador,
-        escribir or obs_destinos.preparar_destino)
-    return preparar, restaurador.restaurar
+        escribir or obs_destinos.preparar_destino, preparados=preparados)
+    ganchos = {}
+    if perfil.youtube and preparados is not None:
+        ganchos = {"esperar_emision": preparados.get("esperar"),
+                   "finalizar_emision": preparados.get("finalizar")}
+    return preparar, restaurador.restaurar, ganchos
 
 
 def envolver_anunciar(al_anunciar, contexto):
     """Ajusta los avisos del supervisor para un perfil de Restream."""
     def anunciar(frase, sonido, importante=False):
-        if not sonido and frase == _("Creando el directo en YouTube."):
+        if (not sonido and not contexto.youtube
+                and frase == _("Creando el directo en YouTube.")):
             return
         al_anunciar(frase, sonido, importante)
         if contexto.destino == "Restream" and sonido == "conectado":
@@ -166,13 +225,17 @@ def _anunciar_de_frame(frame):
     return al_anunciar
 
 
-def _conectar_chat(frame):
+def _conectar_chat(frame, youtube=False, guardados=None):
     def al_conectar_chat(url):
         from guyrapu.ui import gui as _gui
 
         def _conectar():
             if not getattr(frame, "_alive", True):
                 return
+            if youtube:
+                from guyrapu.ui import inicio_youtube
+                if inicio_youtube.sin_chat(frame, guardados or {}, url):
+                    return
             if frame._conectado or frame._conectando:
                 _gui.anunciar(
                     _("El chat ya estaba conectado y no se cambió."))
@@ -240,49 +303,74 @@ def _en_interfaz(frame, funcion, *args):
 
 
 def _destino_supervisor(perfil, canales):
+    chat = transmitir.chat_del_perfil(perfil, canales)
+    if chat == "youtube" and perfil.youtube:
+        return ("YouTube", "")
     usuario = transmitir.usuario_tiktok(perfil, canales)
-    return ("TikTok", usuario) if usuario else ("Restream", "")
+    if chat == "tiktok" and usuario:
+        return ("TikTok", usuario)
+    return ("Restream", "")
 
 
-def _crear_supervisor(frame, modulo_cuenta, opcion, lista, perfil, destino,
-                      usuario, canales):
+def _instanciar_supervisor(frame, destino, usuario, perfil, envoltura,
+                           restaurar, preparar, extras):
     from guyrapu.core import paths
     from guyrapu.obs.obs_supervisor import SupervisorTransmision
-
-    if not getattr(frame, "_alive", True):
-        return
-    envoltura = envolver_anunciar(
-        _anunciar_de_frame(frame), Contexto(destino=destino, usuario=usuario))
-    preparar, restaurar = armar(
-        opcion, envoltura, canales, cuenta_mod=modulo_cuenta, perfiles=lista)
-    supervisor = SupervisorTransmision(
-        destino, usuario,
-        al_anunciar=envoltura,
-        al_conectar_chat=_conectar_chat(frame),
+    return SupervisorTransmision(
+        destino, usuario, al_anunciar=envoltura,
+        al_conectar_chat=_conectar_chat(
+            frame, youtube=destino == "YouTube", guardados=perfil.directo),
         al_terminar=_al_terminar(frame, restaurar),
         ruta_fin_pendiente=paths.fin_pendiente(),
         **_parametros_supervisor(frame, envoltura),
-        preparar_emision=preparar)
+        preparar_emision=preparar, **extras)
+
+
+def _crear_supervisor(frame, modulo_cuenta, opcion, perfil, destino, usuario,
+                      canales, preparados=None):
+    if not getattr(frame, "_alive", True):
+        return
+    contexto = Contexto(destino, usuario, youtube=perfil.youtube)
+    envoltura = envolver_anunciar(_anunciar_de_frame(frame), contexto)
+    preparar, restaurar, extras = armar(
+        opcion, envoltura, canales, cuenta_mod=modulo_cuenta,
+        perfiles=[perfil], perfil=perfil, preparados=preparados)
+    supervisor = _instanciar_supervisor(
+        frame, destino, usuario, perfil, envoltura, restaurar, preparar,
+        extras)
     frame._supervisor = supervisor
     supervisor.iniciar()
     _arrancar_vigia(modulo_cuenta, canales, envoltura, frame)
     frame._actualizar_boton_directo()
 
 
-def _leer_canales(frame, modulo_cuenta, opcion, lista, perfil):
+def _preparar_ui(frame, modulo_cuenta, opcion, lista, perfil, canales,
+                 revision):
+    from guyrapu.restream import perfiles as modulo
+    from guyrapu.ui import inicio_youtube
+    perfil = modulo.normalizar_youtube(perfil, canales)
+    armado = inicio_youtube.pedir_y_guardar_perfil(frame, revision, perfil,
+                                                  lista)
+    if armado is None:
+        return
+    perfil, preparados = armado
+    destino, usuario = _destino_supervisor(perfil, canales)
+    _crear_supervisor(frame, modulo_cuenta, opcion, perfil, destino, usuario,
+                      canales, preparados=preparados)
+
+
+def _leer_canales(frame, modulo_cuenta, opcion, lista, perfil, revision):
     try:
         canales = modulo_cuenta.canales()
     except Exception as error:
         _anunciar_de_frame(frame)(str(error), "transmision_problema")
         return
-    destino, usuario = _destino_supervisor(perfil, canales)
-    _en_interfaz(frame, _crear_supervisor, frame, modulo_cuenta, opcion,
-                 lista, perfil, destino, usuario, canales)
+    _en_interfaz(frame, _preparar_ui, frame, modulo_cuenta, opcion, lista,
+                 perfil, canales, revision)
 
 
 def supervisar_restream(frame, opcion, revision=None, cuenta_mod=None) -> None:
     """Lee los canales y crea el supervisor con el destino ya elegido."""
-    del revision
     modulo_cuenta = cuenta_mod or _cuenta()
     if not cuenta_conectada(modulo_cuenta):
         _anunciar_de_frame(frame)(_(MENSAJE_SIN_CUENTA),
@@ -296,7 +384,8 @@ def supervisar_restream(frame, opcion, revision=None, cuenta_mod=None) -> None:
             "transmision_problema", True)
         return
     diagnostico.crear_hilo(
-        lambda: _leer_canales(frame, modulo_cuenta, opcion, lista, perfil),
+        lambda: _leer_canales(frame, modulo_cuenta, opcion, lista, perfil,
+                              revision),
         "PrepararRestream").start()
 
 

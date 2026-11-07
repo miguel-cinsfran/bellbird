@@ -81,7 +81,7 @@ class VentanaRestream(wx.Dialog):
 
     @property
     def _canales_leidos(self):
-        return [(destino.id, destino.texto) for destino in self._destinos]
+        return list(self._destinos)
 
     def _crear_ui(self):
         panel = wx.Panel(self, name="PanelRestream")

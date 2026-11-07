@@ -195,8 +195,11 @@ class PaginaPerfiles(wx.Panel):
             nombre, {perfil.nombre for perfil in self._perfiles})
 
     def _pedir_perfil(self, perfil, existentes):
+        canales = list(self._obtener_canales())
+        if perfil is not None:
+            perfil = perfiles.normalizar_youtube(perfil, canales)
         dialogo = DialogoPerfilRestream(
-            self, perfil, list(self._obtener_canales()), existentes,
+            self, perfil, perfiles.destinos_para_perfil(canales), existentes,
             sin_cuenta=not self._conectada())
         try:
             if dialogo.ShowModal() != wx.ID_OK:

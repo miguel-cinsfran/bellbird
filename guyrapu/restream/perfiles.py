@@ -1,23 +1,21 @@
 """Perfiles de transmisión por Restream: qué son y cómo se guardan.
 
-La validación es de quien edita; `guardar` no valida. Privacidad y latencia
-usan los valores de YouTube para no mantener dos listas que se separen.
+La validación es de quien edita; `guardar` no valida. Lo que YouTube acepta
+en el cuadro del directo se guarda tal cual y se recuerda en el perfil.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 
 from guyrapu.core import archivos
 from guyrapu.core.idioma import _
-from guyrapu.youtube.emision import (
-    LATENCIAS,
-    LATENCIA_INICIAL,
-    PRIVACIDADES,
-    PRIVACIDAD_INICIAL,
-)
+from guyrapu.restream.canal_youtube import PLATAFORMA_YOUTUBE
+from guyrapu.restream.youtube_por_restream import NOMBRE_MANUAL
+from guyrapu.youtube.emision import LATENCIAS, PRIVACIDADES
 
 ORIENTACIONES = ("horizontal", "vertical")
+CHATS = ("", "youtube", "tiktok")
 
 
 @dataclass(frozen=True, slots=True)
@@ -27,20 +25,18 @@ class Perfil:
     nombre: str
     canales: tuple
     orientacion: str
-    titulo: str = ""
-    descripcion: str = ""
-    privacidad: str = PRIVACIDAD_INICIAL
-    latencia: str = LATENCIA_INICIAL
+    youtube: bool = False
+    chat: str = ""
+    directo: dict = field(default_factory=dict)
 
     def a_dict(self) -> dict:
         return {
             "nombre": self.nombre,
             "canales": list(self.canales),
             "orientacion": self.orientacion,
-            "titulo": self.titulo,
-            "descripcion": self.descripcion,
-            "privacidad": self.privacidad,
-            "latencia": self.latencia,
+            "youtube": self.youtube,
+            "chat": self.chat,
+            "directo": dict(self.directo),
         }
 
 
@@ -50,7 +46,9 @@ def _texto(valor) -> str:
 
 def _canales(valor):
     """Tupla de identificadores enteros, o None si alguno no lo es."""
-    if not isinstance(valor, (list, tuple)) or not valor:
+    if valor is None:
+        return ()
+    if not isinstance(valor, (list, tuple)):
         return None
     limpios = []
     for canal in valor:
@@ -58,6 +56,21 @@ def _canales(valor):
             return None
         limpios.append(canal)
     return tuple(limpios)
+
+
+def _directo_nuevo(valor) -> dict:
+    return dict(valor) if isinstance(valor, dict) else {}
+
+
+def _directo_viejo(datos) -> dict:
+    """Lo último usado de un perfil guardado con el formato anterior."""
+    directo = {"titulo": _texto(datos.get("titulo")),
+               "descripcion": _texto(datos.get("descripcion"))}
+    if datos.get("privacidad") in PRIVACIDADES:
+        directo["privacidad"] = datos["privacidad"]
+    if datos.get("latencia") in LATENCIAS:
+        directo["latencia"] = datos["latencia"]
+    return directo
 
 
 def _desde_dict(datos):
@@ -69,23 +82,21 @@ def _desde_dict(datos):
     orientacion = datos.get("orientacion")
     if orientacion not in ORIENTACIONES:
         return None
-    privacidad = datos.get("privacidad")
-    if privacidad not in PRIVACIDADES:
-        return None
-    latencia = datos.get("latencia")
-    if latencia not in LATENCIAS:
-        return None
     canales = _canales(datos.get("canales"))
     if canales is None:
         return None
+    chat = datos.get("chat")
+    if chat not in CHATS:
+        chat = ""
+    directo = (_directo_nuevo(datos.get("directo"))
+               if "directo" in datos else _directo_viejo(datos))
     return Perfil(
         nombre=nombre,
         canales=canales,
         orientacion=orientacion,
-        titulo=_texto(datos.get("titulo")),
-        descripcion=_texto(datos.get("descripcion")),
-        privacidad=privacidad,
-        latencia=latencia,
+        youtube=bool(datos.get("youtube")),
+        chat=chat,
+        directo=directo,
     )
 
 
@@ -126,24 +137,40 @@ def validar(perfil, existentes) -> list[str]:
                 mensajes.append(_("Ya existe un perfil de Restream con ese nombre."))
                 break
 
-    if not perfil.canales:
+    if not perfil.canales and not perfil.youtube:
         mensajes.append(_("Agrega al menos un destino al perfil de Restream."))
-    mensajes.extend(_mensajes_de_opciones(perfil))
-    return mensajes
-
-
-def _mensajes_de_opciones(perfil):
-    mensajes = []
     if perfil.orientacion not in ORIENTACIONES:
         mensajes.append(
             _("La orientación del perfil de Restream debe ser horizontal o "
               "vertical."))
-    if perfil.privacidad not in PRIVACIDADES:
-        mensajes.append(
-            _("La privacidad del perfil de Restream no está entre las "
-              "opciones."))
-    if perfil.latencia not in LATENCIAS:
-        mensajes.append(
-            _("La latencia del perfil de Restream no está entre las "
-              "opciones."))
     return mensajes
+
+
+def es_youtube_conectado(canal) -> bool:
+    """¿El destino es el YouTube conectado en Restream?"""
+    return getattr(canal, "plataforma_id", None) == PLATAFORMA_YOUTUBE
+
+
+def es_manual_youtube(canal) -> bool:
+    """¿El destino es el manual que Guyrapu crea para YouTube?"""
+    return getattr(canal, "nombre", "") == NOMBRE_MANUAL
+
+
+def normalizar_youtube(perfil, canales):
+    """Saca del perfil el YouTube de Restream y lo cuenta como su casilla."""
+    ids = {canal.id for canal in canales or ()
+           if es_youtube_conectado(canal)}
+    restantes = tuple(canal for canal in perfil.canales
+                      if canal not in ids)
+    youtube = perfil.youtube or any(canal in ids
+                                    for canal in perfil.canales)
+    if restantes == perfil.canales and youtube == perfil.youtube:
+        return perfil
+    return replace(perfil, canales=restantes, youtube=youtube)
+
+
+def destinos_para_perfil(canales) -> list[tuple]:
+    """Los destinos del cuadro del perfil, sin el YouTube de Restream."""
+    return [(canal.id, canal.texto) for canal in canales or ()
+            if not es_youtube_conectado(canal)
+            and not es_manual_youtube(canal)]

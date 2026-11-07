@@ -1,8 +1,7 @@
 """Diálogo para crear o editar un perfil de Restream (accesible).
 
-Pide el nombre, la orientación, los destinos como casillas y lo que acepta
-YouTube: título, descripción, privacidad y latencia. La privacidad y la
-latencia solo aparecen mientras haya marcado un destino de YouTube. La
+Pide el nombre, la orientación, los destinos como casillas, la casilla de
+YouTube de la sesión y, cuando corresponde, qué chat lee Guyrapu. La
 validación es de `perfiles.validar`; quien lo abrió guarda con
 `perfiles.guardar`.
 """
@@ -18,14 +17,6 @@ from guyrapu.ui import paleta
 from guyrapu.ui.accesibilidad import anunciar, nombre_accesible
 from guyrapu.ui.gui import caja_de_grupo
 from guyrapu.ui.preferencias_comun import mostrar_control, nombre_de_etiqueta
-from guyrapu.youtube.emision import (
-    ETIQUETAS_LATENCIA,
-    ETIQUETAS_PRIVACIDAD,
-    LATENCIA_INICIAL,
-    LATENCIAS,
-    PRIVACIDAD_INICIAL,
-    PRIVACIDADES,
-)
 
 
 def _rotulo(padre, contenido, texto, crear_control):
@@ -69,7 +60,7 @@ class DialogoPerfilRestream(wx.Dialog):
         self._agregar_nombre(zona, contenido)
         self._agregar_orientacion(zona, contenido)
         self._agregar_destinos(zona, contenido)
-        self._agregar_youtube(zona, contenido)
+        self._agregar_youtube_y_chat(zona, contenido)
         zona.SetSizer(contenido)
         vs.Add(zona, 1, wx.EXPAND)
 
@@ -118,7 +109,7 @@ class DialogoPerfilRestream(wx.Dialog):
                     and identificador in self._perfil.canales):
                 casilla.SetValue(True)
             casilla.Bind(wx.EVT_CHECKBOX,
-                         lambda evento: self._actualizar_youtube())
+                         lambda evento: self._actualizar_chat())
             self._casillas.append((identificador, casilla))
             self._textos[identificador] = texto
             sizer.Add(casilla, 0, wx.ALL, 4)
@@ -147,45 +138,39 @@ class DialogoPerfilRestream(wx.Dialog):
         contenido.Add(nota, 0, wx.LEFT | wx.RIGHT | wx.BOTTOM, 10)
         return nota
 
-    def _agregar_youtube(self, zona, contenido):
+    def _agregar_youtube_y_chat(self, zona, contenido):
         perfil = self._perfil
-        _rotulo_titulo, self.txt_titulo = _rotulo(
-            zona, contenido, _("&Título:"),
-            lambda: wx.TextCtrl(
-                zona, value=perfil.titulo if perfil is not None else ""))
+        texto_youtube = _("YouTube, el canal de tu sesión de Google")
+        self.chk_youtube = wx.CheckBox(
+            zona, label=_("&YouTube, el canal de tu sesión de Google"),
+            name=texto_youtube)
+        nombre_accesible(self.chk_youtube, texto_youtube)
+        self.chk_youtube.SetValue(bool(perfil.youtube)
+                                  if perfil is not None else False)
+        self.chk_youtube.Bind(
+            wx.EVT_CHECKBOX, lambda evento: self._actualizar_chat())
+        contenido.Add(self.chk_youtube, 0, wx.ALL, 10)
 
-        _rotulo_descripcion, self.txt_descripcion = _rotulo(
-            zona, contenido, _("&Descripción, opcional:"),
-            lambda: wx.TextCtrl(
-                zona, value=perfil.descripcion if perfil is not None else "",
-                style=wx.TE_MULTILINE))
-        self.txt_descripcion.SetMinSize(
-            (-1, 3 * self.txt_descripcion.GetCharHeight() + 12))
+        self._rotulo_chat = wx.StaticText(
+            zona, label=_("&Chat que lee Guyrapu:"))
+        contenido.Add(self._rotulo_chat, 0, wx.LEFT | wx.RIGHT, 10)
+        self.cho_chat = wx.Choice(
+            zona, choices=[_("YouTube"), _("TikTok")],
+            name=_("Chat que lee Guyrapu"))
+        nombre_accesible(self.cho_chat, _("Chat que lee Guyrapu"))
+        chat = (perfil.chat if perfil is not None else "") or "youtube"
+        self.cho_chat.SetSelection(1 if chat == "tiktok" else 0)
+        contenido.Add(self.cho_chat, 0, wx.EXPAND | wx.ALL, 10)
+        self._actualizar_chat()
 
-        self._rotulo_privacidad, self.cho_privacidad = _rotulo(
-            zona, contenido, _("&Privacidad en YouTube:"),
-            lambda: wx.Choice(
-                zona, choices=[_(ETIQUETAS_PRIVACIDAD[p])
-                               for p in PRIVACIDADES]))
-        privacidad = (perfil.privacidad if perfil is not None
-                      else PRIVACIDAD_INICIAL)
-        self.cho_privacidad.SetSelection(PRIVACIDADES.index(privacidad))
-
-        self._rotulo_latencia, self.cho_latencia = _rotulo(
-            zona, contenido, _("&Latencia en YouTube:"),
-            lambda: wx.Choice(
-                zona, choices=[_(ETIQUETAS_LATENCIA[l]) for l in LATENCIAS]))
-        latencia = perfil.latencia if perfil is not None else LATENCIA_INICIAL
-        self.cho_latencia.SetSelection(LATENCIAS.index(latencia))
-        self._actualizar_youtube()
-
-    def _actualizar_youtube(self):
-        youtube = any(casilla.GetValue()
-                      and self._textos[identificador].startswith("YouTube:")
-                      for identificador, casilla in self._casillas)
-        for control in (self._rotulo_privacidad, self.cho_privacidad,
-                        self._rotulo_latencia, self.cho_latencia):
-            mostrar_control(control, youtube, self.txt_titulo)
+    def _actualizar_chat(self):
+        youtube = self.chk_youtube.GetValue()
+        tiktok = any(
+            casilla.GetValue()
+            and self._textos[identificador].startswith("TikTok:")
+            for identificador, casilla in self._casillas)
+        for control in (self._rotulo_chat, self.cho_chat):
+            mostrar_control(control, youtube and tiktok, self.chk_youtube)
         self.Layout()
 
     def perfil(self):
@@ -194,14 +179,18 @@ class DialogoPerfilRestream(wx.Dialog):
     def _armar_perfil(self):
         elegidos = tuple(identificador for identificador, casilla
                          in self._casillas if casilla.GetValue())
+        youtube = self.chk_youtube.GetValue()
+        chat = ""
+        if youtube and self.cho_chat.IsShown():
+            chat = "tiktok" if self.cho_chat.GetSelection() == 1 else "youtube"
+        directo = dict(self._perfil.directo) if self._perfil is not None else {}
         return Perfil(
             nombre=self.txt_nombre.GetValue().strip(),
             canales=elegidos,
             orientacion=ORIENTACIONES[self.cho_orientacion.GetSelection()],
-            titulo=self.txt_titulo.GetValue(),
-            descripcion=self.txt_descripcion.GetValue(),
-            privacidad=PRIVACIDADES[self.cho_privacidad.GetSelection()],
-            latencia=LATENCIAS[self.cho_latencia.GetSelection()],
+            youtube=youtube,
+            chat=chat,
+            directo=directo,
         )
 
     def _guardar(self, _evento):
@@ -220,10 +209,12 @@ class DialogoPerfilRestream(wx.Dialog):
                        for existente in self._existentes)
         if not nombre or nombre == "youtube" or repetido:
             self.txt_nombre.SetFocus()
+        elif not perfil.canales and not perfil.youtube:
+            self.chk_youtube.SetFocus()
         elif self._casillas:
             self._casillas[0][1].SetFocus()
         else:
-            self.txt_nombre.SetFocus()
+            self.chk_youtube.SetFocus()
 
     def _al_tecla(self, evento):
         if evento.GetKeyCode() == wx.WXK_ESCAPE:

@@ -1,14 +1,54 @@
 """Cómo empieza un directo de YouTube.
 
 Pide y guarda sus datos, arma los ganchos del supervisor y decide si se
-conecta su chat. Lo usa `gui_transmitir.supervisar_transmision` y lo usará
-también la supervisión de perfiles de Restream que incluyen YouTube.
+conecta su chat. Lo usa `gui_transmitir.supervisar_transmision` y también
+la supervisión de perfiles de Restream que incluyen YouTube.
 """
 
 from __future__ import annotations
 
-from guyrapu.core.idioma import _
+from dataclasses import replace
+
+from guyrapu.core.idioma import N_, _
 from guyrapu.ui.aviso_importante import avisar
+
+MENSAJE_SIN_GOOGLE = N_(
+    "Para transmitir a YouTube hace falta iniciar sesión con Google, en "
+    "Preferencias, categoría YouTube.")
+
+
+def _sesion():
+    from guyrapu.ui import gui as _gui
+    return _gui.credenciales.cargar()
+
+
+def hay_sesion() -> bool:
+    from guyrapu.ui import gui as _gui
+    return bool(_gui.credenciales.hay_sesion(_sesion()))
+
+
+def _cliente():
+    from guyrapu.ui import gui as _gui
+    return _gui.youtube_api.ClienteYouTube(
+        _gui.credenciales.efectivas(_sesion()))
+
+
+def _valores(perfil, emision) -> dict:
+    """Los valores del cuadro a partir de lo último usado en el perfil."""
+    datos = perfil.directo or {}
+    return {
+        "titulo": datos.get("titulo", ""),
+        "descripcion": datos.get("descripcion", ""),
+        "privacidad": datos.get("privacidad", emision.PRIVACIDAD_INICIAL),
+        "latencia": datos.get("latencia", emision.LATENCIA_INICIAL),
+        "ninos": datos.get("ninos", False),
+        "dvr": datos.get("dvr", True),
+        "categoria": datos.get("categoria", ""),
+        "etiquetas": ", ".join(datos.get("etiquetas") or []),
+        "miniatura": datos.get("miniatura", ""),
+        "lista": datos.get("lista", ""),
+        "lista_titulo": datos.get("lista_titulo", ""),
+    }
 
 
 def _pedir_datos(frame, revision, cliente, emision, pedir_datos_directo):
@@ -63,6 +103,63 @@ def _ganchos(cliente, cuerpo, guardados, emision):
             "finalizar_emision": finalizar}
 
 
+def _preparados(cliente, perfil, emision) -> dict:
+    from guyrapu.ui import gui as _gui
+    datos = _valores(perfil, emision)
+    cuerpo = _cuerpo(emision, datos)
+    extras = {"categoria": datos.get("categoria", ""),
+              "etiquetas": (perfil.directo or {}).get("etiquetas") or [],
+              "miniatura": datos.get("miniatura", ""),
+              "lista": datos.get("lista", ""),
+              "titulo": datos["titulo"],
+              "descripcion": datos["descripcion"]}
+    guardar = lambda nuevo: _gui.credenciales.guardar_campo("token", nuevo)
+    _preparar, esperar, finalizar = emision.ganchos_youtube(
+        cliente, cuerpo, guardar, extras=extras, avisar=None)
+    return {"cliente": cliente, "cuerpo": cuerpo, "extras": extras,
+            "guardar_token": guardar, "esperar": esperar,
+            "finalizar": finalizar}
+
+
+def pedir_y_guardar_perfil(frame, revision, perfil, lista):
+    """Pide lo último del perfil y lo guarda con `perfiles.guardar`.
+
+    Devuelve `(perfil, preparados)` o `None` si no se transmite. Los
+    `preparados` son None cuando el perfil no tiene YouTube.
+    """
+    from guyrapu.core import paths
+    from guyrapu.restream import perfiles
+    from guyrapu.ui import gui as _gui
+    from guyrapu.ui.gui_directo_youtube import pedir_datos_directo
+    from guyrapu.youtube import emision
+    if perfil.youtube and not hay_sesion():
+        avisar(_(MENSAJE_SIN_GOOGLE), "transmision_problema", error=True)
+        return None
+    cargar = None
+    cliente = None
+    if perfil.youtube:
+        cliente = _cliente()
+        cargar = emision.cargador_listas(
+            cliente, lambda nuevo:
+            _gui.credenciales.guardar_campo("token", nuevo))
+    pedido = pedir_datos_directo(
+        frame, revision=revision, cargar_listas=cargar,
+        solo_titulo=not perfil.youtube,
+        titulo_ventana=_("Directo con Restream: {nombre}").format(
+            nombre=perfil.nombre),
+        **_valores(perfil, emision))
+    if pedido is None:
+        _gui.anunciar(_("No se transmitió."))
+        return None
+    actualizado = replace(perfil, directo=pedido)
+    perfiles.guardar(paths.perfiles_restream(), [
+        actualizado if otro.nombre == perfil.nombre else otro
+        for otro in lista])
+    preparados = (_preparados(cliente, actualizado, emision)
+                  if actualizado.youtube else None)
+    return actualizado, preparados
+
+
 def pedir_y_armar(frame, revision):
     """Devuelve `(guardados, ganchos)`, o `None` si no se transmite.
 
@@ -71,14 +168,10 @@ def pedir_y_armar(frame, revision):
     from guyrapu.ui import gui as _gui
     from guyrapu.ui.gui_directo_youtube import pedir_datos_directo
     from guyrapu.youtube import emision
-    datos = _gui.credenciales.cargar()
-    if not _gui.credenciales.hay_sesion(datos):
-        _gui.anunciar(_("Para transmitir a YouTube hace falta iniciar "
-                        "sesión con Google, en Preferencias, categoría "
-                        "YouTube."))
+    if not hay_sesion():
+        _gui.anunciar(_(MENSAJE_SIN_GOOGLE))
         return None
-    cliente = _gui.youtube_api.ClienteYouTube(
-        _gui.credenciales.efectivas(datos))
+    cliente = _cliente()
     pedido = _pedir_datos(frame, revision, cliente, emision,
                           pedir_datos_directo)
     if pedido is None:

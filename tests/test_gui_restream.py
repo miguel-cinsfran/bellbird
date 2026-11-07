@@ -15,7 +15,6 @@ from unittest import mock
 
 import wx
 
-from guyrapu.core.idioma import _
 from guyrapu.restream import eventos as eventos_restream
 from guyrapu.restream import perfiles
 from guyrapu.restream.api import Canal, ErrorApi
@@ -27,14 +26,6 @@ from guyrapu.ui import restream_pagina_perfiles
 from guyrapu.ui import restream_perfil
 from guyrapu.ui import restream_ventana
 from guyrapu.ui.preferencias_comun import nombre_de_etiqueta
-from guyrapu.youtube.emision import (
-    ETIQUETAS_LATENCIA,
-    ETIQUETAS_PRIVACIDAD,
-    LATENCIA_INICIAL,
-    LATENCIAS,
-    PRIVACIDAD_INICIAL,
-    PRIVACIDADES,
-)
 from tests.letras_acceso import (
     _letra_de_acceso, letras_repetidas, repetidas_con_lo_de_fuera)
 from tests.pseudo_prueba import con_pseudo, textos_sin_marcar
@@ -51,8 +42,7 @@ class CuentaFalsa:
 
 def _perfil(nombre="Canal", canales=(1,), orientacion="horizontal", **cambios):
     datos = dict(nombre=nombre, canales=canales, orientacion=orientacion,
-                 titulo="", descripcion="", privacidad=PRIVACIDAD_INICIAL,
-                 latencia=LATENCIA_INICIAL)
+                 youtube=False, chat="", directo={})
     datos.update(cambios)
     return Perfil(**datos)
 
@@ -1485,31 +1475,34 @@ class PruebaPaginaEventos(unittest.TestCase):
                          anunciar.call_args_list)
 
 
-class PruebaVisibilidadYoutube(unittest.TestCase):
+class PruebaVisibilidadChat(unittest.TestCase):
 
     def setUp(self):
         self.app = app_de_prueba()
 
-    def test_p7_privacidad_y_latencia_solo_con_youtube_marcado(self):
+    def test_p1_el_chat_solo_se_ve_con_youtube_y_tiktok(self):
         dialogo = restream_perfil.DialogoPerfilRestream(
             None, None, _canales(), [])
         self.addCleanup(destruir, dialogo)
 
         nombres = [control.GetName() for control in _controles_en_orden(dialogo)]
-        self.assertNotIn("Privacidad en YouTube", nombres)
-        self.assertNotIn("Latencia en YouTube", nombres)
+        self.assertNotIn("Chat que lee Guyrapu", nombres)
 
-        dialogo._casillas[1][1].SetValue(True)
-        dialogo._actualizar_youtube()
+        dialogo._casillas[0][1].SetValue(True)
+        dialogo.chk_youtube.SetValue(True)
+        dialogo._actualizar_chat()
         nombres = [control.GetName() for control in _controles_en_orden(dialogo)]
-        self.assertIn("Privacidad en YouTube", nombres)
-        self.assertIn("Latencia en YouTube", nombres)
+        self.assertIn("Chat que lee Guyrapu", nombres)
 
-        dialogo._casillas[1][1].SetValue(False)
-        dialogo._actualizar_youtube()
+        dialogo._casillas[0][1].SetValue(False)
+        dialogo._actualizar_chat()
         nombres = [control.GetName() for control in _controles_en_orden(dialogo)]
-        self.assertNotIn("Privacidad en YouTube", nombres)
-        self.assertNotIn("Latencia en YouTube", nombres)
+        self.assertNotIn("Chat que lee Guyrapu", nombres)
+
+        dialogo.chk_youtube.SetValue(False)
+        dialogo._actualizar_chat()
+        nombres = [control.GetName() for control in _controles_en_orden(dialogo)]
+        self.assertNotIn("Chat que lee Guyrapu", nombres)
 
 
 class PruebaDialogoPerfil(unittest.TestCase):
@@ -1531,29 +1524,28 @@ class PruebaDialogoPerfil(unittest.TestCase):
         self.assertEqual("Nuevo perfil de Restream", dialogo.GetTitle())
         self.assertEqual(
             ["Nombre", "Orientación", "TikTok: uno", "YouTube: dos",
-             "Título", "Descripción, opcional", "Guardar", "Cancelar"],
+             "YouTube, el canal de tu sesión de Google", "Guardar",
+             "Cancelar"],
             [control.GetName() for control in _controles_en_orden(dialogo)])
 
-        dialogo._casillas[1][1].SetValue(True)
-        dialogo._actualizar_youtube()
+        dialogo._casillas[0][1].SetValue(True)
+        dialogo.chk_youtube.SetValue(True)
+        dialogo._actualizar_chat()
         self.assertEqual(
             ["Nombre", "Orientación", "TikTok: uno", "YouTube: dos",
-             "Título", "Descripción, opcional", "Privacidad en YouTube",
-             "Latencia en YouTube", "Guardar", "Cancelar"],
+             "YouTube, el canal de tu sesión de Google",
+             "Chat que lee Guyrapu", "Guardar", "Cancelar"],
             [control.GetName() for control in _controles_en_orden(dialogo)])
-
-        self.assertEqual(
-            [_(ETIQUETAS_PRIVACIDAD[p]) for p in PRIVACIDADES],
-            list(dialogo.cho_privacidad.GetStrings()))
-        self.assertEqual(
-            [_(ETIQUETAS_LATENCIA[l]) for l in LATENCIAS],
-            list(dialogo.cho_latencia.GetStrings()))
-        self.assertEqual(PRIVACIDAD_INICIAL,
-                         PRIVACIDADES[dialogo.cho_privacidad.GetSelection()])
-        self.assertEqual(LATENCIA_INICIAL,
-                         LATENCIAS[dialogo.cho_latencia.GetSelection()])
         self.assertEqual("Editar perfil de Restream",
                          self._dialogo(_perfil()).GetTitle())
+
+    def test_p1_la_casilla_y_la_lista_tienen_su_letra_sin_choque(self):
+        dialogo = self._dialogo()
+        self.assertEqual("&YouTube, el canal de tu sesión de Google",
+                         dialogo.chk_youtube.GetLabel())
+        self.assertEqual("&Chat que lee Guyrapu:",
+                         dialogo._rotulo_chat.GetLabel())
+        self.assertEqual({}, letras_repetidas(dialogo))
 
     def test_p4_cada_rotulo_se_crea_antes_de_su_control(self):
         dialogo = self._dialogo()
@@ -1572,7 +1564,7 @@ class PruebaDialogoPerfil(unittest.TestCase):
                 self.assertNotIsInstance(siguiente, wx.StaticText)
                 self.assertEqual(
                     nombre_de_etiqueta(hijo.GetLabel()), siguiente.GetName())
-        self.assertEqual(6, rotulos)
+        self.assertEqual(3, rotulos)
 
     def test_p4_sin_destinos_muestra_la_nota_y_valida(self):
         dialogo = self._dialogo(canales=[])
@@ -1586,6 +1578,18 @@ class PruebaDialogoPerfil(unittest.TestCase):
                       texto)
         fin.assert_not_called()
         self.assertIsNone(dialogo.perfil())
+
+    def test_p3_con_solo_la_casilla_de_youtube_se_guarda(self):
+        dialogo = self._dialogo(canales=[])
+        dialogo.txt_nombre.SetValue("Solo YouTube")
+        dialogo.chk_youtube.SetValue(True)
+        with mock.patch.object(dialogo, "EndModal") as fin:
+            dialogo._guardar(None)
+
+        fin.assert_called_once_with(wx.ID_OK)
+        self.assertEqual(
+            _perfil(nombre="Solo YouTube", canales=(), youtube=True),
+            dialogo.perfil())
 
     def test_p4_nombre_repetido_anuncia_y_enfoca_el_nombre(self):
         existente = _perfil(nombre="Canal")
@@ -1606,19 +1610,65 @@ class PruebaDialogoPerfil(unittest.TestCase):
         dialogo = self._dialogo()
         dialogo.txt_nombre.SetValue("Nuevo")
         dialogo.cho_orientacion.SetSelection(1)
-        dialogo._casillas[1][1].SetValue(True)
-        dialogo.txt_titulo.SetValue("Título")
-        dialogo.txt_descripcion.SetValue("Descripción")
+        dialogo._casillas[0][1].SetValue(True)
+        dialogo.chk_youtube.SetValue(True)
+        dialogo._actualizar_chat()
+        dialogo.cho_chat.SetSelection(1)
         with mock.patch.object(dialogo, "EndModal") as fin:
             dialogo._guardar(None)
 
         fin.assert_called_once_with(wx.ID_OK)
         self.assertEqual(
-            Perfil(nombre="Nuevo", canales=(2,), orientacion="vertical",
-                   titulo="Título", descripcion="Descripción",
-                   privacidad=PRIVACIDAD_INICIAL,
-                   latencia=LATENCIA_INICIAL),
+            Perfil(nombre="Nuevo", canales=(1,), orientacion="vertical",
+                   youtube=True, chat="tiktok", directo={}),
             dialogo.perfil())
+
+    def test_p5_guardar_conserva_lo_ultimo_usado(self):
+        directo = {"titulo": "Título", "descripcion": "Descripción"}
+        dialogo = self._dialogo(perfil=_perfil(directo=directo))
+        with mock.patch.object(dialogo, "EndModal") as fin:
+            dialogo._guardar(None)
+        fin.assert_called_once_with(wx.ID_OK)
+        self.assertEqual(directo, dialogo.perfil().directo)
+
+    def test_p11_al_editar_un_perfil_viejo_con_youtube_de_restream(self):
+        perfil = _perfil(nombre="Viejo", canales=(1, 2))
+        canales = [SimpleNamespace(id=1, texto="TikTok: uno",
+                                   plataforma_id=67, nombre="uno"),
+                   SimpleNamespace(id=2, texto="YouTube: dos",
+                                   plataforma_id=5, nombre="dos")]
+        recibidos = []
+
+        def abrir(_padre, editado, destinos, _existentes, **_cambios):
+            recibidos.append((editado, list(destinos)))
+            return _DialogoFalso(editado)
+
+        pagina = self._pagina(perfiles=[perfil], canales=canales)
+        with mock.patch.object(restream_pagina_perfiles,
+                               "DialogoPerfilRestream",
+                               side_effect=abrir):
+            pagina._pedir_perfil(perfil, [])
+
+        editado, destinos = recibidos[0]
+        self.assertTrue(editado.youtube)
+        self.assertEqual(editado.canales, (1,))
+        self.assertEqual(destinos, [(1, "TikTok: uno")])
+
+    def _pagina(self, perfiles=None, canales=None):
+        marco = wx.Frame(None)
+        self.addCleanup(destruir, marco)
+        pagina = restream_pagina_perfiles.PaginaPerfiles(
+            marco, self.ruta_perfiles(), lambda: list(canales or self.canales),
+            nombres_destinos=lambda: {}, esta_conectada=lambda: True)
+        self.addCleanup(destruir, pagina)
+        return pagina
+
+    def ruta_perfiles(self):
+        from pathlib import Path
+        import tempfile
+        temporal = tempfile.TemporaryDirectory()
+        self.addCleanup(temporal.cleanup)
+        return Path(temporal.name) / "perfiles_restream.json"
 
     def test_p6_destino_sobrante_avisa_y_queda_fuera_al_guardar(self):
         perfil = _perfil(nombre="Viejo", canales=(1, 99))

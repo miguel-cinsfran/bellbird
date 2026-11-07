@@ -7,10 +7,10 @@ from guyrapu.restream.perfiles import Perfil
 from guyrapu.restream.api import Canal
 
 
-def _perfil(nombre="Uno", orientacion="vertical", canales=(1,), titulo="",
-            descripcion=""):
+def _perfil(nombre="Uno", orientacion="vertical", canales=(1,), youtube=False,
+            chat=""):
     return Perfil(nombre=nombre, canales=canales, orientacion=orientacion,
-                  titulo=titulo, descripcion=descripcion)
+                  youtube=youtube, chat=chat)
 
 
 def _canal(identificador, plataforma, activo=True, url="", nombre=""):
@@ -107,6 +107,32 @@ class TestPlanDeCanales(unittest.TestCase):
             activos[cambio.canal_id] = cambio.activo
         self.assertEqual({canal_id for canal_id, activo in activos.items()
                           if activo}, {1, 3})
+
+
+class TestChat(unittest.TestCase):
+
+    def test_p10_con_youtube_y_chat_vacio_el_chat_es_youtube(self):
+        perfil = _perfil(canales=(1,), youtube=True)
+        canales = [_canal(1, "TikTok")]
+        self.assertEqual(transmitir.chat_del_perfil(perfil, canales),
+                         "youtube")
+
+    def test_p10_sin_youtube_y_con_tiktok_el_chat_es_tiktok(self):
+        perfil = _perfil(canales=(1,), youtube=False)
+        canales = [_canal(1, "TikTok")]
+        self.assertEqual(transmitir.chat_del_perfil(perfil, canales),
+                         "tiktok")
+
+    def test_p10_sin_youtube_ni_tiktok_no_hay_chat(self):
+        perfil = _perfil(canales=(1,), youtube=False)
+        canales = [_canal(1, "YouTube")]
+        self.assertEqual(transmitir.chat_del_perfil(perfil, canales), "")
+
+    def test_el_chat_elegido_gana_sobre_el_automatico(self):
+        perfil = _perfil(canales=(1,), youtube=True, chat="tiktok")
+        canales = [_canal(1, "TikTok")]
+        self.assertEqual(transmitir.chat_del_perfil(perfil, canales),
+                         "tiktok")
 
 
 class TestUsuarioTikTok(unittest.TestCase):

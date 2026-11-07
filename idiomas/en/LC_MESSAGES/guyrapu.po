@@ -5039,14 +5039,6 @@ msgstr "Add at least one destination to the Restream profile."
 msgid "La orientación del perfil de Restream debe ser horizontal o vertical."
 msgstr "The Restream profile orientation must be horizontal or vertical."
 
-#: guyrapu/restream/perfiles.py
-msgid "La privacidad del perfil de Restream no está entre las opciones."
-msgstr "The Restream profile privacy is not one of the options."
-
-#: guyrapu/restream/perfiles.py
-msgid "La latencia del perfil de Restream no está entre las opciones."
-msgstr "The Restream profile latency is not one of the options."
-
 #: guyrapu/restream/resumen_cuenta.py
 msgid ""
 "Sin cuenta de Restream conectada. Restream transmite a varias plataformas a"
@@ -5163,6 +5155,10 @@ msgstr "Could not renew the Restream session. Check the internet connection."
 #, python-brace-format
 msgid "Restream: {nombre}"
 msgstr "Restream: {nombre}"
+
+#: guyrapu/restream/youtube_por_restream.py
+msgid "YouTube de Guyrapu"
+msgstr "Guyrapu's YouTube"
 
 #: guyrapu/ui/agregar_camara.py
 msgid "Windows no tiene ninguna cámara disponible para OBS."
@@ -5637,7 +5633,7 @@ msgid "Aceptar"
 msgstr "OK"
 
 #: guyrapu/ui/boton_directo.py guyrapu/ui/directo_panel.py
-#: guyrapu/ui/gui_transmitir.py
+#: guyrapu/ui/inicio_youtube.py
 msgid "No se transmitió."
 msgstr "Did not broadcast."
 
@@ -8239,7 +8235,7 @@ msgstr "Could not load the playlists: {detalle}"
 msgid "Falta el usuario de TikTok."
 msgstr "Missing TikTok user."
 
-#: guyrapu/ui/gui_elegir_destino.py guyrapu/ui/gui_transmision.py
+#: guyrapu/ui/gui_elegir_destino.py
 msgid "Transmitir a"
 msgstr "Broadcast to"
 
@@ -8251,7 +8247,7 @@ msgstr "Broadcast to:"
 msgid "Usuario de TikTok:"
 msgstr "TikTok user:"
 
-#: guyrapu/ui/gui_elegir_destino.py guyrapu/ui/gui_transmision.py
+#: guyrapu/ui/gui_elegir_destino.py
 msgid "Usuario de TikTok"
 msgstr "TikTok user"
 
@@ -8785,7 +8781,7 @@ msgstr "The microphone is receiving sound."
 
 #. Traductores: nombre de la categoría de Preferencias con la sesión de
 #. YouTube.
-#: guyrapu/ui/gui_preferencias.py
+#: guyrapu/ui/gui_preferencias.py guyrapu/ui/restream_perfil.py
 msgid "YouTube"
 msgstr "YouTube"
 
@@ -9105,26 +9101,6 @@ msgstr "Recording while broadcasting off"
 msgid "Ya hay una transmisión en curso."
 msgstr "A broadcast is already in progress."
 
-#: guyrapu/ui/gui_transmitir.py
-msgid ""
-"Para transmitir a YouTube hace falta iniciar sesión con Google, en "
-"Preferencias, categoría YouTube."
-msgstr ""
-"To broadcast to YouTube you must sign in with Google, in Preferences, "
-"YouTube category."
-
-#: guyrapu/ui/gui_transmitir.py
-msgid "El directo está marcado como creado para niños y YouTube no tiene chat."
-msgstr "The live stream is marked as made for kids and YouTube has no chat."
-
-#: guyrapu/ui/gui_transmitir.py
-msgid ""
-"El directo es privado y YouTube no permite leer su chat. Para leerlo, "
-"transmite como público o no listado."
-msgstr ""
-"The live stream is private and YouTube does not allow reading its chat. To "
-"read it, broadcast as public or unlisted."
-
 #. Traductores: anuncio al empezar la guía de encuadre con pitidos.
 #: guyrapu/ui/guia_encuadre.py
 msgid "Guía de encuadre. Sigue los pitidos."
@@ -9272,6 +9248,31 @@ msgstr "New conversation"
 #: guyrapu/ui/ia_ventana.py
 msgid "Ce&rrar"
 msgstr "Cl&ose"
+
+#: guyrapu/ui/inicio_youtube.py
+msgid ""
+"Para transmitir a YouTube hace falta iniciar sesión con Google, en "
+"Preferencias, categoría YouTube."
+msgstr ""
+"To broadcast to YouTube you must sign in with Google, in Preferences, "
+"YouTube category."
+
+#: guyrapu/ui/inicio_youtube.py
+#, python-brace-format
+msgid "Directo con Restream: {nombre}"
+msgstr "Live on Restream: {nombre}"
+
+#: guyrapu/ui/inicio_youtube.py
+msgid "El directo está marcado como creado para niños y YouTube no tiene chat."
+msgstr "The live stream is marked as made for kids and YouTube has no chat."
+
+#: guyrapu/ui/inicio_youtube.py
+msgid ""
+"El directo es privado y YouTube no permite leer su chat. Para leerlo, "
+"transmite como público o no listado."
+msgstr ""
+"The live stream is private and YouTube does not allow reading its chat. To "
+"read it, broadcast as public or unlisted."
 
 #. Traductores: fila de me gusta agrupados; {autor} es quien los dio, {n}
 #. cuántos dio y {hora} la hora.
@@ -10854,7 +10855,7 @@ msgstr "Link copied."
 msgid "Cambiar título"
 msgstr "Change title"
 
-#: guyrapu/ui/restream_dialogos_destino.py guyrapu/ui/restream_perfil.py
+#: guyrapu/ui/restream_dialogos_destino.py
 msgid "&Título:"
 msgstr "&Title:"
 
@@ -11059,6 +11060,14 @@ msgid "Nuevo perfil"
 msgstr "New profile"
 
 #: guyrapu/ui/restream_pagina_perfiles.py
+msgid ""
+"Perfil de Restream guardado. Elígelo en Transmitir a, al pulsar Transmitir "
+"en directo."
+msgstr ""
+"Restream profile saved. Choose it in Broadcast to, when you press Broadcast"
+" live."
+
+#: guyrapu/ui/restream_pagina_perfiles.py
 msgid "Perfil de Restream guardado."
 msgstr "Restream profile saved."
 
@@ -11123,16 +11132,24 @@ msgstr[1] ""
 "Restream. They will be deleted on save."
 
 #: guyrapu/ui/restream_perfil.py
-msgid "&Descripción, opcional:"
-msgstr "&Description, optional:"
+msgid "YouTube, el canal de tu sesión de Google"
+msgstr "YouTube, the channel of your Google session"
 
 #: guyrapu/ui/restream_perfil.py
-msgid "&Privacidad en YouTube:"
-msgstr "&Privacy on YouTube:"
+msgid "&YouTube, el canal de tu sesión de Google"
+msgstr "&YouTube, the channel of your Google session"
 
 #: guyrapu/ui/restream_perfil.py
-msgid "&Latencia en YouTube:"
-msgstr "&Latency on YouTube:"
+msgid "&Chat que lee Guyrapu:"
+msgstr "&Chat that Guyrapu reads:"
+
+#: guyrapu/ui/restream_perfil.py
+msgid "TikTok"
+msgstr "TikTok"
+
+#: guyrapu/ui/restream_perfil.py
+msgid "Chat que lee Guyrapu"
+msgstr "Chat that Guyrapu reads"
 
 #: guyrapu/ui/restream_ventana.py
 msgid "Restream"
@@ -11467,12 +11484,4 @@ msgstr "Signed in. You can go back to the application."
 #: guyrapu/youtube/youtube_api.py
 msgid "Sin título"
 msgstr "Untitled"
-
-#: guyrapu/ui/restream_pagina_perfiles.py
-msgid ""
-"Perfil de Restream guardado. Elígelo en Transmitir a, al pulsar Transmitir "
-"en directo."
-msgstr ""
-"Restream profile saved. Choose it in Broadcast to, when you press Broadcast"
-" live."
 

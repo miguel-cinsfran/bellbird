@@ -505,6 +505,35 @@ class TestDialogoDirectoVentana(unittest.TestCase):
                 self.assertIsNone(
                     directo.pedir_datos_directo(None, "Hola", "", "unlisted"))
 
+    def test_solo_titulo_deja_titulo_descripcion_y_botones(self):
+        dialogo = self._dialogo(titulo="Hola", solo_titulo=True)
+        controles = [h for h in _controles_en_orden(dialogo)
+                     if h.AcceptsFocus() and not isinstance(h, wx.StaticText)]
+        self.assertEqual(
+            ["Título del directo", "Descripción del directo", "&Transmitir",
+             "C&ancelar"],
+            [(control.GetLabel() if isinstance(control, wx.Button)
+              else control.GetName()) for control in controles])
+        self.assertFalse(hasattr(dialogo, "cho_privacidad"))
+        self.assertFalse(hasattr(dialogo, "cho_latencia"))
+        self.assertFalse(hasattr(dialogo, "txt_etiquetas"))
+
+    def test_solo_titulo_devuelve_los_datos_con_los_valores_de_fabrica(self):
+        dialogo = self._dialogo(titulo="Hola", solo_titulo=True)
+        dialogo.txt_descripcion.SetValue("Texto")
+        with mock.patch.object(dialogo, "EndModal") as fin:
+            dialogo._al_crear(mock.Mock())
+        self.assertEqual("Hola", dialogo.datos["titulo"])
+        self.assertEqual("Texto", dialogo.datos["descripcion"])
+        self.assertEqual("unlisted", dialogo.datos["privacidad"])
+        fin.assert_called_once_with(wx.ID_OK)
+
+    def test_titulo_de_ventana_opcional(self):
+        dialogo = self._dialogo(titulo="Hola",
+                                titulo_ventana="Directo con Restream: Uno")
+        self.assertEqual("Directo con Restream: Uno", dialogo.GetTitle())
+
+
 
 # Textos que armaban otros módulos y ya pasan por gettext: las opciones de
 # privacidad, latencia y categoría de `guyrapu/youtube/emision.py`

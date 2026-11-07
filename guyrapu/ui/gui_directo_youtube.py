@@ -49,8 +49,9 @@ class DialogoDirectoYoutube(wx.Dialog):
                  privacidad=PRIVACIDAD_INICIAL, revision=None,
                  latencia=LATENCIA_INICIAL, ninos=False, dvr=True,
                  categoria="", etiquetas="", miniatura="", lista="",
-                 lista_titulo="", cargar_listas=None):
-        super().__init__(padre, title=_("Directo de YouTube"),
+                 lista_titulo="", cargar_listas=None, solo_titulo=False,
+                 titulo_ventana=""):
+        super().__init__(padre, title=titulo_ventana or _("Directo de YouTube"),
                          name="DialogoDirectoYoutube")
         if privacidad not in PRIVACIDADES:
             privacidad = PRIVACIDAD_INICIAL
@@ -69,11 +70,12 @@ class DialogoDirectoYoutube(wx.Dialog):
         self.zona_desplazamiento = zona
         contenido = wx.BoxSizer(wx.VERTICAL)
         self._contenido_datos(zona, contenido, titulo, descripcion,
-                              privacidad, latencia)
-        self._contenido_opciones(zona, contenido, ninos, dvr, categoria,
-                                 etiquetas)
-        self._contenido_cierre(zona, contenido, lista, lista_titulo,
-                               revision)
+                              privacidad, latencia, solo_titulo)
+        if not solo_titulo:
+            self._contenido_opciones(zona, contenido, ninos, dvr, categoria,
+                                     etiquetas)
+            self._contenido_cierre(zona, contenido, lista, lista_titulo,
+                                   revision)
 
         zona.SetSizer(contenido)
         vs.Add(zona, 1, wx.EXPAND)
@@ -88,12 +90,8 @@ class DialogoDirectoYoutube(wx.Dialog):
         self.txt_titulo.SetMinSize((420, -1))
         self._ajustar_tamano(vs, zona, fila)
         self.btn_crear.Bind(wx.EVT_BUTTON, self._al_crear)
-        self.btn_elegir_miniatura.Bind(wx.EVT_BUTTON, self._al_elegir_miniatura)
-        self.btn_quitar_miniatura.Bind(wx.EVT_BUTTON, self._al_quitar_miniatura)
-        if self._cargar_listas is None:
-            self.btn_cargar_listas.Disable()
-        else:
-            self.btn_cargar_listas.Bind(wx.EVT_BUTTON, self._al_cargar_listas)
+        if not solo_titulo:
+            self._enlazar_opciones()
         self.Bind(wx.EVT_CHAR_HOOK, self._al_tecla)
         if revision is not None and bool(getattr(revision, "problemas", ())):
             self.btn_cancelar.SetDefault()
@@ -133,7 +131,7 @@ class DialogoDirectoYoutube(wx.Dialog):
         paleta.pintar_ventana(self)
 
     def _contenido_datos(self, zona, contenido, titulo, descripcion,
-                           privacidad, latencia):
+                           privacidad, latencia, solo_titulo=False):
         rotulo_titulo = wx.StaticText(zona, label=_("Título:"))
         contenido.Add(rotulo_titulo, 0, wx.LEFT | wx.RIGHT | wx.TOP, 10)
         self.txt_titulo = wx.TextCtrl(
@@ -153,6 +151,8 @@ class DialogoDirectoYoutube(wx.Dialog):
             (-1, 3 * self.txt_descripcion.GetCharHeight() + 12))
         nombre_accesible(self.txt_descripcion, _("Descripción del directo"))
         contenido.Add(self.txt_descripcion, 1, wx.EXPAND | wx.ALL, 10)
+        if solo_titulo:
+            return
 
         rotulo_privacidad = wx.StaticText(zona, label=_("Privacidad:"))
         contenido.Add(rotulo_privacidad, 0, wx.LEFT | wx.RIGHT, 10)
@@ -258,6 +258,14 @@ class DialogoDirectoYoutube(wx.Dialog):
         nombre_accesible(self.txt_revision, _("Revisión de OBS"))
         contenido.Add(self.txt_revision, 0, wx.EXPAND | wx.ALL, 10)
 
+    def _enlazar_opciones(self):
+        self.btn_elegir_miniatura.Bind(wx.EVT_BUTTON, self._al_elegir_miniatura)
+        self.btn_quitar_miniatura.Bind(wx.EVT_BUTTON, self._al_quitar_miniatura)
+        if self._cargar_listas is None:
+            self.btn_cargar_listas.Disable()
+        else:
+            self.btn_cargar_listas.Bind(wx.EVT_BUTTON, self._al_cargar_listas)
+
     @property
     def datos(self):
         return self._datos
@@ -341,11 +349,12 @@ class DialogoDirectoYoutube(wx.Dialog):
         anunciar(_("No se pudieron cargar las listas: {detalle}").format(
             detalle=youtube_api.mensaje_error_api(exc)))
 
-    def _al_crear(self, _event) -> None:
-        lista, lista_titulo = self._opcion_lista_elegida()
-        try:
-            self._datos = resultado_directo(
-                self.txt_titulo.GetValue(),
+    def _valores_directo(self) -> tuple:
+        if not hasattr(self, "cho_privacidad"):
+            return (self.txt_titulo.GetValue(),
+                    self.txt_descripcion.GetValue(),
+                    PRIVACIDAD_INICIAL)
+        return (self.txt_titulo.GetValue(),
                 self.txt_descripcion.GetValue(),
                 self._privacidad_elegida(),
                 self._latencia_elegida(),
@@ -354,8 +363,11 @@ class DialogoDirectoYoutube(wx.Dialog):
                 self._categoria_elegida(),
                 self.txt_etiquetas.GetValue(),
                 self._miniatura,
-                lista,
-                lista_titulo)
+                *self._opcion_lista_elegida())
+
+    def _al_crear(self, _event) -> None:
+        try:
+            self._datos = resultado_directo(*self._valores_directo())
         except EmisionError as exc:
             anunciar(str(exc))
             self.txt_titulo.SetFocus()
@@ -373,12 +385,13 @@ def pedir_datos_directo(padre, titulo="", descripcion="",
                         privacidad=PRIVACIDAD_INICIAL, revision=None,
                         latencia=LATENCIA_INICIAL, ninos=False, dvr=True,
                         categoria="", etiquetas="", miniatura="", lista="",
-                        lista_titulo="", cargar_listas=None):
+                        lista_titulo="", cargar_listas=None,
+                        solo_titulo=False, titulo_ventana=""):
     """Pide los datos del directo. Devuelve el dict o None si se cancela."""
     dialogo = DialogoDirectoYoutube(
         padre, titulo, descripcion, privacidad, revision, latencia,
         ninos, dvr, categoria, etiquetas, miniatura, lista, lista_titulo,
-        cargar_listas)
+        cargar_listas, solo_titulo, titulo_ventana)
     try:
         if dialogo.ShowModal() == wx.ID_OK:
             return dialogo.datos

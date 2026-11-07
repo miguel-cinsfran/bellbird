@@ -1,5 +1,6 @@
 """Pruebas de los ganchos de Restream antes de iniciar OBS."""
 
+import json
 import logging
 import unittest
 from types import SimpleNamespace
@@ -291,6 +292,25 @@ class HiloInmediato:
         self.target()
 
 
+class VigiaFalsa:
+
+    instancias = []
+
+    def __init__(self, leer_token, al_recibir, debe_seguir=None):
+        self.leer_token = leer_token
+        self.al_recibir = al_recibir
+        self.debe_seguir = debe_seguir
+        self.iniciada = False
+        self.detenida = False
+        VigiaFalsa.instancias.append(self)
+
+    def iniciar(self):
+        self.iniciada = True
+
+    def detener(self):
+        self.detenida = True
+
+
 class TestSupervisarRestream(unittest.TestCase):
 
     def _supervisar(self, perfil, canales, fallo_canales=None):
@@ -301,6 +321,7 @@ class TestSupervisarRestream(unittest.TestCase):
         cuenta = CuentaFalsa(canales, fallo_canales=fallo_canales)
         anuncios = []
         creados = []
+        VigiaFalsa.instancias = []
 
         class SupervisorFalso:
             def __init__(self, destino, usuario, **kwargs):
@@ -308,6 +329,8 @@ class TestSupervisarRestream(unittest.TestCase):
                 self.usuario = usuario
                 self.kwargs = kwargs
                 self.iniciado = False
+                self.activo = True
+                self.deteniendo = False
                 creados.append(self)
 
             def iniciar(self):
@@ -326,10 +349,13 @@ class TestSupervisarRestream(unittest.TestCase):
                                   return_value={}), \
                 mock.patch.object(ganchos.diagnostico, "crear_hilo",
                                   side_effect=lambda f, n: HiloInmediato(f)), \
+                mock.patch("guyrapu.restream.vigia.VigiaSenal",
+                           VigiaFalsa), \
                 mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision",
                            SupervisorFalso):
             ganchos.supervisar_restream(
                 frame, "restream:" + perfil.nombre, cuenta_mod=cuenta)
+        frame._vigilas_prueba = VigiaFalsa.instancias
         return frame, cuenta, creados, anuncios
 
     def test_tiktok_con_usuario_crea_el_supervisor_con_tiktok(self):
@@ -371,6 +397,49 @@ class TestSupervisarRestream(unittest.TestCase):
         self.assertIsNone(frame._supervisor)
         self.assertIn((str(fallo), "transmision_problema"), anuncios)
         frame._actualizar_boton_directo.assert_not_called()
+
+    def test_crear_el_supervisor_arranca_la_vigia_con_el_mapa(self):
+        perfil = _perfil("Uno", "horizontal", (1,))
+        canales = [_canal(1, "TikTok", nombre="szeiryuGaming")]
+        frame, _cuenta, _creados, anuncios = self._supervisar(perfil, canales)
+
+        vigia = frame._vigilas_prueba[0]
+        self.assertTrue(vigia.iniciada)
+        vigia.al_recibir(
+            json.dumps({"action": "updateOutgoing", "channelId": 1,
+                        "streaming": {"status": "CONNECTED"}}))
+        vigia.al_recibir(
+            json.dumps({"action": "updateOutgoing", "channelId": 1,
+                        "streaming": {"status": "CONNECTING"}}))
+
+        self.assertIn(("TikTok: szeiryuGaming se desconectó.",
+                       "restream_destino_caido"), anuncios)
+
+    def test_al_terminar_detiene_la_vigia(self):
+        perfil = _perfil("Uno", "horizontal", (1,))
+        canales = [_canal(1, "YouTube")]
+        frame, _cuenta, creados, _anuncios = self._supervisar(perfil, canales)
+
+        creados[0].kwargs["al_terminar"]()
+
+        self.assertTrue(frame._vigilas_prueba[0].detenida)
+
+    def test_con_el_supervisor_deteniendo_no_anuncia_la_caida(self):
+        perfil = _perfil("Uno", "horizontal", (1,))
+        canales = [_canal(1, "YouTube")]
+        frame, _cuenta, creados, anuncios = self._supervisar(perfil, canales)
+        vigia = frame._vigilas_prueba[0]
+
+        vigia.al_recibir(
+            json.dumps({"action": "updateOutgoing", "channelId": 1,
+                        "streaming": {"status": "CONNECTED"}}))
+        creados[0].deteniendo = True
+        vigia.al_recibir(
+            json.dumps({"action": "updateOutgoing", "channelId": 1,
+                        "streaming": {"status": "CONNECTING"}}))
+
+        self.assertEqual(anuncios, [])
+        self.assertFalse(vigia.debe_seguir())
 
     def test_al_terminar_restaura_los_canales_cambiados(self):
         perfil = _perfil("Uno", "horizontal", (1, 2))

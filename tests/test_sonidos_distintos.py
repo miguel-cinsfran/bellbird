@@ -40,6 +40,8 @@ EVENTOS_NUEVOS = [
     "grabacion_iniciada", "grabacion_detenida",
     "grabacion_en_pausa", "grabacion_reanudada",
     "reconectando_directo", "directo_con_cortes",
+    "restream_destino_caido", "restream_destino_vuelve",
+    "restream_sin_senal", "restream_senal_vuelve", "restream_senal_debil",
     "descarga_avance", "descarga_quieta",
     "encuesta", "encuesta_fin",
     "meta", "batalla", "batalla_fin",

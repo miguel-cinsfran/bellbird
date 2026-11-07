@@ -11453,3 +11453,34 @@ msgstr "Signed in. You can go back to the application."
 msgid "Sin título"
 msgstr "Untitled"
 
+#: guyrapu/restream/senal.py
+#, python-brace-format
+msgid "{destino} se desconectó."
+msgstr "{destino} disconnected."
+
+#: guyrapu/restream/senal.py
+#, python-brace-format
+msgid "{destino} vuelve a recibir la transmisión."
+msgstr "{destino} is receiving the stream again."
+
+#: guyrapu/restream/senal.py
+msgid "Restream dejó de recibir la señal de OBS."
+msgstr "Restream stopped receiving the signal from OBS."
+
+#: guyrapu/restream/senal.py
+msgid "Restream vuelve a recibir la señal."
+msgstr "Restream is receiving the signal again."
+
+#: guyrapu/restream/senal.py
+#, python-brace-format
+msgid "Señal débil: a Restream llegan {kbps} kbps."
+msgstr "Weak signal: Restream is receiving {kbps} kbps."
+
+#: guyrapu/restream/senal.py
+msgid "La señal se recuperó."
+msgstr "The signal recovered."
+
+#: guyrapu/restream/senal.py
+msgid "Un destino"
+msgstr "A destination"
+

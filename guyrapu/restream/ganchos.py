@@ -187,14 +187,49 @@ def _conectar_chat(frame):
     return al_conectar_chat
 
 
+def _crear_vigia(modulo_cuenta, canales, al_anunciar, supervisor_actual):
+    """El vigía del estado de Restream, con los nombres de los canales."""
+    from guyrapu.restream import senal, vigia
+
+    destinos = {canal.id: canal.texto for canal in canales}
+    analizador = senal.AnalizadorSenal(destinos)
+
+    def al_recibir(texto):
+        supervisor = supervisor_actual()
+        if (supervisor is None or supervisor.deteniendo
+                or not supervisor.activo):
+            return
+        for aviso in analizador.recibir(texto):
+            al_anunciar(aviso.frase, aviso.sonido)
+
+    def debe_seguir():
+        supervisor = supervisor_actual()
+        return (supervisor is not None and supervisor.activo
+                and not supervisor.deteniendo)
+
+    return vigia.VigiaSenal(
+        lambda: modulo_cuenta.sesion().token(),
+        al_recibir, debe_seguir=debe_seguir)
+
+
 def _al_terminar(frame, restaurar):
     def al_terminar():
+        vigia_senal = getattr(frame, "_vigia_restream", None)
+        if vigia_senal is not None:
+            vigia_senal.detener()
         try:
             frame._al_terminar_supervisor()
         finally:
             diagnostico.crear_hilo(
                 restaurar, "RestaurarRestream").start()
     return al_terminar
+
+
+def _arrancar_vigia(modulo_cuenta, canales, al_anunciar, frame):
+    vigia_senal = _crear_vigia(
+        modulo_cuenta, canales, al_anunciar, lambda: frame._supervisor)
+    frame._vigia_restream = vigia_senal
+    vigia_senal.iniciar()
 
 
 def _en_interfaz(frame, funcion, *args):
@@ -216,9 +251,8 @@ def _crear_supervisor(frame, modulo_cuenta, opcion, lista, perfil, destino,
 
     if not getattr(frame, "_alive", True):
         return
-    contexto = Contexto(destino=destino, usuario=usuario)
-    al_anunciar = _anunciar_de_frame(frame)
-    envoltura = envolver_anunciar(al_anunciar, contexto)
+    envoltura = envolver_anunciar(
+        _anunciar_de_frame(frame), Contexto(destino=destino, usuario=usuario))
     preparar, restaurar = armar(
         opcion, envoltura, canales, cuenta_mod=modulo_cuenta, perfiles=lista)
     supervisor = SupervisorTransmision(
@@ -231,6 +265,7 @@ def _crear_supervisor(frame, modulo_cuenta, opcion, lista, perfil, destino,
         preparar_emision=preparar)
     frame._supervisor = supervisor
     supervisor.iniciar()
+    _arrancar_vigia(modulo_cuenta, canales, envoltura, frame)
     frame._actualizar_boton_directo()
 
 

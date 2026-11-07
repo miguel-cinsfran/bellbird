@@ -60,6 +60,9 @@ EVENTOS = [
     "clip",
     # Reconexión del relevo de un directo de YouTube: intento y aviso final.
     "reconectando_directo", "directo_con_cortes",
+    # Estado de Restream por su WebSocket: destinos y señal de OBS.
+    "restream_destino_caido", "restream_destino_vuelve",
+    "restream_sin_senal", "restream_senal_vuelve", "restream_senal_debil",
     # Avance de una descarga en curso y descarga que sigue en cero.
     "descarga_avance", "descarga_quieta",
     # Encuestas del directo de TikTok: apertura y cierre.
@@ -153,6 +156,11 @@ NOMBRES = {
     "clip": "Clip guardado",
     "reconectando_directo": "Reconexión del directo",
     "directo_con_cortes": "Directo con cortes seguidos",
+    "restream_destino_caido": "Destino de Restream desconectado",
+    "restream_destino_vuelve": "Destino de Restream de vuelta",
+    "restream_sin_senal": "Restream sin señal",
+    "restream_senal_vuelve": "Señal de Restream recuperada",
+    "restream_senal_debil": "Señal débil en Restream",
     "descarga_avance": "Avance de descarga",
     "descarga_quieta": "Descarga quieta",
     "encuesta": "Encuesta abierta",

@@ -240,7 +240,7 @@ class PaginaTransmision(wx.Panel):
 
     def _encender_chat(self):
         config = getattr(self._principal, "_config", None) or {}
-        puerto = config.get("overlay_puerto", chat_en_video.PUERTO_DEFECTO)
+        puerto = chat_en_video.puerto_del_panel(config)
         try:
             overlay_servidor.encender(puerto)
         except overlay_servidor.OverlayPuertoOcupadoError:

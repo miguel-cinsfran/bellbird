@@ -1,7 +1,6 @@
 """Pruebas de llevar un diseño calculado a una escena de OBS, sin wx."""
 
 import unittest
-from unittest import mock
 
 from guyrapu.obs import (
     aplicar_diseno, disenos_escena, disenos_fabrica, obs_panel)
@@ -210,7 +209,7 @@ class AplicarDisenoTest(unittest.TestCase):
         diseno = disenos_escena.Diseno(
             clase="pantalla_completa", principal="Juego")
         resultado, sin_mover = aplicar_diseno.aplicar_diseno(
-            gestor, RegistroFalso(eventos), "Escena", diseno)
+            gestor, RegistroFalso(eventos), "Escena", diseno, 8730)
         self.assertEqual(resultado,
                          [("Juego", disenos_escena.ESTADO_AJUSTA)])
         self.assertEqual(sin_mover, ["Cámara", NOMBRE_FUENTE])
@@ -227,10 +226,8 @@ class AplicarDisenoTest(unittest.TestCase):
         eventos = []
         doble = DobleObs(sin_chat)
         gestor = GestorQueAnota(doble, eventos)
-        with mock.patch.object(aplicar_diseno.overlay_servidor,
-                               "puerto_actual", return_value=8730):
-            resultado, _sin_mover = aplicar_diseno.aplicar_diseno(
-                gestor, RegistroFalso(eventos), "Escena", _diseno())
+        resultado, _sin_mover = aplicar_diseno.aplicar_diseno(
+            gestor, RegistroFalso(eventos), "Escena", _diseno(), 9000)
         tipos = [llamada[0] for llamada in doble.llamadas]
         self.assertIn("CreateInput", tipos)
         self.assertLess(tipos.index("CreateInput"),
@@ -239,7 +236,7 @@ class AplicarDisenoTest(unittest.TestCase):
         ajustes = next(llamada[1] for llamada in doble.llamadas
                        if llamada[0] == "SetInputSettings")
         self.assertEqual(ajustes["inputSettings"]["url"],
-                         "http://127.0.0.1:8730/chat")
+                         "http://127.0.0.1:9000/chat")
 
     def test_aplicar_diseno_nombra_la_fuente_que_no_entro(self):
         extra = elemento(4, "Extra", 3)
@@ -247,7 +244,7 @@ class AplicarDisenoTest(unittest.TestCase):
         eventos = []
         gestor = GestorQueAnota(DobleObs(_escena() + [extra]), eventos)
         resultado, sin_mover = aplicar_diseno.aplicar_diseno(
-            gestor, RegistroFalso(eventos), "Escena", _diseno())
+            gestor, RegistroFalso(eventos), "Escena", _diseno(), 8730)
         self.assertEqual([nombre for nombre, _estado in resultado],
                          [NOMBRE_FUENTE, "Cámara", "Juego"])
         self.assertEqual(sin_mover, ["Extra"])
@@ -260,7 +257,7 @@ class AplicarDisenoTest(unittest.TestCase):
         eventos = []
         gestor = GestorQueAnota(DobleObs(_escena() + [extra, oculta]), eventos)
         _resultado, sin_mover = aplicar_diseno.aplicar_diseno(
-            gestor, RegistroFalso(eventos), "Escena", _diseno())
+            gestor, RegistroFalso(eventos), "Escena", _diseno(), 8730)
         self.assertEqual(sin_mover, ["Extra"])
 
     def test_chat_superpuesto_solo_se_coloca(self):

@@ -21,18 +21,20 @@ from encuadre_imagenes import (  # noqa: E402
 import ventanas_obs  # noqa: E402
 
 def escenario_restream(app: Aplicacion, args, res: Resultado):
-    """La ventana de Restream: la pestaña por defecto y la de la cuenta.
+    """La ventana de Restream: la pestaña que abre sola y la de destinos.
 
-    Primero se audita la pestaña que abre sola, y después la de la cuenta,
-    elegida con la orden `pestanas`. Los controles de una pestaña que no está
-    seleccionada no existen para el servicio de accesibilidad de Windows.
+    La ventana abre en Cuenta; después se elige Destinos con la orden
+    `pestanas`. Los controles de una pestaña que no está seleccionada no
+    existen para el servicio de accesibilidad de Windows.
     """
+    cuenta = ("Estado de la cuenta", "Conectar", "Cerrar")
     auditar_dialogo(app, res, "Transmisión > Restream…", "Restream",
-                    vueltas_tab=12)
-    esperados = ("Estado de la cuenta", "Conectar", "Cerrar")
+                    vueltas_tab=12, esperados=cuenta,
+                    esperados_en_tab=cuenta)
+    destinos = ("Destinos", "Agregar destino", "Actualizar", "Cerrar")
     auditar_dialogo(app, res, "Transmisión > Restream…", "Restream",
-                    vueltas_tab=12, esperados=esperados,
-                    esperados_en_tab=esperados, pestana="Cuenta")
+                    vueltas_tab=12, esperados=destinos,
+                    esperados_en_tab=destinos, pestana="Destinos")
 
 
 def obs_abierto() -> bool:

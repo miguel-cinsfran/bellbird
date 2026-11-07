@@ -6,8 +6,8 @@ import wx
 
 from guyrapu.core.idioma import _
 from guyrapu.obs import (
-    aplicar_diseno, consultas_transmision, disenos_fabrica, disenos_guardados,
-    obs_disposicion)
+    aplicar_diseno, chat_en_video, consultas_transmision, disenos_fabrica,
+    disenos_guardados, obs_disposicion)
 from guyrapu.ui import (
     escena_acciones_fuente, escena_agregar_fuente, escena_disenos,
     escena_menu_fuente)
@@ -163,8 +163,11 @@ class PaginaFuentes(wx.Panel):
             lambda datos: self._diseno_aplicado(nombre, datos))
 
     def _aplicar_diseno_elegido(self, escena, diseno):
+        config = getattr(getattr(self._ventana, "_principal", None),
+                         "_config", None) or {}
+        puerto = chat_en_video.puerto_del_panel(config)
         resultado = aplicar_diseno.aplicar_diseno(
-            self._gestor, self._registro, escena, diseno)
+            self._gestor, self._registro, escena, diseno, puerto)
         return resultado, consultas_transmision.leer_filas(
             self._gestor, escena)
 

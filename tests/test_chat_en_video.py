@@ -1,6 +1,7 @@
 """Pruebas de cuándo y cómo existe el chat en el vídeo en OBS."""
 
 import unittest
+from unittest import mock
 
 from guyrapu.obs import chat_en_video
 from guyrapu.obs.fuente_chat import NOMBRE_FUENTE
@@ -65,6 +66,26 @@ class TestDecidir(unittest.TestCase):
     def test_sin_obs_conectado_no_apaga(self):
         self.assertEqual(
             chat_en_video.decidir(False, True, False), chat_en_video.NADA)
+
+
+class TestPuertoDelPanel(unittest.TestCase):
+
+    def test_usa_el_guardado_si_el_servicio_esta_apagado(self):
+        with mock.patch.object(chat_en_video.overlay_servidor,
+                               "puerto_actual", return_value=None):
+            self.assertEqual(
+                chat_en_video.puerto_del_panel({"overlay_puerto": 9000}), 9000)
+
+    def test_prefiere_el_del_servicio_encendido(self):
+        with mock.patch.object(chat_en_video.overlay_servidor,
+                               "puerto_actual", return_value=9001):
+            self.assertEqual(
+                chat_en_video.puerto_del_panel({"overlay_puerto": 9000}), 9001)
+
+    def test_sin_config_usa_el_de_fabrica(self):
+        with mock.patch.object(chat_en_video.overlay_servidor,
+                               "puerto_actual", return_value=None):
+            self.assertEqual(chat_en_video.puerto_del_panel(), 8730)
 
 
 class TestAgregarFuente(unittest.TestCase):

@@ -7,6 +7,7 @@ preferencia guardada.
 
 from __future__ import annotations
 
+from guyrapu.obs import overlay_servidor
 from guyrapu.obs.fuente_chat import NOMBRE_FUENTE, TIPO_FUENTE
 
 RUTA_PANEL = "/chat"
@@ -17,6 +18,13 @@ ALTO = 620
 ENCENDER = "encender"
 APAGAR = "apagar"
 NADA = "nada"
+
+
+def puerto_del_panel(config=None) -> int:
+    """El puerto del servicio encendido, el guardado o el de fábrica."""
+    config = config or {}
+    return (overlay_servidor.puerto_actual()
+            or config.get("overlay_puerto", PUERTO_DEFECTO))
 
 
 def agregar_fuente(gestor, escena, puerto) -> bool:

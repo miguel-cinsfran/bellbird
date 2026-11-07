@@ -1093,7 +1093,9 @@ class TestPseudoConfirmarTransmision(unittest.TestCase):
             creados.append(dialogo)
             return dialogo
 
-        with con_pseudo(),                 mock.patch.object(modulo_confirmar.confirmar, "MessageDialog", fabrica):
+        with con_pseudo(), \
+                mock.patch.object(modulo_confirmar.confirmar,
+                                  "MessageDialog", fabrica):
             modulo_confirmar.confirmar_finalizar(mock.sentinel.padre)
         self.assertTrue(captado["mensaje"].startswith("[¡"))
         self.assertTrue(captado["titulo"].startswith("[¡"))

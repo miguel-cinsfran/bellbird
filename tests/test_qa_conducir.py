@@ -421,7 +421,7 @@ class TestCierreDeVentanasSobrantes(unittest.TestCase):
 
 class TestPestanaDeRestream(unittest.TestCase):
 
-    def test_audita_la_pestana_por_defecto_y_despues_la_de_la_cuenta(self):
+    def test_audita_la_pestana_que_abre_y_despues_la_de_destinos(self):
         llamadas = []
 
         def auditar_falso(*args, **kwargs):
@@ -435,9 +435,12 @@ class TestPestanaDeRestream(unittest.TestCase):
 
         self.assertEqual(len(llamadas), 2)
         self.assertIsNone(llamadas[0].get("pestana"))
-        self.assertEqual(llamadas[1].get("pestana"), "Cuenta")
-        self.assertEqual(llamadas[1].get("esperados_en_tab"),
+        self.assertEqual(llamadas[0].get("esperados_en_tab"),
                          ("Estado de la cuenta", "Conectar", "Cerrar"))
+        self.assertEqual(llamadas[1].get("pestana"), "Destinos")
+        self.assertEqual(llamadas[1].get("esperados_en_tab"),
+                         ("Destinos", "Agregar destino", "Actualizar",
+                          "Cerrar"))
 
 
 class TestHilosSinDaemon(unittest.TestCase):

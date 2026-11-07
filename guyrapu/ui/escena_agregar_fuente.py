@@ -6,9 +6,10 @@ import wx
 
 from guyrapu.core.idioma import _
 from guyrapu.obs import (
-    consultas_transmision, fuente_nueva, tipos_fuente)
+    chat_en_video, consultas_transmision, fuente_chat, fuente_nueva,
+    tipos_fuente)
 from guyrapu.ui import (
-    agregar_camara, escena_captura_ventana, escena_propiedades)
+    agregar_camara, confirmar, escena_captura_ventana, escena_propiedades)
 from guyrapu.ui.accesibilidad import anunciar
 
 
@@ -35,6 +36,8 @@ def agregar(pagina, clave):
         return
     if clave == "camara":
         _agregar_camara(pagina)
+    elif clave == "chat":
+        _agregar_chat(pagina)
     elif clave == "ventana":
         _capturar_ventana(pagina)
     elif clave == "otra_escena":
@@ -192,6 +195,48 @@ def _ventana_aplicada(pagina, datos):
     pagina._cargar_filas(filas, fuente)
     _enfocar(pagina)
     anunciar(frase)
+
+
+def _agregar_chat(pagina):
+    escena = _escena(pagina)
+    if not escena or _en_vuelo(pagina):
+        return
+    if fuente_chat.NOMBRE_FUENTE in pagina._gestor.fuentes(escena):
+        anunciar(_("Chat en el vídeo ya está en la escena {escena}.").format(
+            escena=escena))
+        return
+    if not confirmar.preguntar(
+            pagina,
+            _("Muestra encima del vídeo los mensajes y los regalos del chat "
+              "que lee Guyrapu, para que los vean los espectadores."),
+            _("Chat en el vídeo"), _("&Agregar"), _("&Cancelar"),
+            predeterminado_si=True):
+        _enfocar(pagina)
+        return
+    pagina._operaciones.en_hilo(
+        lambda: _crear_chat_y_leer(pagina, escena),
+        lambda filas: _chat_agregado(pagina, escena, filas))
+
+
+def _puerto_chat(pagina):
+    config = getattr(getattr(pagina._ventana, "_principal", None),
+                     "_config", None) or {}
+    return chat_en_video.puerto_del_panel(config)
+
+
+def _crear_chat_y_leer(pagina, escena):
+    chat_en_video.agregar_fuente(pagina._gestor, escena, _puerto_chat(pagina))
+    return consultas_transmision.leer_filas(pagina._gestor, escena)
+
+
+def _chat_agregado(pagina, escena, filas):
+    pagina._cargar_filas(filas, fuente_chat.NOMBRE_FUENTE)
+    _enfocar(pagina)
+    anunciar(_("Chat en el vídeo agregado a la escena {escena}.").format(
+        escena=escena))
+    refrescar = getattr(pagina._ventana, "_refrescar_general", None)
+    if refrescar is not None:
+        refrescar()
 
 
 def _agregar_de_otra(pagina):

@@ -980,13 +980,13 @@ class TestVentanaObs(unittest.TestCase):
             len([llamada for llamada in self.gestor.llamadas
                  if llamada[0] == "transformar"]), 3)
 
-    def test_agregar_fuente_abre_el_menu_con_los_ocho_tipos(self):
+    def test_agregar_fuente_abre_el_menu_con_los_nueve_tipos(self):
         pagina = self.dialogo._pagina_fuentes
         self.assertEqual(
             self._abrir_menu_agregar(pagina),
             ["Cámara…", "Captura de pantalla…", "Captura de ventana…",
              "Captura de juego…", "Imagen…", "Archivo multimedia…",
-             "Texto…", "Fuente de otra escena…"])
+             "Texto…", "Chat en el vídeo…", "Fuente de otra escena…"])
 
     def test_capturar_ventana_pide_las_ventanas_y_aplica_la_elegida(self):
         pagina = self.dialogo._pagina_fuentes

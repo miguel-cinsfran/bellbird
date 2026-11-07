@@ -6,32 +6,33 @@ from guyrapu.obs import tipos_fuente
 
 
 class CatalogoTest(unittest.TestCase):
-    def test_tiene_los_ocho_tipos_en_orden(self):
+    def test_tiene_los_nueve_tipos_en_orden(self):
         self.assertEqual(
             [tipo.clave for tipo in tipos_fuente.CATALOGO],
             ["camara", "pantalla", "ventana", "juego", "imagen",
-             "multimedia", "texto", "otra_escena"])
+             "multimedia", "texto", "chat", "otra_escena"])
 
     def test_las_etiquetas_del_menu_son_las_del_encargo(self):
         self.assertEqual(
             tipos_fuente.etiquetas_menu(),
             ("&Cámara…", "Captura de &pantalla…", "Captura de &ventana…",
              "Captura de &juego…", "&Imagen…", "&Archivo multimedia…",
-             "&Texto…", "&Fuente de otra escena…"))
+             "&Texto…", "C&hat en el vídeo…", "&Fuente de otra escena…"))
 
     def test_los_nombres_propuestos_son_los_del_encargo(self):
         self.assertEqual(
             [tipos_fuente.nombre_propuesto(tipo, ())
              for tipo in tipos_fuente.CATALOGO if tipo.clave != "otra_escena"],
             ["Cámara", "Captura de pantalla", "Captura de ventana",
-             "Captura de juego", "Imagen", "Archivo multimedia", "Texto"])
+             "Captura de juego", "Imagen", "Archivo multimedia", "Texto",
+             "Chat en el vídeo"])
 
     def test_cada_tipo_tiene_su_lugar(self):
         lugares = {tipo.clave: tipo.lugar for tipo in tipos_fuente.CATALOGO}
         self.assertEqual(lugares, {
             "camara": "camara", "pantalla": "ajustada",
             "ventana": "ventana", "juego": "ajustada", "imagen": "ajustada",
-            "multimedia": "ajustada", "texto": "texto",
+            "multimedia": "ajustada", "texto": "texto", "chat": "chat",
             "otra_escena": "otra_escena"})
 
 

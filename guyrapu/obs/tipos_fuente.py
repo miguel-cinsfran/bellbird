@@ -37,6 +37,8 @@ CATALOGO = (
                N_("Archivo multimedia"), "ffmpeg_source", "ajustada"),
     TipoFuente("texto", N_("&Texto…"), N_("Texto"),
                "text_gdiplus", "texto"),
+    TipoFuente("chat", N_("C&hat en el vídeo…"), N_("Chat en el vídeo"),
+               "browser_source", "chat"),
     TipoFuente("otra_escena", N_("&Fuente de otra escena…"), "",
                "", "otra_escena"),
 )

@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from guyrapu.obs import fuente_nueva, tipos_fuente
+from guyrapu.obs.fuente_chat import NOMBRE_FUENTE
 from guyrapu.ui import escena_agregar_fuente, escena_acciones_fuente
 
 _ID_OK = 5100
@@ -40,9 +41,10 @@ class Operaciones:
 
 
 class Gestor:
-    def __init__(self, filas=()):
+    def __init__(self, filas=(), fuentes_escena=("Cámara",)):
         self.llamadas = []
         self.filas = list(filas)
+        self.fuentes_escena = tuple(fuentes_escena)
         self.ventana = None
 
     def _pedir(self, tipo, datos=None, parada=None):
@@ -57,7 +59,7 @@ class Gestor:
         return tuple(self.filas)
 
     def fuentes(self, escena):
-        return ("Cámara", "Chat en el vídeo")
+        return self.fuentes_escena
 
     def usar_ventana(self, escena, valor, parada=None, nombre=""):
         self.ventana = (escena, valor, nombre)
@@ -70,6 +72,15 @@ class Lista:
 
     def SetFocus(self):
         self.veces += 1
+
+
+class Ventana:
+    def __init__(self, config=None):
+        self._principal = SimpleNamespace(_config=dict(config or {}))
+        self.refrescos = 0
+
+    def _refrescar_general(self):
+        self.refrescos += 1
 
 
 class Pagina:
@@ -115,12 +126,12 @@ class DialogoNombre:
 
 
 class MenuTest(unittest.TestCase):
-    def test_tiene_los_ocho_tipos_en_orden(self):
+    def test_tiene_los_nueve_tipos_en_orden(self):
         self.assertEqual(
             escena_agregar_fuente.etiquetas_menu(),
             ("&Cámara…", "Captura de &pantalla…", "Captura de &ventana…",
              "Captura de &juego…", "&Imagen…", "&Archivo multimedia…",
-             "&Texto…", "&Fuente de otra escena…"))
+             "&Texto…", "C&hat en el vídeo…", "&Fuente de otra escena…"))
 
 
 class NombreTest(unittest.TestCase):
@@ -199,6 +210,77 @@ class AgregarTest(unittest.TestCase):
             escena_agregar_fuente.agregar(pagina, "otra_escena")
         self.assertIn("No hay fuentes de otras escenas para agregar.",
                       anuncios)
+
+
+class ChatTest(unittest.TestCase):
+
+    def test_si_ya_esta_avisa_y_no_abre_nada(self):
+        pagina = Pagina()
+        pagina._gestor.fuentes_escena = ("Cámara", NOMBRE_FUENTE)
+        anuncios = []
+        with mock.patch.object(escena_agregar_fuente, "anunciar",
+                               anuncios.append), \
+                mock.patch.object(
+                    escena_agregar_fuente.confirmar, "preguntar") as preguntar, \
+                mock.patch.object(
+                    escena_agregar_fuente.chat_en_video,
+                    "agregar_fuente") as agregar:
+            escena_agregar_fuente.agregar(pagina, "chat")
+        preguntar.assert_not_called()
+        agregar.assert_not_called()
+        self.assertIn("Chat en el vídeo ya está en la escena Principal.",
+                      anuncios)
+
+    def test_cancelar_el_chat_no_agrega_y_enfoca_la_lista(self):
+        pagina = Pagina()
+        anuncios = []
+        with mock.patch.object(
+                escena_agregar_fuente.confirmar, "preguntar",
+                return_value=False) as preguntar, \
+                mock.patch.object(
+                    escena_agregar_fuente.chat_en_video,
+                    "agregar_fuente") as agregar, \
+                mock.patch.object(escena_agregar_fuente, "anunciar",
+                                  anuncios.append):
+            escena_agregar_fuente.agregar(pagina, "chat")
+        agregar.assert_not_called()
+        self.assertEqual(anuncios, [])
+        self.assertGreater(pagina.lst_fuentes.veces, 0)
+        args, kwargs = preguntar.call_args
+        self.assertIs(args[0], pagina)
+        self.assertIn("Muestra encima del vídeo", args[1])
+        self.assertEqual(args[2], "Chat en el vídeo")
+        self.assertEqual(args[3], "&Agregar")
+        self.assertEqual(args[4], "&Cancelar")
+        self.assertTrue(kwargs.get("predeterminado_si"))
+
+    def test_agregar_chat_usa_el_puerto_guardado_y_anuncia(self):
+        pagina = Pagina()
+        ventana = Ventana({"overlay_puerto": 9000})
+        pagina._ventana = ventana
+        filas = (SimpleNamespace(nombre=NOMBRE_FUENTE),)
+        anuncios = []
+        with mock.patch.object(
+                escena_agregar_fuente.confirmar, "preguntar",
+                return_value=True), \
+                mock.patch.object(
+                    escena_agregar_fuente.chat_en_video.overlay_servidor,
+                    "puerto_actual", return_value=None), \
+                mock.patch.object(
+                    escena_agregar_fuente.chat_en_video,
+                    "agregar_fuente") as agregar, \
+                mock.patch.object(
+                    escena_agregar_fuente.consultas_transmision,
+                    "leer_filas", return_value=filas), \
+                mock.patch.object(escena_agregar_fuente, "anunciar",
+                                  anuncios.append):
+            escena_agregar_fuente.agregar(pagina, "chat")
+        agregar.assert_called_once_with(pagina._gestor, "Principal", 9000)
+        self.assertEqual(pagina.cargado, (filas, NOMBRE_FUENTE))
+        self.assertIn("Chat en el vídeo agregado a la escena Principal.",
+                      anuncios)
+        self.assertGreater(pagina.lst_fuentes.veces, 0)
+        self.assertEqual(ventana.refrescos, 1)
 
 
 class VentanaTest(unittest.TestCase):

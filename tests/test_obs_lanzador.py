@@ -374,6 +374,9 @@ class CableadoPanelObsTest(unittest.TestCase):
             def conectado(self):
                 return self._conectado
 
+            def _pedir(self, tipo, datos=None, parada=None):
+                return {}
+
             def escenas(self):
                 return ("Principal",)
 

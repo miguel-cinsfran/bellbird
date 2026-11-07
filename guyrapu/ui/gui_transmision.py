@@ -19,6 +19,8 @@ from guyrapu.ui.gui_elegir_destino import pedir_destino
 from guyrapu.ui.preferencias_comun import boton
 from guyrapu.voice import sound_player
 
+logger = diagnostico.obtener_logger(__name__)
+
 
 class PaginaTransmision(wx.Panel):
     """Lo que hace la pestaña Transmisión: el directo y sus acciones."""
@@ -83,11 +85,19 @@ class PaginaTransmision(wx.Panel):
             return None
         opcion, usuario = elegido
         if self._guardar_destino is not None:
-            self._guardar_destino(opcion)
+            try:
+                self._guardar_destino(opcion)
+            except Exception as error:
+                logger.warning(
+                    "no se pudo guardar el destino de transmisión: %s", error)
         self._destino_guardado = opcion
         if opcion == "TikTok":
             if self._guardar_usuario is not None:
-                self._guardar_usuario(usuario)
+                try:
+                    self._guardar_usuario(usuario)
+                except Exception as error:
+                    logger.warning(
+                        "no se pudo guardar el usuario de TikTok: %s", error)
             self._usuario_tiktok = usuario
         return (opcion, self.destino_actual(), usuario)
 

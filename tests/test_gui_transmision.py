@@ -791,6 +791,36 @@ class TestPanelTransmision(unittest.TestCase):
         self.principal.supervisar.assert_any_call(
             "iniciar", "TikTok", "usuario")
 
+    def test_los_datos_directo_guardan_destino_y_usuario_de_tiktok(self):
+        pagina = self.dialogo
+        with self._pedir(("TikTok", "usuario")):
+            datos = pagina._datos_directo()
+        self.principal.guardar_destino.assert_called_once_with("TikTok")
+        self.principal.guardar_usuario.assert_called_once_with("usuario")
+        self.assertEqual(datos, ("TikTok", "TikTok", "usuario"))
+
+    def test_los_datos_directo_con_youtube_no_guardan_usuario(self):
+        pagina = self.dialogo
+        with self._pedir(("YouTube", "")):
+            datos = pagina._datos_directo()
+        self.principal.guardar_destino.assert_called_once_with("YouTube")
+        self.principal.guardar_usuario.assert_not_called()
+        self.assertEqual(datos, ("YouTube", "YouTube", ""))
+
+    def test_un_guardado_que_falla_avisa_y_sigue(self):
+        pagina = self.dialogo
+        self.principal.guardar_destino.side_effect = RuntimeError("disco lleno")
+        self.principal.guardar_usuario.side_effect = RuntimeError("disco lleno")
+        with self._pedir(("TikTok", "usuario")), \
+                self.assertLogs("guyrapu.gui_transmision",
+                                level="WARNING") as logs:
+            datos = pagina._datos_directo()
+        self.assertEqual(datos, ("TikTok", "TikTok", "usuario"))
+        self.assertTrue(any("destino de transmisión" in mensaje
+                            for mensaje in logs.output))
+        self.assertTrue(any("usuario de TikTok" in mensaje
+                            for mensaje in logs.output))
+
     def test_destino_actual_usa_el_guardado_y_relee_los_perfiles(self):
         with self._con_perfiles(_perfil_restream("Uno", "vertical")) as cargar:
             self.dialogo._destino_guardado = "restream:Uno"

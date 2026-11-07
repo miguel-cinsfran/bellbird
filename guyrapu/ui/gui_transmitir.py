@@ -278,71 +278,11 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
             return _iniciar_restream(frame, destino, revision)
         ganchos = {}
         if destino == "YouTube":
-            from datetime import datetime, timezone
-            from guyrapu.ui.gui_directo_youtube import pedir_datos_directo
-            from guyrapu.youtube import emision
-            datos = _gui.credenciales.cargar()
-            if not _gui.credenciales.hay_sesion(datos):
-                _gui.anunciar(_("Para transmitir a YouTube hace falta iniciar "
-                                "sesión con Google, en Preferencias, categoría "
-                                "YouTube."))
+            from guyrapu.ui import inicio_youtube
+            armado = inicio_youtube.pedir_y_armar(frame, revision)
+            if armado is None:
                 return
-            cliente = _gui.youtube_api.ClienteYouTube(
-                _gui.credenciales.efectivas(datos))
-            pedido = pedir_datos_directo(
-                frame,
-                frame._config.get("transmision_youtube_titulo", ""),
-                frame._config.get("transmision_youtube_descripcion", ""),
-                frame._config.get("transmision_youtube_privacidad",
-                                  emision.PRIVACIDAD_INICIAL),
-                revision,
-                frame._config.get("transmision_youtube_latencia",
-                                  emision.LATENCIA_INICIAL),
-                frame._config.get("transmision_youtube_ninos", False),
-                frame._config.get("transmision_youtube_dvr", True),
-                frame._config.get("transmision_youtube_categoria", ""),
-                frame._config.get("transmision_youtube_etiquetas", ""),
-                frame._config.get("transmision_youtube_miniatura", ""),
-                frame._config.get("transmision_youtube_lista", ""),
-                frame._config.get("transmision_youtube_lista_titulo", ""),
-                emision.cargador_listas(
-                    cliente, lambda nuevo:
-                    _gui.credenciales.guardar_campo("token", nuevo)))
-            if pedido is None:
-                _gui.anunciar(_("No se transmitió."))
-                return
-            guardados = frame._guardar_datos_directo_youtube(
-                pedido["titulo"], pedido["descripcion"],
-                pedido["privacidad"], pedido.get("latencia"),
-                pedido.get("ninos", False), pedido.get("dvr", True),
-                pedido.get("categoria", ""), pedido.get("etiquetas", []),
-                pedido.get("miniatura", ""), pedido.get("lista", ""),
-                pedido.get("lista_titulo", ""))
-            try:
-                cuerpo = emision.cuerpo_emision(
-                    guardados["titulo"], guardados["descripcion"],
-                    guardados["privacidad"],
-                    datetime.now(timezone.utc).isoformat(),
-                    latencia=guardados.get("latencia",
-                                           emision.LATENCIA_INICIAL),
-                    ninos=guardados.get("ninos", False),
-                    dvr=guardados.get("dvr", True))
-            except emision.EmisionError as exc:
-                avisar(str(exc), error=True)
-                return
-            extras = {"categoria": guardados.get("categoria", ""),
-                      "etiquetas": guardados.get("etiquetas", []),
-                      "miniatura": guardados.get("miniatura", ""),
-                      "lista": guardados.get("lista", ""),
-                      "titulo": guardados["titulo"],
-                      "descripcion": guardados["descripcion"]}
-            preparar, esperar, finalizar = emision.ganchos_youtube(
-                cliente, cuerpo,
-                lambda nuevo: _gui.credenciales.guardar_campo("token", nuevo),
-                extras=extras, avisar=_gui.anunciar)
-            ganchos = {"preparar_emision": preparar,
-                       "esperar_emision": esperar,
-                       "finalizar_emision": finalizar}
+            guardados, ganchos = armado
         from guyrapu.obs.obs_supervisor import SupervisorTransmision
         from guyrapu.core import paths
 
@@ -354,20 +294,8 @@ def supervisar_transmision(frame, accion, destino="", usuario="",
                 if not frame._alive:
                     return
                 if destino == "YouTube":
-                    from guyrapu.youtube import emision as _emision
-                    if guardados.get("ninos"):
-                        frame.sesion.enlace_directo = url
-                        _gui.anunciar(
-                            _("El directo está marcado como creado para "
-                              "niños y YouTube no tiene chat."))
-                        return
-                    if not _emision.chat_legible(
-                            guardados["privacidad"]):
-                        frame.sesion.enlace_directo = url
-                        _gui.anunciar(
-                            _("El directo es privado y YouTube no permite "
-                              "leer su chat. Para leerlo, transmite como "
-                              "público o no listado."))
+                    from guyrapu.ui import inicio_youtube
+                    if inicio_youtube.sin_chat(frame, guardados, url):
                         return
                 if frame._conectado or frame._conectando:
                     _gui.anunciar(_("El chat ya estaba conectado y no se cambió."))

@@ -5654,7 +5654,7 @@ class TestSupervisarDirectoYoutube(unittest.TestCase):
                            return_value=pedido), \
                 mock.patch.object(gui, "guardar_opcion"), \
                 mock.patch("guyrapu.obs.obs_supervisor.SupervisorTransmision") as fabrica, \
-                mock.patch.object(gui, "anunciar") as anunciar,                 mock.patch("guyrapu.ui.gui_transmitir.avisar",
+                mock.patch.object(gui, "anunciar") as anunciar,                 mock.patch("guyrapu.ui.inicio_youtube.avisar",
                            anunciar):
             frame._supervisar_transmision("iniciar", "YouTube", "")
         anunciar.assert_called_once_with("Falta el título del directo.",

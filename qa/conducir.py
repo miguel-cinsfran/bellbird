@@ -181,6 +181,7 @@ SUPERFICIES = {
     "mover_con_flechas.py": "escena",
     "confirmar_transmision.py": "transmision",
     "gui_transmitir.py": "transmitir_destino",
+    "inicio_youtube.py": "transmitir_destino",
     "gui_preferencias.py": "preferencias",
     "gui_redactar.py": "redactar",
     "reproductor.py": "reproductor",
